@@ -1,43 +1,42 @@
-``` pgsql
-User
-----
-id (PK)
-username
-password_hash
-created_at
-updated_at
-      | 1:N
-      |
-Deck
-----
-id (PK)
-user_id (FK)
-name
-created_at
-updated_at
-      | 1:N
-      |
-Duel
-----
-id (PK)
-user_id (FK)
-deck_id (FK)
-result        # bool (true=勝ち, false=負け)
-rank
-coin          # bool (true=表, false=裏)
-first_or_second # bool (true=先手, false=後手)
-date_played
-notes
-created_at
-updated_at
-      | 1:N
-      |
-SharedURL
-----
-id (PK)
-user_id (FK)
-year_month
-url           # UUIDなど
-created_at
-updated_at
+```mermaid
+erDiagram
+    USER ||--o{ DECK : owns
+    USER ||--o{ DUEL : has
+    USER ||--o{ SHAREDURL : has
+
+    DECK ||--o{ DUEL : used_in
+
+    USER {
+        int id PK
+        string username
+        string password_hash
+        datetime created_at
+        datetime updated_at
+    }
+
+    DECK {
+        int id PK
+        int user_id FK
+        string name
+        datetime created_at
+        datetime updated_at
+    }
+
+    DUEL {
+        int id PK
+        int user_id FK
+        int deck_id FK
+        bool result           "true=勝ち, false=負け"
+        int rank
+        bool coin             "true=表, false=裏"
+        bool first_or_second  "true=先手, false=後手"
+        datetime date_played
+        string notes
+        datetime created_at
+        datetime updated_at
+    }
+
+    SHAREDURL {
+        int id PK
+        int user_id FK
 ```
