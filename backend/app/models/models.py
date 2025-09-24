@@ -1,10 +1,8 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
+from ..db.session import Base
 from datetime import datetime
 import uuid
-
-Base = declarative_base()
-
 
 class User(Base):
     __tablename__ = "users"
@@ -40,11 +38,10 @@ class Duel(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     deck_id = Column(Integer, ForeignKey("decks.id"), nullable=False)
 
-    result = Column(Boolean, nullable=False)           # true=勝ち, false=負け
+    result = Column(Boolean, nullable=False)
     rank = Column(Integer, nullable=True)
-    coin = Column(Boolean, nullable=False)             # true=表, false=裏
-    first_or_second = Column(Boolean, nullable=False)  # true=先手, false=後手
-
+    coin = Column(Boolean, nullable=False)
+    first_or_second = Column(Boolean, nullable=False)
     dateplayed = Column(DateTime, nullable=False)
     notes = Column(String, nullable=True)
     createdat = Column(DateTime, default=datetime.utcnow)
@@ -59,7 +56,7 @@ class SharedURL(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    year_month = Column(String, nullable=False)  # YYYY-MM
+    year_month = Column(String, nullable=False)
     url = Column(String, unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     createdat = Column(DateTime, default=datetime.utcnow)
     updatedat = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

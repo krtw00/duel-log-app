@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from db.session import engine, Base
-from models.models import User, Deck, Duel, SharedURL
+from .db.session import engine, Base
+from .models.models import User, Deck, Duel, SharedURL
 
-# テーブル作成（開発用、初回のみ）
-Base.metadata.create_all(bind=engine)
+# Alembic を使う場合はここで create_all は不要
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Duel Log API")
 
