@@ -6,33 +6,33 @@ erDiagram
     DECK ||--o{ DUEL : used_in
 
     USER {
-        USERNAME
-        PASSWORD_HASH
-        CREATED_AT
-        UPDATED_AT
+        username
+        passwordhash
+        createdat
+        updatedat
     }
 
     DECK {
-        NAME
-        CREATED_AT
-        UPDATED_AT
+        name
+        createdat
+        updatedat
     }
 
     DUEL {
-        RESULT  "true=勝ち, false=負け"
-        RANK
-        COIN    "true=表, false=裏"
-        FIRST_OR_SECOND "true=先手, false=後手"
-        DATE_PLAYED
-        NOTES
-        CREATED_AT
-        UPDATED_AT
+        result
+        rank
+        coin
+        firstorsecond
+        dateplayed
+        notes
+        createdat
+        updatedat
     }
 
     SHAREDURL {
-        YEAR_MONTH
-        URL
-        CREATED_AT
-        UPDATED_AT
+        yearmonth
+        url
+        createdat
+        updatedat
     }
 ```
