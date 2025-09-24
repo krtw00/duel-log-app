@@ -13,4 +13,4 @@ COPY alembic.ini .
 COPY alembic ./alembic
 
 # コンテナ起動時に Alembic マイグレーション → Uvicorn 起動
-CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
