@@ -20,7 +20,6 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: duellog_backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
     ports:
@@ -37,7 +36,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: duellog_frontend
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     volumes:
       - ./frontend:/app
     ports:
