@@ -17,7 +17,7 @@
 
 ## ⚙️ 技術スタック
 
-- **フロントエンド**: React, Tailwind CSS, Chart.js  
+- **フロントエンド**: Vue.js, Tailwind CSS, Chart.js  
 - **バックエンド**: FastAPI（Python）  
 - **データベース**: PostgreSQL  
 - **ホスティング**: Railway（無料枠対応）  
