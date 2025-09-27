@@ -70,7 +70,14 @@ def get_user(db: Session, user_id: int) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
-    return db.query(User).offset(skip).limit(limit).all()
+    users = db.query(User).offset(skip).limit(limit).all()
+    for user in users:
+        logger.info(f"DEBUG: user object = {user}")
+        logger.info(f"DEBUG: user.id = {user.id}, createdat = {user.createdat}, updatedat = {user.updatedat}")
+
+        db.refresh(user)
+    return users
+
 
 def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User | None:
     db_user = get_user(db, user_id)
