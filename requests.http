@@ -1,0 +1,40 @@
+### Create User
+POST http://localhost:8000/users/
+Content-Type: application/json
+
+{
+  "username": "testurser3",
+  "email": "test@example.com",
+  "password": "shortass123"
+}
+
+### Get All Users
+GET http://localhost:8000/users/
+
+### Create Deck
+POST http://localhost:8000/decks/
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "name": "My First Deck"
+}
+
+### Create Duel
+POST http://localhost:8000/duels/
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "deck_id": 1,
+  "result": "win"
+}
+
+### Create Shared URL
+POST http://localhost:8000/sharedurls/
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "year_month": "2025-09"
+}
