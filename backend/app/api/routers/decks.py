@@ -1,5 +1,5 @@
 # app/api/decks.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from app import schemas
 from app.services import deck_service
@@ -13,9 +13,11 @@ def list_decks(db: Session = Depends(get_db), user=Depends(get_current_user)):
     return deck_service.get_decks(db, user.id)
 
 @router.post("/", response_model=schemas.DeckRead)
-def create_deck(deck: schemas.DeckCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    return deck_service.create_deck(db, user.id, deck)
-
+def create_deck(
+    deck: schemas.DeckCreate = Body(...),
+    db: Session = Depends(get_db)
+):
+    return deck_service.create_deck(db, deck.user_id, deck)
 
 @router.put("/{deck_id}", response_model=schemas.DeckRead)
 def update_deck(deck_id: int, deck: schemas.DeckUpdate, db: Session = Depends(get_db), user=Depends(get_current_user)):
