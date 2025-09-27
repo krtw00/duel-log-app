@@ -41,7 +41,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 # ユーザー取得（ID指定）
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserResponse, response_model_exclude_none=True)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = user_service.get_user(db, user_id)
     if not db_user:

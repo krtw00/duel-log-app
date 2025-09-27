@@ -3,9 +3,9 @@ POST http://localhost:8000/users/
 Content-Type: application/json
 
 {
-  "username": "testurser3",
-  "email": "test@example.com",
-  "password": "shortass123"
+  "username": "testuser",
+  "email": "testuser@example.com",
+  "password": "securepass"
 }
 
 ### Get All Users
@@ -16,7 +16,7 @@ POST http://localhost:8000/decks/
 Content-Type: application/json
 
 {
-  "user_id": 1,
+  "user_id": 4,
   "name": "My First Deck"
 }
 
