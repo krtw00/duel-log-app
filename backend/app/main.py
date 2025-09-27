@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from .db.session import engine, Base
-from .models import User, Deck, Duel, SharedURL
+from .models import User, Deck, Duel, sharedUrl
 from app.api.routers import decks, users
+
 
 # Alembic を使う場合はここで create_all は不要
 # Base.metadata.create_all(bind=engine)
