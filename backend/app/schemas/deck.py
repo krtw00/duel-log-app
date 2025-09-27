@@ -1,5 +1,5 @@
 # app/schemas/deck.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
@@ -8,7 +8,11 @@ class DeckBase(BaseModel):
 
 class DeckCreate(DeckBase):
     """新規作成用"""
-    pass
+    user_id: int = Field(..., description="ユーザーID")
+    
+    class Config:
+        extra = "forbid"
+
 
 class DeckUpdate(BaseModel):
     """更新用"""
@@ -16,6 +20,7 @@ class DeckUpdate(BaseModel):
 
 class DeckRead(DeckBase):
     id: int
+    user_id: int
     createdat: datetime
     updatedat: datetime
 
