@@ -30,3 +30,7 @@ __pycache__/
 
 # Environment variables
 .env
+
+# その他個人
+backend_log.txt
+gemini_log.txt
