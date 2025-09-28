@@ -5,6 +5,7 @@ from app import schemas
 from app.services import deck_service
 from app.db.session import get_db
 from app.auth import get_current_user
+from app import models
 
 router = APIRouter(prefix="/decks", tags=["decks"])
 
@@ -18,6 +19,17 @@ def create_deck(
     db: Session = Depends(get_db)
 ):
     return deck_service.create_deck(db, deck.user_id, deck)
+
+@router.get("/{deck_id}", response_model=schemas.DeckRead)
+def get_deck_by_id(
+    deck_id: int,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_current_user)
+):
+    deck = deck_service.get_deck_by_id(db, deck_id, user.id)
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    return deck
 
 @router.put("/{deck_id}", response_model=schemas.DeckRead)
 def update_deck(deck_id: int, deck: schemas.DeckUpdate, db: Session = Depends(get_db), user=Depends(get_current_user)):
