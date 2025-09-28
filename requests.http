@@ -4,42 +4,50 @@ Content-Type: application/json
 
 {
   "username": "testuser",
-  "email": "testuser@example.com",
-  "password": "securepass"
+  "email": "test@example.com",
+  "password": "securepassword"
 }
 
-### Get All Users
-GET http://localhost:8000/users/
+### Get User by ID
+GET http://localhost:8000/users/1
+
+### Update User
+PUT http://localhost:8000/users/1
+Content-Type: application/json
+
+{
+  "username": "updateduser",
+  "email": "updated@example.com"
+}
+
+### Delete User
+DELETE http://localhost:8000/users/1
 
 ### Create Deck
 POST http://localhost:8000/decks/
 Content-Type: application/json
 
 {
-  "user_id": 4,
+  "user_id": 1,
   "name": "My First Deck"
 }
 
-### Get All Decks
+### Get Decks for Current User
 GET http://localhost:8000/decks/
 
 
+### Get Deck by ID
+GET http://localhost:8000/decks/1
 
-### Create Duel
-POST http://localhost:8000/duels/
+
+### Update Deck
+PUT http://localhost:8000/decks/1
 Content-Type: application/json
 
-{
-  "user_id": 1,
-  "deck_id": 1,
-  "result": "win"
-}
-
-### Create Shared URL
-POST http://localhost:8000/sharedurls/
-Content-Type: application/json
 
 {
-  "user_id": 1,
-  "year_month": "2025-09"
+  "name": "Updated Deck Name"
 }
+
+### Delete Deck
+DELETE http://localhost:8000/decks/1

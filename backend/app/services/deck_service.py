@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from app import models, schemas
 from app.models import User
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,9 @@ def create_deck(db: Session, user_id: int, deck: schemas.DeckCreate):
     logger.info(f"DEBUG: db_deck contents = {db_deck.__dict__}")
 
     return db_deck
+
+def get_deck_by_id(db: Session, deck_id: int, user_id: int) -> Optional[models.Deck]:
+    return db.query(models.Deck).filter(models.Deck.id == deck_id, models.Deck.user_id == user_id).first()
 
 def update_deck(db: Session, user_id: int, deck_id: int, deck: schemas.DeckUpdate):
     db_deck = db.query(models.Deck).filter(
