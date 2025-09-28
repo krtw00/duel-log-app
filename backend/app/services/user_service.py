@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
+from app.models.deck import Deck
 from passlib.context import CryptContext
 import logging
 from fastapi import HTTPException
@@ -98,6 +99,8 @@ def delete_user(db: Session, user_id: int) -> bool:
     db_user = get_user(db, user_id)
     if not db_user:
         return False
+    deleted = db.query(Deck).filter(Deck.user_id == user_id).delete()
+    logger.info(f"DEBUG: deleted {deleted} decks for user_id={user_id}")
     db.delete(db_user)
     db.commit()
     return True
