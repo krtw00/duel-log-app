@@ -5,6 +5,7 @@ from typing import Optional
 
 class DeckBase(BaseModel):
     name: str
+    is_opponent: bool = False
 
 class DeckCreate(DeckBase):
     """新規作成用"""
@@ -17,6 +18,7 @@ class DeckCreate(DeckBase):
 class DeckUpdate(BaseModel):
     """更新用"""
     name: Optional[str] = None
+    is_opponent: Optional[bool] = None
 
 class DeckRead(DeckBase):
     id: int
