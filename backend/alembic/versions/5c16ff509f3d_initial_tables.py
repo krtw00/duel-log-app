@@ -60,10 +60,10 @@ def upgrade() -> None:
     sa.Column('rank', sa.Integer(), nullable=True),
     sa.Column('coin', sa.Boolean(), nullable=False),
     sa.Column('first_or_second', sa.Boolean(), nullable=False),
-    sa.Column('dateplayed', sa.DateTime(), nullable=False),
+    sa.Column('played_date', sa.DateTime(), nullable=False),
     sa.Column('notes', sa.String(), nullable=True),
-    sa.Column('createdat', sa.DateTime(), nullable=True),
-    sa.Column('updatedat', sa.DateTime(), nullable=True),
+    sa.Column('create_date', sa.DateTime(), nullable=True),
+    sa.Column('update_date', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['deck_id'], ['decks.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
