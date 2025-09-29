@@ -32,5 +32,6 @@ __pycache__/
 .env
 
 # その他個人
+frontend_log.txt
 backend_log.txt
 gemini_log.txt
