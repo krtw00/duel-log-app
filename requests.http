@@ -29,8 +29,8 @@ Content-Type: application/json
 
 {
   "user_id": 1,
-  "name": "My First Deck",
-  "is_opponent": false
+  "name": "My Second Deck",
+  "is_opponent": true
 }
 
 ### Get Decks for Current User
@@ -52,3 +52,44 @@ Content-Type: application/json
 
 ### Delete Deck
 DELETE http://localhost:8000/decks/1
+
+### Create Duel
+# @name createDuel
+POST http://localhost:8000/duels/
+Content-Type: application/json
+
+{
+  "deck_id": 1,
+  "opponentDeck_id": 2,
+  "coin": true,
+  "first_or_second": true,
+  "result": true,
+  "rank": 1,
+  "notes": "A great duel!",
+  "played_date": "2025-09-29T10:00:00"
+}
+
+### Get Duels for Current User
+# @name getDuels
+GET http://localhost:8000/duels/
+
+
+
+### Get Duel by ID
+# @name getDuelById
+GET http://localhost:8000/duels/1
+
+
+### Update Duel
+# @name updateDuel
+PUT http://localhost:8000/duels/1
+Content-Type: application/json
+
+
+{
+  "notes": "Updated notes for the duel."
+}
+
+### Delete Duel
+# @name deleteDuel
+DELETE http://localhost:8000/duels/1
