@@ -29,7 +29,8 @@ Content-Type: application/json
 
 {
   "user_id": 1,
-  "name": "My First Deck"
+  "name": "My First Deck",
+  "is_opponent": false
 }
 
 ### Get Decks for Current User

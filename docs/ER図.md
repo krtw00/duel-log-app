@@ -18,6 +18,7 @@ erDiagram
         int id PK
         int user_id FK
         string name
+        bool is_opponent        "true=相手, false=自分"
         datetime created_at
         datetime updated_at
     }
@@ -26,10 +27,11 @@ erDiagram
         int id PK
         int user_id FK
         int deck_id FK
-        bool result           "true=勝ち, false=負け"
-        int rank
         bool coin             "true=表, false=裏"
         bool first_or_second  "true=先手, false=後手"
+        int opponentDeck_id
+        bool result           "true=勝ち, false=負け"
+        int rank
         datetime date_played
         string notes
         datetime created_at
