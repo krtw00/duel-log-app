@@ -1,45 +1,106 @@
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
-from app import models, schemas
-from app.schemas import duel
+"""
+デュエルサービス
+デュエルに関するビジネスロジックを提供
+"""
 from typing import List, Optional
+from datetime import datetime
+from sqlalchemy.orm import Session
 
-def get_duels(db: Session, user_id: int) -> List[models.Duel]:
-    """ユーザーIDに関連するすべてのデュエルを取得"""
-    return db.query(models.Duel).filter(models.Duel.user_id == user_id).all()
+from app.models.duel import Duel
+from app.schemas.duel import DuelCreate, DuelUpdate
+from app.services.base import BaseService
 
-def create_duel(db: Session, user_id: int, duel: duel.DuelCreate) -> models.Duel:
-    """新しいデュエルを作成"""
-    db_duel = models.Duel(**duel.model_dump(), user_id=user_id)
-    db.add(db_duel)
-    db.commit()
-    db.refresh(db_duel)
-    return db_duel
 
-def get_duel_by_id(db: Session, duel_id: int, user_id: int) -> Optional[models.Duel]:
-    """IDで単一のデュエルを取得"""
-    return db.query(models.Duel).filter(models.Duel.id == duel_id, models.Duel.user_id == user_id).first()
-
-def update_duel(db: Session, duel_id: int, user_id: int, duel_update: duel.DuelUpdate) -> Optional[models.Duel]:
-    """デュエルを更新"""
-    db_duel = get_duel_by_id(db, duel_id, user_id)
-    if not db_duel:
-        return None
-
-    update_data = duel_update.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_duel, key, value)
-
-    db.commit()
-    db.refresh(db_duel)
-    return db_duel
-
-def delete_duel(db: Session, duel_id: int, user_id: int) -> bool:
-    """デュエルを削除"""
-    db_duel = get_duel_by_id(db, duel_id, user_id)
-    if not db_duel:
-        return False
+class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
+    """デュエルサービスクラス"""
     
-    db.delete(db_duel)
-    db.commit()
-    return True
+    def __init__(self):
+        super().__init__(Duel)
+    
+    def get_user_duels(
+        self, 
+        db: Session, 
+        user_id: int,
+        deck_id: Optional[int] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> List[Duel]:
+        """
+        ユーザーのデュエルを取得（フィルタリング可能）
+        
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            deck_id: デッキID（指定した場合、そのデッキのデュエルのみ）
+            start_date: 開始日（指定した場合、この日以降のデュエル）
+            end_date: 終了日（指定した場合、この日以前のデュエル）
+        
+        Returns:
+            デュエルのリスト
+        """
+        query = db.query(Duel).filter(Duel.user_id == user_id)
+        
+        if deck_id is not None:
+            query = query.filter(Duel.deck_id == deck_id)
+        
+        if start_date is not None:
+            query = query.filter(Duel.played_date >= start_date)
+        
+        if end_date is not None:
+            query = query.filter(Duel.played_date <= end_date)
+        
+        return query.order_by(Duel.played_date.desc()).all()
+    
+    def create_user_duel(
+        self,
+        db: Session,
+        user_id: int,
+        duel_in: DuelCreate
+    ) -> Duel:
+        """
+        ユーザーのデュエルを作成
+        
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            duel_in: デュエル作成スキーマ
+        
+        Returns:
+            作成されたデュエル
+        """
+        return self.create(db, duel_in, user_id=user_id)
+    
+    def get_win_rate(
+        self,
+        db: Session,
+        user_id: int,
+        deck_id: Optional[int] = None
+    ) -> float:
+        """
+        勝率を計算
+        
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            deck_id: デッキID（指定した場合、そのデッキの勝率）
+        
+        Returns:
+            勝率（0.0〜1.0）、デュエルがない場合は0.0
+        """
+        query = db.query(Duel).filter(Duel.user_id == user_id)
+        
+        if deck_id is not None:
+            query = query.filter(Duel.deck_id == deck_id)
+        
+        total_duels = query.count()
+        
+        if total_duels == 0:
+            return 0.0
+        
+        wins = query.filter(Duel.result == True).count()
+        
+        return wins / total_duels
+
+
+# シングルトンインスタンス
+duel_service = DuelService()
