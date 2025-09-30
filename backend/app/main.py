@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routers import decks, users, duels
+from app.api.routers import decks, users, duels, auth, me
 
 
 # Alembic を使う場合はここで create_all は不要
@@ -22,6 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
+app.include_router(me.router)
 app.include_router(users.router)
 app.include_router(decks.router)
 app.include_router(duels.router)
