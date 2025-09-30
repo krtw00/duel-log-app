@@ -14,6 +14,11 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - duellog_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -27,9 +32,11 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - duellog_network
+    restart: on-failure
 
   frontend:
     build:

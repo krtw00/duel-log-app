@@ -5,18 +5,9 @@ from datetime import datetime, timezone
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.models.deck import Deck
-from passlib.context import CryptContext
+from app.core.security import get_password_hash
 import logging
 from fastapi import HTTPException
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-MAX_BCRYPT_BYTES = 72
-
-def get_password_hash(password: str) -> str:
-    # ここでパスワードの切り詰めを行う
-    password_bytes = password.encode("utf-8")[:MAX_BCRYPT_BYTES]
-    trimmed_password = password_bytes.decode("utf-8", errors="ignore")
-    return pwd_context.hash(trimmed_password)
 
 logger = logging.getLogger(__name__)
 
