@@ -18,7 +18,7 @@ from app.core.exception_handlers import (
 )
 
 # ロギング設定
-setup_logging(level="INFO")
+setup_logging(level=settings.LOG_LEVEL)
 
 # FastAPIアプリケーション
 app = FastAPI(
