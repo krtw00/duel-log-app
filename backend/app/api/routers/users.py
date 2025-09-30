@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 from app.db.session import get_db
@@ -22,12 +21,6 @@ if not logger.hasHandlers():
     formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-
-# パスワードハッシュ化設定
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password[:72])  # bcryptの72バイト制限に対応
 
 # ユーザー作成
 @router.post("/", response_model=UserResponse)
