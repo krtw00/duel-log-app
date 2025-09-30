@@ -1,47 +1,55 @@
+"""
+アプリケーション設定
+"""
 import os
-from dotenv import load_dotenv
-from typing import Optional
-import logging
-
-load_dotenv()
-
-logger = logging.getLogger(__name__)
+from typing import List
+from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
 
 
-class Settings:
+class Settings(BaseSettings):
     """アプリケーション設定"""
     
+    # アプリケーション設定
+    APP_NAME: str = Field(default="Duel Log API", description="アプリケーション名")
+    APP_VERSION: str = Field(default="1.0.0", description="アプリケーションバージョン")
+    DEBUG: bool = Field(default=False, description="デバッグモード")
+    
     # データベース設定
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    DATABASE_URL: str = Field(..., description="データベース接続URL")
+    DATABASE_ECHO: bool = Field(default=False, description="SQLログ出力")
     
     # JWT設定
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
-    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    SECRET_KEY: str = Field(..., min_length=32, description="JWT署名用秘密鍵")
+    ALGORITHM: str = Field(default="HS256", description="JWT署名アルゴリズム")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, ge=1, description="アクセストークン有効期限（分）")
     
-    def __init__(self):
-        # 必須環境変数のチェック（警告のみ）
-        if not self.DATABASE_URL:
-            logger.warning("⚠️ DATABASE_URL is not set in environment variables.")
-        
-        if not self.SECRET_KEY:
-            logger.warning("⚠️ SECRET_KEY is not set in environment variables. JWT authentication will not work properly.")
+    # CORS設定
+    CORS_ORIGINS: List[str] = Field(
+        default=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ],
+        description="許可するオリジン"
+    )
     
-    def validate_for_production(self):
-        """本番環境用の厳格な検証"""
-        errors = []
-        
-        if not self.DATABASE_URL:
-            errors.append("DATABASE_URL is not set")
-        
-        if not self.SECRET_KEY:
-            errors.append("SECRET_KEY is not set")
-        
-        if len(self.SECRET_KEY) < 32:
-            errors.append("SECRET_KEY is too short (minimum 32 characters)")
-        
-        if errors:
-            raise RuntimeError(f"Configuration errors: {', '.join(errors)}")
+    # ログ設定
+    LOG_LEVEL: str = Field(default="INFO", description="ログレベル")
+    
+    @field_validator("LOG_LEVEL")
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
+        """ログレベルの検証"""
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        v_upper = v.upper()
+        if v_upper not in valid_levels:
+            raise ValueError(f"LOG_LEVEL must be one of {valid_levels}")
+        return v_upper
+    
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        case_sensitive = True
 
 
 # グローバル設定インスタンス
