@@ -21,7 +21,14 @@ class DuelBase(BaseModel):
     @classmethod
     def validate_played_date(cls, v: datetime) -> datetime:
         """対戦日時が未来でないことを確認"""
-        if v > datetime.utcnow():
+        from datetime import timezone
+        # タイムゾーン情報を持っている場合、UTCに変換
+        if v.tzinfo is not None:
+            v_utc = v.astimezone(timezone.utc).replace(tzinfo=None)
+        else:
+            v_utc = v
+        
+        if v_utc > datetime.utcnow():
             raise ValueError('対戦日時を未来の日付に設定することはできません')
         return v
 
@@ -48,8 +55,16 @@ class DuelUpdate(BaseModel):
     @classmethod
     def validate_played_date(cls, v: Optional[datetime]) -> Optional[datetime]:
         """対戦日時が未来でないことを確認"""
-        if v is not None and v > datetime.utcnow():
-            raise ValueError('対戦日時を未来の日付に設定することはできません')
+        if v is not None:
+            from datetime import timezone
+            # タイムゾーン情報を持っている場合、UTCに変換
+            if v.tzinfo is not None:
+                v_utc = v.astimezone(timezone.utc).replace(tzinfo=None)
+            else:
+                v_utc = v
+            
+            if v_utc > datetime.utcnow():
+                raise ValueError('対戦日時を未来の日付に設定することはできません')
         return v
 
 
