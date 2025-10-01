@@ -12,10 +12,9 @@
       <v-chip
         :color="item.result ? 'success' : 'error'"
         variant="flat"
-        size="small"
         class="font-weight-bold"
       >
-        <v-icon start size="small">
+        <v-icon start>
           {{ item.result ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
         {{ item.result ? '勝利' : '敗北' }}
@@ -27,7 +26,6 @@
       <v-chip
         color="primary"
         variant="tonal"
-        size="small"
       >
         {{ item.deck?.name || '不明' }}
       </v-chip>
@@ -38,7 +36,6 @@
       <v-chip
         color="secondary"
         variant="tonal"
-        size="small"
       >
         {{ item.opponentdeck?.name || '不明' }}
       </v-chip>
@@ -48,7 +45,6 @@
     <template #item.coin="{ item }">
       <v-icon
         :color="item.coin ? 'warning' : 'grey'"
-        size="small"
       >
         {{ item.coin ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
       </v-icon>
@@ -59,7 +55,6 @@
     <template #item.first_or_second="{ item }">
       <v-icon
         :color="item.first_or_second ? 'info' : 'purple'"
-        size="small"
       >
         {{ item.first_or_second ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
       </v-icon>
@@ -72,7 +67,6 @@
         v-if="item.rank"
         color="accent"
         variant="outlined"
-        size="small"
       >
         {{ getRankName(item.rank) }}
       </v-chip>
@@ -86,21 +80,19 @@
 
     <!-- 備考カラム -->
     <template #item.notes="{ item }">
-      <span v-if="item.notes" class="text-caption">{{ item.notes }}</span>
-      <span v-else class="text-grey text-caption">-</span>
+      <span v-if="item.notes">{{ item.notes }}</span>
+      <span v-else class="text-grey">-</span>
     </template>
 
     <!-- アクションカラム -->
     <template #item.actions="{ item }">
       <v-btn
         icon="mdi-pencil"
-        size="small"
         variant="text"
         @click="$emit('edit', item)"
       />
       <v-btn
         icon="mdi-delete"
-        size="small"
         variant="text"
         color="error"
         @click="$emit('delete', item.id)"
@@ -139,14 +131,14 @@ defineEmits<{
 }>()
 
 const headers = [
-  { title: '勝敗', key: 'result', sortable: true, width: 100 },
   { title: '使用デッキ', key: 'deck', sortable: false },
-  { title: '相手デッキ', key: 'opponentdeck', sortable: false },
   { title: 'コイン', key: 'coin', sortable: false, width: 100 },
   { title: '先攻/後攻', key: 'first_or_second', sortable: false, width: 120 },
+  { title: '相手デッキ', key: 'opponentdeck', sortable: false },
+  { title: '勝敗', key: 'result', sortable: true, width: 100 },
   { title: 'ランク', key: 'rank', sortable: false, width: 100 },
-  { title: 'プレイ日時', key: 'played_date', sortable: true },
   { title: '備考', key: 'notes', sortable: false, width: 200 },
+  { title: 'プレイ日時', key: 'played_date', sortable: true },
   { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' }
 ]
 
@@ -172,11 +164,17 @@ const formatDate = (dateString: string) => {
     font-weight: 600 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-size: 0.75rem !important;
+    font-size: 10px !important;
+    white-space: nowrap;
   }
 
   .v-data-table__td {
     border-bottom: 1px solid rgba(0, 217, 255, 0.05) !important;
+    font-size: 20px !important;
+
+    .v-chip {
+      font-size: 20px !important;
+    }
   }
 
   .v-data-table__tr:hover {

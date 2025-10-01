@@ -69,9 +69,18 @@ defineProps<{
     background: linear-gradient(90deg, #b536ff, #8e24aa);
   }
 
+  &--yellow .stat-card__glow {
+    background: linear-gradient(90deg, #ffee58, #fdd835);
+  }
+
+  &--teal .stat-card__glow {
+    background: linear-gradient(90deg, #4db6ac, #00897b);
+  }
+
   &__title {
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-size: 20px !important;
   }
 
   &__value {
