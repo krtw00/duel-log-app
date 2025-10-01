@@ -1,0 +1,67 @@
+// グローバルスタイル
+
+// スクロールバーのスタイリング
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #12162e;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00d9ff, #b536ff);
+  border-radius: 10px;
+  
+  &:hover {
+    background: linear-gradient(180deg, #00f0ff, #c550ff);
+  }
+}
+
+// Vuetifyのテーマオーバーライド
+.v-application {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+// カスタムアニメーション
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+// グローエフェクト
+.glow {
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+  transition: box-shadow 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+  }
+}
+
+// テキストグラデーション
+.text-gradient-primary {
+  background: linear-gradient(135deg, #00d9ff 0%, #b536ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-secondary {
+  background: linear-gradient(135deg, #b536ff 0%, #ff2d95 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
