@@ -1,39 +1,7 @@
 <template>
   <v-app>
     <!-- ナビゲーションバー -->
-    <v-app-bar elevation="0" class="app-bar">
-      <div class="app-bar-glow"></div>
-      
-      <v-app-bar-title class="ml-4">
-        <span class="text-primary font-weight-black">DUEL</span>
-        <span class="text-secondary font-weight-black">LOG</span>
-      </v-app-bar-title>
-
-      <v-spacer />
-
-      <v-btn
-        prepend-icon="mdi-view-dashboard"
-        variant="text"
-        @click="router.push('/')"
-      >
-        ダッシュボード
-      </v-btn>
-
-      <v-chip
-        class="mr-4"
-        prepend-icon="mdi-account-circle"
-        color="primary"
-        variant="tonal"
-      >
-        {{ authStore.user?.username || 'User' }}
-      </v-chip>
-
-      <v-btn
-        icon="mdi-logout"
-        @click="authStore.logout"
-        variant="text"
-      />
-    </v-app-bar>
+    <app-bar current-view="decks" />
 
     <!-- メインコンテンツ -->
     <v-main class="main-content">
@@ -49,7 +17,6 @@
                 <v-btn
                   color="primary"
                   prepend-icon="mdi-plus"
-                  size="small"
                   @click="openDeckDialog(false)"
                   class="add-btn"
                 >
@@ -116,7 +83,6 @@
                 <v-btn
                   color="secondary"
                   prepend-icon="mdi-plus"
-                  size="small"
                   @click="openDeckDialog(true)"
                   class="add-btn"
                 >
@@ -236,13 +202,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
 import { api } from '../services/api'
 import { Deck } from '../types'
-
-const router = useRouter()
-const authStore = useAuthStore()
+import AppBar from '../components/layout/AppBar.vue'
 
 const myDecks = ref<Deck[]>([])
 const opponentDecks = ref<Deck[]>([])
@@ -347,30 +309,6 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-bar {
-  background: rgba(18, 22, 46, 0.95) !important;
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 217, 255, 0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-.app-bar-glow {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #00d9ff, #b536ff, #ff2d95);
-  animation: shimmer 3s linear infinite;
-}
-
-@keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
-}
-
 .main-content {
   background: #0a0e27;
   min-height: 100vh;
