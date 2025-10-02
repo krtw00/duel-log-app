@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from datetime import datetime
 from typing import Optional
 
@@ -6,12 +6,12 @@ from typing import Optional
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
-    password: str  # 受け取ったらAPI側でハッシュ化して保存する
+    password: str = Field(min_length=8, max_length=72, description="パスワード (8〜72文字)")
 
 class UserUpdate(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
-    password: str | None = None  # 受け取ったらAPI側でハッシュ化して保存する
+    password: str | None = Field(None, min_length=8, max_length=72, description="パスワード (8〜72文字)")
 
 # レスポンス用
 class UserResponse(BaseModel):

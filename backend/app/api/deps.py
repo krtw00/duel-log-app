@@ -2,8 +2,7 @@
 共通の依存性注入
 """
 from typing import Generator, Optional
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, status, Cookie
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -12,19 +11,15 @@ from app.core.security import decode_access_token
 from app.core.exceptions import UnauthorizedException
 
 
-# HTTPベアラートークンのセキュリティスキーム
-security = HTTPBearer()
-
-
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    access_token: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ) -> User:
     """
-    JWTトークンから現在のユーザーを取得
+    JWTトークン（クッキーから取得）を検証し、現在のユーザーを返す
     
     Args:
-        credentials: HTTPベアラートークン
+        access_token: リクエストクッキー内のJWTトークン
         db: データベースセッション
     
     Returns:
@@ -33,10 +28,11 @@ def get_current_user(
     Raises:
         UnauthorizedException: 認証失敗時
     """
+    if access_token is None:
+        raise UnauthorizedException(detail="認証されていません")
+
     # トークンをデコード
-    token = credentials.credentials
-    payload = decode_access_token(token)
-    
+    payload = decode_access_token(access_token)
     if payload is None:
         raise UnauthorizedException(detail="トークンが無効または期限切れです")
     
@@ -60,29 +56,26 @@ def get_current_user(
 
 
 def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
-        HTTPBearer(auto_error=False)
-    ),
+    access_token: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
     """
     JWTトークンから現在のユーザーを取得（オプショナル版）
     
-    トークンがない場合でもエラーを発生させず、Noneを返す
-    認証が必須ではないエンドポイントで使用
+    トークンがない、または無効な場合でもエラーを発生させず、Noneを返す
     
     Args:
-        credentials: HTTPベアラートークン（オプショナル）
+        access_token: リクエストクッキー内のJWTトークン（オプショナル）
         db: データベースセッション
     
     Returns:
         認証されたユーザーオブジェクト、またはNone
     """
-    if credentials is None:
+    if access_token is None:
         return None
     
     try:
-        return get_current_user(credentials, db)
+        return get_current_user(access_token, db)
     except UnauthorizedException:
         return None
 

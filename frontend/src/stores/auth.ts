@@ -4,18 +4,17 @@ import { api } from '../services/api'
 import router from '../router'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('token'))
   const user = ref<{ id: number; email: string; username: string } | null>(null)
+  const isInitialized = ref(false)
 
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => !!user.value)
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { email, password })
-      token.value = response.data.access_token
-      localStorage.setItem('token', response.data.access_token)
+      // ログインAPIをコール（成功するとサーバーがHttpOnlyクッキーを設定）
+      await api.post('/auth/login', { email, password })
       
-      // ユーザー情報を取得
+      // ユーザー情報を取得してストアを更新
       await fetchUser()
       
       router.push('/')
@@ -24,30 +23,36 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = () => {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('token')
-    router.push('/login')
+  const logout = async () => {
+    try {
+      // サーバーにログアウトを通知し、クッキーを削除させる
+      await api.post('/auth/logout')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      // ローカルの状態をクリア
+      user.value = null
+      isInitialized.value = true // ログアウト後も初期化済み
+      router.push('/login')
+    }
   }
 
   const fetchUser = async () => {
     try {
+      // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
       const response = await api.get('/me')
       user.value = response.data
     } catch (error) {
-      console.error('Failed to fetch user:', error)
+      // エラー（クッキーがない、または無効）の場合はユーザー情報をクリア
+      user.value = null
+    } finally {
+      isInitialized.value = true
     }
   }
 
-  // 初期化時にユーザー情報を取得
-  if (token.value) {
-    fetchUser()
-  }
-
   return {
-    token,
     user,
+    isInitialized,
     isAuthenticated,
     login,
     logout,
