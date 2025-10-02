@@ -1,0 +1,94 @@
+﻿2025-10-02T14:28:05.7725938Z ##[group]Run pytest backend/
+2025-10-02T14:28:05.7726250Z [36;1mpytest backend/[0m
+2025-10-02T14:28:05.7759678Z shell: /usr/bin/bash -e {0}
+2025-10-02T14:28:05.7759920Z env:
+2025-10-02T14:28:05.7760168Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:05.7760624Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.13/x64/lib/pkgconfig
+2025-10-02T14:28:05.7761050Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:05.7761415Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:05.7761793Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:05.7762159Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.13/x64/lib
+2025-10-02T14:28:05.7762474Z   PYTHONPATH: backend
+2025-10-02T14:28:05.7762687Z   DATABASE_URL: sqlite:///./test.db
+2025-10-02T14:28:05.7763014Z   SECRET_KEY: a_very_secret_key_for_testing_purposes_only_1234567890
+2025-10-02T14:28:05.7763345Z   DEBUG: true
+2025-10-02T14:28:05.7763518Z ##[endgroup]
+2025-10-02T14:28:08.9086348Z ============================= test session starts ==============================
+2025-10-02T14:28:08.9087696Z platform linux -- Python 3.11.13, pytest-7.4.3, pluggy-1.6.0 -- /opt/hostedtoolcache/Python/3.11.13/x64/bin/python
+2025-10-02T14:28:08.9088604Z cachedir: .pytest_cache
+2025-10-02T14:28:08.9089982Z rootdir: /home/runner/work/duel-log-app/duel-log-app/backend
+2025-10-02T14:28:08.9090653Z configfile: pyproject.toml
+2025-10-02T14:28:08.9091217Z plugins: anyio-4.11.0, cov-4.1.0
+2025-10-02T14:28:08.9764802Z collecting ... collected 14 items
+2025-10-02T14:28:08.9765175Z 
+2025-10-02T14:28:09.6711711Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_create_deck PASSED [  7%]
+2025-10-02T14:28:10.2310406Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_list_decks PASSED [ 14%]
+2025-10-02T14:28:10.7867093Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_get_deck_by_id PASSED [ 21%]
+2025-10-02T14:28:11.4739583Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_update_deck PASSED [ 28%]
+2025-10-02T14:28:12.0389867Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_delete_deck PASSED [ 35%]
+2025-10-02T14:28:12.6002405Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_list_decks_filter_by_opponent PASSED [ 42%]
+2025-10-02T14:28:12.6227065Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_create_deck_unauthorized PASSED [ 50%]
+2025-10-02T14:28:13.1675981Z backend/tests/test_deck_api.py::TestDeckEndpoints::test_get_nonexistent_deck PASSED [ 57%]
+2025-10-02T14:28:13.4467923Z backend/tests/test_deck_service.py::TestDeckService::test_create_deck PASSED [ 64%]
+2025-10-02T14:28:13.7251109Z backend/tests/test_deck_service.py::TestDeckService::test_get_deck_by_id PASSED [ 71%]
+2025-10-02T14:28:14.0067693Z backend/tests/test_deck_service.py::TestDeckService::test_get_all_user_decks PASSED [ 78%]
+2025-10-02T14:28:14.2873222Z backend/tests/test_deck_service.py::TestDeckService::test_update_deck PASSED [ 85%]
+2025-10-02T14:28:14.5677632Z backend/tests/test_deck_service.py::TestDeckService::test_delete_deck PASSED [ 92%]
+2025-10-02T14:28:15.3009534Z backend/tests/test_deck_service.py::TestDeckService::test_get_user_decks_filtered_by_opponent PASSED [100%]
+2025-10-02T14:28:15.3010457Z 
+2025-10-02T14:28:15.3010914Z =============================== warnings summary ===============================
+2025-10-02T14:28:15.3012242Z ../../../../../opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/starlette/formparsers.py:12
+2025-10-02T14:28:15.3014504Z   /opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/starlette/formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
+2025-10-02T14:28:15.3015450Z     import multipart
+2025-10-02T14:28:15.3015630Z 
+2025-10-02T14:28:15.3016114Z ../../../../../opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/pydantic/_internal/_config.py:268
+2025-10-02T14:28:15.3017695Z   /opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/pydantic/_internal/_config.py:268: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.5/migration/
+2025-10-02T14:28:15.3019578Z     warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+2025-10-02T14:28:15.3019825Z 
+2025-10-02T14:28:15.3020240Z ../../../../../opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/passlib/utils/__init__.py:854
+2025-10-02T14:28:15.3021231Z   /opt/hostedtoolcache/Python/3.11.13/x64/lib/python3.11/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+2025-10-02T14:28:15.3021968Z     from crypt import crypt as _crypt
+2025-10-02T14:28:15.3022145Z 
+2025-10-02T14:28:15.3022408Z -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2025-10-02T14:28:15.3022705Z 
+2025-10-02T14:28:15.3022956Z ---------- coverage: platform linux, python 3.11.13-final-0 ----------
+2025-10-02T14:28:15.3023402Z Name                                         Stmts   Miss  Cover   Missing
+2025-10-02T14:28:15.3023806Z --------------------------------------------------------------------------
+2025-10-02T14:28:15.3024226Z backend/app/__init__.py                          0      0   100%
+2025-10-02T14:28:15.3024885Z backend/app/api/deps.py                         32     11    66%   37, 42, 47-48, 53, 74-80
+2025-10-02T14:28:15.3025405Z backend/app/api/routers/auth.py                 25      4    84%   50-51, 89-90
+2025-10-02T14:28:15.3025930Z backend/app/api/routers/decks.py                32      2    94%   132, 164
+2025-10-02T14:28:15.3026558Z backend/app/api/routers/duels.py                40     16    60%   41, 67, 94-106, 131-144, 164-171, 194-200, 214
+2025-10-02T14:28:15.3027132Z backend/app/api/routers/me.py                   19      6    68%   20, 32-37, 51-53
+2025-10-02T14:28:15.3027667Z backend/app/api/routers/statistics.py           18      3    83%   26, 38, 49
+2025-10-02T14:28:15.3028243Z backend/app/api/routers/users.py                37     19    49%   24-32, 38-41, 47, 53-60, 66-69
+2025-10-02T14:28:15.3028734Z backend/app/auth.py                              2      0   100%
+2025-10-02T14:28:15.3029471Z backend/app/core/config.py                      28      1    96%   46
+2025-10-02T14:28:15.3030014Z backend/app/core/exception_handlers.py          19      6    68%   44-52, 68-76, 92-100
+2025-10-02T14:28:15.3030587Z backend/app/core/exceptions/__init__.py         23      4    83%   26, 40, 47, 54
+2025-10-02T14:28:15.3031097Z backend/app/core/logging_config.py              13      1    92%   48
+2025-10-02T14:28:15.3031586Z backend/app/core/security.py                    29      3    90%   66, 101-102
+2025-10-02T14:28:15.3032053Z backend/app/db/__init__.py                       1      0   100%
+2025-10-02T14:28:15.3032510Z backend/app/db/session.py                       11      4    64%   17-21
+2025-10-02T14:28:15.3032959Z backend/app/main.py                             28      2    93%   60, 70
+2025-10-02T14:28:15.3033397Z backend/app/models/__init__.py                   8      0   100%
+2025-10-02T14:28:15.3033826Z backend/app/models/deck.py                      16      0   100%
+2025-10-02T14:28:15.3034260Z backend/app/models/duel.py                      23      0   100%
+2025-10-02T14:28:15.3034706Z backend/app/models/sharedUrl.py                 15      0   100%
+2025-10-02T14:28:15.3035160Z backend/app/models/user.py                      20      1    95%   12
+2025-10-02T14:28:15.3035617Z backend/app/schemas/__init__.py                  2      0   100%
+2025-10-02T14:28:15.3036052Z backend/app/schemas/auth.py                     11      0   100%
+2025-10-02T14:28:15.3036485Z backend/app/schemas/deck.py                     23      0   100%
+2025-10-02T14:28:15.3036998Z backend/app/schemas/duel.py                     87     33    62%   27-36, 42-47, 53-58, 64-69, 97-107
+2025-10-02T14:28:15.3037489Z backend/app/schemas/user.py                     18      0   100%
+2025-10-02T14:28:15.3038086Z backend/app/services/base/__init__.py            2      0   100%
+2025-10-02T14:28:15.3038580Z backend/app/services/base/base_service.py       45      2    96%   128, 159
+2025-10-02T14:28:15.3039262Z backend/app/services/deck_service.py            18      0   100%
+2025-10-02T14:28:15.3039801Z backend/app/services/duel_service.py            42     28    33%   41-52, 71, 90-102, 108-140
+2025-10-02T14:28:15.3040419Z backend/app/services/statistics_service.py      43     31    28%   21-42, 48-53, 59-67, 71-110
+2025-10-02T14:28:15.3041028Z backend/app/services/user_service.py            42     29    31%   20-35, 42-62
+2025-10-02T14:28:15.3041504Z --------------------------------------------------------------------------
+2025-10-02T14:28:15.3041893Z TOTAL                                          772    206    73%
+2025-10-02T14:28:15.3042208Z Coverage HTML written to dir htmlcov
+2025-10-02T14:28:15.3042377Z 
+2025-10-02T14:28:15.3042585Z ======================== 14 passed, 3 warnings in 6.40s ========================
