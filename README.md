@@ -1,310 +1,106 @@
-# Duel-Log-App
+# Duel Log App
 
-**Duel-Log-App** は、Yu-Gi-Oh! マスターデュエルの戦績を効率的に管理・分析するための Web アプリケーションです。対戦履歴の登録から統計分析、デッキ管理、データ共有まで幅広い機能を提供し、プレイヤーの戦績向上をサポートします。
+**Duel Log App** は、遊戯王マスターデュエルの戦績を効率的に管理・分析するためのWebアプリケーションです。対戦履歴の登録から統計分析、デッキ管理まで幅広い機能を提供し、プレイヤーの戦績向上をサポートします。
 
 ---
 
-## 🚀 特徴
+## 🚀 主な機能
 
-- **戦績管理**: モード（ランク/イベント/カジュアル）、デッキ、勝敗、先攻/後攻、メモなどの詳細情報を登録可能
-- **戦績閲覧・検索**: 表形式での表示と、モードやデッキ、勝敗によるフィルタリング機能
-- **統計・分析**: 総合勝率やモード別、デッキ別の勝率を視覚的に表示
-- **デッキ管理**: デッキ名やアーキタイプの登録・編集・削除機能
-- **データエクスポート**: CSV や JSON 形式でのデータエクスポート対応
-- **共有機能**: URL を介した戦績共有画面の提供
+- **ダッシュボード**: ゲームモード（ランク、レート、イベント、DC）ごとの対戦履歴と各種統計情報（勝率、先行/後攻率など）を一覧表示。
+- **対戦記録**: 使用デッキ、相手デッキ、勝敗、先攻/後攻、ランク/レートなど、詳細な対戦データを記録・編集・削除。
+- **デッキ管理**: 自分のデッキと、対戦相手のデッキを分けて登録・管理。
+- **統計分析**: デッキの分布（月間、直近）や、デッキ間の相性を円グラフや表で視覚的に分析。
+- **ユーザー管理**: 安全なユーザー登録、ログイン機能。
+- **プロフィール管理**: ユーザー名、メールアドレス、パスワードの変更、およびアカウントの削除機能。
 
 ---
 
 ## ⚙️ 技術スタック
 
-### バックエンド
-- **フレームワーク**: FastAPI 0.111.1
-- **ORM**: SQLAlchemy 2.0.22
-- **マイグレーション**: Alembic 1.11.1
-- **認証**: Passlib (bcrypt) 1.7.4
-- **データベースドライバ**: psycopg2-binary 2.9.7
-- **サーバー**: Uvicorn 0.24.0
-
-### フロントエンド
-- **フレームワーク**: Vue.js 3.5.21
-- **UIライブラリ**: Vuetify 3.9.0-beta.1
-- **HTTPクライアント**: Axios 1.12.2
-- **ビルドツール**: Vite 4.5.0
-- **スタイリング**: Sass 1.93.2, MDI Icons 7.4.47
-
-### インフラ
-- **データベース**: PostgreSQL 15
-- **コンテナ**: Docker + Docker Compose
-- **ホスティング**: Railway（無料枠対応・予定）
+| カテゴリ       | 技術                                   |
+| :------------- | :------------------------------------- |
+| **バックエンド**   | Python, FastAPI, SQLAlchemy, Pydantic, Alembic |
+| **フロントエンド** | Vue.js (v3), Vite, TypeScript, Vuetify, Pinia, ApexCharts |
+| **データベース**   | PostgreSQL                             |
+| **インフラ**     | Docker, Docker Compose                 |
+| **CI/CD**        | GitHub Actions                         |
 
 ---
 
-## 📊 データベース設計
+## 🏁 セットアップ手順
 
-### テーブル構成
+Dockerがインストールされていれば、簡単なステップでローカル開発環境を起動できます。
 
-- **Users**: ユーザー情報（ユーザー名、メール、パスワードハッシュ）
-- **Decks**: デッキ情報（デッキ名、自分/相手の区別）
-- **Duels**: 対戦記録（デッキ、相手デッキ、勝敗、先攻/後攻、コイン、ランク、日付、メモ）
-- **SharedUrls**: 共有URL情報（年月、URL）
+### 1. リポジトリのクローン
 
-詳細なER図は [`docs/ER図.md`](./docs/ER図.md) を参照してください。
-
----
-
-## 🛠️ セットアップ
-
-### 前提条件
-
-- Docker Desktop がインストールされていること
-- Git がインストールされていること
-
-### インストール手順
-
-1. **リポジトリのクローン**
 ```bash
-git clone <repository-url>
+git clone https://github.com/krtw00/duel-log-app.git
 cd duel-log-app
 ```
 
-2. **環境変数の設定**
+### 2. 環境変数の設定
+
+`.env.example` ファイルをコピーして `.env` ファイルを作成します。
+
 ```bash
 cp .env.example .env
 ```
 
-`.env` ファイルを編集して以下の変数を設定してください：
-```env
-POSTGRES_USER=your_username
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=duellog_db
-DATABASE_URL=postgresql://your_username:your_password@db:5432/duellog_db
-```
+次に、`.env` ファイルを開き、`SECRET_KEY` の値を生成したものに置き換えてください。
 
-3. **Docker コンテナの起動**
+**（Linux/macOSの場合）**
 ```bash
-docker-compose up -d
+# ターミナルで以下のコマンドを実行し、生成された文字列をSECRET_KEYに設定
+openssl rand -hex 32
 ```
 
-4. **データベースマイグレーションの実行**
-```bash
-docker-compose exec backend alembic upgrade head
+**（Windowsの場合）**
+PowerShellなどで以下のコマンドを実行するか、任意のランダムな文字列（32文字以上推奨）を設定してください。
+```powershell
+-join ((33..126) | Get-Random -Count 32 | ForEach-Object {[char]$_})
 ```
 
-5. **アプリケーションへのアクセス**
-- フロントエンド: http://localhost:5173
-- バックエンドAPI: http://localhost:8000
-- API ドキュメント: http://localhost:8000/docs
+### 3. アプリケーションの起動
 
----
-
-## 🔌 API エンドポイント
-
-### Users API (`/users`)
-- `POST /users/` - ユーザー作成
-- `GET /users/{user_id}` - ユーザー情報取得
-- `GET /users/` - ユーザー一覧取得
-- `PUT /users/{user_id}` - ユーザー情報更新
-- `DELETE /users/{user_id}` - ユーザー削除
-
-### Decks API (`/decks`)
-- `POST /decks/` - デッキ作成
-- `GET /decks/` - デッキ一覧取得
-- `GET /decks/{deck_id}` - デッキ詳細取得
-- `PUT /decks/{deck_id}` - デッキ更新
-- `DELETE /decks/{deck_id}` - デッキ削除
-
-### Duels API (`/duels`)
-- `POST /duels/` - 対戦記録作成
-- `GET /duels/` - 対戦記録一覧取得
-- `GET /duels/{duel_id}` - 対戦記録詳細取得
-- `PUT /duels/{duel_id}` - 対戦記録更新
-- `DELETE /duels/{duel_id}` - 対戦記録削除
-
-詳細なAPIドキュメントは http://localhost:8000/docs で確認できます。
-
----
-
-## 📁 プロジェクト構造
-
-```
-duel-log-app/
-├── backend/
-│   ├── alembic/              # データベースマイグレーション
-│   ├── app/
-│   │   ├── api/              # APIエンドポイント
-│   │   │   └── routers/      # ルーター（users, decks, duels）
-│   │   ├── models/           # SQLAlchemyモデル
-│   │   ├── schemas/          # Pydanticスキーマ
-│   │   ├── services/         # ビジネスロジック
-│   │   ├── core/             # 設定ファイル
-│   │   ├── db/               # データベース接続
-│   │   ├── auth.py           # 認証機能
-│   │   └── main.py           # FastAPIアプリケーション
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── alembic.ini
-├── frontend/
-│   ├── src/
-│   │   ├── components/       # Vueコンポーネント
-│   │   ├── App.vue
-│   │   └── main.js
-│   ├── Dockerfile
-│   ├── package.json
-│   └── vite.config.js
-├── docs/                      # ドキュメント
-│   ├── ER図.md
-│   └── UI構想.md
-├── docker-compose.yml
-├── .env.example
-└── README.md
-```
-
----
-
-## 🚧 開発状況
-
-### ✅ 実装済み
-
-#### バックエンド
-- [x] FastAPI による REST API
-- [x] SQLAlchemy による ORM 実装
-- [x] Alembic によるマイグレーション管理
-- [x] CRUD 操作（Users, Decks, Duels）
-- [x] パスワードハッシュ化（bcrypt）
-- [x] JWT 認証の実装
-- [x] CORS 設定
-- [x] データベース設計とテーブル作成
-- [x] デッキAPIおよびサービス層のユニットテスト
-
-#### フロントエンド
-- [x] Vue.js によるシングルページアプリケーションの基盤
-- [x] Vuetify を用いたUIコンポーネントの統合
-- [x] ログイン・登録画面
-- [x] ダッシュボード画面
-- [x] デッキ管理画面
-
-#### インフラ
-- [x] Docker 環境構築
-- [x] PostgreSQL セットアップ
-- [x] Docker Compose による統合環境
-
----
-
-## ⚠️ セキュリティに関する注意
-
-### 認証実装について
-
-JWT認証は実装済みですが、本番環境での運用にはさらなる強化が必要です。
-
-**今後の強化点**:
-- リフレッシュトークンの実装
-- トークンの有効期限管理の厳格化
-- セキュアなトークン保存戦略（例: HttpOnly Cookie）
-- レート制限の実装
-
----
-
-## 🧪 テスト
-
-現在、バックエンドのデッキ関連APIおよびサービス層のユニットテストが実装されています。
-今後、以下のテストを追加予定：
-
-- バックエンドの残りのAPIおよびサービス層のユニットテスト（pytest）
-- 統合テスト
-- フロントエンドのユニットテスト
-- E2Eテスト
-
----
-
-## 🎯 今後の課題
-
-### 優先度：高
-- **統計・分析機能の実装**: 総合勝率、モード別、デッキ別の勝率を視覚的に表示する機能。
-- **データエクスポート機能**: CSV や JSON 形式でのデータエクスポート対応。
-- **共有機能の実装**: URL を介した戦績共有画面の提供（SharedUrls テーブル活用）。
-- **統合テストの作成**: バックエンドとフロントエンド間の連携を含むテスト。
-- **エラーハンドリングの統一と強化**: 全体的なエラーレスポンスの標準化と詳細化。
-- **バリデーションの強化**: 入力データの厳密な検証。
-
-### 優先度：中
-- **リフレッシュトークンの実装**: JWTのセキュリティ強化。
-- **トークンの有効期限管理の厳格化**: セキュアなトークン運用。
-- **セキュアなトークン保存戦略**: HttpOnly Cookieなどを用いたフロントエンドでのトークン管理。
-- **パフォーマンス最適化**: APIレスポンス速度の改善、データベースクエリの最適化。
-- **API ドキュメントの充実**: OpenAPI (Swagger UI) の詳細化と最新化。
-
-### 優先度：低
-- **Railway へのデプロイ設定**: 本番環境へのデプロイ自動化。
-- **フロントエンドのユニットテスト**: Vueコンポーネントやストアのテスト。
-- **E2Eテスト**: CypressやPlaywrightなどを用いたエンドツーエンドテスト。
-
----
-
-## 📖 開発ガイド
-
-### マイグレーションの作成
+以下のコマンドを一度実行するだけで、必要なDockerイメージのビルド、コンテナの起動、データベースのマイグレーションが**すべて自動的に**行われます。
 
 ```bash
-# 新しいマイグレーションファイルを作成
-docker-compose exec backend alembic revision --autogenerate -m "description"
-
-# マイグレーションを適用
-docker-compose exec backend alembic upgrade head
-
-# マイグレーションを1つ戻す
-docker-compose exec backend alembic downgrade -1
+docker-compose up -d --build
 ```
 
-### ログの確認
+### 4. アプリケーションへのアクセス
 
-```bash
-# すべてのコンテナのログを表示
-docker-compose logs -f
-
-# 特定のコンテナのログを表示
-docker-compose logs -f backend
-docker-compose logs -f frontend
-docker-compose logs -f db
-```
-
-### データベースへの接続
-
-```bash
-# PostgreSQL にアクセス
-docker-compose exec db psql -U your_username -d duellog_db
-```
+- **フロントエンド**: [http://localhost:5173](http://localhost:5173)
+- **バックエンドAPIドキュメント (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 🤝 コントリビューション
+## 🧪 テストとCI/CD
 
-1. このリポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/AmazingFeature`)
-3. 変更をコミット (`git commit -m 'Add some AmazingFeature'`)
-4. ブランチにプッシュ (`git push origin feature/AmazingFeature`)
-5. プルリクエストを作成
+### テストの実行
 
----
+- **バックエンド:**
+  以下のコマンドで、バックエンドの単体・結合テストを実行できます。
+  ```bash
+  pytest backend/
+  ```
 
-## 📝 ライセンス
+- **フロントエンド:**
+  現在テストは未実装ですが、`npm run build` を通じて型チェックが実行されます。
 
-MIT ライセンスのもとで公開されています。詳細は [LICENSE](./LICENSE) ファイルを参照してください。
+### CI (継続的インテグレーション)
 
----
-
-## 📧 お問い合わせ
-
-プロジェクトに関する質問や提案がある場合は、Issue を作成してください。
+このリポジトリでは、`main` ブランチへの `push` または `pull_request` をトリガーとして、GitHub Actionsによる自動テスト（バックエンド）とビルドチェック（フロントエンド）が実行されます。
 
 ---
 
-## 🙏 謝辞
+## 🛡️ セキュリティ
 
-このプロジェクトは以下の技術を使用しています：
+本アプリケーションでは、認証情報の安全性を高めるため、以下のセキュリティ対策を実装しています。
 
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [Vue.js](https://vuejs.org/)
-- [Vuetify](https://vuetifyjs.com/)
-- [SQLAlchemy](https://www.sqlalchemy.org/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Docker](https://www.docker.com/)
+- **HttpOnlyクッキー認証:**
+  - 認証トークンは、JavaScriptからアクセスできない `HttpOnly` 属性を持つクッキーに保存されます。これにより、クロスサイトスクリプティング（XSS）攻撃によるトークン窃取のリスクを大幅に低減しています。
+- **パスワードのハッシュ化:**
+  - パスワードは `bcrypt` アルゴリズムを用いて安全にハッシュ化されてからデータベースに保存されます。
+
+詳細は `docs/SECURITY_IMPROVEMENTS.md` を参照してください。
