@@ -5,6 +5,7 @@ import RegisterView from '../views/RegisterView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import DecksView from '../views/DecksView.vue'
 import StatisticsView from '../views/StatisticsView.vue'
+import ProfileView from '../views/ProfileView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -35,6 +36,12 @@ const routes: RouteRecordRaw[] = [
     path: '/statistics',
     name: 'Statistics',
     component: StatisticsView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: ProfileView,
     meta: { requiresAuth: true }
   },
   {

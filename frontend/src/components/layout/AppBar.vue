@@ -20,21 +20,35 @@
       </v-btn>
     </template>
 
-    <v-chip
-      v-if="authStore.user"
-      class="mr-4"
-      prepend-icon="mdi-account-circle"
-      color="primary"
-      variant="tonal"
-    >
-      {{ authStore.user.username }}
-    </v-chip>
+    <v-menu v-if="authStore.user" location="bottom">
+      <template v-slot:activator="{ props }">
+        <v-chip
+          v-bind="props"
+          class="mr-4"
+          prepend-icon="mdi-account-circle"
+          color="primary"
+          variant="tonal"
+        >
+          {{ authStore.user.username }}
+        </v-chip>
+      </template>
 
-    <v-btn
-      icon="mdi-logout"
-      @click="authStore.logout"
-      variant="text"
-    />
+      <v-list density="compact">
+        <v-list-item to="/profile">
+          <template v-slot:prepend>
+            <v-icon>mdi-account-edit</v-icon>
+          </template>
+          <v-list-item-title>プロフィール</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="authStore.logout">
+          <template v-slot:prepend>
+            <v-icon>mdi-logout</v-icon>
+          </template>
+          <v-list-item-title>ログアウト</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
   </v-app-bar>
 </template>
 
@@ -43,7 +57,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 
 defineProps<{
-  currentView: 'dashboard' | 'decks' | 'statistics'
+  currentView: 'dashboard' | 'decks' | 'statistics' | 'profile'
 }>()
 
 const router = useRouter()
