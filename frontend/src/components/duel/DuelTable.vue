@@ -61,14 +61,31 @@
       {{ item.first_or_second ? '先攻' : '後攻' }}
     </template>
 
-    <!-- ランクカラム -->
-    <template #item.rank="{ item }">
+    <!-- ランク/レートカラム -->
+    <template #item.rank_or_rate="{ item }">
       <v-chip
-        v-if="item.rank"
-        color="accent"
+        v-if="item.game_mode === 'RANK' && item.rank"
+        color="warning"
         variant="outlined"
       >
+        <v-icon start size="small">mdi-crown</v-icon>
         {{ getRankName(item.rank) }}
+      </v-chip>
+      <v-chip
+        v-else-if="item.game_mode === 'RATE' && item.rate_value !== undefined"
+        color="info"
+        variant="outlined"
+      >
+        <v-icon start size="small">mdi-chart-line</v-icon>
+        {{ item.rate_value }}
+      </v-chip>
+      <v-chip
+        v-else-if="item.game_mode === 'EVENT'"
+        color="secondary"
+        variant="outlined"
+      >
+        <v-icon start size="small">mdi-calendar-star</v-icon>
+        EVENT
       </v-chip>
       <span v-else class="text-grey">-</span>
     </template>
@@ -136,7 +153,7 @@ const headers = [
   { title: '先攻/後攻', key: 'first_or_second', sortable: false, width: 120 },
   { title: '相手デッキ', key: 'opponentdeck', sortable: false },
   { title: '勝敗', key: 'result', sortable: true, width: 100 },
-  { title: 'ランク', key: 'rank', sortable: false, width: 100 },
+  { title: 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120 },
   { title: '備考', key: 'notes', sortable: false, width: 200 },
   { title: 'プレイ日時', key: 'played_date', sortable: true },
   { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' }

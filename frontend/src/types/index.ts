@@ -29,12 +29,17 @@ export interface DeckUpdate {
   is_opponent?: boolean
 }
 
+export type GameMode = 'RANK' | 'RATE' | 'EVENT' | 'DC'
+
 export interface Duel {
   id: number
   deck_id: number
   opponentDeck_id: number
   result: boolean  // true = win, false = lose
-  rank?: number
+  game_mode: GameMode  // RANK, RATE, EVENT, DC
+  rank?: number  // ランクモード時のランク（1-15）
+  rate_value?: number  // レートモード時のレート数値
+  dc_value?: number  // DCモード時のDC数値
   coin: boolean  // true = heads, false = tails
   first_or_second: boolean  // true = first, false = second
   played_date: string
@@ -48,15 +53,31 @@ export interface Duel {
 }
 
 export interface DuelCreate {
-  deck_id: number
-  opponentdeck_id?: number | null
-  result: 'win' | 'lose'
-  coin: 'heads' | 'tails'
-  turn_order: 'first' | 'second'
-  rank?: string
-  rating?: number
+  deck_id: number | null
+  opponentDeck_id: number | null
+  result: boolean
+  game_mode: GameMode
+  rank?: number
+  rate_value?: number
+  dc_value?: number
+  coin: boolean
+  first_or_second: boolean
+  played_date: string
   notes?: string
-  played_at?: string
+}
+
+export interface DuelUpdate {
+  deck_id?: number
+  opponentDeck_id?: number
+  result?: boolean
+  game_mode?: GameMode
+  rank?: number
+  rate_value?: number
+  dc_value?: number
+  coin?: boolean
+  first_or_second?: boolean
+  played_date?: string
+  notes?: string
 }
 
 export interface DuelStats {
@@ -68,4 +89,11 @@ export interface DuelStats {
   second_turn_win_rate: number
   coin_win_rate: number
   go_first_rate: number
+}
+
+export interface GameModeStats {
+  RANK: DuelStats
+  RATE: DuelStats
+  EVENT: DuelStats
+  DC: DuelStats
 }

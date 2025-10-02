@@ -201,3 +201,14 @@ def get_win_rate(
         "win_rate": win_rate,
         "percentage": round(win_rate * 100, 2)
     }
+
+
+@router.get("/latest-values/", response_model=dict)
+def get_latest_values(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    各ゲームモードの最新の値（ランク、レート、DC）を取得
+    """
+    return duel_service.get_latest_duel_values(db=db, user_id=current_user.id)
