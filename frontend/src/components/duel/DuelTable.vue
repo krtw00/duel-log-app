@@ -126,7 +126,7 @@
       <div class="text-center pa-8">
         <v-icon size="64" color="grey">mdi-file-document-outline</v-icon>
         <p class="text-h6 text-grey mt-4">対戦記録がありません</p>
-        <p class="text-caption text-grey">「対戦記録を追加」ボタンから記録を開始しましょう</p>
+        <p class="text-body-1 text-grey">「対戦記録を追加」ボタンから記録を開始しましょう</p>
       </div>
     </template>
   </v-data-table>
