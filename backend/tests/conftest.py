@@ -54,7 +54,7 @@ def test_user(db_session):
     user = User(
         username="testuser",
         email="test@example.com",
-        hashed_password=get_password_hash("testpassword")
+        passwordhash=get_password_hash("testpassword")
     )
     db_session.add(user)
     db_session.commit()
@@ -63,14 +63,11 @@ def test_user(db_session):
 
 
 @pytest.fixture
-def auth_headers(client, test_user):
-    """認証ヘッダー"""
-    response = client.post(
+def authenticated_client(client, test_user):
+    """認証済みテストクライアント"""
+    # ログインしてクッキーにトークンをセット
+    client.post(
         "/auth/login",
-        data={
-            "username": test_user.username,
-            "password": "testpassword"
-        }
+        json={"email": test_user.email, "password": "testpassword"}
     )
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+    return client
