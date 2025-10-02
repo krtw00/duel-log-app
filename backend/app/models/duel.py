@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models import Base
 from datetime import datetime
-import uuid
 
 class Duel(Base):
     __tablename__ = "duels"
@@ -13,7 +12,10 @@ class Duel(Base):
     opponentDeck_id = Column(Integer, nullable=False)
 
     result = Column(Boolean, nullable=False)
-    rank = Column(Integer, nullable=True)
+    game_mode = Column(String(10), nullable=False, default='RANK', server_default='RANK')  # RANK, RATE, EVENT, DC
+    rank = Column(Integer, nullable=True)  # ランクモード時のランク（1-15: B2～M1）
+    rate_value = Column(Integer, nullable=True)  # レートモード時のレート数値
+    dc_value = Column(Integer, nullable=True)  # DCモード時のDC数値
     coin = Column(Boolean, nullable=False)
     first_or_second = Column(Boolean, nullable=False)
     played_date = Column(DateTime, nullable=False)
