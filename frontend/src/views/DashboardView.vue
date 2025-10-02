@@ -260,8 +260,8 @@ const calculateStats = (duelList: Duel[]): DuelStats => {
   }
 }
 
-const handleModeChange = (mode: GameMode) => {
-  currentMode.value = mode
+const handleModeChange = (mode: any) => {
+  currentMode.value = mode as GameMode
 }
 
 const openDuelDialog = () => {
