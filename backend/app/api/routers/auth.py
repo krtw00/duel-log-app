@@ -1,12 +1,13 @@
 """
 認証関連のAPIエンドポイント
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
-from app.schemas.auth import LoginRequest, TokenResponse
+from app.schemas.auth import LoginRequest
 from app.db.session import get_db
 from app.models.user import User
 from app.core.security import verify_password, create_access_token
+from app.core.config import settings
 import logging
 
 # ルーター定義
@@ -19,22 +20,24 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 def login(
+    response: Response,
     login_data: LoginRequest,
     db: Session = Depends(get_db)
 ):
     """
     ユーザーログイン
     
-    メールアドレスとパスワードで認証し、JWTアクセストークンを返す
+    メールアドレスとパスワードで認証し、HttpOnlyクッキーにJWTアクセストークンを設定する
     
     Args:
+        response: FastAPIのレスポンスオブジェクト
         login_data: ログイン情報（email, password）
         db: データベースセッション
     
     Returns:
-        TokenResponse: アクセストークンとトークンタイプ
+        ログイン成功メッセージ
     
     Raises:
         HTTPException: 認証失敗時（401 Unauthorized）
@@ -61,9 +64,27 @@ def login(
     # アクセストークンを生成
     access_token = create_access_token(data=token_data)
     
+    # HttpOnlyクッキーにトークンを設定
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        samesite="lax",
+        secure=not settings.DEBUG,  # 本番環境ではTrueに設定
+        path="/"
+    )
+    
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
     
-    return TokenResponse(
-        access_token=access_token,
-        token_type="bearer"
-    )
+    return {"message": "Login successful"}
+
+
+@router.post("/logout")
+def logout(response: Response):
+    """
+    ユーザーログアウト
+    
+    HttpOnlyクッキーをクリアしてログアウトする
+    """
+    response.delete_cookie("access_token")
+    return {"message": "Logout successful"}
