@@ -49,8 +49,14 @@ const router = createRouter({
 })
 
 // ナビゲーションガード
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
+
+  // アプリケーションの初回起動時にユーザー情報を取得する
+  if (!authStore.isInitialized) {
+    await authStore.fetchUser()
+  }
+
   const requiresAuth = to.meta.requiresAuth !== false
 
   if (requiresAuth && !authStore.isAuthenticated) {
