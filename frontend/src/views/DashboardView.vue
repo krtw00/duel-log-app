@@ -12,30 +12,31 @@
             v-model="currentMode"
             color="primary"
             align-tabs="center"
+            height="64"
             @update:model-value="handleModeChange"
           >
-            <v-tab value="RANK">
+            <v-tab value="RANK" class="custom-tab">
               <v-icon start>mdi-crown</v-icon>
               ランク
               <v-chip class="ml-2" size="small" color="primary">
                 {{ rankDuels.length }}
               </v-chip>
             </v-tab>
-            <v-tab value="RATE">
+            <v-tab value="RATE" class="custom-tab">
               <v-icon start>mdi-chart-line</v-icon>
               レート
               <v-chip class="ml-2" size="small" color="info">
                 {{ rateDuels.length }}
               </v-chip>
             </v-tab>
-            <v-tab value="EVENT">
+            <v-tab value="EVENT" class="custom-tab">
               <v-icon start>mdi-calendar-star</v-icon>
               イベント
               <v-chip class="ml-2" size="small" color="secondary">
                 {{ eventDuels.length }}
               </v-chip>
             </v-tab>
-            <v-tab value="DC">
+            <v-tab value="DC" class="custom-tab">
               <v-icon start>mdi-trophy-variant</v-icon>
               DC
               <v-chip class="ml-2" size="small" color="warning">
@@ -324,6 +325,16 @@ onMounted(() => {
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
+  }
+}
+
+.custom-tab {
+  font-size: 1rem; // Adjust font size as needed
+  padding: 0 24px; // Adjust padding as needed
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
   }
 }
 </style>

@@ -9,22 +9,16 @@
 
     <v-spacer />
 
-    <v-btn
-      v-if="currentView === 'decks'"
-      prepend-icon="mdi-view-dashboard"
-      variant="text"
-      @click="router.push('/')"
-    >
-      ダッシュボード
-    </v-btn>
-    <v-btn
-      v-if="currentView === 'dashboard'"
-      prepend-icon="mdi-cards"
-      variant="text"
-      @click="router.push('/decks')"
-    >
-      デッキ管理
-    </v-btn>
+    <template v-for="item in navItems" :key="item.view">
+      <v-btn
+        v-if="currentView !== item.view"
+        :prepend-icon="item.icon"
+        variant="text"
+        @click="router.push(item.path)"
+      >
+        {{ item.name }}
+      </v-btn>
+    </template>
 
     <v-chip
       v-if="authStore.user"
@@ -49,11 +43,17 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 
 defineProps<{
-  currentView: 'dashboard' | 'decks'
+  currentView: 'dashboard' | 'decks' | 'statistics'
 }>()
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const navItems = [
+  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
+  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
+]
 </script>
 
 <style scoped lang="scss">

@@ -4,6 +4,7 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import DecksView from '../views/DecksView.vue'
+import StatisticsView from '../views/StatisticsView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -28,6 +29,12 @@ const routes: RouteRecordRaw[] = [
     path: '/decks',
     name: 'Decks',
     component: DecksView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/statistics',
+    name: 'Statistics',
+    component: StatisticsView,
     meta: { requiresAuth: true }
   },
   {
