@@ -4,7 +4,7 @@ WORKDIR /app
 
 # システム依存関係のインストール（PostgreSQLクライアントを含む）
 RUN apt-get update && \
-    apt-get install -y gcc libpq-dev postgresql-client && \
+    apt-get install -y gcc libpq-dev postgresql-client dos2unix && \
     rm -rf /var/lib/apt/lists/*
 
 # Pythonパッケージのインストール
@@ -15,10 +15,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./app ./app
 COPY alembic.ini .
 COPY alembic ./alembic
-COPY start.py .
 
-# 起動スクリプトに実行権限付与
-RUN chmod +x start.py
+# 待機スクリプトのコピーと実行権限付与
+COPY wait-for-db.sh .
+RUN dos2unix wait-for-db.sh && chmod +x wait-for-db.sh
 
-# コンテナ起動時にPythonスクリプトを実行
-CMD ["python", "start.py"]
+# コンテナ起動時にデータベース待機 → マイグレーション → Uvicorn起動
+CMD ["./wait-for-db.sh", "db", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

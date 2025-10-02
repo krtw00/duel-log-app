@@ -48,18 +48,6 @@
               class="mb-4"
             />
 
-            <!-- エラーメッセージ -->
-            <v-alert
-              v-if="errorMessage"
-              type="error"
-              variant="tonal"
-              class="mb-4"
-              closable
-              @click:close="errorMessage = ''"
-            >
-              {{ errorMessage }}
-            </v-alert>
-
             <!-- ログインボタン -->
             <v-btn
               type="submit"
@@ -92,15 +80,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useNotificationStore } from '../stores/notification'
 
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const formRef = ref()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
-const errorMessage = ref('')
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
@@ -112,12 +101,13 @@ const handleLogin = async () => {
   if (!valid) return
 
   loading.value = true
-  errorMessage.value = ''
 
   try {
     await authStore.login(email.value, password.value)
+    notificationStore.success('ログインに成功しました')
   } catch (error: any) {
-    errorMessage.value = error.message
+    // エラーはAPIインターセプターで処理されるため、ここでは何もしない
+    console.error('Login error:', error)
   } finally {
     loading.value = false
   }
