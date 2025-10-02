@@ -101,6 +101,44 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         
         return wins / total_duels
 
+    def get_latest_duel_values(self, db: Session, user_id: int) -> dict:
+        """
+        ユーザーの各ゲームモードにおける最新のランク、レート、DC値を取得
+        """
+        latest_values = {}
+
+        # 最新のランク値を取得
+        latest_rank_duel = (
+            db.query(Duel)
+            .filter(Duel.user_id == user_id, Duel.game_mode == 'RANK', Duel.rank.isnot(None))
+            .order_by(Duel.played_date.desc())
+            .first()
+        )
+        if latest_rank_duel:
+            latest_values['RANK'] = latest_rank_duel.rank
+
+        # 最新のレート値を取得
+        latest_rate_duel = (
+            db.query(Duel)
+            .filter(Duel.user_id == user_id, Duel.game_mode == 'RATE', Duel.rate_value.isnot(None))
+            .order_by(Duel.played_date.desc())
+            .first()
+        )
+        if latest_rate_duel:
+            latest_values['RATE'] = latest_rate_duel.rate_value
+
+        # 最新のDC値を取得
+        latest_dc_duel = (
+            db.query(Duel)
+            .filter(Duel.user_id == user_id, Duel.game_mode == 'DC', Duel.dc_value.isnot(None))
+            .order_by(Duel.played_date.desc())
+            .first()
+        )
+        if latest_dc_duel:
+            latest_values['DC'] = latest_dc_duel.dc_value
+            
+        return latest_values
+
 
 # シングルトンインスタンス
 duel_service = DuelService()

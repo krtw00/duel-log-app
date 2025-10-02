@@ -6,12 +6,51 @@
     <!-- メインコンテンツ -->
     <v-main class="main-content">
       <v-container fluid class="pa-6">
+        <!-- ゲームモード切り替えタブ -->
+        <v-card class="mode-tab-card mb-4">
+          <v-tabs
+            v-model="currentMode"
+            color="primary"
+            align-tabs="center"
+            @update:model-value="handleModeChange"
+          >
+            <v-tab value="RANK">
+              <v-icon start>mdi-crown</v-icon>
+              ランク
+              <v-chip class="ml-2" size="small" color="primary">
+                {{ rankDuels.length }}
+              </v-chip>
+            </v-tab>
+            <v-tab value="RATE">
+              <v-icon start>mdi-chart-line</v-icon>
+              レート
+              <v-chip class="ml-2" size="small" color="info">
+                {{ rateDuels.length }}
+              </v-chip>
+            </v-tab>
+            <v-tab value="EVENT">
+              <v-icon start>mdi-calendar-star</v-icon>
+              イベント
+              <v-chip class="ml-2" size="small" color="secondary">
+                {{ eventDuels.length }}
+              </v-chip>
+            </v-tab>
+            <v-tab value="DC">
+              <v-icon start>mdi-trophy-variant</v-icon>
+              DC
+              <v-chip class="ml-2" size="small" color="warning">
+                {{ dcDuels.length }}
+              </v-chip>
+            </v-tab>
+          </v-tabs>
+        </v-card>
+
         <!-- 統計カード -->
         <v-row class="mb-4">
           <v-col cols="12" sm="4" md="2">
             <stat-card
               title="総試合数"
-              :value="stats.total_duels"
+              :value="currentStats.total_duels"
               icon="mdi-sword-cross"
               color="primary"
             />
@@ -19,7 +58,7 @@
           <v-col cols="12" sm="4" md="2">
             <stat-card
               title="コイン勝率"
-              :value="`${(stats.coin_win_rate * 100).toFixed(1)}%`"
+              :value="`${(currentStats.coin_win_rate * 100).toFixed(1)}%`"
               icon="mdi-poker-chip"
               color="yellow"
             />
@@ -27,7 +66,7 @@
           <v-col cols="12" sm="4" md="2">
             <stat-card
               title="先行率"
-              :value="`${(stats.go_first_rate * 100).toFixed(1)}%`"
+              :value="`${(currentStats.go_first_rate * 100).toFixed(1)}%`"
               icon="mdi-arrow-up-bold-hexagon-outline"
               color="teal"
             />
@@ -35,7 +74,7 @@
           <v-col cols="12" sm="4" md="2">
             <stat-card
               title="勝率"
-              :value="`${(stats.win_rate * 100).toFixed(1)}%`"
+              :value="`${(currentStats.win_rate * 100).toFixed(1)}%`"
               icon="mdi-trophy"
               color="success"
             />
@@ -43,7 +82,7 @@
           <v-col cols="12" sm="4" md="2">
             <stat-card
               title="先攻勝率"
-              :value="`${(stats.first_turn_win_rate * 100).toFixed(1)}%`"
+              :value="`${(currentStats.first_turn_win_rate * 100).toFixed(1)}%`"
               icon="mdi-lightning-bolt"
               color="warning"
             />
@@ -51,7 +90,7 @@
           <v-col cols="12" sm="4" md="2">
             <stat-card
               title="後攻勝率"
-              :value="`${(stats.second_turn_win_rate * 100).toFixed(1)}%`"
+              :value="`${(currentStats.second_turn_win_rate * 100).toFixed(1)}%`"
               icon="mdi-shield"
               color="secondary"
             />
@@ -77,7 +116,7 @@
           <v-divider />
 
           <duel-table
-            :duels="duels"
+            :duels="currentDuels"
             :loading="loading"
             @refresh="fetchDuels"
             @edit="editDuel"
@@ -91,29 +130,53 @@
     <duel-form-dialog
       v-model="dialogOpen"
       :duel="selectedDuel"
+      :default-game-mode="currentMode"
       @saved="handleSaved"
     />
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { api } from '../services/api'
-import { Duel, DuelStats, Deck } from '../types'
+import { Duel, DuelStats, Deck, GameMode } from '../types'
 import StatCard from '../components/duel/StatCard.vue'
 import DuelTable from '../components/duel/DuelTable.vue'
 import DuelFormDialog from '../components/duel/DuelFormDialog.vue'
 import AppBar from '../components/layout/AppBar.vue'
+import { useNotificationStore } from '../stores/notification'
 
-
+const notificationStore = useNotificationStore()
 
 const duels = ref<Duel[]>([])
 const loading = ref(false)
 const dialogOpen = ref(false)
 const selectedDuel = ref<Duel | null>(null)
 const decks = ref<Deck[]>([])
+const currentMode = ref<GameMode>('RANK')
 
-const stats = ref<DuelStats>({
+// ゲームモード別にデュエルをフィルタリング
+const rankDuels = computed(() => duels.value.filter(d => d.game_mode === 'RANK'))
+const rateDuels = computed(() => duels.value.filter(d => d.game_mode === 'RATE'))
+const eventDuels = computed(() => duels.value.filter(d => d.game_mode === 'EVENT'))
+const dcDuels = computed(() => duels.value.filter(d => d.game_mode === 'DC'))
+
+const currentDuels = computed(() => {
+  switch (currentMode.value) {
+    case 'RANK':
+      return rankDuels.value
+    case 'RATE':
+      return rateDuels.value
+    case 'EVENT':
+      return eventDuels.value
+    case 'DC':
+      return dcDuels.value
+    default:
+      return []
+  }
+})
+
+const emptyStats = (): DuelStats => ({
   total_duels: 0,
   win_count: 0,
   lose_count: 0,
@@ -122,6 +185,26 @@ const stats = ref<DuelStats>({
   second_turn_win_rate: 0,
   coin_win_rate: 0,
   go_first_rate: 0,
+})
+
+const rankStats = ref<DuelStats>(emptyStats())
+const rateStats = ref<DuelStats>(emptyStats())
+const eventStats = ref<DuelStats>(emptyStats())
+const dcStats = ref<DuelStats>(emptyStats())
+
+const currentStats = computed(() => {
+  switch (currentMode.value) {
+    case 'RANK':
+      return rankStats.value
+    case 'RATE':
+      return rateStats.value
+    case 'EVENT':
+      return eventStats.value
+    case 'DC':
+      return dcStats.value
+    default:
+      return emptyStats()
+  }
 })
 
 const fetchDuels = async () => {
@@ -139,7 +222,11 @@ const fetchDuels = async () => {
       opponentdeck: decks.value.find(d => d.id === duel.opponentDeck_id)
     }))
     
-    calculateStats()
+    // 各モードの統計を計算
+    rankStats.value = calculateStats(rankDuels.value)
+    rateStats.value = calculateStats(rateDuels.value)
+    eventStats.value = calculateStats(eventDuels.value)
+    dcStats.value = calculateStats(dcDuels.value)
   } catch (error) {
     console.error('Failed to fetch duels:', error)
   } finally {
@@ -147,30 +234,20 @@ const fetchDuels = async () => {
   }
 }
 
-const calculateStats = () => {
-  const total = duels.value.length
+const calculateStats = (duelList: Duel[]): DuelStats => {
+  const total = duelList.length
   if (total === 0) {
-    stats.value = {
-      total_duels: 0,
-      win_count: 0,
-      lose_count: 0,
-      win_rate: 0,
-      first_turn_win_rate: 0,
-      second_turn_win_rate: 0,
-      coin_win_rate: 0,
-      go_first_rate: 0,
-    }
-    return
+    return emptyStats()
   }
 
-  const wins = duels.value.filter(d => d.result === true).length
-  const coinWins = duels.value.filter(d => d.coin === true).length
-  const firstTurnTotal = duels.value.filter(d => d.first_or_second === true).length
-  const firstTurnWins = duels.value.filter(d => d.result === true && d.first_or_second === true).length
-  const secondTurnTotal = duels.value.filter(d => d.first_or_second === false).length
-  const secondTurnWins = duels.value.filter(d => d.result === true && d.first_or_second === false).length
+  const wins = duelList.filter(d => d.result === true).length
+  const coinWins = duelList.filter(d => d.coin === true).length
+  const firstTurnTotal = duelList.filter(d => d.first_or_second === true).length
+  const firstTurnWins = duelList.filter(d => d.result === true && d.first_or_second === true).length
+  const secondTurnTotal = duelList.filter(d => d.first_or_second === false).length
+  const secondTurnWins = duelList.filter(d => d.result === true && d.first_or_second === false).length
 
-  stats.value = {
+  return {
     total_duels: total,
     win_count: wins,
     lose_count: total - wins,
@@ -180,6 +257,10 @@ const calculateStats = () => {
     first_turn_win_rate: firstTurnTotal > 0 ? firstTurnWins / firstTurnTotal : 0,
     second_turn_win_rate: secondTurnTotal > 0 ? secondTurnWins / secondTurnTotal : 0,
   }
+}
+
+const handleModeChange = (mode: GameMode) => {
+  currentMode.value = mode
 }
 
 const openDuelDialog = () => {
@@ -198,7 +279,9 @@ const deleteDuel = async (duelId: number) => {
   try {
     await api.delete(`/duels/${duelId}`)
     await fetchDuels()
+    notificationStore.success('対戦記録を削除しました')
   } catch (error) {
+    // エラーはAPIインターセプターで処理される
     console.error('Failed to delete duel:', error)
   }
 }
@@ -217,6 +300,13 @@ onMounted(() => {
 .main-content {
   background: #0a0e27;
   min-height: 100vh;
+}
+
+.mode-tab-card {
+  background: rgba(18, 22, 46, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 217, 255, 0.1);
+  border-radius: 12px !important;
 }
 
 .duel-card {
