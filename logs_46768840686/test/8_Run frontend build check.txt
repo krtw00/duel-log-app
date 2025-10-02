@@ -1,0 +1,28 @@
+﻿2025-10-02T14:28:23.5761619Z ##[group]Run npm run build --prefix frontend
+2025-10-02T14:28:23.5761983Z [36;1mnpm run build --prefix frontend[0m
+2025-10-02T14:28:23.5797834Z shell: /usr/bin/bash -e {0}
+2025-10-02T14:28:23.5798077Z env:
+2025-10-02T14:28:23.5798337Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:23.5798751Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.13/x64/lib/pkgconfig
+2025-10-02T14:28:23.5799381Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:23.5799737Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:23.5800103Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.13/x64
+2025-10-02T14:28:23.5800473Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.13/x64/lib
+2025-10-02T14:28:23.5800784Z ##[endgroup]
+2025-10-02T14:28:23.6947733Z 
+2025-10-02T14:28:23.6948370Z > duel-log-frontend@0.0.0 build
+2025-10-02T14:28:23.6948885Z > vue-tsc && vite build
+2025-10-02T14:28:23.6949288Z 
+2025-10-02T14:28:30.5023263Z ##[error]src/components/duel/DuelTable.vue(3,6): error TS2322: Type '({ title: string; key: string; sortable: boolean; width?: undefined; align?: undefined; } | { title: string; key: string; sortable: boolean; width: number; align?: undefined; } | { title: string; key: string; sortable: boolean; width: number; align: string; })[]' is not assignable to type 'readonly { readonly key?: (string & {}) | "data-table-group" | "data-table-select" | "data-table-expand" | undefined; readonly value?: SelectItemKey<Duel>; readonly title?: string | undefined; ... 13 more ...; readonly children?: readonly any[] | undefined; }[]'.
+2025-10-02T14:28:30.5034632Z   Type '{ title: string; key: string; sortable: boolean; width?: undefined; align?: undefined; } | { title: string; key: string; sortable: boolean; width: number; align?: undefined; } | { title: string; key: string; sortable: boolean; width: number; align: string; }' is not assignable to type '{ readonly key?: (string & {}) | "data-table-group" | "data-table-select" | "data-table-expand" | undefined; readonly value?: SelectItemKey<Duel>; readonly title?: string | undefined; ... 13 more ...; readonly children?: readonly any[] | undefined; }'.
+2025-10-02T14:28:30.5037410Z     Type '{ title: string; key: string; sortable: boolean; width: number; align: string; }' is not assignable to type '{ readonly key?: (string & {}) | "data-table-group" | "data-table-select" | "data-table-expand" | undefined; readonly value?: SelectItemKey<Duel>; readonly title?: string | undefined; ... 13 more ...; readonly children?: readonly any[] | undefined; }'.
+2025-10-02T14:28:30.5038610Z       Types of property 'align' are incompatible.
+2025-10-02T14:28:30.5039346Z         Type 'string' is not assignable to type '"start" | "end" | "center" | undefined'.
+2025-10-02T14:28:30.5041830Z ##[error]src/main.ts(15,1): error TS2345: Argument of type '[]' is not assignable to parameter of type '[ctx: Omit<{ attrs: Data; slots: Readonly<InternalSlots>; emit: (event: string, ...args: any[]) => void; expose: <Exposed extends Record<string, any> = Record<string, any>>(exposed?: Exposed | undefined) => void; }, "expose">]'.
+2025-10-02T14:28:30.5043806Z   Source has 0 element(s) but target requires 1.
+2025-10-02T14:28:30.5044534Z ##[error]src/router/index.ts(59,30): error TS6133: 'from' is declared but its value is never read.
+2025-10-02T14:28:30.5045761Z ##[error]src/services/api.ts(6,34): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+2025-10-02T14:28:30.5047167Z ##[error]src/views/DashboardView.vue(16,14): error TS2322: Type '(mode: GameMode) => void' is not assignable to type '(v: unknown) => any'.
+2025-10-02T14:28:30.5048122Z   Types of parameters 'mode' and 'v' are incompatible.
+2025-10-02T14:28:30.5048496Z     Type 'unknown' is not assignable to type 'GameMode'.
+2025-10-02T14:28:30.5655411Z ##[error]Process completed with exit code 2.

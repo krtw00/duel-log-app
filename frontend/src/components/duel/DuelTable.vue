@@ -157,7 +157,7 @@ const headers = [
   { title: '備考', key: 'notes', sortable: false, width: 200 },
   { title: 'プレイ日時', key: 'played_date', sortable: true },
   { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' }
-]
+] as const
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
