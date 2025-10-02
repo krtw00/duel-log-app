@@ -1,8 +1,8 @@
 <template>
   <v-dialog
     :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
-    max-width="600"
+    @update:modelValue="$emit('update:modelValue', $event)"
+    max-width="700"
     persistent
   >
     <v-card class="duel-form-card">
@@ -16,6 +16,30 @@
       <v-divider />
 
       <v-card-text class="pa-6">
+        <!-- ゲームモード選択タブ -->
+        <v-tabs
+          v-model="form.game_mode"
+          color="primary"
+          class="mb-4"
+        >
+          <v-tab value="RANK">
+            <v-icon start>mdi-crown</v-icon>
+            ランク
+          </v-tab>
+          <v-tab value="RATE">
+            <v-icon start>mdi-chart-line</v-icon>
+            レート
+          </v-tab>
+          <v-tab value="EVENT">
+            <v-icon start>mdi-calendar-star</v-icon>
+            イベント
+          </v-tab>
+          <v-tab value="DC">
+            <v-icon start>mdi-trophy-variant</v-icon>
+            DC
+          </v-tab>
+        </v-tabs>
+
         <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-row>
             <!-- 使用デッキ -->
@@ -31,19 +55,13 @@
                 color="primary"
                 :rules="[rules.required]"
                 clearable
-              >
-                <template #no-data>
-                  <v-list-item>
-                    <v-list-item-title>デッキが見つかりません</v-list-item-title>
-                  </v-list-item>
-                </template>
-              </v-autocomplete>
+              />
             </v-col>
 
             <!-- 相手デッキ -->
             <v-col cols="12" md="6">
               <v-autocomplete
-                v-model="form.opponentdeck_id"
+                v-model="form.opponentDeck_id"
                 :items="opponentDecks"
                 item-title="name"
                 item-value="id"
@@ -57,12 +75,12 @@
             </v-col>
 
             <!-- コイン -->
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="4">
               <v-select
                 v-model="form.coin"
                 :items="coinOptions"
                 label="コイン"
-                prepend-inner-icon="mdi-coin"
+                prepend-inner-icon="mdi-poker-chip"
                 variant="outlined"
                 color="primary"
                 :rules="[rules.required]"
@@ -70,10 +88,10 @@
             </v-col>
 
             <!-- 先攻/後攻 -->
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="4">
               <v-select
-                v-model="form.turn_order"
-                :items="turnOrderOptions"
+                v-model="form.first_or_second"
+                :items="turnOptions"
                 label="先攻/後攻"
                 prepend-inner-icon="mdi-swap-horizontal"
                 variant="outlined"
@@ -83,42 +101,72 @@
             </v-col>
 
             <!-- 勝敗 -->
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="4">
               <v-select
                 v-model="form.result"
                 :items="resultOptions"
                 label="勝敗"
                 prepend-inner-icon="mdi-trophy"
                 variant="outlined"
-                :color="form.result === 'win' ? 'success' : 'error'"
+                :color="form.result ? 'success' : 'error'"
                 :rules="[rules.required]"
               />
             </v-col>
 
-            <!-- ランク -->
-            <v-col cols="12" md="6">
+            <!-- ランク（RANKモード時のみ） -->
+            <v-col v-if="form.game_mode === 'RANK'" cols="12" md="6">
               <v-select
                 v-model="form.rank"
-                :items="rankOptions"
-                label="ランク (任意)"
-                prepend-inner-icon="mdi-star"
+                :items="RANKS"
+                item-title="label"
+                item-value="value"
+                label="ランク"
+                prepend-inner-icon="mdi-crown"
                 variant="outlined"
-                color="accent"
-                clearable
+                color="warning"
+                :rules="form.game_mode === 'RANK' ? [rules.required] : []"
               />
             </v-col>
 
-            <!-- プレイ日時 -->
-            <v-col cols="12">
+            <!-- レート（RATEモード時のみ） -->
+            <v-col v-if="form.game_mode === 'RATE'" cols="12" md="6">
               <v-text-field
-                v-model="form.played_at"
-                label="プレイ日時（自動入力）"
-                prepend-inner-icon="mdi-calendar-clock"
-                type="datetime-local"
+                v-model.number="form.rate_value"
+                label="レート"
+                prepend-inner-icon="mdi-chart-line"
                 variant="outlined"
-                color="primary"
-                hint="デフォルトで現在の日時が入力されます"
-                persistent-hint
+                color="info"
+                type="number"
+                min="0"
+                placeholder="例: 2500"
+                :rules="form.game_mode === 'RATE' ? [rules.required, rules.number] : []"
+              />
+            </v-col>
+
+            <!-- DC（DCモード時のみ） -->
+            <v-col v-if="form.game_mode === 'DC'" cols="12" md="6">
+              <v-text-field
+                v-model.number="form.dc_value"
+                label="DCポイント"
+                prepend-inner-icon="mdi-trophy-variant"
+                variant="outlined"
+                color="warning"
+                type="number"
+                min="0"
+                placeholder="例: 18500"
+                :rules="form.game_mode === 'DC' ? [rules.required, rules.number] : []"
+              />
+            </v-col>
+
+            <!-- 対戦日時 -->
+            <v-col cols="12" :md="form.game_mode === 'EVENT' ? 12 : 6">
+              <v-text-field
+                v-model="form.played_date"
+                label="対戦日時"
+                prepend-inner-icon="mdi-calendar"
+                variant="outlined"
+                type="datetime-local"
+                :rules="[rules.required]"
               />
             </v-col>
 
@@ -126,12 +174,13 @@
             <v-col cols="12">
               <v-textarea
                 v-model="form.notes"
-                label="備考 (任意)"
+                label="備考"
                 prepend-inner-icon="mdi-note-text"
                 variant="outlined"
-                color="primary"
                 rows="3"
-                placeholder="対戦の詳細やメモを記入..."
+                counter="1000"
+                placeholder="メモやコメントを入力"
+                :rules="[rules.maxLength]"
               />
             </v-col>
           </v-row>
@@ -154,7 +203,7 @@
           @click="handleSubmit"
         >
           <v-icon start>mdi-content-save</v-icon>
-          {{ isEdit ? '更新' : '保存' }}
+          {{ isEdit ? '更新' : '登録' }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -162,133 +211,196 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { api } from '../../services/api'
-import { Duel, DuelCreate } from '../../types'
-import { rankOptions } from '../../utils/ranks'
+import { Duel, DuelCreate, Deck, GameMode } from '../../types'
+import { useNotificationStore } from '../../stores/notification'
+import { RANKS } from '../../utils/ranks'
 
-const props = defineProps<{
+interface Props {
   modelValue: boolean
-  duel?: Duel | null
-}>()
+  duel: Duel | null
+  defaultGameMode?: GameMode
+}
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  'saved': []
-}>()
+// Default values
+const DEFAULT_RANK = 18 // プラチナ5
+const DEFAULT_RATE = 1500
+const DEFAULT_DC = 0
+
+const props = withDefaults(defineProps<Props>(), {
+  defaultGameMode: 'RANK',
+})
+const emit = defineEmits(['update:modelValue', 'saved'])
+
+const notificationStore = useNotificationStore()
 
 const formRef = ref()
 const loading = ref(false)
-const myDecks = ref<any[]>([])
-const opponentDecks = ref<any[]>([])
+const myDecks = ref<Deck[]>([])
+const opponentDecks = ref<Deck[]>([])
+const latestValues = ref<{[key: string]: number}>({})
 
-const isEdit = ref(false)
-
-// 現在の日時を取得する関数
-const getCurrentDateTime = () => {
-  return new Date().toISOString().slice(0, 16)
+const defaultForm = (): DuelCreate => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`
+  
+  return {
+    deck_id: null,
+    opponentDeck_id: null,
+    result: true,
+    game_mode: 'RANK',
+    rank: undefined,
+    rate_value: undefined,
+    dc_value: undefined,
+    coin: true,
+    first_or_second: true,
+    played_date: localDateTime,
+    notes: ''
+  }
 }
 
-const form = ref<DuelCreate>({
-  deck_id: null as any,
-  opponentdeck_id: null,
-  result: 'win',
-  coin: 'heads',
-  turn_order: 'first',
-  rank: '',
-  rating: undefined,
-  notes: '',
-  played_at: getCurrentDateTime()
-})
+const form = ref<DuelCreate>(defaultForm())
 
-const rules = {
-  required: (v: any) => !!v || '入力必須です'
-}
+const isEdit = computed(() => !!props.duel)
 
 const coinOptions = [
-  { title: '表', value: 'heads' },
-  { title: '裏', value: 'tails' }
+  { title: '表', value: true },
+  { title: '裏', value: false }
 ]
 
-const turnOrderOptions = [
-  { title: '先攻', value: 'first' },
-  { title: '後攻', value: 'second' }
+const turnOptions = [
+  { title: '先攻', value: true },
+  { title: '後攻', value: false }
 ]
 
 const resultOptions = [
-  { title: '勝利', value: 'win' },
-  { title: '敗北', value: 'lose' }
+  { title: '勝ち', value: true },
+  { title: '負け', value: false }
 ]
 
+const rules = {
+  required: (v: any) => (v !== null && v !== undefined && v !== '') || '入力必須です',
+  number: (v: any) => (!isNaN(v) && v >= 0) || '0以上の数値を入力してください',
+  maxLength: (v: string) => !v || v.length <= 1000 || '1000文字以内で入力してください'
+}
+
+// デッキ一覧を取得
 const fetchDecks = async () => {
   try {
     const response = await api.get('/decks/')
     const allDecks = response.data
-    myDecks.value = allDecks.filter((d: any) => !d.is_opponent)
-    opponentDecks.value = allDecks.filter((d: any) => d.is_opponent)
+    myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent)
+    opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent)
   } catch (error) {
     console.error('Failed to fetch decks:', error)
   }
 }
 
+const fetchLatestValues = async () => {
+  try {
+    const response = await api.get('/duels/latest-values/')
+    latestValues.value = response.data
+  } catch (error) {
+    console.error('Failed to fetch latest values:', error)
+    latestValues.value = {}
+  }
+}
+
+// ダイアログが開いたらデッキを取得
+watch(() => props.modelValue, async (newValue) => {
+  if (newValue) {
+    await fetchDecks()
+    if (props.duel) {
+      // 編集モード
+      // ISO文字列をdatetime-local形式に変換
+      const playedDate = new Date(props.duel.played_date)
+      const year = playedDate.getFullYear()
+      const month = String(playedDate.getMonth() + 1).padStart(2, '0')
+      const day = String(playedDate.getDate()).padStart(2, '0')
+      const hours = String(playedDate.getHours()).padStart(2, '0')
+      const minutes = String(playedDate.getMinutes()).padStart(2, '0')
+      const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`
+      
+      form.value = {
+        deck_id: props.duel.deck_id,
+        opponentDeck_id: props.duel.opponentDeck_id,
+        result: props.duel.result,
+        game_mode: props.duel.game_mode,
+        rank: props.duel.rank,
+        rate_value: props.duel.rate_value,
+        dc_value: props.duel.dc_value,
+        coin: props.duel.coin,
+        first_or_second: props.duel.first_or_second,
+        played_date: localDateTime,
+        notes: props.duel.notes || ''
+      }
+    } else {
+      // 新規作成モード
+      await fetchLatestValues()
+      form.value = defaultForm()
+      form.value.game_mode = props.defaultGameMode
+      
+      // Set initial value based on game mode
+      if (form.value.game_mode === 'RANK') {
+        form.value.rank = latestValues.value.RANK ?? DEFAULT_RANK
+      } else if (form.value.game_mode === 'RATE') {
+        form.value.rate_value = latestValues.value.RATE ?? DEFAULT_RATE
+      } else if (form.value.game_mode === 'DC') {
+        form.value.dc_value = latestValues.value.DC ?? DEFAULT_DC
+      }
+    }
+  }
+})
+
+// ゲームモードが変わったらrank/rate_value/dc_valueをクリア
+watch(() => form.value.game_mode, (newMode) => {
+  // 編集モードでは値を変更しない
+  if (isEdit.value) return
+
+  form.value.rank = undefined
+  form.value.rate_value = undefined
+  form.value.dc_value = undefined
+
+  if (newMode === 'RANK') {
+    form.value.rank = latestValues.value.RANK ?? DEFAULT_RANK
+  } else if (newMode === 'RATE') {
+    form.value.rate_value = latestValues.value.RATE ?? DEFAULT_RATE
+  } else if (newMode === 'DC') {
+    form.value.dc_value = latestValues.value.DC ?? DEFAULT_DC
+  }
+})
+
 const handleSubmit = async () => {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
-  // 相手デッキが選択されていない場合はエラー
-  if (!form.value.opponentdeck_id) {
-    alert('相手デッキを選択してください')
-    return
-  }
-
   loading.value = true
 
   try {
-    // バックエンドが期待する形式に変換
-    const payload: any = {
-      deck_id: form.value.deck_id,
-      opponentDeck_id: form.value.opponentdeck_id,
-      coin: form.value.coin === 'heads', // 'heads' -> true, 'tails' -> false
-      first_or_second: form.value.turn_order === 'first', // 'first' -> true, 'second' -> false
-      result: form.value.result === 'win', // 'win' -> true, 'lose' -> false
-      played_date: form.value.played_at ? new Date(form.value.played_at).toISOString() : new Date().toISOString(),
-      notes: form.value.notes || undefined
+    // datetime-local形式をISO文字列に変換
+    const submitData = {
+      ...form.value,
+      played_date: new Date(form.value.played_date).toISOString()
     }
-
-    // rankは数値のみ送信
-    if (form.value.rank) {
-      payload.rank = typeof form.value.rank === 'number' ? form.value.rank : parseInt(form.value.rank)
-    }
-
-    console.log('送信するデータ:', payload)
-
+    
     if (isEdit.value && props.duel) {
-      await api.put(`/duels/${props.duel.id}`, payload)
+      await api.put(`/duels/${props.duel.id}`, submitData)
+      notificationStore.success('対戦記録を更新しました')
     } else {
-      await api.post('/duels/', payload)
+      await api.post('/duels/', submitData)
+      notificationStore.success('対戦記録を登録しました')
     }
-
+    
     emit('saved')
     closeDialog()
-  } catch (error: any) {
-    console.error('=== 保存エラー詳細 ===')
-    console.error('エラーオブジェクト:', error)
-    console.error('レスポンスデータ:', error.response?.data)
-    console.error('ステータスコード:', error.response?.status)
-    console.error('レスポンスヘッダー:', error.response?.headers)
-    
-    const errorDetail = error.response?.data?.detail
-    let errorMessage = '保存に失敗しました\n\n'
-    
-    if (Array.isArray(errorDetail)) {
-      errorMessage += errorDetail.map((err: any) => 
-        `フィールド: ${err.loc?.join(' -> ')}\nエラー: ${err.msg}\n入力値: ${err.input}`
-      ).join('\n\n')
-    } else {
-      errorMessage += JSON.stringify(errorDetail || error.message)
-    }
-    
-    alert(errorMessage)
+  } catch (error) {
+    console.error('Failed to save duel:', error)
   } finally {
     loading.value = false
   }
@@ -296,64 +408,8 @@ const handleSubmit = async () => {
 
 const closeDialog = () => {
   emit('update:modelValue', false)
-  resetForm()
-}
-
-const resetForm = () => {
-  form.value = {
-    deck_id: null as any,
-    opponentdeck_id: null,
-    result: 'win',
-    coin: 'heads',
-    turn_order: 'first',
-    rank: '',
-    notes: '',
-    played_at: getCurrentDateTime()
-  }
   formRef.value?.resetValidation()
 }
-
-watch(() => props.modelValue, (newVal) => {
-  if (newVal) {
-    if (props.duel) {
-      // 編集モード
-      isEdit.value = true
-      
-      // played_dateを安全に変換
-      let playedAtValue = getCurrentDateTime()
-      if (props.duel.played_date) {
-        try {
-          const date = new Date(props.duel.played_date)
-          if (!isNaN(date.getTime())) {
-            playedAtValue = date.toISOString().slice(0, 16)
-          }
-        } catch (error) {
-          console.error('日時の変換エラー:', error)
-        }
-      }
-      
-      form.value = {
-        deck_id: props.duel.deck_id,
-        opponentdeck_id: props.duel.opponentDeck_id,
-        result: props.duel.result ? 'win' : 'lose',
-        coin: props.duel.coin ? 'heads' : 'tails',
-        turn_order: props.duel.first_or_second ? 'first' : 'second',
-        rank: props.duel.rank || '',
-        notes: props.duel.notes || '',
-        played_at: playedAtValue
-      }
-    } else {
-      // 新規追加モード（現在の日時をセット）
-      isEdit.value = false
-      resetForm()
-    }
-    fetchDecks()
-  }
-})
-
-onMounted(() => {
-  fetchDecks()
-})
 </script>
 
 <style scoped lang="scss">

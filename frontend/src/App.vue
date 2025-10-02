@@ -1,9 +1,16 @@
 <template>
   <router-view />
+  
+  <!-- グローバル通知システム -->
+  <toast-notification />
+  
+  <!-- グローバルローディングオーバーレイ -->
+  <loading-overlay />
 </template>
 
 <script setup lang="ts">
-// App.vueはルーターの出力先として機能
+import ToastNotification from './components/common/ToastNotification.vue'
+import LoadingOverlay from './components/common/LoadingOverlay.vue'
 </script>
 
 <style lang="scss">

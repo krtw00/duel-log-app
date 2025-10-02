@@ -72,28 +72,6 @@
               class="mb-4"
             />
 
-            <!-- エラーメッセージ -->
-            <v-alert
-              v-if="errorMessage"
-              type="error"
-              variant="tonal"
-              class="mb-4"
-              closable
-              @click:close="errorMessage = ''"
-            >
-              {{ errorMessage }}
-            </v-alert>
-
-            <!-- 成功メッセージ -->
-            <v-alert
-              v-if="successMessage"
-              type="success"
-              variant="tonal"
-              class="mb-4"
-            >
-              {{ successMessage }}
-            </v-alert>
-
             <!-- 登録ボタン -->
             <v-btn
               type="submit"
@@ -126,8 +104,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../services/api'
+import { useNotificationStore } from '../stores/notification'
 
 const router = useRouter()
+const notificationStore = useNotificationStore()
 
 const formRef = ref()
 const username = ref('')
@@ -137,8 +117,6 @@ const passwordConfirm = ref('')
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const loading = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
@@ -153,8 +131,6 @@ const handleRegister = async () => {
   if (!valid) return
 
   loading.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
 
   try {
     await api.post('/users/', {
@@ -163,18 +139,15 @@ const handleRegister = async () => {
       password: password.value
     })
 
-    successMessage.value = '登録が完了しました。ログイン画面に移動します...'
+    notificationStore.success('登録が完了しました。ログイン画面に移動します...')
     
     // 2秒後にログイン画面へ遷移
     setTimeout(() => {
       router.push('/login')
     }, 2000)
   } catch (error: any) {
-    if (error.response?.data?.detail) {
-      errorMessage.value = error.response.data.detail
-    } else {
-      errorMessage.value = '登録に失敗しました。もう一度お試しください。'
-    }
+    // エラーはAPIインターセプターで処理される
+    console.error('Failed to register:', error)
   } finally {
     loading.value = false
   }
