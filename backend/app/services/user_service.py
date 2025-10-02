@@ -1,97 +1,65 @@
-from sqlalchemy import select, insert
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timezone
+from fastapi import HTTPException
+import logging
+
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
-from app.models.deck import Deck
 from app.core.security import get_password_hash
-import logging
-from fastapi import HTTPException
+from app.services.base import BaseService
 
 logger = logging.getLogger(__name__)
 
-def create_user(db: Session, user_in: UserCreate) -> User:
-    hashed_password = get_password_hash(user_in.password)
-    now = datetime.now(timezone.utc)
+class UserService(BaseService[User, UserCreate, UserUpdate]):
+    """ユーザーサービスクラス"""
 
-    stmt = (
-        insert(User)
-        .values(
-            username=user_in.username,
-            email=user_in.email,
-            passwordhash=hashed_password,
-            createdat=now,
-            updatedat=now,
-        )
-        .returning(
-            User.id,
-            User.username,
-            User.email,
-            User.passwordhash,
-            User.createdat,
-            User.updatedat,
-        )
-    )
+    def create(self, db: Session, *, obj_in: UserCreate) -> User:
+        """
+        新しいユーザーを作成する（パスワードをハッシュ化）
+        """
+        create_data = obj_in.model_dump()
+        create_data.pop("password")
+        create_data["passwordhash"] = get_password_hash(obj_in.password)
+        
+        db_obj = self.model(**create_data)
+        
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except IntegrityError as e:
+            db.rollback()
+            logger.error(f"❌ IntegrityError on user creation: {e}")
+            raise HTTPException(status_code=409, detail="ユーザー名またはメールアドレスは既に使用されています")
+            
+        return db_obj
 
-    logger.info(f"DEBUG: Executing SQL: {stmt}")
+    def update_profile(self, db: Session, *, db_obj: User, obj_in: UserUpdate) -> User:
+        """
+        ユーザープロフィールを更新する
+        パスワードが含まれている場合はハッシュ化する
+        """
+        update_data = obj_in.model_dump(exclude_unset=True)
 
-    try:
-        result = db.execute(stmt)
-        db.commit()
-    except IntegrityError as e:
-        db.rollback()
-        logger.error(f"❌ IntegrityError: {e}")
-        raise HTTPException(status_code=409, detail="Username or email already exists")
+        if "password" in update_data and update_data["password"]:
+            hashed_password = get_password_hash(update_data["password"])
+            update_data["passwordhash"] = hashed_password
+            del update_data["password"]
 
-    row = result.mappings().first()
+        # Userモデルのフィールドを直接更新
+        for field, value in update_data.items():
+            setattr(db_obj, field, value)
 
-    if row is None:
-        logger.error("❌ DBから返されたrowがNoneです。INSERTが失敗した可能性があります")
-        raise HTTPException(status_code=500, detail="DB insert failed: no row returned")
+        try:
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+        except IntegrityError as e:
+            db.rollback()
+            logger.error(f"❌ IntegrityError on user update: {e}")
+            raise HTTPException(status_code=409, detail="ユーザー名またはメールアドレスは既に使用されています")
 
-    logger.info(f"DEBUG: raw row = {row}")
-    logger.info(f"DEBUG: row['createdat'] = {row['createdat']}")
-    logger.info(f"DEBUG: row['updatedat'] = {row['updatedat']}")
+        return db_obj
 
-    new_user = User(**row)
-    return new_user
-
-
-def get_user(db: Session, user_id: int) -> User | None:
-    return db.query(User).filter(User.id == user_id).first()
-
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
-    users = db.query(User).offset(skip).limit(limit).all()
-    for user in users:
-        logger.info(f"DEBUG: user object = {user}")
-        logger.info(f"DEBUG: user.id = {user.id}, createdat = {user.createdat}, updatedat = {user.updatedat}")
-
-        db.refresh(user)
-    return users
-
-
-def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User | None:
-    db_user = get_user(db, user_id)
-    if not db_user:
-        return None
-    if user_in.username is not None:
-        db_user.username = user_in.username
-    if user_in.email is not None:
-        db_user.email = user_in.email
-    if user_in.password is not None:
-        db_user.passwordhash = get_password_hash(user_in.password)
-
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-def delete_user(db: Session, user_id: int) -> bool:
-    db_user = get_user(db, user_id)
-    if not db_user:
-        return False
-    deleted = db.query(Deck).filter(Deck.user_id == user_id).delete()
-    logger.info(f"DEBUG: deleted {deleted} decks for user_id={user_id}")
-    db.delete(db_user)
-    db.commit()
-    return True
+# シングルトンインスタンス
+user_service = UserService(User)
