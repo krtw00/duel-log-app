@@ -24,6 +24,6 @@ class User(Base):
 
 
 
-    decks: Mapped[list["Deck"]] = relationship("Deck", back_populates="user")
-    duels: Mapped[list["Duel"]] = relationship("Duel", back_populates="user")
-    sharedurls: Mapped[list["SharedUrl"]] = relationship("SharedUrl", back_populates="user")
+    decks: Mapped[list["Deck"]] = relationship("Deck", back_populates="user", cascade="all, delete-orphan")
+    duels: Mapped[list["Duel"]] = relationship("Duel", back_populates="user", cascade="all, delete-orphan")
+    sharedurls: Mapped[list["SharedUrl"]] = relationship("SharedUrl", back_populates="user", cascade="all, delete-orphan")
