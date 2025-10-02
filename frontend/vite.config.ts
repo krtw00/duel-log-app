@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src'),
     }
   },
   server: {
@@ -16,5 +16,8 @@ export default defineConfig({
     watch: {
       usePolling: true
     }
-  }
+  },
+  optimizeDeps: {
+    include: ['vue3-apexcharts', 'apexcharts'],
+  },
 })
