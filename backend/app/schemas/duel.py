@@ -3,7 +3,7 @@
 """
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 
 
 class DuelBase(BaseModel):
@@ -11,9 +11,12 @@ class DuelBase(BaseModel):
     deck_id: int = Field(..., gt=0, description="使用デッキID")
     opponentDeck_id: int = Field(..., gt=0, description="対戦相手デッキID")
     coin: bool = Field(..., description="コイントスの結果（True: 表, False: 裏）")
-    first_or_second: bool = Field(..., description="先攻後攻（True: 先攻, False: 後攻）")
+    first_or_second: bool = Field(..., description="先攻後政（True: 先攻, False: 後攻）")
     result: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
-    rank: Optional[int] = Field(None, ge=1, description="ランク")
+    game_mode: Literal['RANK', 'RATE', 'EVENT', 'DC'] = Field(default='RANK', description="ゲームモード（RANK/RATE/EVENT/DC）")
+    rank: Optional[int] = Field(None, ge=1, le=32, description="ランク（1-32: ビギナー2～マスター1、RANKモード時のみ）")
+    rate_value: Optional[int] = Field(None, ge=0, description="レート数値（RATEモード時のみ）")
+    dc_value: Optional[int] = Field(None, ge=0, description="DC数値（DCモード時のみ）")
     played_date: datetime = Field(..., description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
     
@@ -31,6 +34,39 @@ class DuelBase(BaseModel):
         if v_utc > datetime.utcnow():
             raise ValueError('対戦日時を未来の日付に設定することはできません')
         return v
+    
+    @field_validator('rank')
+    @classmethod
+    def validate_rank(cls, v: Optional[int], info) -> Optional[int]:
+        """RANKモード時はrankが必須"""
+        game_mode = info.data.get('game_mode')
+        if game_mode == 'RANK' and v is None:
+            raise ValueError('RANKモード時はrankを指定してください')
+        if game_mode != 'RANK' and v is not None:
+            raise ValueError('RANK以外のモードではrankを指定できません')
+        return v
+    
+    @field_validator('rate_value')
+    @classmethod
+    def validate_rate_value(cls, v: Optional[int], info) -> Optional[int]:
+        """RATEモード時はrate_valueが必須"""
+        game_mode = info.data.get('game_mode')
+        if game_mode == 'RATE' and v is None:
+            raise ValueError('RATEモード時はrate_valueを指定してください')
+        if game_mode != 'RATE' and v is not None:
+            raise ValueError('RATE以外のモードではrate_valueを指定できません')
+        return v
+    
+    @field_validator('dc_value')
+    @classmethod
+    def validate_dc_value(cls, v: Optional[int], info) -> Optional[int]:
+        """DCモード時はdc_valueが必須"""
+        game_mode = info.data.get('game_mode')
+        if game_mode == 'DC' and v is None:
+            raise ValueError('DCモード時はdc_valueを指定してください')
+        if game_mode != 'DC' and v is not None:
+            raise ValueError('DC以外のモードではdc_valueを指定できません')
+        return v
 
 
 class DuelCreate(DuelBase):
@@ -45,7 +81,10 @@ class DuelUpdate(BaseModel):
     coin: Optional[bool] = Field(None, description="コイントスの結果")
     first_or_second: Optional[bool] = Field(None, description="先攻後攻")
     result: Optional[bool] = Field(None, description="対戦結果")
-    rank: Optional[int] = Field(None, ge=1, description="ランク")
+    game_mode: Optional[Literal['RANK', 'RATE', 'EVENT', 'DC']] = Field(None, description="ゲームモード")
+    rank: Optional[int] = Field(None, ge=1, le=32, description="ランク")
+    rate_value: Optional[int] = Field(None, ge=0, description="レート数値")
+    dc_value: Optional[int] = Field(None, ge=0, description="DC数値")
     played_date: Optional[datetime] = Field(None, description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
     

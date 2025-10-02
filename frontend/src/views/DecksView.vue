@@ -205,6 +205,9 @@ import { ref, onMounted } from 'vue'
 import { api } from '../services/api'
 import { Deck } from '../types'
 import AppBar from '../components/layout/AppBar.vue'
+import { useNotificationStore } from '../stores/notification'
+
+const notificationStore = useNotificationStore()
 
 const myDecks = ref<Deck[]>([])
 const opponentDecks = ref<Deck[]>([])
@@ -227,6 +230,7 @@ const fetchDecks = async () => {
     myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent)
     opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent)
   } catch (error) {
+    // エラーはAPIインターセプターで処理される
     console.error('Failed to fetch decks:', error)
   }
 }
@@ -268,7 +272,11 @@ const handleSubmit = async () => {
 
     await fetchDecks()
     closeDialog()
+    notificationStore.success(
+      isEdit.value ? 'デッキを更新しました' : 'デッキを登録しました'
+    )
   } catch (error) {
+    // エラーはAPIインターセプターで処理される
     console.error('Failed to save deck:', error)
   } finally {
     loading.value = false
@@ -281,7 +289,9 @@ const deleteDeck = async (deckId: number) => {
   try {
     await api.delete(`/decks/${deckId}`)
     await fetchDecks()
+    notificationStore.success('デッキを削除しました')
   } catch (error) {
+    // エラーはAPIインターセプターで処理される
     console.error('Failed to delete deck:', error)
   }
 }
@@ -366,5 +376,11 @@ onMounted(() => {
   height: 3px;
   background: linear-gradient(90deg, #00d9ff, #b536ff, #ff2d95);
   animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
 }
 </style>
