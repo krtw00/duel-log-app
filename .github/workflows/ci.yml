@@ -35,7 +35,7 @@ jobs:
           # backendディレクトリをモジュール検索パスに追加
           PYTHONPATH: backend
           # テスト実行に必要な環境変数を設定
-          # データベースはSQLiteを使用するため、DATABASE_URLは不要
+          DATABASE_URL: "sqlite:///./test.db"
           SECRET_KEY: "a_very_secret_key_for_testing_purposes_only_1234567890"
           DEBUG: "true"
 
