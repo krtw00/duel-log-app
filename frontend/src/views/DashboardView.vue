@@ -1,7 +1,20 @@
 <template>
   <v-app>
     <!-- ナビゲーションバー -->
-    <app-bar current-view="dashboard" />
+    <app-bar current-view="dashboard" @toggle-drawer="drawer = !drawer" />
+
+    <!-- レスポンシブ対応のナビゲーションドロワー -->
+    <v-navigation-drawer v-model="drawer" temporary>
+      <v-list nav dense>
+        <v-list-item
+          v-for="item in navItems"
+          :key="item.view"
+          :prepend-icon="item.icon"
+          :to="item.path"
+          :title="item.name"
+        />
+      </v-list>
+    </v-navigation-drawer>
 
     <!-- メインコンテンツ -->
     <v-main class="main-content">
@@ -180,6 +193,13 @@ import DuelTable from '../components/duel/DuelTable.vue'
 import DuelFormDialog from '../components/duel/DuelFormDialog.vue'
 import AppBar from '../components/layout/AppBar.vue'
 import { useNotificationStore } from '../stores/notification'
+
+const drawer = ref(false)
+const navItems = [
+  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
+  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
+]
 
 const notificationStore = useNotificationStore()
 
