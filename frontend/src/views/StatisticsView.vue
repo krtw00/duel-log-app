@@ -164,81 +164,166 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { api } from '../services/api'
-import AppBar from '../components/layout/AppBar.vue'
+import { ref, onMounted, computed } from 'vue';
+import { api } from '../services/api';
+import AppBar from '../components/layout/AppBar.vue';
 
-const loading = ref(true)
-const currentTab = ref('RANK') // 'summary'から'RANK'に変更
+// --- Types ---
+interface DistributionData {
+  series: { data: number[] }[];
+  chartOptions: any;
+}
 
-// 年月選択関連
-const selectedYear = ref(new Date().getFullYear())
-const selectedMonth = ref(new Date().getMonth() + 1)
+interface TimeSeriesData {
+  series: { name: string; data: number[] }[];
+  chartOptions: any;
+}
+
+interface StatisticsModeData {
+  monthlyDistribution: DistributionData;
+  recentDistribution: DistributionData;
+  matchupData: any[];
+  timeSeries: TimeSeriesData;
+}
+
+interface AllStatisticsData {
+  [key: string]: StatisticsModeData;
+}
+
+
+const loading = ref(true);
+const currentTab = ref('RANK');
+
+// --- Date Selection ---
+const selectedYear = ref(new Date().getFullYear());
+const selectedMonth = ref(new Date().getMonth() + 1);
 const years = computed(() => {
-  const currentYear = new Date().getFullYear()
-  return Array.from({ length: 5 }, (_, i) => currentYear - i) // 過去5年
-})
-const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 5 }, (_, i) => currentYear - i);
+});
+const months = Array.from({ length: 12 }, (_, i) => i + 1);
+const currentMonth = computed(() => `${selectedYear.value}年${selectedMonth.value}月`);
 
-// --- Deck Distribution --- //
+// --- Chart Base Options ---
 const baseChartOptions = {
-  chart: {
-    type: 'pie',
-    background: 'transparent',
-  },
+  chart: { type: 'pie', background: 'transparent' },
   labels: [],
   theme: {
     mode: 'dark',
-    monochrome: {
-      enabled: true,
-      color: '#00d9ff',
-      shadeTo: 'dark',
-      shadeIntensity: 0.65
-    }
+    monochrome: { enabled: true, color: '#00d9ff', shadeTo: 'dark', shadeIntensity: 0.65 },
   },
-  legend: {
-    position: 'bottom'
-  },
+  legend: { position: 'bottom' },
   responsive: [{
     breakpoint: 480,
     options: {
-      chart: {
-        width: 200
-      },
-      legend: {
-        position: 'bottom'
-      }
-    }
-  }]
-}
+      chart: { width: 200 },
+      legend: { position: 'bottom' },
+    },
+  }],
+};
 
-// 各ゲームモードごとの統計データを保持するオブジェクト
-const statisticsByMode = ref({
-  RANK: {
-    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    matchupData: [] as any[],
-    timeSeries: { series: [{ name: 'ランク', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#00d9ff'] } }, // 初期化時に参照
+const lineChartBaseOptions = {
+  chart: { type: 'line', background: 'transparent', zoom: { enabled: false }, toolbar: { show: false } },
+  xaxis: {
+    type: 'numeric',
+    title: { text: '対戦数', style: { color: '#E4E7EC' } },
+    labels: { style: { colors: '#E4E7EC' } },
   },
-  RATE: {
-    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    matchupData: [] as any[],
-    timeSeries: { series: [{ name: 'レート', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#00d9ff'] } }, // 初期化時に参照
-  },
-  EVENT: {
-    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    matchupData: [] as any[],
-    timeSeries: { series: [{ name: 'イベント', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#00d9ff'] } }, // 初期化時に参照
-  },
-  DC: {
-    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
-    matchupData: [] as any[],
-    timeSeries: { series: [{ name: 'DC', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#b536ff'] } }, // 初期化時に参照
-  },
-})
+  yaxis: { labels: { style: { colors: '#E4E7EC' } } },
+  stroke: { curve: 'smooth', width: 3 },
+  markers: { size: 4, colors: ['#00d9ff'], strokeColors: '#fff', strokeWidth: 2, hover: { size: 7 } },
+  grid: { borderColor: 'rgba(0, 217, 255, 0.1)', strokeDashArray: 4 },
+  tooltip: { theme: 'dark' },
+  dataLabels: { enabled: false },
+  theme: { mode: 'dark' },
+};
+
+// --- Statistics Data ---
+const createInitialStats = (): AllStatisticsData => {
+  const modes = ['RANK', 'RATE', 'EVENT', 'DC'];
+  const stats: AllStatisticsData = {};
+  modes.forEach(mode => {
+    stats[mode] = {
+      monthlyDistribution: { series: [{ data: [] }], chartOptions: { ...baseChartOptions, labels: [] } },
+      recentDistribution: { series: [{ data: [] }], chartOptions: { ...baseChartOptions, labels: [] } },
+      matchupData: [],
+      timeSeries: {
+        series: [{ name: mode, data: [] }],
+        chartOptions: {
+          ...lineChartBaseOptions,
+          xaxis: { ...lineChartBaseOptions.xaxis, categories: [] },
+          colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
+        },
+      },
+    };
+  });
+  return stats;
+};
+
+const statisticsByMode = ref<AllStatisticsData>(createInitialStats());
+
+// --- Data Table ---
+const matchupHeaders = [
+  { title: '使用デッキ', key: 'deck_name', sortable: false },
+  { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
+  { title: '対戦数', key: 'total_duels', sortable: true },
+  { title: '勝率', key: 'win_rate', sortable: true },
+];
+
+const getWinRateColor = (winRate: number) => {
+  if (winRate >= 60) return 'success';
+  if (winRate >= 40) return 'warning';
+  return 'error';
+};
+
+// --- API Call ---
+const fetchStatistics = async () => {
+  loading.value = true;
+  try {
+    const { data } = await api.get('/statistics', {
+      params: {
+        year: selectedYear.value,
+        month: selectedMonth.value,
+      },
+    });
+
+    const newStats = createInitialStats();
+    
+    Object.keys(data).forEach(mode => {
+      if (newStats[mode]) {
+        const stats = data[mode];
+        // Monthly Distribution
+        newStats[mode].monthlyDistribution.series = [{ data: stats.monthly_deck_distribution.map((d: any) => d.count) }];
+        newStats[mode].monthlyDistribution.chartOptions.labels = stats.monthly_deck_distribution.map((d: any) => d.deck_name);
+
+        // Recent Distribution
+        newStats[mode].recentDistribution.series = [{ data: stats.recent_deck_distribution.map((d: any) => d.count) }];
+        newStats[mode].recentDistribution.chartOptions.labels = stats.recent_deck_distribution.map((d: any) => d.deck_name);
+        
+        // Matchup Data
+        newStats[mode].matchupData = stats.matchup_data;
+
+        // Time Series
+        if (stats.time_series_data) {
+          newStats[mode].timeSeries.series = [{
+            name: mode,
+            data: stats.time_series_data.map((d: any) => d.value)
+          }];
+          newStats[mode].timeSeries.chartOptions.xaxis.categories = stats.time_series_data.map((_: any, i: number) => i + 1);
+        }
+      }
+    });
+    statisticsByMode.value = newStats;
+
+  } catch (error) {
+    console.error('Failed to fetch statistics:', error);
+    // You might want to show a notification to the user here
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(fetchStatistics);
 </script>
 
 <style scoped lang="scss">
