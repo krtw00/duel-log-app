@@ -131,6 +131,14 @@
             <span class="text-h6">対戦履歴</span>
             <v-spacer />
             <v-btn
+              color="secondary"
+              prepend-icon="mdi-download"
+              @click="exportCSV"
+              class="mr-2"
+            >
+              CSVエクスポート
+            </v-btn>
+            <v-btn
               color="primary"
               prepend-icon="mdi-plus"
               @click="openDuelDialog"
@@ -330,6 +338,25 @@ const deleteDuel = async (duelId: number) => {
 const handleSaved = () => {
   dialogOpen.value = false
   fetchDuels()
+}
+
+const exportCSV = async () => {
+  notificationStore.success('CSVファイルを生成しています... ダウンロードが開始されます。')
+  try {
+    const response = await api.get('/duels/export/csv', {
+      responseType: 'blob',
+    })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'duels.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (error) {
+    console.error('CSVエクスポートに失敗しました:', error)
+    // エラー通知はインターセプターで処理される想定
+  }
 }
 
 onMounted(() => {

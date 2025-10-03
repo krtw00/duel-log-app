@@ -14,7 +14,32 @@ from app.db.session import get_db
 from app.auth import get_current_user
 
 
+from fastapi.responses import StreamingResponse
+
+
 router = APIRouter(prefix="/duels", tags=["duels"])
+
+
+@router.get("/export/csv")
+def export_duels_csv(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    ログインユーザーの戦績データをCSV形式でエクスポート
+    """
+    csv_data = duel_service.export_duels_to_csv(db=db, user_id=current_user.id)
+    
+    response = StreamingResponse(
+        iter([csv_data]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=duels.csv"
+        }
+    )
+    
+    return response
+
 
 
 @router.get("/", response_model=List[DuelRead])
