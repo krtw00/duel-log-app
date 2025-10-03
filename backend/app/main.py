@@ -2,11 +2,11 @@
 メインアプリケーション
 """
 from fastapi import FastAPI, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 import os
 import re
+import logging
 
 from app.api.routers import decks, users, duels, auth, me, statistics
 from app.core.config import settings
@@ -21,6 +21,7 @@ from app.core.exception_handlers import (
 
 # ロギング設定
 setup_logging(level=settings.LOG_LEVEL)
+logger = logging.getLogger(__name__)
 
 # FastAPIアプリケーション
 app = FastAPI(
@@ -45,7 +46,8 @@ if settings.ENVIRONMENT == "development":
         "http://127.0.0.1:3000",
     ])
 
-print(f"Allowed CORS origins: {allowed_origins}")
+logger.info(f"Environment: {settings.ENVIRONMENT}")
+logger.info(f"Allowed CORS origins: {allowed_origins}")
 
 # 許可するオリジンのパターン（正規表現）
 allowed_patterns = [
@@ -64,47 +66,51 @@ def is_allowed_origin(origin: str) -> bool:
     Returns:
         許可されている場合True
     """
+    if not origin:
+        return False
+        
     # 明示的に許可されたオリジンリストをチェック
     if origin in allowed_origins:
+        logger.debug(f"Origin allowed (explicit): {origin}")
         return True
     
     # パターンマッチング
     for pattern in allowed_patterns:
         if re.match(pattern, origin):
+            logger.debug(f"Origin allowed (pattern match): {origin}")
             return True
     
+    logger.warning(f"Origin not allowed: {origin}")
     return False
 
-# 標準のCORSミドルウェアを追加（基本的な設定用）
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# カスタムCORSミドルウェア（動的なVercelプレビューURL対応）
+# カスタムCORSミドルウェア
 @app.middleware("http")
-async def dynamic_cors_middleware(request: Request, call_next):
+async def cors_middleware(request: Request, call_next):
     """
-    動的なCORSミドルウェア
-    Vercelのプレビューデプロイメントなど、動的に生成されるURLに対応
+    カスタムCORSミドルウェア
+    動的なVercelプレビューURLに対応
     """
     origin = request.headers.get("origin")
     
     # プリフライトリクエスト（OPTIONS）の処理
     if request.method == "OPTIONS":
         if origin and is_allowed_origin(origin):
+            logger.info(f"CORS preflight request from: {origin}")
             return Response(
                 status_code=200,
                 headers={
                     "Access-Control-Allow-Origin": origin,
                     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Origin, User-Agent, X-Requested-With",
                     "Access-Control-Allow-Credentials": "true",
-                    "Access-Control-Max-Age": "3600",
+                    "Access-Control-Max-Age": "86400",  # 24時間キャッシュ
                 }
+            )
+        else:
+            logger.warning(f"CORS preflight rejected for origin: {origin}")
+            return Response(
+                status_code=403,
+                content="Origin not allowed"
             )
     
     # 通常のリクエスト処理
@@ -115,7 +121,8 @@ async def dynamic_cors_middleware(request: Request, call_next):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, Origin, User-Agent, X-Requested-With"
+        response.headers["Vary"] = "Origin"
     
     return response
 
