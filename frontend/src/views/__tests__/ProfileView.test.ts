@@ -16,8 +16,8 @@ const vuetify = createVuetify({
 
 vi.mock('@/services/api', () => ({
   api: {
-    put: vi.fn(() => Promise.resolve({ data: {} })),
-    delete: vi.fn(() => Promise.resolve()),
+    put: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })),
+    delete: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })),
   },
 }))
 
@@ -26,7 +26,7 @@ describe('ProfileView.vue', () => {
   let notificationStore: ReturnType<typeof useNotificationStore>
 
   beforeEach(() => {
-    const pinia = createTestingPinia({
+    const _pinia = createTestingPinia({
       createSpy: vi.fn,
     })
     authStore = useAuthStore()
@@ -45,11 +45,11 @@ describe('ProfileView.vue', () => {
       },
     })
 
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(wrapper.exists()).toBe(true)
-    expect(wrapper.find('input[label="ユーザー名"]').element.value).toBe('testuser')
-    expect(wrapper.find('input[label="メールアドレス"]').element.value).toBe('test@example.com')
+    expect((wrapper.find('input[label="ユーザー名"]').element as HTMLInputElement).value).toBe('testuser')
+    expect((wrapper.find('input[label="メールアドレス"]').element as HTMLInputElement).value).toBe('test@example.com')
   })
 
   it('updates profile on form submission with valid data', async () => {
@@ -62,13 +62,13 @@ describe('ProfileView.vue', () => {
       },
     })
 
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: true }), resetValidation: vi.fn() }
-    wrapper.vm.form.username = 'newusername'
-    wrapper.vm.form.email = 'new@example.com'
-    wrapper.vm.form.password = 'newpassword123'
-    wrapper.vm.form.passwordConfirm = 'newpassword123'
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }), resetValidation: vi.fn() }
+    ;(wrapper.vm as any).form.username = 'newusername'
+    ;(wrapper.vm as any).form.email = 'new@example.com'
+    ;(wrapper.vm as any).form.password = 'newpassword123'
+    ;(wrapper.vm as any).form.passwordConfirm = 'newpassword123'
 
-    api.put = vi.fn(() => Promise.resolve({ data: { ...authStore.user, username: 'newusername', email: 'new@example.com' } }))
+    api.put = vi.fn(() => Promise.resolve({ data: { ...authStore.user, username: 'newusername', email: 'new@example.com' }, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} }))
 
     await wrapper.find('button').trigger('click') // Update button
 
@@ -79,9 +79,9 @@ describe('ProfileView.vue', () => {
     })
     expect(authStore.user?.username).toBe('newusername')
     expect(notificationStore.success).toHaveBeenCalledWith('プロフィールを更新しました')
-    expect(wrapper.vm.form.password).toBe('')
-    expect(wrapper.vm.form.passwordConfirm).toBe('')
-    expect(wrapper.vm.formRef.resetValidation).toHaveBeenCalled()
+    expect((wrapper.vm as any).form.password).toBe('')
+    expect((wrapper.vm as any).form.passwordConfirm).toBe('')
+    expect((wrapper.vm as any).formRef.resetValidation).toHaveBeenCalled()
   })
 
   it('does not update profile on form submission with invalid data', async () => {
@@ -94,8 +94,8 @@ describe('ProfileView.vue', () => {
       },
     })
 
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: false }) }
-    wrapper.vm.form.username = ''
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: false }) }
+    ;(wrapper.vm as any).form.username = ''
 
     await wrapper.find('button').trigger('click') // Update button
 
@@ -113,8 +113,8 @@ describe('ProfileView.vue', () => {
       },
     })
 
-    wrapper.vm.deleteDialog = true
-    wrapper.vm.deleteConfirmText = 'DELETE'
+    ;(wrapper.vm as any).deleteDialog = true
+    ;(wrapper.vm as any).deleteConfirmText = 'DELETE'
 
     await wrapper.find('.delete-dialog-card button.v-btn--error').trigger('click') // Delete button in dialog
 
@@ -133,8 +133,8 @@ describe('ProfileView.vue', () => {
       },
     })
 
-    wrapper.vm.deleteDialog = true
-    wrapper.vm.deleteConfirmText = 'WRONG'
+    ;(wrapper.vm as any).deleteDialog = true
+    ;(wrapper.vm as any).deleteConfirmText = 'WRONG'
 
     await wrapper.find('.delete-dialog-card button.v-btn--error').trigger('click') // Delete button in dialog
 

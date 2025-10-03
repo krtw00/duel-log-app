@@ -7,18 +7,18 @@ import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
 import { useNotificationStore } from '@/stores/notification'
 import { api } from '@/services/api'
-import { Duel, GameMode } from '@/types'
+import { Duel, GameMode as _GameMode } from '@/types'
 
 const vuetify = createVuetify({
   components,
   directives,
 })
 
-vi.mock('../../../services/api', () => ({
+vi.mock('@/services/api', () => ({
   api: {
-    get: vi.fn(() => Promise.resolve({ data: [] })),
-    post: vi.fn(() => Promise.resolve({ data: {} })),
-    put: vi.fn(() => Promise.resolve({ data: {} })),
+    get: vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })),
+    post: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })),
+    put: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })),
   },
 }))
 
