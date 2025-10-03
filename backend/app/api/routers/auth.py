@@ -66,19 +66,31 @@ def login(
     # アクセストークンを生成
     access_token = create_access_token(data=token_data)
     
+    # クロスオリジン対応のクッキー設定
+    is_production = settings.ENVIRONMENT == "production"
+    
     # HttpOnlyクッキーにトークンを設定
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="lax",
-        secure=not settings.DEBUG,  # 本番環境ではTrueに設定
-        path="/"
+        samesite="none" if is_production else "lax",  # クロスオリジンの場合は"none"
+        secure=is_production,  # 本番環境（HTTPS）では必ずTrue
+        path="/",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60  # 秒単位
     )
     
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
+    logger.info(f"Cookie settings - SameSite: {'none' if is_production else 'lax'}, Secure: {is_production}")
     
-    return {"message": "Login successful"}
+    return {
+        "message": "Login successful",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
+    }
 
 
 @router.post("/logout")
@@ -88,7 +100,15 @@ def logout(response: Response):
     
     HttpOnlyクッキーをクリアしてログアウトする
     """
-    response.delete_cookie("access_token")
+    is_production = settings.ENVIRONMENT == "production"
+    
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        samesite="none" if is_production else "lax",
+        secure=is_production
+    )
+    
     return {"message": "Logout successful"}
 
 
