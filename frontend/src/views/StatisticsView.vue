@@ -260,7 +260,7 @@ const getWinRateColor = (winRate: number) => {
 }
 
 // --- Time Series Charts --- //
-const lineChartOptions = computed(() => ({
+const lineChartBaseOptions = { // computedから通常のオブジェクトに変更
   chart: {
     type: 'line',
     background: 'transparent',
@@ -272,15 +272,14 @@ const lineChartOptions = computed(() => ({
     }
   },
   xaxis: {
-    type: 'numeric', // 'datetime' から 'numeric' に変更
+    type: 'numeric',
     title: {
-      text: '対戦数', // 横軸のタイトルを追加
+      text: '対戦数',
       style: {
         color: '#E4E7EC'
       }
     },
     labels: {
-      // format: 'MM/dd', // 日付フォーマットは不要になる
       style: {
         colors: '#E4E7EC'
       }
@@ -312,9 +311,6 @@ const lineChartOptions = computed(() => ({
   },
   tooltip: {
     theme: 'dark',
-    // x: { // 日付フォーマットは不要になる
-    //   format: 'yyyy/MM/dd'
-    // }
   },
   dataLabels: {
     enabled: false
@@ -322,120 +318,34 @@ const lineChartOptions = computed(() => ({
   theme: {
     mode: 'dark'
   }
-}))
-
-// 各ゲームモードの時系列グラフオプションを初期化
-statisticsByMode.value.RATE.timeSeries.chartOptions = computed(() => ({
-  ...lineChartOptions.value,
-  xaxis: {
-    ...lineChartOptions.value.xaxis,
-    categories: [] as number[] // categoriesの型も変更
-  },
-  colors: ['#00d9ff']
-}))
-
-statisticsByMode.value.DC.timeSeries.chartOptions = computed(() => ({
-  ...lineChartOptions.value,
-  xaxis: {
-    ...lineChartOptions.value.xaxis,
-    categories: [] as number[] // categoriesの型も変更
-  },
-  colors: ['#b536ff']
-}))
-
-
-// --- Data Fetching --- //
-const fetchStatistics = async () => {
-  loading.value = true
-  try {
-    const gameModes = ['RANK', 'RATE', 'EVENT', 'DC']
-    const promises: Promise<any>[] = []
-
-    for (const mode of gameModes) {
-      promises.push(
-        api.get('/statistics/deck-distribution/monthly', {
-          params: {
-            year: selectedYear.value,
-            month: selectedMonth.value,
-            game_mode: mode
-          }
-        }),
-        api.get('/statistics/deck-distribution/recent', {
-          params: {
-            game_mode: mode
-          }
-        }),
-        api.get('/statistics/matchup-chart', {
-          params: {
-            year: selectedYear.value,
-            month: selectedMonth.value,
-            game_mode: mode
-          }
-        })
-      )
-      if (mode === 'RATE' || mode === 'DC') {
-        promises.push(
-          api.get(`/statistics/time-series/${mode}`,
-            {
-              params: {
-                year: selectedYear.value,
-                month: selectedMonth.value
-              }
-            }
-          )
-        )
-      }
-    }
-
-    const results = await Promise.all(promises)
-    let resultIndex = 0
-
-    for (const mode of gameModes) {
-      // 月間分布
-      const monthlyRes = results[resultIndex++]
-      statisticsByMode.value[mode].monthlyDistribution = {
-        series: [{
-          data: monthlyRes.data.map((d: any) => d.count),
-        }],
-        chartOptions: {
-          ...baseChartOptions,
-          labels: monthlyRes.data.map((d: any) => d.deck_name),
-        },
-      }
-
-      // 直近分布
-      const recentRes = results[resultIndex++]
-      statisticsByMode.value[mode].recentDistribution = {
-        series: [{
-          data: recentRes.data.map((d: any) => d.count),
-        }],
-        chartOptions: {
-          ...baseChartOptions,
-          labels: recentRes.data.map((d: any) => d.deck_name),
-        },
-      }
-
-      // 相性表
-      const matchupRes = results[resultIndex++]
-      statisticsByMode.value[mode].matchupData = matchupRes.data
-
-      // 時系列データ (RATE, DCのみ)
-      if (mode === 'RATE' || mode === 'DC') {
-        const timeSeriesRes = results[resultIndex++]
-        statisticsByMode.value[mode].timeSeries.series[0].data = timeSeriesRes.data.map((d: any) => d.value)
-        statisticsByMode.value[mode].timeSeries.chartOptions.xaxis.categories = timeSeriesRes.data.map((d: any) => d.duel_number) // duel_numberを使用
-      }
-    }
-
-  } catch (error) {
-    console.error("Failed to fetch statistics:", error)
-  } finally {
-    loading.value = false
-  }
 }
 
-onMounted(() => {
-  fetchStatistics()
+// 各ゲームモードごとの統計データを保持するオブジェクト
+const statisticsByMode = ref({
+  RANK: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'ランク', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#00d9ff'] } }, // 初期化時に参照
+  },
+  RATE: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'レート', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#00d9ff'] } }, // 初期化時に参照
+  },
+  EVENT: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'イベント', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#00d9ff'] } }, // 初期化時に参照
+  },
+  DC: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'DC', data: [] as number[] }], chartOptions: { ...lineChartBaseOptions, xaxis: { ...lineChartBaseOptions.xaxis, categories: [] as number[] }, colors: ['#b536ff'] } }, // 初期化時に参照
+  },
 })
 </script>
 
