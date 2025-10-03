@@ -4,8 +4,8 @@
 """
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract, desc
-from datetime import datetime
-from typing import List, Dict, Any
+from datetime import datetime, timedelta, timezone
+from typing import List, Dict, Any, Optional
 
 from app.models.duel import Duel
 from app.models.deck import Deck
@@ -42,7 +42,7 @@ class StatisticsService:
         return distribution
 
     def get_deck_distribution_monthly(
-        self, db: Session, user_id: int, year: int, month: int
+        self, db: Session, user_id: int, year: int, month: int, game_mode: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """月間の相手デッキ分布を取得"""
         duels_query = db.query(Duel).filter(
@@ -50,15 +50,23 @@ class StatisticsService:
             extract('year', Duel.played_date) == year,
             extract('month', Duel.played_date) == month,
         )
+        if game_mode:
+            duels_query = duels_query.filter(Duel.game_mode == game_mode)
         return self.get_deck_distribution(db, user_id, duels_query)
 
     def get_deck_distribution_recent(
-        self, db: Session, user_id: int, limit: int = 30
+        self, db: Session, user_id: int, limit: int = 30, game_mode: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """直近の相手デッキ分布を取得"""
         recent_duels_subquery = (
             db.query(Duel.id)
             .filter(Duel.user_id == user_id)
+        )
+        if game_mode:
+            recent_duels_subquery = recent_duels_subquery.filter(Duel.game_mode == game_mode)
+
+        recent_duels_subquery = (
+            recent_duels_subquery
             .order_by(Duel.played_date.desc())
             .limit(limit)
             .subquery()
@@ -66,9 +74,18 @@ class StatisticsService:
         duels_query = db.query(Duel).filter(Duel.id.in_(recent_duels_subquery))
         return self.get_deck_distribution(db, user_id, duels_query)
 
-    def get_matchup_chart(self, db: Session, user_id: int) -> List[Dict[str, Any]]:
+    def get_matchup_chart(self, db: Session, user_id: int, year: Optional[int] = None, month: Optional[int] = None, game_mode: Optional[str] = None) -> List[Dict[str, Any]]:
         """デッキ相性表のデータを取得"""
-        duels = db.query(Duel).filter(Duel.user_id == user_id).all()
+        query = db.query(Duel).filter(Duel.user_id == user_id)
+
+        if year is not None:
+            query = query.filter(extract('year', Duel.played_date) == year)
+        if month is not None:
+            query = query.filter(extract('month', Duel.played_date) == month)
+        if game_mode:
+            query = query.filter(Duel.game_mode == game_mode)
+
+        duels = query.all()
         my_decks = db.query(Deck).filter(Deck.user_id == user_id, Deck.is_opponent == False).all()
         opponent_decks = db.query(Deck).filter(Deck.user_id == user_id, Deck.is_opponent == True).all()
 
@@ -108,6 +125,60 @@ class StatisticsService:
                     })
 
         return chart_data
+
+    def get_time_series_data(
+        self, db: Session, user_id: int, game_mode: str, year: int, month: int
+    ) -> List[Dict[str, Any]]:
+        """
+        指定されたゲームモードの月間時系列データを取得 (レート/DC)
+        """
+        # 月の最初の日と最後の日を計算
+        start_date = datetime(year, month, 1, 0, 0, 0, tzinfo=timezone.utc)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1, 0, 0, 0, tzinfo=timezone.utc) - timedelta(microseconds=1)
+        else:
+            end_date = datetime(year, month + 1, 1, 0, 0, 0, tzinfo=timezone.utc) - timedelta(microseconds=1)
+
+        # 該当月のデュエルを取得
+        duels = (
+            db.query(Duel)
+            .filter(
+                Duel.user_id == user_id,
+                Duel.game_mode == game_mode,
+                Duel.played_date >= start_date,
+                Duel.played_date <= end_date,
+            )
+            .order_by(Duel.played_date)
+            .all()
+        )
+
+        time_series_data = []
+        current_value = None
+
+        for duel in duels:
+            date_str = duel.played_date.strftime("%Y-%m-%d")
+            value = None
+            if game_mode == "RATE" and duel.rate_value is not None:
+                value = duel.rate_value
+            elif game_mode == "DC" and duel.dc_value is not None:
+                value = duel.dc_value
+            
+            if value is not None:
+                current_value = value
+            
+            # その日の最後の値、または直前の値を使用
+            time_series_data.append({
+                "date": date_str,
+                "value": current_value
+            })
+        
+        # 同じ日付で複数のデュエルがある場合、最後の値のみを保持
+        # また、欠損日を補完し、直前の値で埋める
+        processed_data = {}
+        for item in time_series_data:
+            processed_data[item["date"]] = item["value"]
+        
+        return time_series_data
 
 
 # シングルトンインスタンス
