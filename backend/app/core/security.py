@@ -8,11 +8,19 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 from app.core.config import settings
 
+import secrets
+
 # パスワードハッシュ化設定
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # bcryptは最大72バイトまでしか扱えない
 MAX_BCRYPT_BYTES = 72
+
+def generate_password_reset_token() -> str:
+    """
+    安全なランダム文字列でパスワードリセットトークンを生成する
+    """
+    return secrets.token_urlsafe(32)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
