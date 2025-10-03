@@ -20,7 +20,8 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         self, 
         db: Session, 
         user_id: int,
-        is_opponent: Optional[bool] = None
+        is_opponent: Optional[bool] = None,
+        active_only: bool = True
     ) -> List[Deck]:
         """
         ユーザーのデッキを取得
@@ -29,6 +30,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
             db: データベースセッション
             user_id: ユーザーID
             is_opponent: 対戦相手のデッキかどうか（Noneの場合は全て取得）
+            active_only: アクティブなデッキのみ取得するか
         
         Returns:
             デッキのリスト
@@ -37,6 +39,9 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         
         if is_opponent is not None:
             query = query.filter(Deck.is_opponent == is_opponent)
+        
+        if active_only:
+            query = query.filter(Deck.active == True)
         
         return query.all()
     
@@ -145,6 +150,24 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
                 raise ValueError(f"同じ名前の{deck_type}が既に存在します")
         
         return self.update(db=db, id=deck_id, obj_in=deck_in, user_id=user_id)
+    
+    def archive_all_decks(self, db: Session, user_id: int) -> int:
+        """
+        ユーザーの全デッキをアーカイブ（非アクティブ化）
+        
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+        
+        Returns:
+            アーカイブされたデッキの数
+        """
+        result = db.query(Deck).filter(
+            Deck.user_id == user_id,
+            Deck.active == True
+        ).update({"active": False})
+        db.commit()
+        return result
 
 
 # シングルトンインスタンス
