@@ -14,6 +14,7 @@ export interface Deck {
   id: number
   name: string
   is_opponent: boolean
+  active: boolean
   user_id?: number
   createdat?: string
   updatedat?: string
@@ -22,11 +23,13 @@ export interface Deck {
 export interface DeckCreate {
   name: string
   is_opponent: boolean
+  active?: boolean
 }
 
 export interface DeckUpdate {
   name?: string
   is_opponent?: boolean
+  active?: boolean
 }
 
 export type GameMode = 'RANK' | 'RATE' | 'EVENT' | 'DC'
