@@ -7,7 +7,7 @@ import DecksView from '../views/DecksView.vue'
 import StatisticsView from '../views/StatisticsView.vue'
 import ProfileView from '../views/ProfileView.vue'
 
-const routes: RouteRecordRaw[] = [
+export const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
