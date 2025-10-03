@@ -19,6 +19,7 @@ router = APIRouter(prefix="/decks", tags=["decks"])
 @router.get("/", response_model=List[DeckRead])
 def list_decks(
     is_opponent: Optional[bool] = Query(None, description="対戦相手のデッキのみ取得"),
+    active_only: bool = Query(True, description="アクティブなデッキのみ取得"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -27,6 +28,7 @@ def list_decks(
     
     Args:
         is_opponent: 対戦相手のデッキかどうか（省略時は全て取得）
+        active_only: アクティブなデッキのみ取得するか
         db: データベースセッション
         current_user: 現在のユーザー
     
@@ -36,7 +38,8 @@ def list_decks(
     return deck_service.get_user_decks(
         db=db, 
         user_id=current_user.id,
-        is_opponent=is_opponent
+        is_opponent=is_opponent,
+        active_only=active_only
     )
 
 
@@ -180,3 +183,26 @@ def delete_deck(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="デッキが見つかりません"
         )
+
+
+@router.post("/archive-all", status_code=status.HTTP_200_OK)
+def archive_all_decks(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    全デッキをアーカイブ（非アクティブ化）
+    月末に新弾が来る際などに使用
+    
+    Args:
+        db: データベースセッション
+        current_user: 現在のユーザー
+    
+    Returns:
+        アーカイブされたデッキ数
+    """
+    count = deck_service.archive_all_decks(db=db, user_id=current_user.id)
+    return {
+        "message": f"{count}件のデッキをアーカイブしました",
+        "archived_count": count
+    }
