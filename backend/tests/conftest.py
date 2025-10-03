@@ -10,7 +10,7 @@ from fastapi import status
 from app.main import app
 from app.db.session import Base, get_db
 from app.models.user import User
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, create_access_token
 
 
 # テスト用データベースURL
@@ -74,14 +74,17 @@ def authenticated_client(db_session, test_user):
 
     # TestClientを作成
     with TestClient(app) as client:
-        # ログインしてクッキーを取得
-        login_response = client.post(
-            "/auth/login",
-            json={"email": "test@example.com", "password": "testpassword"},
-        )
-        assert login_response.status_code == status.HTTP_200_OK
+        # トークンを直接生成してクッキーに設定
+        token_data = {
+            "sub": str(test_user.id),
+            "email": test_user.email,
+            "username": test_user.username
+        }
+        access_token = create_access_token(data=token_data)
         
-        # クッキーを保持したまま yield
+        # クッキーを手動で設定
+        client.cookies.set("access_token", access_token, domain="testserver")
+        
         yield client
 
     # 後処理
