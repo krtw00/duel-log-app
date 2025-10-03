@@ -3,23 +3,34 @@ import { useAuthStore } from '../auth'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '@/services/api'
 import router from '@/router'
+import { User } from '@/types'
 
 // Mock axios
-vi.mock('@/services/api', () => ({
-  api: {
-    post: vi.fn(),
-    get: vi.fn(),
-  },
-}))
+vi.mock('@/services/api', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    api: {
+      ...(actual as any).api,
+      post: vi.fn(),
+      get: vi.fn(),
+    },
+  }
+})
 
 // Mock vue-router
-vi.mock('@/router', () => ({
-  default: {
-    push: vi.fn(),
-  },
-}))
+vi.mock('@/router', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    default: {
+      ...(actual as any).default,
+      push: vi.fn(),
+    },
+  }
+})
 
 describe('authStore', () => {
+  const mockUser: User = { id: 1, email: 'test@example.com', username: 'testuser' }
+
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
@@ -27,7 +38,6 @@ describe('authStore', () => {
 
   it('should set user and isAuthenticated on successful login', async () => {
     const authStore = useAuthStore()
-    const mockUser = { id: 1, email: 'test@example.com', username: 'testuser' }
     
     // Mock API responses
     (api.post as vi.Mock).mockResolvedValueOnce({ data: {} })
@@ -38,14 +48,14 @@ describe('authStore', () => {
     expect(api.post).toHaveBeenCalledWith('/auth/login', { email: 'test@example.com', password: 'password123' })
     expect(api.get).toHaveBeenCalledWith('/me')
     expect(authStore.user).toEqual(mockUser)
-    expect(authStore.isAuthenticated).toBe(true)
+    expect((authStore as any).isAuthenticated).toBe(true)
     expect(router.push).toHaveBeenCalledWith('/')
   })
 
   it('should clear user and isAuthenticated on logout', async () => {
     const authStore = useAuthStore()
-    authStore.user = { id: 1, email: 'test@example.com', username: 'testuser' }
-    authStore.isInitialized = true
+    authStore.user = mockUser
+    ;(authStore as any).isInitialized = true
 
     // Mock API response
     (api.post as vi.Mock).mockResolvedValueOnce({ data: {} })
@@ -54,14 +64,13 @@ describe('authStore', () => {
 
     expect(api.post).toHaveBeenCalledWith('/auth/logout')
     expect(authStore.user).toBeNull()
-    expect(authStore.isAuthenticated).toBe(false)
+    expect((authStore as any).isAuthenticated).toBe(false)
     expect(router.push).toHaveBeenCalledWith('/login')
   })
 
   it('should fetch user on initialization if authenticated', async () => {
     const authStore = useAuthStore()
-    authStore.isInitialized = false
-    const mockUser = { id: 1, email: 'test@example.com', username: 'testuser' }
+    ;(authStore as any).isInitialized = false
 
     // Mock API response for /me
     (api.get as vi.Mock).mockResolvedValueOnce({ data: mockUser })
@@ -70,13 +79,13 @@ describe('authStore', () => {
 
     expect(api.get).toHaveBeenCalledWith('/me')
     expect(authStore.user).toEqual(mockUser)
-    expect(authStore.isAuthenticated).toBe(true)
-    expect(authStore.isInitialized).toBe(true)
+    expect((authStore as any).isAuthenticated).toBe(true)
+    expect((authStore as any).isInitialized).toBe(true)
   })
 
   it('should not set user if fetchUser fails', async () => {
     const authStore = useAuthStore()
-    authStore.isInitialized = false
+    ;(authStore as any).isInitialized = false
 
     // Mock API response for /me to reject
     (api.get as vi.Mock).mockRejectedValueOnce(new Error('Unauthorized'))
@@ -85,7 +94,7 @@ describe('authStore', () => {
 
     expect(api.get).toHaveBeenCalledWith('/me')
     expect(authStore.user).toBeNull()
-    expect(authStore.isAuthenticated).toBe(false)
-    expect(authStore.isInitialized).toBe(true)
+    expect((authStore as any).isAuthenticated).toBe(false)
+    expect((authStore as any).isInitialized).toBe(true)
   })
 })
