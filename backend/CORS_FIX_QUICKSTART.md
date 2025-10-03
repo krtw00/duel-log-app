@@ -18,20 +18,27 @@ has been blocked by CORS policy
 
 2. **Environmentをクリック**
 
-3. **環境変数を追加**
+3. **以下の環境変数を追加/確認**
 
-   新しい環境変数を追加：
+   #### 必須の環境変数
+
+   | Key | Value | 説明 |
+   |-----|-------|------|
+   | `ENVIRONMENT` | `production` | 実行環境（必須） |
+   | `FRONTEND_URL` | `https://duel-log-b4ou8cpzu-krtw00s-projects.vercel.app` | フロントエンドのURL |
+   | `DATABASE_URL` | `postgresql://...` | データベース接続URL |
+   | `SECRET_KEY` | `your-secret-key` | JWT署名用秘密鍵 |
+
+   **FRONTENDURLの設定例：**
    
+   単一ドメイン：
    ```
-   Key: FRONTEND_URL
-   Value: https://duel-log-b4ou8cpzu-krtw00s-projects.vercel.app
+   https://duel-log-b4ou8cpzu-krtw00s-projects.vercel.app
    ```
 
-   **または複数のドメインを指定する場合：**
-   
+   複数ドメイン（カンマ区切り）：
    ```
-   Key: FRONTEND_URL
-   Value: https://your-production-app.vercel.app,https://duel-log-b4ou8cpzu-krtw00s-projects.vercel.app,http://localhost:5173
+   https://your-production-app.vercel.app,https://duel-log-b4ou8cpzu-krtw00s-projects.vercel.app,http://localhost:5173
    ```
 
 4. **Save Changes** をクリック
@@ -66,18 +73,33 @@ has been blocked by CORS policy
 
 ### まだCORSエラーが出る場合
 
-1. **ブラウザのキャッシュをクリア**
-   - F12（開発者ツール）を開く
-   - 右クリックで「キャッシュの消去とハード再読み込み」
+1. **環境変数を確認**
+   - Render → Environment タブ
+   - `ENVIRONMENT` が `production` に設定されているか確認
+   - `FRONTEND_URL` が正しく設定されているか確認
 
 2. **Renderのログを確認**
    - Renderダッシュボード → Logs タブ
    - 「Allowed CORS origins」で検索
    - 設定したURLが表示されているか確認
+   - エラーメッセージがないか確認
 
-3. **環境変数を確認**
-   - Render → Environment タブ
-   - `FRONTEND_URL` が正しく設定されているか確認
+3. **ブラウザのキャッシュをクリア**
+   - F12（開発者ツール）を開く
+   - 右クリックで「キャッシュの消去とハード再読み込み」
+
+### AttributeError: 'Settings' object has no attribute 'ENVIRONMENT'
+
+このエラーが出る場合：
+
+1. **Renderで `ENVIRONMENT` 環境変数を追加**
+   ```
+   Key: ENVIRONMENT
+   Value: production
+   ```
+
+2. **再デプロイ**
+   - 環境変数を保存すると自動的に再デプロイされます
 
 ### Vercelのドメインが変わった場合
 
@@ -87,21 +109,31 @@ Vercelのプレビューデプロイは、プロジェクトごとに新しいUR
 
 ## 🎯 本番環境の推奨設定
 
-### Render環境変数
+### Render環境変数（必須）
 
 ```env
-# 本番環境
+# アプリケーション設定
+ENVIRONMENT=production
+
+# フロントエンドURL
 FRONTEND_URL=https://your-production-domain.com
 
-# 開発・ステージング・プレビューも含める場合
-FRONTEND_URL=https://your-production-domain.com,http://localhost:5173
-
 # データベース
-DATABASE_URL=postgresql://...
+DATABASE_URL=postgresql://user:password@host:5432/database
 
-# その他
-SECRET_KEY=your-secret-key
-ENVIRONMENT=production
+# JWT設定
+SECRET_KEY=your-secret-key-at-least-32-characters-long
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# ログレベル
+LOG_LEVEL=INFO
+```
+
+### 開発・ステージング・プレビューも含める場合
+
+```env
+FRONTEND_URL=https://your-production-domain.com,https://staging.your-domain.com,http://localhost:5173
 ```
 
 ### セキュリティのポイント
@@ -109,6 +141,7 @@ ENVIRONMENT=production
 - ✅ 本番環境では具体的なドメインのみを許可
 - ✅ 環境変数でシークレット情報を管理
 - ✅ HTTPSを使用
+- ✅ `ENVIRONMENT=production` を設定
 - ❌ 本番環境で `allow_origins=["*"]` は使用しない
 
 ## 📚 詳細ドキュメント
