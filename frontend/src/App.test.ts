@@ -5,7 +5,6 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
-import { RouterLinkStub } from '@vue/test-utils'
 
 const vuetify = createVuetify({
   components,
