@@ -4,12 +4,15 @@
 """
 from typing import List, Optional
 from datetime import datetime
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from sqlalchemy import extract as sa_extract # sa.extract を使用するためにインポート
 
 from app.models.duel import Duel
 from app.schemas.duel import DuelCreate, DuelUpdate
 from app.services.base import BaseService
+from app.services.deck_service import deck_service
+import csv
+import io
 
 
 class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
@@ -159,8 +162,8 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         from app.models.deck import Deck
 
         # エイリアスを使って自分のデッキと相手のデッキを区別
-        MyDeck = Deck
-        OpponentDeck = Deck
+        MyDeck = aliased(Deck, name="my_deck")
+        OpponentDeck = aliased(Deck, name="opponent_deck")
 
         duels = (
             db.query(
@@ -225,6 +228,53 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
             )
 
         return output.getvalue()
+
+    def import_duels_from_csv(self, db: Session, user_id: int, csv_content: str):
+        """
+        CSVファイルからデュエルデータをインポート
+        """
+        stream = io.StringIO(csv_content)
+        reader = csv.reader(stream)
+
+        # ヘッダーをスキップ
+        next(reader, None)
+
+        for row in reader:
+            try:
+                my_deck_name = row[1]
+                opponent_deck_name = row[2]
+                result = row[3] == '勝ち'
+                game_mode = row[4]
+                rank = int(row[5]) if row[5] else None
+                rate_value = int(row[6]) if row[6] else None
+                dc_value = int(row[7]) if row[7] else None
+                coin = row[8] == '表'
+                first_or_second = row[9] == '先攻'
+                played_date = datetime.strptime(row[10], "%Y-%m-%d %H:%M:%S")
+                notes = row[11]
+
+                # デッキを検索または作成
+                my_deck = deck_service.get_or_create(db, user_id=user_id, name=my_deck_name, is_opponent=False)
+                opponent_deck = deck_service.get_or_create(db, user_id=user_id, name=opponent_deck_name, is_opponent=True)
+
+                duel_in = DuelCreate(
+                    deck_id=my_deck.id,
+                    opponentDeck_id=opponent_deck.id,
+                    result=result,
+                    game_mode=game_mode,
+                    rank=rank,
+                    rate_value=rate_value,
+                    dc_value=dc_value,
+                    coin=coin,
+                    first_or_second=first_or_second,
+                    played_date=played_date,
+                    notes=notes,
+                )
+                self.create_user_duel(db, user_id=user_id, duel_in=duel_in)
+            except (ValueError, IndexError) as e:
+                # エラーハンドリング（ログ出力など）
+                print(f"Skipping row due to error: {e}, row: {row}")
+                continue
 
 
 # シングルトンインスタンス
