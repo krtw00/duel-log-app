@@ -26,7 +26,7 @@ describe('LoginView.vue', () => {
   let router: ReturnType<typeof useRouter>
 
   beforeEach(() => {
-    const _pinia = createTestingPinia({
+    createTestingPinia({
       createSpy: vi.fn,
     })
     authStore = useAuthStore()

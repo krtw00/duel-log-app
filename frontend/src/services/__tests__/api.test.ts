@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { api } from '../api'
 import { useNotificationStore } from '@/stores/notification'
 import { useLoadingStore } from '@/stores/loading'
