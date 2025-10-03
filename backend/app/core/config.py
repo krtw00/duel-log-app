@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     APP_NAME: str = Field(default="Duel Log API", description="アプリケーション名")
     APP_VERSION: str = Field(default="1.0.0", description="アプリケーションバージョン")
     DEBUG: bool = Field(default=False, description="デバッグモード")
+    ENVIRONMENT: str = Field(default="production", description="実行環境 (development/production)")
     
     # データベース設定
     DATABASE_URL: str = Field(..., description="データベース接続URL")
@@ -45,6 +46,16 @@ class Settings(BaseSettings):
         if v_upper not in valid_levels:
             raise ValueError(f"LOG_LEVEL must be one of {valid_levels}")
         return v_upper
+    
+    @field_validator("ENVIRONMENT")
+    @classmethod
+    def validate_environment(cls, v: str) -> str:
+        """環境の検証"""
+        valid_environments = ["development", "production", "staging"]
+        v_lower = v.lower()
+        if v_lower not in valid_environments:
+            raise ValueError(f"ENVIRONMENT must be one of {valid_environments}")
+        return v_lower
     
     class Config:
         env_file = ".env"
