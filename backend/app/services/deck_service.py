@@ -40,6 +40,31 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         
         return query.all()
     
+    def get_by_name(
+        self,
+        db: Session,
+        user_id: int,
+        name: str,
+        is_opponent: bool
+    ) -> Optional[Deck]:
+        """
+        同じユーザー内で同じ名前とタイプのデッキを取得
+        
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            name: デッキ名
+            is_opponent: 対戦相手のデッキかどうか
+        
+        Returns:
+            デッキ（存在しない場合はNone）
+        """
+        return db.query(Deck).filter(
+            Deck.user_id == user_id,
+            Deck.name == name,
+            Deck.is_opponent == is_opponent
+        ).first()
+    
     def create_user_deck(
         self,
         db: Session,
@@ -56,12 +81,70 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         
         Returns:
             作成されたデッキ
+        
+        Raises:
+            ValueError: 同じ名前のデッキが既に存在する場合
         """
+        # 同じ名前のデッキが存在するかチェック
+        existing_deck = self.get_by_name(
+            db=db,
+            user_id=user_id,
+            name=deck_in.name,
+            is_opponent=deck_in.is_opponent
+        )
+        
+        if existing_deck:
+            deck_type = "相手のデッキ" if deck_in.is_opponent else "自分のデッキ"
+            raise ValueError(f"同じ名前の{deck_type}が既に存在します")
+        
         # DeckCreateにuser_idが含まれている場合は除外
         deck_data = deck_in.model_dump(exclude={"user_id"})
         deck_obj = DeckCreate(**deck_data)
         
         return self.create(db, deck_obj, user_id=user_id)
+    
+    def update_user_deck(
+        self,
+        db: Session,
+        deck_id: int,
+        user_id: int,
+        deck_in: DeckUpdate
+    ) -> Optional[Deck]:
+        """
+        ユーザーのデッキを更新
+        
+        Args:
+            db: データベースセッション
+            deck_id: デッキID
+            user_id: ユーザーID
+            deck_in: デッキ更新スキーマ
+        
+        Returns:
+            更新されたデッキ（存在しない場合はNone）
+        
+        Raises:
+            ValueError: 同じ名前のデッキが既に存在する場合
+        """
+        # 更新対象のデッキを取得
+        deck = self.get_by_id(db=db, id=deck_id, user_id=user_id)
+        if not deck:
+            return None
+        
+        # 名前が変更される場合、重複チェック
+        if deck_in.name and deck_in.name != deck.name:
+            is_opponent = deck_in.is_opponent if deck_in.is_opponent is not None else deck.is_opponent
+            existing_deck = self.get_by_name(
+                db=db,
+                user_id=user_id,
+                name=deck_in.name,
+                is_opponent=is_opponent
+            )
+            
+            if existing_deck:
+                deck_type = "相手のデッキ" if is_opponent else "自分のデッキ"
+                raise ValueError(f"同じ名前の{deck_type}が既に存在します")
+        
+        return self.update(db=db, id=deck_id, obj_in=deck_in, user_id=user_id)
 
 
 # シングルトンインスタンス
