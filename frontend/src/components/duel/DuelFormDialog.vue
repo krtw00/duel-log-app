@@ -420,8 +420,8 @@ watch(() => props.modelValue, async (newValue) => {
       }
 
       // 選択されたデッキを設定
-      selectedMyDeck.value = myDecks.value.find(d => d.id === props.duel.deck_id) || null
-      selectedOpponentDeck.value = opponentDecks.value.find(d => d.id === props.duel.opponentDeck_id) || null
+      selectedMyDeck.value = myDecks.value.find(d => d.id === props.duel?.deck_id) || null
+      selectedOpponentDeck.value = opponentDecks.value.find(d => d.id === props.duel?.opponentDeck_id) || null
     } else {
       // 新規作成モード
       await fetchLatestValues()
