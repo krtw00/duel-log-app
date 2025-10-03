@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models import Base
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Duel(Base):
     __tablename__ = "duels"
@@ -18,10 +18,10 @@ class Duel(Base):
     dc_value = Column(Integer, nullable=True)  # DCモード時のDC数値
     coin = Column(Boolean, nullable=False)
     first_or_second = Column(Boolean, nullable=False)
-    played_date = Column(DateTime, nullable=False)
+    played_date = Column(DateTime(timezone=True), nullable=False)
     notes = Column(String, nullable=True)
-    create_date = Column(DateTime, default=datetime.utcnow)
-    update_date = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    create_date = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    update_date = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="duels")
     deck = relationship("Deck", back_populates="duels")
