@@ -6,8 +6,9 @@ import router from '@/router'
 import { User } from '@/types'
 
 // Mock axios
-vi.mock('@/services/api', async (importOriginal) => {
-  const actual = await importOriginal()
+vi.mock('@/services/api', async () => {
+  const { vi } = await import('vitest')
+  const actual = await vi.importActual('@/services/api')
   return {
     api: {
       ...(actual as any).api,
@@ -18,8 +19,9 @@ vi.mock('@/services/api', async (importOriginal) => {
 })
 
 // Mock vue-router
-vi.mock('@/router', async (importOriginal) => {
-  const actual = await importOriginal()
+vi.mock('@/router', async () => {
+  const { vi } = await import('vitest')
+  const actual = await vi.importActual('@/router')
   return {
     default: {
       ...(actual as any).default,

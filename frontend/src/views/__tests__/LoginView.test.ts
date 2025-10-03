@@ -26,7 +26,7 @@ describe('LoginView.vue', () => {
   let router: ReturnType<typeof useRouter>
 
   beforeEach(() => {
-    const pinia = createTestingPinia({
+    const _pinia = createTestingPinia({
       createSpy: vi.fn,
     })
     authStore = useAuthStore()
@@ -54,9 +54,9 @@ describe('LoginView.vue', () => {
       },
     })
 
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: true }) }
-    wrapper.vm.email = 'test@example.com'
-    wrapper.vm.password = 'password123'
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }) }
+    ;(wrapper.vm as any).email = 'test@example.com'
+    ;(wrapper.vm as any).password = 'password123'
 
     await wrapper.find('form').trigger('submit')
 
@@ -72,9 +72,9 @@ describe('LoginView.vue', () => {
       },
     })
 
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: false }) }
-    wrapper.vm.email = 'invalid-email'
-    wrapper.vm.password = 'short'
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: false }) }
+    ;(wrapper.vm as any).email = 'invalid-email'
+    ;(wrapper.vm as any).password = 'short'
 
     await wrapper.find('form').trigger('submit')
 

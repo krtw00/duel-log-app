@@ -14,7 +14,7 @@ const vuetify = createVuetify({
 
 vi.mock('@/services/api', () => ({
   api: {
-    get: vi.fn(() => Promise.resolve({ data: [] })),
+    get: vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })),
   },
 }))
 
@@ -26,15 +26,15 @@ describe('StatisticsView.vue', () => {
     vi.clearAllMocks()
     api.get = vi.fn((url) => {
       if (url.includes('monthly')) {
-        return Promise.resolve({ data: [{ deck_name: 'Deck A', count: 10 }] })
+        return Promise.resolve({ data: [{ deck_name: 'Deck A', count: 10 }], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })
       }
       if (url.includes('recent')) {
-        return Promise.resolve({ data: [{ deck_name: 'Deck B', count: 5 }] })
+        return Promise.resolve({ data: [{ deck_name: 'Deck B', count: 5 }], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })
       }
       if (url.includes('matchup')) {
-        return Promise.resolve({ data: [{ my_deck_name: 'My Deck', opponent_deck_name: 'Opponent Deck', wins: 5, losses: 3, win_rate: 62.5 }] })
+        return Promise.resolve({ data: [{ my_deck_name: 'My Deck', opponent_deck_name: 'Opponent Deck', wins: 5, losses: 3, win_rate: 62.5 }], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })
       }
-      return Promise.resolve({ data: [] })
+      return Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })
     })
   })
 
@@ -53,8 +53,8 @@ describe('StatisticsView.vue', () => {
     expect(api.get).toHaveBeenCalledWith('/statistics/deck-distribution/recent')
     expect(api.get).toHaveBeenCalledWith('/statistics/matchup-chart')
 
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(wrapper.find('h1').text()).toContain('統計情報')
     expect(wrapper.find('.apexchart-mock').exists()).toBe(true)
@@ -62,7 +62,7 @@ describe('StatisticsView.vue', () => {
   })
 
   it('displays no data message when no distribution data is available', async () => {
-    api.get = vi.fn(() => Promise.resolve({ data: [] })) // Mock empty data
+    api.get = vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })) // Mock empty data
 
     const wrapper = mount(StatisticsView, {
       global: {
@@ -73,8 +73,8 @@ describe('StatisticsView.vue', () => {
       },
     })
 
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(wrapper.findAll('.no-data-placeholder').length).toBeGreaterThan(0)
     expect(wrapper.text()).toContain('データがありません')
@@ -90,8 +90,8 @@ describe('StatisticsView.vue', () => {
       },
     })
 
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(wrapper.text()).toContain('My Deck')
     expect(wrapper.text()).toContain('Opponent Deck')
@@ -108,8 +108,8 @@ describe('StatisticsView.vue', () => {
       },
     })
 
-    expect(wrapper.vm.getWinRateColor(70)).toBe('success')
-    expect(wrapper.vm.getWinRateColor(50)).toBe('warning')
-    expect(wrapper.vm.getWinRateColor(30)).toBe('error')
+    expect((wrapper.vm as any).getWinRateColor(70)).toBe('success')
+    expect((wrapper.vm as any).getWinRateColor(50)).toBe('warning')
+    expect((wrapper.vm as any).getWinRateColor(30)).toBe('error')
   })
 })

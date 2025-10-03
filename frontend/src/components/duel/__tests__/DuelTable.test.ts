@@ -109,7 +109,7 @@ describe('DuelTable.vue', () => {
 
     await wrapper.findAll('.v-btn')[0].trigger('click') // First edit button
     expect(wrapper.emitted().edit).toBeTruthy()
-    expect(wrapper.emitted().edit[0][0]).toEqual(mockDuels[0])
+    expect((wrapper.emitted().edit as any)[0][0]).toEqual(mockDuels[0])
   })
 
   it('emits delete event with duel id when delete button is clicked', async () => {
@@ -125,6 +125,6 @@ describe('DuelTable.vue', () => {
 
     await wrapper.findAll('.v-btn')[1].trigger('click') // First delete button
     expect(wrapper.emitted().delete).toBeTruthy()
-    expect(wrapper.emitted().delete[0][0]).toBe(mockDuels[0].id)
+    expect((wrapper.emitted().delete as any)[0][0]).toBe(mockDuels[0].id)
   })
 })

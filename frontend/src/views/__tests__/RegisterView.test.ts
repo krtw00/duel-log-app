@@ -16,7 +16,7 @@ const vuetify = createVuetify({
 
 vi.mock('@/services/api', () => ({
   api: {
-    post: vi.fn(() => Promise.resolve({ data: {} })),
+    post: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })),
   },
 }))
 
@@ -31,7 +31,7 @@ describe('RegisterView.vue', () => {
   let router: ReturnType<typeof useRouter>
 
   beforeEach(() => {
-    const pinia = createTestingPinia({
+    const _pinia = createTestingPinia({
       createSpy: vi.fn,
     })
     notificationStore = useNotificationStore()
@@ -64,11 +64,11 @@ describe('RegisterView.vue', () => {
       },
     })
 
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: true }) }
-    wrapper.vm.username = 'testuser'
-    wrapper.vm.email = 'test@example.com'
-    wrapper.vm.password = 'password123'
-    wrapper.vm.passwordConfirm = 'password123'
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }) }
+    ;(wrapper.vm as any).username = 'testuser'
+    ;(wrapper.vm as any).email = 'test@example.com'
+    ;(wrapper.vm as any).password = 'password123'
+    ;(wrapper.vm as any).passwordConfirm = 'password123'
 
     await wrapper.find('form').trigger('submit')
 
@@ -91,8 +91,8 @@ describe('RegisterView.vue', () => {
       },
     })
 
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: false }) }
-    wrapper.vm.username = ''
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: false }) }
+    ;(wrapper.vm as any).username = ''
 
     await wrapper.find('form').trigger('submit')
 
@@ -113,7 +113,7 @@ describe('RegisterView.vue', () => {
     expect(passwordField.attributes().type).toBe('password')
 
     await wrapper.findAll('.v-field__append-inner .v-icon')[0].trigger('click')
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(wrapper.find('input[label="パスワード"]').attributes().type).toBe('text')
   })
