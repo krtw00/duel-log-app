@@ -183,8 +183,9 @@
               prepend-inner-icon="mdi-text"
               variant="outlined"
               :color="isOpponentDeck ? 'secondary' : 'primary'"
-              :rules="[rules.required]"
+              :rules="[rules.required, rules.duplicate]"
               placeholder="例: 烙印、エルド、白き森"
+              @input="validateDuplicate"
             />
           </v-form>
         </v-card-text>
@@ -214,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { api } from '../services/api'
 import { Deck } from '../types'
 import AppBar from '../components/layout/AppBar.vue'
@@ -239,8 +240,42 @@ const deckName = ref('')
 const selectedDeckId = ref<number | null>(null)
 const formRef = ref()
 
+// 現在のデッキタイプのデッキリストを取得
+const currentDecks = computed(() => {
+  return isOpponentDeck.value ? opponentDecks.value : myDecks.value
+})
+
+// 重複チェック関数
+const isDuplicateName = (name: string): boolean => {
+  if (!name.trim()) return false
+  
+  const trimmedName = name.trim()
+  return currentDecks.value.some(deck => {
+    // 編集中の場合は、自分自身を除外
+    if (isEdit.value && deck.id === selectedDeckId.value) {
+      return false
+    }
+    return deck.name === trimmedName
+  })
+}
+
 const rules = {
-  required: (v: string) => !!v || '入力必須です'
+  required: (v: string) => !!v || '入力必須です',
+  duplicate: (v: string) => {
+    if (!v) return true // 空の場合はrequiredルールでチェック
+    if (isDuplicateName(v)) {
+      const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ'
+      return `同じ名前の${deckType}が既に存在します`
+    }
+    return true
+  }
+}
+
+// 入力時に重複チェックをトリガー
+const validateDuplicate = () => {
+  if (formRef.value) {
+    formRef.value.validate()
+  }
 }
 
 const fetchDecks = async () => {
@@ -250,7 +285,6 @@ const fetchDecks = async () => {
     myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent)
     opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent)
   } catch (error) {
-    // エラーはAPIインターセプターで処理される
     console.error('Failed to fetch decks:', error)
   }
 }
@@ -275,6 +309,13 @@ const handleSubmit = async () => {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
+  // 念のため送信前にも重複チェック
+  if (isDuplicateName(deckName.value)) {
+    const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ'
+    notificationStore.error(`同じ名前の${deckType}が既に存在します`)
+    return
+  }
+
   loading.value = true
 
   try {
@@ -296,7 +337,6 @@ const handleSubmit = async () => {
       isEdit.value ? 'デッキを更新しました' : 'デッキを登録しました'
     )
   } catch (error) {
-    // エラーはAPIインターセプターで処理される
     console.error('Failed to save deck:', error)
   } finally {
     loading.value = false
@@ -311,7 +351,6 @@ const deleteDeck = async (deckId: number) => {
     await fetchDecks()
     notificationStore.success('デッキを削除しました')
   } catch (error) {
-    // エラーはAPIインターセプターで処理される
     console.error('Failed to delete deck:', error)
   }
 }
