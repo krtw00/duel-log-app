@@ -49,13 +49,9 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
-from fastapi import status
-
-
 @pytest.fixture(scope="function")
-def authenticated_client(db_session):
-    """認証済みのテストクライアントを生成するフィクスチャ"""
-    # テストユーザーを作成
+def test_user(db_session):
+    """テスト用ユーザー"""
     user = User(
         username="testuser",
         email="test@example.com",
@@ -64,20 +60,28 @@ def authenticated_client(db_session):
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
+    return user
 
+
+@pytest.fixture(scope="function")
+def authenticated_client(db_session, test_user):
+    """認証済みのテストクライアントを生成するフィクスチャ"""
     # データベースの依存性注入をオーバーライド
     def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
 
-    # TestClientを作成し、ログインして認証済みクライアントをyield
+    # TestClientを作成
     with TestClient(app) as client:
-        res = client.post(
+        # ログインしてクッキーを取得
+        login_response = client.post(
             "/auth/login",
             json={"email": "test@example.com", "password": "testpassword"},
         )
-        assert res.status_code == status.HTTP_200_OK
+        assert login_response.status_code == status.HTTP_200_OK
+        
+        # クッキーを保持したまま yield
         yield client
 
     # 後処理
