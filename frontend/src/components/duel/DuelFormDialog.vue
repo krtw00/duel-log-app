@@ -44,8 +44,8 @@
           <v-row>
             <!-- 使用デッキ -->
             <v-col cols="12" md="6">
-              <v-autocomplete
-                v-model="form.deck_id"
+              <v-combobox
+                v-model="selectedMyDeck"
                 :items="myDecks"
                 item-title="name"
                 item-value="id"
@@ -55,13 +55,22 @@
                 color="primary"
                 :rules="[rules.required]"
                 clearable
-              />
+                placeholder="デッキを選択または入力"
+              >
+                <template #no-data>
+                  <v-list-item>
+                    <v-list-item-title>
+                      新しいデッキ名を入力できます（登録時に自動追加）
+                    </v-list-item-title>
+                  </v-list-item>
+                </template>
+              </v-combobox>
             </v-col>
 
             <!-- 相手デッキ -->
             <v-col cols="12" md="6">
-              <v-autocomplete
-                v-model="form.opponentDeck_id"
+              <v-combobox
+                v-model="selectedOpponentDeck"
                 :items="opponentDecks"
                 item-title="name"
                 item-value="id"
@@ -71,7 +80,16 @@
                 color="secondary"
                 :rules="[rules.required]"
                 clearable
-              />
+                placeholder="デッキを選択または入力"
+              >
+                <template #no-data>
+                  <v-list-item>
+                    <v-list-item-title>
+                      新しいデッキ名を入力できます（登録時に自動追加）
+                    </v-list-item-title>
+                  </v-list-item>
+                </template>
+              </v-combobox>
             </v-col>
 
             <!-- コイン -->
@@ -241,6 +259,10 @@ const myDecks = ref<Deck[]>([])
 const opponentDecks = ref<Deck[]>([])
 const latestValues = ref<{[key: string]: number}>({})
 
+// コンボボックス用の選択値
+const selectedMyDeck = ref<Deck | string | null>(null)
+const selectedOpponentDeck = ref<Deck | string | null>(null)
+
 const defaultForm = (): DuelCreate => {
   const now = new Date()
   const year = now.getFullYear()
@@ -312,6 +334,62 @@ const fetchLatestValues = async () => {
   }
 }
 
+// 新しいデッキを作成（登録ボタン押下時のみ）
+const createDeckIfNeeded = async (name: string, isOpponent: boolean): Promise<number | null> => {
+  try {
+    const trimmedName = name.trim()
+    
+    // 既に同じ名前のデッキが存在するかチェック
+    const decks = isOpponent ? opponentDecks.value : myDecks.value
+    const existingDeck = decks.find(d => d.name === trimmedName)
+    if (existingDeck) {
+      return existingDeck.id
+    }
+
+    // 新しいデッキを作成
+    const response = await api.post('/decks/', {
+      name: trimmedName,
+      is_opponent: isOpponent
+    })
+    
+    const newDeck = response.data
+    const deckType = isOpponent ? '相手のデッキ' : '自分のデッキ'
+    notificationStore.success(`${deckType}「${trimmedName}」を登録しました`)
+    
+    return newDeck.id
+  } catch (error: any) {
+    // 重複エラーの場合は既存のデッキを検索
+    if (error.response?.status === 400) {
+      const decks = isOpponent ? opponentDecks.value : myDecks.value
+      const existingDeck = decks.find(d => d.name === name.trim())
+      if (existingDeck) {
+        return existingDeck.id
+      }
+    }
+    console.error('Failed to create deck:', error)
+    throw error
+  }
+}
+
+// デッキIDを取得（既存デッキまたは新規作成）
+const resolveDeckId = async (selected: Deck | string | null, isOpponent: boolean): Promise<number | null> => {
+  if (!selected) {
+    return null
+  }
+
+  // オブジェクトの場合（既存のデッキを選択）
+  if (typeof selected === 'object' && selected.id) {
+    return selected.id
+  }
+  
+  // 文字列の場合（新しいデッキ名を入力）
+  if (typeof selected === 'string' && selected.trim()) {
+    return await createDeckIfNeeded(selected, isOpponent)
+  }
+
+  return null
+}
+
 // ダイアログが開いたらデッキを取得
 watch(() => props.modelValue, async (newValue) => {
   if (newValue) {
@@ -340,11 +418,17 @@ watch(() => props.modelValue, async (newValue) => {
         played_date: localDateTime,
         notes: props.duel.notes || ''
       }
+
+      // 選択されたデッキを設定
+      selectedMyDeck.value = myDecks.value.find(d => d.id === props.duel.deck_id) || null
+      selectedOpponentDeck.value = opponentDecks.value.find(d => d.id === props.duel.opponentDeck_id) || null
     } else {
       // 新規作成モード
       await fetchLatestValues()
       form.value = defaultForm()
       form.value.game_mode = props.defaultGameMode
+      selectedMyDeck.value = null
+      selectedOpponentDeck.value = null
       
       // Set initial value based on game mode
       if (form.value.game_mode === 'RANK') {
@@ -383,9 +467,21 @@ const handleSubmit = async () => {
   loading.value = true
 
   try {
+    // デッキIDを解決（必要に応じて新規作成）
+    const myDeckId = await resolveDeckId(selectedMyDeck.value, false)
+    const opponentDeckId = await resolveDeckId(selectedOpponentDeck.value, true)
+
+    if (!myDeckId || !opponentDeckId) {
+      notificationStore.error('デッキの登録に失敗しました')
+      loading.value = false
+      return
+    }
+
     // datetime-local形式をISO文字列に変換
     const submitData = {
       ...form.value,
+      deck_id: myDeckId,
+      opponentDeck_id: opponentDeckId,
       played_date: new Date(form.value.played_date).toISOString()
     }
     
@@ -409,6 +505,8 @@ const handleSubmit = async () => {
 const closeDialog = () => {
   emit('update:modelValue', false)
   formRef.value?.resetValidation()
+  selectedMyDeck.value = null
+  selectedOpponentDeck.value = null
 }
 </script>
 
