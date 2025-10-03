@@ -150,5 +150,82 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         return latest_values
 
 
+    def export_duels_to_csv(self, db: Session, user_id: int) -> str:
+        """
+        ユーザーの戦績データをCSV形式でエクスポート
+        """
+        import csv
+        import io
+        from app.models.deck import Deck
+
+        # エイリアスを使って自分のデッキと相手のデッキを区別
+        MyDeck = Deck
+        OpponentDeck = Deck
+
+        duels = (
+            db.query(
+                Duel.id,
+                MyDeck.name.label("my_deck_name"),
+                OpponentDeck.name.label("opponent_deck_name"),
+                Duel.result,
+                Duel.game_mode,
+                Duel.rank,
+                Duel.rate_value,
+                Duel.dc_value,
+                Duel.coin,
+                Duel.first_or_second,
+                Duel.played_date,
+                Duel.notes,
+            )
+            .join(MyDeck, Duel.deck_id == MyDeck.id)
+            .join(OpponentDeck, Duel.opponentDeck_id == OpponentDeck.id)
+            .filter(Duel.user_id == user_id)
+            .order_by(Duel.played_date.desc())
+            .all()
+        )
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # ヘッダー行
+        writer.writerow(
+            [
+                "ID",
+                "自分のデッキ",
+                "相手のデッキ",
+                "結果",
+                "ゲームモード",
+                "ランク",
+                "レート",
+                "DC",
+                "コイン",
+                "先攻/後攻",
+                "対戦日",
+                "メモ",
+            ]
+        )
+
+        # データ行
+        for duel in duels:
+            writer.writerow(
+                [
+                    duel.id,
+                    duel.my_deck_name,
+                    duel.opponent_deck_name,
+                    "勝ち" if duel.result else "負け",
+                    duel.game_mode,
+                    duel.rank,
+                    duel.rate_value,
+                    duel.dc_value,
+                    "表" if duel.coin else "裏",
+                    "先攻" if duel.first_or_second else "後攻",
+                    duel.played_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    duel.notes,
+                ]
+            )
+
+        return output.getvalue()
+
+
 # シングルトンインスタンス
 duel_service = DuelService()
