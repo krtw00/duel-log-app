@@ -152,6 +152,21 @@
               CSVエクスポート
             </v-btn>
             <v-btn
+              color="success"
+              prepend-icon="mdi-upload"
+              @click="triggerFileInput"
+              class="mr-2"
+            >
+              CSVインポート
+            </v-btn>
+            <input
+              type="file"
+              ref="fileInput"
+              @change="handleFileUpload"
+              accept=".csv"
+              style="display: none"
+            />
+            <v-btn
               color="primary"
               prepend-icon="mdi-plus"
               @click="openDuelDialog"
@@ -358,6 +373,41 @@ const deleteDuel = async (duelId: number) => {
 const handleSaved = () => {
   dialogOpen.value = false
   fetchDuels()
+}
+
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  loading.value = true
+  try {
+    await api.post('/duels/import/csv', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    notificationStore.success('CSVファイルをインポートしました')
+    await fetchDuels()
+  } catch (error) {
+    console.error('Failed to import CSV:', error)
+    // エラーはAPIインターセプターで処理される
+  } finally {
+    loading.value = false
+    // 同じファイルを再度選択できるように、inputの値をクリア
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  }
 }
 
 const exportCSV = async () => {
