@@ -3,7 +3,14 @@ import { useNotificationStore } from '../stores/notification'
 import { useLoadingStore } from '../stores/loading'
 import { useAuthStore } from '../stores/auth'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// 環境変数からAPIのベースURLを取得
+const API_BASE_URL = import.meta.env.VITE_API_URL
+
+// 環境変数が設定されていない場合の警告
+if (!API_BASE_URL) {
+  console.error('VITE_API_URL environment variable is not set')
+  throw new Error('API URL is not configured. Please check your .env file.')
+}
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
