@@ -1,0 +1,129 @@
+import { describe, it, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import DuelTable from '../DuelTable.vue'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+
+const vuetify = createVuetify({
+  components,
+  directives,
+})
+
+describe('DuelTable.vue', () => {
+  const mockDuels = [
+    {
+      id: 1,
+      deck_id: 1,
+      opponentDeck_id: 2,
+      result: true,
+      game_mode: 'RANK',
+      rank: 18,
+      coin: true,
+      first_or_second: true,
+      played_date: '2023-10-26T10:00:00Z',
+      notes: 'Win against Eldlich',
+      create_date: '2023-10-26T10:00:00Z',
+      update_date: '2023-10-26T10:00:00Z',
+      user_id: 1,
+      deck: { id: 1, name: 'My Deck', is_opponent: false },
+      opponentdeck: { id: 2, name: 'Opponent Deck', is_opponent: true },
+    },
+    {
+      id: 2,
+      deck_id: 1,
+      opponentDeck_id: 3,
+      result: false,
+      game_mode: 'RATE',
+      rate_value: 1500,
+      coin: false,
+      first_or_second: false,
+      played_date: '2023-10-25T15:30:00Z',
+      notes: 'Lose to Branded Despia',
+      create_date: '2023-10-25T15:30:00Z',
+      update_date: '2023-10-25T15:30:00Z',
+      user_id: 1,
+      deck: { id: 1, name: 'My Deck', is_opponent: false },
+      opponentdeck: { id: 3, name: 'Another Opponent Deck', is_opponent: true },
+    },
+  ]
+
+  it('renders duel data correctly', () => {
+    const wrapper = mount(DuelTable, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        duels: mockDuels,
+        loading: false,
+      },
+    })
+
+    expect(wrapper.text()).toContain('My Deck')
+    expect(wrapper.text()).toContain('Opponent Deck')
+    expect(wrapper.text()).toContain('勝利')
+    expect(wrapper.text()).toContain('敗北')
+    expect(wrapper.text()).toContain('プラチナ5') // Rank 18
+    expect(wrapper.text()).toContain('1500') // Rate value
+  })
+
+  it('displays loading skeleton when loading is true', () => {
+    const wrapper = mount(DuelTable, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        duels: [],
+        loading: true,
+      },
+    })
+
+    expect(wrapper.findComponent({ name: 'VSkeletonLoader' }).exists()).toBe(true)
+  })
+
+  it('displays no data message when duels array is empty and not loading', () => {
+    const wrapper = mount(DuelTable, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        duels: [],
+        loading: false,
+      },
+    })
+
+    expect(wrapper.text()).toContain('対戦記録がありません')
+  })
+
+  it('emits edit event with duel object when edit button is clicked', async () => {
+    const wrapper = mount(DuelTable, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        duels: mockDuels,
+        loading: false,
+      },
+    })
+
+    await wrapper.findAll('.v-btn')[0].trigger('click') // First edit button
+    expect(wrapper.emitted().edit).toBeTruthy()
+    expect(wrapper.emitted().edit[0][0]).toEqual(mockDuels[0])
+  })
+
+  it('emits delete event with duel id when delete button is clicked', async () => {
+    const wrapper = mount(DuelTable, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        duels: mockDuels,
+        loading: false,
+      },
+    })
+
+    await wrapper.findAll('.v-btn')[1].trigger('click') // First delete button
+    expect(wrapper.emitted().delete).toBeTruthy()
+    expect(wrapper.emitted().delete[0][0]).toBe(mockDuels[0].id)
+  })
+})
