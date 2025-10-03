@@ -1,11 +1,11 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi as _vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LoadingOverlay from '../LoadingOverlay.vue'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
-import { useLoadingStore } from '../../../stores/loading'
+import { useLoadingStore } from '@/stores/loading'
 
 const vuetify = createVuetify({
   components,
@@ -26,7 +26,7 @@ describe('LoadingOverlay.vue', () => {
       },
     })
     const loadingStore = useLoadingStore()
-    loadingStore.isLoading = false
+    expect(loadingStore.isLoading).toBe(false)
     expect(wrapper.find('.loading-overlay').exists()).toBe(false)
   })
 
@@ -43,7 +43,8 @@ describe('LoadingOverlay.vue', () => {
       },
     })
     const loadingStore = useLoadingStore()
-    loadingStore.start('test-task')
+    // The initialState already sets isLoading to true, so no need to call start here
+    expect(loadingStore.isLoading).toBe(true)
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.loading-overlay').exists()).toBe(true)
     expect(wrapper.find('.loading-text').text()).toBe('読み込み中...')

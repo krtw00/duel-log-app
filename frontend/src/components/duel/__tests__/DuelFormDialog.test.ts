@@ -5,8 +5,9 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
-import { useNotificationStore } from '../../../stores/notification'
-import { api } from '../../../services/api'
+import { useNotificationStore } from '@/stores/notification'
+import { api } from '@/services/api'
+import { Duel, GameMode } from '@/types'
 
 const vuetify = createVuetify({
   components,
@@ -25,7 +26,7 @@ describe('DuelFormDialog.vue', () => {
   let notificationStore: ReturnType<typeof useNotificationStore>
 
   beforeEach(() => {
-    const pinia = createTestingPinia({
+    const _pinia = createTestingPinia({
       createSpy: vi.fn,
     })
     notificationStore = useNotificationStore()
@@ -48,7 +49,7 @@ describe('DuelFormDialog.vue', () => {
   })
 
   it('renders correctly in edit mode', async () => {
-    const mockDuel = {
+    const mockDuel: Duel = {
       id: 1,
       deck_id: 1,
       opponentDeck_id: 2,
@@ -74,8 +75,9 @@ describe('DuelFormDialog.vue', () => {
       },
     })
 
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
+    expect((wrapper.vm as any).formRef).toBeDefined()
     expect(wrapper.find('.v-card-title').text()).toContain('対戦記録を編集')
     expect(wrapper.find('button').text()).toContain('更新')
   })
@@ -92,7 +94,7 @@ describe('DuelFormDialog.vue', () => {
     })
 
     wrapper.find('.v-btn').trigger('click') // Cancel button
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(wrapper.emitted()['update:modelValue']).toBeTruthy()
     expect(wrapper.emitted()['update:modelValue'][0][0]).toBe(false)
@@ -110,7 +112,7 @@ describe('DuelFormDialog.vue', () => {
     })
 
     // Mock form validation to pass
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: true }) }
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }) }
 
     // Set some form values
     await wrapper.setData({
@@ -128,7 +130,7 @@ describe('DuelFormDialog.vue', () => {
     })
 
     await wrapper.find('button[type="submit"]').trigger('click')
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(api.post).toHaveBeenCalledWith('/duels/', expect.any(Object))
     expect(notificationStore.success).toHaveBeenCalledWith('対戦記録を登録しました')
@@ -137,7 +139,7 @@ describe('DuelFormDialog.vue', () => {
   })
 
   it('calls API to update a duel and emits saved on success', async () => {
-    const mockDuel = {
+    const mockDuel: Duel = {
       id: 1,
       deck_id: 1,
       opponentDeck_id: 2,
@@ -163,13 +165,13 @@ describe('DuelFormDialog.vue', () => {
       },
     })
 
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     // Mock form validation to pass
-    wrapper.vm.formRef = { validate: () => Promise.resolve({ valid: true }) }
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }) }
 
     await wrapper.find('button[type="submit"]').trigger('click')
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
     expect(api.put).toHaveBeenCalledWith('/duels/1', expect.any(Object))
     expect(notificationStore.success).toHaveBeenCalledWith('対戦記録を更新しました')

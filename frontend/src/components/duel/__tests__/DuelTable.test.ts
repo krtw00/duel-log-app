@@ -4,6 +4,7 @@ import DuelTable from '../DuelTable.vue'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { Duel } from '@/types'
 
 const vuetify = createVuetify({
   components,
@@ -11,7 +12,7 @@ const vuetify = createVuetify({
 })
 
 describe('DuelTable.vue', () => {
-  const mockDuels = [
+  const mockDuels: Duel[] = [
     {
       id: 1,
       deck_id: 1,
