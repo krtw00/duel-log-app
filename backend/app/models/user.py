@@ -27,3 +27,4 @@ class User(Base):
     decks: Mapped[list["Deck"]] = relationship("Deck", back_populates="user", cascade="all, delete-orphan")
     duels: Mapped[list["Duel"]] = relationship("Duel", back_populates="user", cascade="all, delete-orphan")
     sharedurls: Mapped[list["SharedUrl"]] = relationship("SharedUrl", back_populates="user", cascade="all, delete-orphan")
+    password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
