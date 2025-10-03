@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
+import os
 
 from app.api.routers import decks, users, duels, auth, me, statistics
 from app.core.config import settings
@@ -28,12 +29,12 @@ app = FastAPI(
 )
 
 # CORS設定
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=[frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
