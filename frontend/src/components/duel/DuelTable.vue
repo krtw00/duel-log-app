@@ -160,14 +160,13 @@ const headers = [
 ] as const
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  // ISO形式の文字列をそのまま表示用にフォーマット
+  // "2025-10-04T05:36:00" → "2025/10/04 05:36"
+  const cleanedString = dateString.replace(/\.\d{3}Z?$/, '')
+  const [datePart, timePart] = cleanedString.split('T')
+  const [year, month, day] = datePart.split('-')
+  const [hour, minute] = timePart.split(':')
+  return `${year}/${month}/${day} ${hour}:${minute}`
 }
 </script>
 
