@@ -329,7 +329,9 @@ const isoToLocalDateTime = (isoString: string): string => {
 // デッキ一覧を取得
 const fetchDecks = async () => {
   try {
-    const response = await api.get('/decks/')
+    // 編集モードの場合はアーカイブされたデッキも含める
+    const activeOnly = !isEdit.value
+    const response = await api.get(`/decks/?active_only=${activeOnly}`)
     const allDecks = response.data
     myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent)
     opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent)
