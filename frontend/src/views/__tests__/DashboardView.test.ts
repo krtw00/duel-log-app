@@ -24,13 +24,13 @@ describe('DashboardView.vue', () => {
   let notificationStore: ReturnType<typeof useNotificationStore>
 
   beforeEach(() => {
-    const pinia = createTestingPinia({
+    const _pinia = createTestingPinia({
       createSpy: vi.fn,
     })
     notificationStore = useNotificationStore()
     vi.clearAllMocks()
-    api.get = vi.fn(() => Promise.resolve({ data: [] }))
-    api.delete = vi.fn(() => Promise.resolve())
+    api.get = vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} }))
+    api.delete = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} }))
   })
 
   it('renders correctly and fetches duels on mount', async () => {
@@ -65,8 +65,8 @@ describe('DashboardView.vue', () => {
     })
 
     await wrapper.find('.add-btn').trigger('click')
-    expect(wrapper.vm.dialogOpen).toBe(true)
-    expect(wrapper.vm.selectedDuel).toBeNull()
+    expect((wrapper.vm as any).dialogOpen).toBe(true)
+    expect((wrapper.vm as any).selectedDuel).toBeNull()
   })
 
   it('opens duel dialog in edit mode', async () => {
@@ -98,9 +98,9 @@ describe('DashboardView.vue', () => {
       },
     })
 
-    wrapper.vm.editDuel(mockDuel)
-    expect(wrapper.vm.dialogOpen).toBe(true)
-    expect(wrapper.vm.selectedDuel).toEqual(mockDuel)
+    ;(wrapper.vm as any).editDuel(mockDuel)
+    expect((wrapper.vm as any).dialogOpen).toBe(true)
+    expect((wrapper.vm as any).selectedDuel).toEqual(mockDuel)
   })
 
   it('deletes a duel and shows success notification', async () => {
@@ -117,7 +117,7 @@ describe('DashboardView.vue', () => {
       },
     })
 
-    await wrapper.vm.deleteDuel(1)
+    await (wrapper.vm as any).deleteDuel(1)
     expect(api.delete).toHaveBeenCalledWith('/duels/1')
     expect(notificationStore.success).toHaveBeenCalledWith('対戦記録を削除しました')
     expect(api.get).toHaveBeenCalledTimes(4) // Initial fetch + re-fetch after delete
@@ -137,7 +137,7 @@ describe('DashboardView.vue', () => {
       },
     })
 
-    await wrapper.vm.deleteDuel(1)
+    await (wrapper.vm as any).deleteDuel(1)
     expect(api.delete).not.toHaveBeenCalled()
     expect(notificationStore.success).not.toHaveBeenCalled()
   })
@@ -155,8 +155,8 @@ describe('DashboardView.vue', () => {
       },
     })
 
-    wrapper.vm.handleSaved()
-    expect(wrapper.vm.dialogOpen).toBe(false)
+    ;(wrapper.vm as any).handleSaved()
+    expect((wrapper.vm as any).dialogOpen).toBe(false)
     expect(api.get).toHaveBeenCalledTimes(4) // Initial fetch + re-fetch after save
   })
 
@@ -169,9 +169,9 @@ describe('DashboardView.vue', () => {
     ] as any[]
 
     api.get = vi.fn((url) => {
-      if (url === '/duels/') return Promise.resolve({ data: mockDuels })
-      if (url === '/decks/') return Promise.resolve({ data: [] })
-      return Promise.resolve({ data: [] })
+      if (url === '/duels/') return Promise.resolve({ data: mockDuels, status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })
+      if (url === '/decks/') return Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })
+      return Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {}, request: {} })
     })
 
     const wrapper = mount(DashboardView, {
@@ -186,10 +186,10 @@ describe('DashboardView.vue', () => {
       },
     })
 
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await (wrapper.vm as any).$nextTick()
+    await (wrapper.vm as any).$nextTick()
 
-    const rankStats = wrapper.vm.rankStats
+    const rankStats = (wrapper.vm as any).rankStats
     expect(rankStats.total_duels).toBe(3)
     expect(rankStats.win_count).toBe(2)
     expect(rankStats.lose_count).toBe(1)
@@ -199,7 +199,7 @@ describe('DashboardView.vue', () => {
     expect(rankStats.first_turn_win_rate).toBeCloseTo(1/2)
     expect(rankStats.second_turn_win_rate).toBeCloseTo(1/1)
 
-    const rateStats = wrapper.vm.rateStats
+    const rateStats = (wrapper.vm as any).rateStats
     expect(rateStats.total_duels).toBe(1)
     expect(rateStats.win_count).toBe(1)
   })
