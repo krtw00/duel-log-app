@@ -27,8 +27,8 @@ describe('DuelTable.vue', () => {
       create_date: '2023-10-26T10:00:00Z',
       update_date: '2023-10-26T10:00:00Z',
       user_id: 1,
-      deck: { id: 1, name: 'My Deck', is_opponent: false },
-      opponentdeck: { id: 2, name: 'Opponent Deck', is_opponent: true },
+      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true },
+      opponentdeck: { id: 2, name: 'Opponent Deck', is_opponent: true, active: true },
     },
     {
       id: 2,
@@ -44,8 +44,8 @@ describe('DuelTable.vue', () => {
       create_date: '2023-10-25T15:30:00Z',
       update_date: '2023-10-25T15:30:00Z',
       user_id: 1,
-      deck: { id: 1, name: 'My Deck', is_opponent: false },
-      opponentdeck: { id: 3, name: 'Another Opponent Deck', is_opponent: true },
+      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true },
+      opponentdeck: { id: 3, name: 'Another Opponent Deck', is_opponent: true, active: true },
     },
   ]
 
