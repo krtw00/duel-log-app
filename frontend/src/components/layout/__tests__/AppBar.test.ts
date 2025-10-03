@@ -24,7 +24,7 @@ describe('AppBar.vue', () => {
   let router: ReturnType<typeof useRouter>
 
   beforeEach(() => {
-    const pinia = createTestingPinia({
+    createTestingPinia({
       createSpy: vi.fn,
     })
     authStore = useAuthStore()

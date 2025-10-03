@@ -31,7 +31,7 @@ describe('RegisterView.vue', () => {
   let router: ReturnType<typeof useRouter>
 
   beforeEach(() => {
-    const _pinia = createTestingPinia({
+    createTestingPinia({
       createSpy: vi.fn,
     })
     notificationStore = useNotificationStore()
