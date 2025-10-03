@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import axios from 'axios'
+import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios'
 import { api } from '../api'
 import { useNotificationStore } from '@/stores/notification'
 import { useLoadingStore } from '@/stores/loading'
@@ -28,6 +28,32 @@ vi.mock('@/stores/auth', () => ({
   })),
 }))
 
+const createMockAxiosInstance = (mockRequest: any, mockResponse: any): AxiosInstance => {
+  const mockInstance = {
+    get: vi.fn(() => mockRequest()),
+    post: vi.fn(() => mockRequest()),
+    put: vi.fn(() => mockRequest()),
+    delete: vi.fn(() => mockRequest()),
+    request: vi.fn(() => mockRequest()),
+    interceptors: {
+      request: {
+        use: vi.fn((fulfilled, rejected) => {
+          if (fulfilled) mockResponse.requestFulfilled = fulfilled
+          if (rejected) mockResponse.requestRejected = rejected
+        }),
+      },
+      response: {
+        use: vi.fn((fulfilled, rejected) => {
+          if (fulfilled) mockResponse.responseFulfilled = fulfilled
+          if (rejected) mockResponse.responseRejected = rejected
+        }),
+      },
+    },
+    defaults: { headers: { common: {} } },
+  }
+  return mockInstance as unknown as AxiosInstance
+}
+
 describe('api service', () => {
   let notificationStore: ReturnType<typeof useNotificationStore>
   let loadingStore: ReturnType<typeof useLoadingStore>
@@ -42,16 +68,16 @@ describe('api service', () => {
   })
 
   it('should start and stop loading on successful request', async () => {
-    vi.spyOn(axios, 'create').mockReturnValue({
-      ...axios.create(),
-      request: vi.fn().mockResolvedValue({ data: 'success' }),
-    })
+    const mockRequest = vi.fn().mockResolvedValue({ data: 'success' })
+    const mockResponse: any = {}
+    const mockAxios = createMockAxiosInstance(mockRequest, mockResponse)
+    vi.spyOn(axios, 'create').mockReturnValue(mockAxios)
 
-    const testApi = axios.create()
-    testApi.interceptors.request.use(api.interceptors.request.handlers[0].fulfilled)
-    testApi.interceptors.response.use(api.interceptors.response.handlers[0].fulfilled)
+    // Apply interceptors from the actual api instance
+    api.interceptors.request.use(mockResponse.requestFulfilled, mockResponse.requestRejected)
+    api.interceptors.response.use(mockResponse.responseFulfilled, mockResponse.responseRejected)
 
-    await testApi.get('/test')
+    await mockAxios.get('/test')
 
     expect(loadingStore.start).toHaveBeenCalledWith(expect.any(String))
     expect(loadingStore.stop).toHaveBeenCalledWith(expect.any(String))
@@ -67,16 +93,16 @@ describe('api service', () => {
       config: { metadata: { requestId: 'test-request' } },
     }
 
-    vi.spyOn(axios, 'create').mockReturnValue({
-      ...axios.create(),
-      request: vi.fn().mockRejectedValue(errorResponse),
-    })
+    const mockRequest = vi.fn().mockRejectedValue(errorResponse)
+    const mockResponse: any = {}
+    const mockAxios = createMockAxiosInstance(mockRequest, mockResponse)
+    vi.spyOn(axios, 'create').mockReturnValue(mockAxios)
 
-    const testApi = axios.create()
-    testApi.interceptors.request.use(api.interceptors.request.handlers[0].fulfilled)
-    testApi.interceptors.response.use(api.interceptors.response.handlers[0].rejected)
+    // Apply interceptors from the actual api instance
+    api.interceptors.request.use(mockResponse.requestFulfilled, mockResponse.requestRejected)
+    api.interceptors.response.use(mockResponse.responseFulfilled, mockResponse.responseRejected)
 
-    await expect(testApi.get('/test')).rejects.toEqual(errorResponse)
+    await expect(mockAxios.get('/test')).rejects.toEqual(errorResponse)
 
     expect(loadingStore.stop).toHaveBeenCalledWith('test-request')
     expect(notificationStore.error).not.toHaveBeenCalled()
@@ -92,16 +118,16 @@ describe('api service', () => {
       config: { metadata: { requestId: 'test-request' } },
     }
 
-    vi.spyOn(axios, 'create').mockReturnValue({
-      ...axios.create(),
-      request: vi.fn().mockRejectedValue(errorResponse),
-    })
+    const mockRequest = vi.fn().mockRejectedValue(errorResponse)
+    const mockResponse: any = {}
+    const mockAxios = createMockAxiosInstance(mockRequest, mockResponse)
+    vi.spyOn(axios, 'create').mockReturnValue(mockAxios)
 
-    const testApi = axios.create()
-    testApi.interceptors.request.use(api.interceptors.request.handlers[0].fulfilled)
-    testApi.interceptors.response.use(api.interceptors.response.handlers[0].rejected)
+    // Apply interceptors from the actual api instance
+    api.interceptors.request.use(mockResponse.requestFulfilled, mockResponse.requestRejected)
+    api.interceptors.response.use(mockResponse.responseFulfilled, mockResponse.responseRejected)
 
-    await expect(testApi.get('/test')).rejects.toEqual(errorResponse)
+    await expect(mockAxios.get('/test')).rejects.toEqual(errorResponse)
 
     expect(loadingStore.stop).toHaveBeenCalledWith('test-request')
     expect(notificationStore.error).toHaveBeenCalledWith('リクエストが正しくありません')
@@ -115,16 +141,16 @@ describe('api service', () => {
       config: { metadata: { requestId: 'test-request' } },
     }
 
-    vi.spyOn(axios, 'create').mockReturnValue({
-      ...axios.create(),
-      request: vi.fn().mockRejectedValue(networkError),
-    })
+    const mockRequest = vi.fn().mockRejectedValue(networkError)
+    const mockResponse: any = {}
+    const mockAxios = createMockAxiosInstance(mockRequest, mockResponse)
+    vi.spyOn(axios, 'create').mockReturnValue(mockAxios)
 
-    const testApi = axios.create()
-    testApi.interceptors.request.use(api.interceptors.request.handlers[0].fulfilled)
-    testApi.interceptors.response.use(api.interceptors.response.handlers[0].rejected)
+    // Apply interceptors from the actual api instance
+    api.interceptors.request.use(mockResponse.requestFulfilled, mockResponse.requestRejected)
+    api.interceptors.response.use(mockResponse.responseFulfilled, mockResponse.responseRejected)
 
-    await expect(testApi.get('/test')).rejects.toEqual(networkError)
+    await expect(mockAxios.get('/test')).rejects.toEqual(networkError)
 
     expect(loadingStore.stop).toHaveBeenCalledWith('test-request')
     expect(notificationStore.error).toHaveBeenCalledWith('サーバーに接続できません。ネットワーク接続を確認してください')
@@ -136,16 +162,16 @@ describe('api service', () => {
       config: { metadata: { requestId: 'test-request' } },
     }
 
-    vi.spyOn(axios, 'create').mockReturnValue({
-      ...axios.create(),
-      request: vi.fn().mockRejectedValue(setupError),
-    })
+    const mockRequest = vi.fn().mockRejectedValue(setupError)
+    const mockResponse: any = {}
+    const mockAxios = createMockAxiosInstance(mockRequest, mockResponse)
+    vi.spyOn(axios, 'create').mockReturnValue(mockAxios)
 
-    const testApi = axios.create()
-    testApi.interceptors.request.use(api.interceptors.request.handlers[0].fulfilled)
-    testApi.interceptors.response.use(api.interceptors.response.handlers[0].rejected)
+    // Apply interceptors from the actual api instance
+    api.interceptors.request.use(mockResponse.requestFulfilled, mockResponse.requestRejected)
+    api.interceptors.response.use(mockResponse.responseFulfilled, mockResponse.responseRejected)
 
-    await expect(testApi.get('/test')).rejects.toEqual(setupError)
+    await expect(mockAxios.get('/test')).rejects.toEqual(setupError)
 
     expect(loadingStore.stop).toHaveBeenCalledWith('test-request')
     expect(notificationStore.error).toHaveBeenCalledWith('リクエストの作成に失敗しました')
