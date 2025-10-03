@@ -46,6 +46,32 @@
           </v-tabs>
         </v-card>
 
+        <!-- 年月選択 -->
+        <v-row class="mb-4">
+          <v-col cols="6" sm="3">
+            <v-select
+              v-model="selectedYear"
+              :items="years"
+              label="年"
+              variant="outlined"
+              density="compact"
+              hide-details
+              @update:model-value="fetchDuels"
+            ></v-select>
+          </v-col>
+          <v-col cols="6" sm="3">
+            <v-select
+              v-model="selectedMonth"
+              :items="months"
+              label="月"
+              variant="outlined"
+              density="compact"
+              hide-details
+              @update:model-value="fetchDuels"
+            ></v-select>
+          </v-col>
+        </v-row>
+
         <!-- 統計カード -->
         <v-row class="mb-4">
           <v-col cols="12" sm="4" md="2">
@@ -156,6 +182,15 @@ const selectedDuel = ref<Duel | null>(null)
 const decks = ref<Deck[]>([])
 const currentMode = ref<GameMode>('RANK')
 
+// 年月選択関連
+const selectedYear = ref(new Date().getFullYear())
+const selectedMonth = ref(new Date().getMonth() + 1)
+const years = computed(() => {
+  const currentYear = new Date().getFullYear()
+  return Array.from({ length: 5 }, (_, i) => currentYear - i) // 過去5年
+})
+const months = Array.from({ length: 12 }, (_, i) => i + 1)
+
 // ゲームモード別にデュエルをフィルタリング
 const rankDuels = computed(() => duels.value.filter(d => d.game_mode === 'RANK'))
 const rateDuels = computed(() => duels.value.filter(d => d.game_mode === 'RATE'))
@@ -216,7 +251,12 @@ const fetchDuels = async () => {
     decks.value = decksResponse.data
     
     // デュエル情報を取得
-    const duelsResponse = await api.get('/duels/')
+    const duelsResponse = await api.get('/duels/', {
+      params: {
+        year: selectedYear.value,
+        month: selectedMonth.value
+      }
+    })
     duels.value = duelsResponse.data.map((duel: Duel) => ({
       ...duel,
       deck: decks.value.find(d => d.id === duel.deck_id),
