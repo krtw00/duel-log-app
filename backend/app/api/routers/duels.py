@@ -22,6 +22,8 @@ def list_duels(
     deck_id: Optional[int] = Query(None, description="デッキIDでフィルタリング"),
     start_date: Optional[datetime] = Query(None, description="開始日（この日以降）"),
     end_date: Optional[datetime] = Query(None, description="終了日（この日以前）"),
+    year: Optional[int] = Query(None, description="年"),
+    month: Optional[int] = Query(None, description="月"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -43,7 +45,9 @@ def list_duels(
         user_id=current_user.id,
         deck_id=deck_id,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        year=year,
+        month=month
     )
 
 
