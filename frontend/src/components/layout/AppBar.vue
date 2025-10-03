@@ -2,6 +2,11 @@
   <v-app-bar elevation="0" class="app-bar">
     <div class="app-bar-glow"></div>
 
+    <v-app-bar-nav-icon
+      class="hidden-md-and-up"
+      @click="$emit('toggle-drawer')"
+    />
+
     <v-app-bar-title class="ml-4">
       <span class="text-primary font-weight-black">DUEL</span>
       <span class="text-secondary font-weight-black">LOG</span>
@@ -14,6 +19,7 @@
         v-if="currentView !== item.view"
         :prepend-icon="item.icon"
         variant="text"
+        class="hidden-sm-and-down"
         @click="router.push(item.path)"
       >
         {{ item.name }}
@@ -59,6 +65,8 @@ import { useAuthStore } from '../../stores/auth'
 defineProps<{
   currentView: 'dashboard' | 'decks' | 'statistics' | 'profile'
 }>()
+
+defineEmits(['toggle-drawer'])
 
 const router = useRouter()
 const authStore = useAuthStore()
