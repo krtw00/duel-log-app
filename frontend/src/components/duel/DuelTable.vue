@@ -154,8 +154,8 @@ const headers = [
   { title: '相手デッキ', key: 'opponentdeck', sortable: false },
   { title: '勝敗', key: 'result', sortable: true, width: 100 },
   { title: 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120 },
-  { title: '備考', key: 'notes', sortable: false, width: 200 },
-  { title: 'プレイ日時', key: 'played_date', sortable: true },
+  { title: '備考', key: 'notes', sortable: false, width: 200, class: 'hidden-sm-and-down' },
+  { title: 'プレイ日時', key: 'played_date', sortable: true, class: 'hidden-sm-and-down' },
   { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' }
 ] as const
 

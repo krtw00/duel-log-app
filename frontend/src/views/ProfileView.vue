@@ -1,6 +1,19 @@
 <template>
   <v-app>
-    <app-bar current-view="profile" />
+    <app-bar current-view="profile" @toggle-drawer="drawer = !drawer" />
+
+    <!-- レスポンシブ対応のナビゲーションドロワー -->
+    <v-navigation-drawer v-model="drawer" temporary>
+      <v-list nav dense>
+        <v-list-item
+          v-for="item in navItems"
+          :key="item.view"
+          :prepend-icon="item.icon"
+          :to="item.path"
+          :title="item.name"
+        />
+      </v-list>
+    </v-navigation-drawer>
 
     <v-main class="main-content">
       <v-container class="d-flex justify-center align-center fill-height">
@@ -143,6 +156,13 @@ import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
 import { api } from '../services/api'
 import AppBar from '../components/layout/AppBar.vue'
+
+const drawer = ref(false)
+const navItems = [
+  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
+  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
+]
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
