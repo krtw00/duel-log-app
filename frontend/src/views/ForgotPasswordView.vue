@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <div class="login-container">
+    <div class="forgot-password-container">
       <!-- 背景装飾 -->
       <div class="background-overlay">
         <div class="grid-pattern"></div>
@@ -8,22 +8,22 @@
         <div class="glow-orb glow-orb-2"></div>
       </div>
 
-      <!-- ログインカード -->
-      <v-card class="login-card" elevation="24">
+      <!-- パスワード再設定カード -->
+      <v-card class="forgot-password-card" elevation="24">
         <div class="card-glow"></div>
         
         <v-card-text class="pa-8">
-          <!-- ロゴ・タイトル -->
+          <!-- タイトル -->
           <div class="text-center mb-8">
             <h1 class="app-title">
-              <span class="text-primary">DUEL</span>
-              <span class="text-secondary">LOG</span>
+              <span class="text-primary">FORGOT</span>
+              <span class="text-secondary">PASSWORD</span>
             </h1>
-            <p class="app-subtitle">Track. Analyze. Dominate.</p>
+            <p class="app-subtitle">Enter your email to reset your password.</p>
           </div>
 
-          <!-- ログインフォーム -->
-          <v-form @submit.prevent="handleLogin" ref="formRef">
+          <!-- フォーム -->
+          <v-form @submit.prevent="handleForgotPassword" ref="formRef">
             <v-text-field
               v-model="email"
               label="メールアドレス"
@@ -32,43 +32,25 @@
               variant="outlined"
               color="primary"
               :rules="[rules.required, rules.email]"
-              class="mb-2"
-            />
-
-            <v-text-field
-              v-model="password"
-              label="パスワード"
-              prepend-inner-icon="mdi-lock-outline"
-              :type="showPassword ? 'text' : 'password'"
-              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showPassword = !showPassword"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required]"
               class="mb-4"
             />
 
-            <!-- ログインボタン -->
+            <!-- 送信ボタン -->
             <v-btn
               type="submit"
               block
               size="large"
               color="primary"
               :loading="loading"
-              class="login-btn mb-4"
+              class="forgot-password-btn mb-4"
             >
-              <v-icon start>mdi-login</v-icon>
-              ログイン
+              <v-icon start>mdi-send</v-icon>
+              再設定メールを送信
             </v-btn>
 
-            <!-- リンク -->
+            <!-- ログインページへのリンク -->
             <div class="text-center">
-              <router-link to="/forgot-password" class="text-caption text-grey">パスワードを忘れた場合</router-link>
-              <v-divider class="my-3" />
-              <p class="text-caption text-grey">
-                アカウントをお持ちでない方は
-                <router-link to="/register" class="text-secondary">新規登録</router-link>
-              </p>
+              <router-link to="/login" class="text-caption text-grey">ログインページに戻る</router-link>
             </div>
           </v-form>
         </v-card-text>
@@ -79,16 +61,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 import { useNotificationStore } from '../stores/notification'
+import api from '../services/api'
 
-const authStore = useAuthStore()
+const router = useRouter()
 const notificationStore = useNotificationStore()
 
 const formRef = ref()
 const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
 const loading = ref(false)
 
 const rules = {
@@ -96,18 +77,19 @@ const rules = {
   email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません'
 }
 
-const handleLogin = async () => {
+const handleForgotPassword = async () => {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
   loading.value = true
 
   try {
-    await authStore.login(email.value, password.value)
-    notificationStore.success('ログインに成功しました')
+    await api.post('/auth/forgot-password', { email: email.value })
+    notificationStore.success('パスワード再設定の案内をメールで送信しました。')
+    router.push('/login') // ログインページに戻る
   } catch (error: any) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    console.error('Login error:', error)
+    console.error('Forgot password error:', error)
   } finally {
     loading.value = false
   }
@@ -115,7 +97,7 @@ const handleLogin = async () => {
 </script>
 
 <style scoped lang="scss">
-.login-container {
+.forgot-password-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -181,7 +163,7 @@ const handleLogin = async () => {
   50% { transform: translate(30px, 30px); }
 }
 
-.login-card {
+.forgot-password-card {
   position: relative;
   z-index: 1;
   width: 100%;
@@ -230,7 +212,7 @@ const handleLogin = async () => {
   margin-top: 8px;
 }
 
-.login-btn {
+.forgot-password-btn {
   font-weight: 600;
   letter-spacing: 1px;
   transition: all 0.3s ease;

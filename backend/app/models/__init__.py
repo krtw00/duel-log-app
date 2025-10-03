@@ -9,5 +9,6 @@ from .user import User
 from .deck import Deck
 from .duel import Duel
 from .sharedUrl import SharedUrl
+from .password_reset_token import PasswordResetToken
 
-__all__ = ["Base", "User", "Deck", "Duel", "SharedUrl"]
+__all__ = ["Base", "User", "Deck", "Duel", "SharedUrl", "PasswordResetToken"]

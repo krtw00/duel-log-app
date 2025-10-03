@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <div class="login-container">
+    <div class="reset-password-container">
       <!-- 背景装飾 -->
       <div class="background-overlay">
         <div class="grid-pattern"></div>
@@ -8,67 +8,64 @@
         <div class="glow-orb glow-orb-2"></div>
       </div>
 
-      <!-- ログインカード -->
-      <v-card class="login-card" elevation="24">
+      <!-- パスワードリセットカード -->
+      <v-card class="reset-password-card" elevation="24">
         <div class="card-glow"></div>
         
         <v-card-text class="pa-8">
-          <!-- ロゴ・タイトル -->
+          <!-- タイトル -->
           <div class="text-center mb-8">
             <h1 class="app-title">
-              <span class="text-primary">DUEL</span>
-              <span class="text-secondary">LOG</span>
+              <span class="text-primary">RESET</span>
+              <span class="text-secondary">PASSWORD</span>
             </h1>
-            <p class="app-subtitle">Track. Analyze. Dominate.</p>
+            <p class="app-subtitle">Enter your new password.</p>
           </div>
 
-          <!-- ログインフォーム -->
-          <v-form @submit.prevent="handleLogin" ref="formRef">
+          <!-- フォーム -->
+          <v-form @submit.prevent="handleResetPassword" ref="formRef">
             <v-text-field
-              v-model="email"
-              label="メールアドレス"
-              prepend-inner-icon="mdi-email-outline"
-              type="email"
+              v-model="newPassword"
+              label="新しいパスワード"
+              prepend-inner-icon="mdi-lock-outline"
+              :type="showNewPassword ? 'text' : 'password'"
+              :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showNewPassword = !showNewPassword"
               variant="outlined"
               color="primary"
-              :rules="[rules.required, rules.email]"
+              :rules="[rules.required, rules.min]"
               class="mb-2"
             />
 
             <v-text-field
-              v-model="password"
-              label="パスワード"
-              prepend-inner-icon="mdi-lock-outline"
-              :type="showPassword ? 'text' : 'password'"
-              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showPassword = !showPassword"
+              v-model="confirmPassword"
+              label="パスワードの確認"
+              prepend-inner-icon="mdi-lock-check-outline"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showConfirmPassword = !showConfirmPassword"
               variant="outlined"
               color="primary"
-              :rules="[rules.required]"
+              :rules="[rules.required, rules.min, rules.passwordMatch]"
               class="mb-4"
             />
 
-            <!-- ログインボタン -->
+            <!-- 送信ボタン -->
             <v-btn
               type="submit"
               block
               size="large"
               color="primary"
               :loading="loading"
-              class="login-btn mb-4"
+              class="reset-password-btn mb-4"
             >
-              <v-icon start>mdi-login</v-icon>
-              ログイン
+              <v-icon start>mdi-check</v-icon>
+              パスワードをリセット
             </v-btn>
 
-            <!-- リンク -->
+            <!-- ログインページへのリンク -->
             <div class="text-center">
-              <router-link to="/forgot-password" class="text-caption text-grey">パスワードを忘れた場合</router-link>
-              <v-divider class="my-3" />
-              <p class="text-caption text-grey">
-                アカウントをお持ちでない方は
-                <router-link to="/register" class="text-secondary">新規登録</router-link>
-              </p>
+              <router-link to="/login" class="text-caption text-grey">ログインページに戻る</router-link>
             </div>
           </v-form>
         </v-card-text>
@@ -79,35 +76,46 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAuthStore } from '../stores/auth'
+import { useRoute, useRouter } from 'vue-router'
 import { useNotificationStore } from '../stores/notification'
+import api from '../services/api'
 
-const authStore = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 const notificationStore = useNotificationStore()
 
 const formRef = ref()
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
+const newPassword = ref('')
+const confirmPassword = ref('')
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 const loading = ref(false)
+
+const token = route.params.token as string
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
-  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません'
+  min: (v: string) => v.length >= 8 || '8文字以上で入力してください',
+  passwordMatch: (v: string) => v === newPassword.value || 'パスワードが一致しません'
 }
 
-const handleLogin = async () => {
+const handleResetPassword = async () => {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
   loading.value = true
 
   try {
-    await authStore.login(email.value, password.value)
-    notificationStore.success('ログインに成功しました')
+    await api.post('/auth/reset-password', {
+      token: token,
+      new_password: newPassword.value,
+      confirm_password: confirmPassword.value
+    })
+    notificationStore.success('パスワードが正常にリセットされました。')
+    router.push('/login') // ログインページに戻る
   } catch (error: any) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    console.error('Login error:', error)
+    console.error('Reset password error:', error)
   } finally {
     loading.value = false
   }
@@ -115,7 +123,7 @@ const handleLogin = async () => {
 </script>
 
 <style scoped lang="scss">
-.login-container {
+.reset-password-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -181,7 +189,7 @@ const handleLogin = async () => {
   50% { transform: translate(30px, 30px); }
 }
 
-.login-card {
+.reset-password-card {
   position: relative;
   z-index: 1;
   width: 100%;
@@ -230,7 +238,7 @@ const handleLogin = async () => {
   margin-top: 8px;
 }
 
-.login-btn {
+.reset-password-btn {
   font-weight: 600;
   letter-spacing: 1px;
   transition: all 0.3s ease;
