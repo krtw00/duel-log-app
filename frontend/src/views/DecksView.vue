@@ -19,6 +19,40 @@
     <!-- メインコンテンツ -->
     <v-main class="main-content">
       <v-container fluid class="pa-6">
+        <!-- アーカイブボタン -->
+        <v-row class="mb-4">
+          <v-col cols="12">
+            <v-alert
+              type="info"
+              variant="tonal"
+              prominent
+              border="start"
+              class="archive-alert"
+            >
+              <template #prepend>
+                <v-icon size="large">mdi-archive</v-icon>
+              </template>
+              <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+                <div>
+                  <div class="text-h6 mb-1">月次リセット機能</div>
+                  <div class="text-body-2">
+                    新弾リリース時など、全デッキを一括アーカイブできます。アーカイブしても過去の対戦記録は保持されます。
+                  </div>
+                </div>
+                <v-btn
+                  color="warning"
+                  prepend-icon="mdi-archive"
+                  variant="elevated"
+                  @click="confirmArchiveAll"
+                  size="large"
+                >
+                  全デッキをアーカイブ
+                </v-btn>
+              </div>
+            </v-alert>
+          </v-col>
+        </v-row>
+
         <v-row>
           <!-- 自分のデッキ -->
           <v-col cols="12" md="6">
@@ -372,6 +406,27 @@ const formatDate = (dateString: string | undefined) => {
   })
 }
 
+const confirmArchiveAll = async () => {
+  const totalDecks = myDecks.value.length + opponentDecks.value.length
+  if (totalDecks === 0) {
+    notificationStore.info('アーカイブするデッキがありません')
+    return
+  }
+
+  if (!confirm(`${totalDecks}件のデッキをアーカイブしますか？\n\nアーカイブしても過去の対戦記録は保持されます。`)) {
+    return
+  }
+
+  try {
+    const response = await api.post('/decks/archive-all')
+    notificationStore.success(response.data.message)
+    await fetchDecks()
+  } catch (error) {
+    console.error('Failed to archive decks:', error)
+    notificationStore.error('アーカイブに失敗しました')
+  }
+}
+
 onMounted(() => {
   fetchDecks()
 })
@@ -441,5 +496,14 @@ onMounted(() => {
   0% { opacity: 0.5; }
   50% { opacity: 1; }
   100% { opacity: 0.5; }
+}
+
+.archive-alert {
+  border-left: 4px solid rgb(var(--v-theme-warning)) !important;
+  background: rgba(255, 193, 7, 0.05) !important;
+  
+  :deep(.v-alert__prepend) {
+    color: rgb(var(--v-theme-warning));
+  }
 }
 </style>
