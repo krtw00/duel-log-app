@@ -56,12 +56,21 @@ def create_deck(
     
     Returns:
         作成されたデッキ
+    
+    Raises:
+        HTTPException: 同じ名前のデッキが既に存在する場合
     """
-    return deck_service.create_user_deck(
-        db=db,
-        user_id=current_user.id,
-        deck_in=deck
-    )
+    try:
+        return deck_service.create_user_deck(
+            db=db,
+            user_id=current_user.id,
+            deck_in=deck
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.get("/{deck_id}", response_model=DeckRead)
@@ -119,22 +128,28 @@ def update_deck(
         更新されたデッキ
     
     Raises:
-        HTTPException: デッキが見つからない場合
+        HTTPException: デッキが見つからない場合または同じ名前のデッキが既に存在する場合
     """
-    updated_deck = deck_service.update(
-        db=db,
-        id=deck_id,
-        obj_in=deck,
-        user_id=current_user.id
-    )
-    
-    if not updated_deck:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="デッキが見つかりません"
+    try:
+        updated_deck = deck_service.update_user_deck(
+            db=db,
+            deck_id=deck_id,
+            user_id=current_user.id,
+            deck_in=deck
         )
-    
-    return updated_deck
+        
+        if not updated_deck:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="デッキが見つかりません"
+            )
+        
+        return updated_deck
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.delete("/{deck_id}", status_code=status.HTTP_204_NO_CONTENT)
