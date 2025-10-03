@@ -11,6 +11,11 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
+filterwarnings = [
+    "ignore::DeprecationWarning:passlib",
+    "ignore::PendingDeprecationWarning:starlette",
+    "ignore::pydantic.warnings.PydanticDeprecatedSince20",
+]
 
 [tool.coverage.run]
 source = ["app"]
