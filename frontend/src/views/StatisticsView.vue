@@ -8,75 +8,156 @@
       <v-container fluid class="pa-6">
         <h1 class="text-h4 text-white mb-6">統計情報</h1>
 
-        <v-row>
-          <!-- 月間デッキ分布 -->
-          <v-col cols="12" md="6">
-            <v-card class="stats-card">
-              <v-card-title>月間デッキ分布 ({{ currentMonth }})</v-card-title>
-              <v-card-text>
-                <apexchart
-                  v-if="!loading && monthlyDistribution.series[0].data.length > 0"
-                  type="pie"
-                  height="350"
-                  :options="monthlyDistribution.chartOptions"
-                  :series="monthlyDistribution.series"
-                ></apexchart>
-                <div v-else class="no-data-placeholder">
-                  <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
-                  <p class="text-body-1 text-grey mt-4">データがありません</p>
-                </div>
-              </v-card-text>
-            </v-card>
+        <!-- 年月選択 -->
+        <v-row class="mb-4">
+          <v-col cols="6" sm="3">
+            <v-select
+              v-model="selectedYear"
+              :items="years"
+              label="年"
+              variant="outlined"
+              density="compact"
+              hide-details
+              @update:model-value="fetchStatistics"
+            ></v-select>
           </v-col>
-
-          <!-- 直近30戦デッキ分布 -->
-          <v-col cols="12" md="6">
-            <v-card class="stats-card">
-              <v-card-title>直近30戦デッキ分布</v-card-title>
-              <v-card-text>
-                <apexchart
-                  v-if="!loading && recentDistribution.series[0].data.length > 0"
-                  type="pie"
-                  height="350"
-                  :options="recentDistribution.chartOptions"
-                  :series="recentDistribution.series"
-                ></apexchart>
-                <div v-else class="no-data-placeholder">
-                  <v-icon size="64" color="grey">mdi-chart-donut</v-icon>
-                  <p class="text-body-1 text-grey mt-4">データがありません</p>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <!-- 相性表 -->
-          <v-col cols="12">
-            <v-card class="stats-card">
-              <v-card-title>デッキ相性表</v-card-title>
-              <v-card-text>
-                <v-data-table
-                  :headers="matchupHeaders"
-                  :items="matchupData"
-                  :loading="loading"
-                  class="matchup-table"
-                  density="compact"
-                >
-                  <template #item.win_rate="{ item }">
-                    <v-chip :color="getWinRateColor(item.win_rate)" variant="flat">
-                      {{ item.win_rate.toFixed(1) }}%
-                    </v-chip>
-                  </template>
-                  <template #no-data>
-                    <div class="no-data-placeholder py-8">
-                      <v-icon size="64" color="grey">mdi-table-off</v-icon>
-                      <p class="text-body-1 text-grey mt-4">相性データがありません</p>
-                    </div>
-                  </template>
-                </v-data-table>
-              </v-card-text>
-            </v-card>
+          <v-col cols="6" sm="3">
+            <v-select
+              v-model="selectedMonth"
+              :items="months"
+              label="月"
+              variant="outlined"
+              density="compact"
+              hide-details
+              @update:model-value="fetchStatistics"
+            ></v-select>
           </v-col>
         </v-row>
+
+        <!-- ゲームモード切り替えタブ -->
+        <v-card class="mode-tab-card mb-4">
+          <v-tabs
+            v-model="currentTab"
+            color="primary"
+            align-tabs="center"
+            height="64"
+          >
+            <v-tab value="RANK" class="custom-tab">
+              <v-icon start>mdi-crown</v-icon>
+              ランク
+            </v-tab>
+            <v-tab value="RATE" class="custom-tab">
+              <v-icon start>mdi-chart-line</v-icon>
+              レート
+            </v-tab>
+            <v-tab value="EVENT" class="custom-tab">
+              <v-icon start>mdi-calendar-star</v-icon>
+              イベント
+            </v-tab>
+            <v-tab value="DC" class="custom-tab">
+              <v-icon start>mdi-trophy-variant</v-icon>
+              DC
+            </v-tab>
+          </v-tabs>
+        </v-card>
+
+        <v-window v-model="currentTab">
+          <v-window-item
+            v-for="mode in ['RANK', 'RATE', 'EVENT', 'DC']"
+            :key="mode"
+            :value="mode"
+          >
+            <v-row>
+              <!-- 月間デッキ分布 -->
+              <v-col cols="12" md="6">
+                <v-card class="stats-card">
+                  <v-card-title>月間デッキ分布 ({{ currentMonth }})</v-card-title>
+                  <v-card-text>
+                    <apexchart
+                      v-if="!loading && statisticsByMode[mode].monthlyDistribution.series[0].data.length > 0"
+                      type="pie"
+                      height="350"
+                      :options="statisticsByMode[mode].monthlyDistribution.chartOptions"
+                      :series="statisticsByMode[mode].monthlyDistribution.series"
+                    ></apexchart>
+                    <div v-else class="no-data-placeholder">
+                      <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
+                      <p class="text-body-1 text-grey mt-4">データがありません</p>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
+              <!-- 直近30戦デッキ分布 -->
+              <v-col cols="12" md="6">
+                <v-card class="stats-card">
+                  <v-card-title>直近30戦デッキ分布</v-card-title>
+                  <v-card-text>
+                    <apexchart
+                      v-if="!loading && statisticsByMode[mode].recentDistribution.series[0].data.length > 0"
+                      type="pie"
+                      height="350"
+                      :options="statisticsByMode[mode].recentDistribution.chartOptions"
+                      :series="statisticsByMode[mode].recentDistribution.series"
+                    ></apexchart>
+                    <div v-else class="no-data-placeholder">
+                      <v-icon size="64" color="grey">mdi-chart-donut</v-icon>
+                      <p class="text-body-1 text-grey mt-4">データがありません</p>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
+              <!-- 相性表 -->
+              <v-col cols="12">
+                <v-card class="stats-card">
+                  <v-card-title>デッキ相性表</v-card-title>
+                  <v-card-text>
+                    <v-data-table
+                      :headers="matchupHeaders"
+                      :items="statisticsByMode[mode].matchupData"
+                      :loading="loading"
+                      class="matchup-table"
+                      density="compact"
+                    >
+                      <template #item.win_rate="{ item }">
+                        <v-chip :color="getWinRateColor(item.win_rate)" variant="flat">
+                          {{ item.win_rate.toFixed(1) }}%
+                        </v-chip>
+                      </template>
+                      <template #no-data>
+                        <div class="no-data-placeholder py-8">
+                          <v-icon size="64" color="grey">mdi-table-off</v-icon>
+                          <p class="text-body-1 text-grey mt-4">相性データがありません</p>
+                        </div>
+                      </template>
+                    </v-data-table>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
+              <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
+              <v-col cols="12" v-if="mode === 'RATE' || mode === 'DC'">
+                <v-card class="stats-card">
+                  <v-card-title>{{ mode === 'RATE' ? 'レート変動' : 'DC変動' }} ({{ currentMonth }})</v-card-title>
+                  <v-card-text>
+                    <apexchart
+                      v-if="!loading && statisticsByMode[mode].timeSeries.series[0].data.length > 0"
+                      type="line"
+                      height="350"
+                      :options="statisticsByMode[mode].timeSeries.chartOptions"
+                      :series="statisticsByMode[mode].timeSeries.series"
+                    ></apexchart>
+                    <div v-else class="no-data-placeholder">
+                      <v-icon size="64" color="grey">{{ mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant' }}</v-icon>
+                      <p class="text-body-1 text-grey mt-4">データがありません</p>
+                    </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-window-item>
+        </v-window>
       </v-container>
     </v-main>
   </v-app>
@@ -88,6 +169,16 @@ import { api } from '../services/api'
 import AppBar from '../components/layout/AppBar.vue'
 
 const loading = ref(true)
+const currentTab = ref('RANK') // 'summary'から'RANK'に変更
+
+// 年月選択関連
+const selectedYear = ref(new Date().getFullYear())
+const selectedMonth = ref(new Date().getMonth() + 1)
+const years = computed(() => {
+  const currentYear = new Date().getFullYear()
+  return Array.from({ length: 5 }, (_, i) => currentYear - i) // 過去5年
+})
+const months = Array.from({ length: 12 }, (_, i) => i + 1)
 
 // --- Deck Distribution --- //
 const baseChartOptions = {
@@ -121,23 +212,39 @@ const baseChartOptions = {
   }]
 }
 
-const monthlyDistribution = ref({
-  series: [{ data: [] as number[] }],
-  chartOptions: { ...baseChartOptions, labels: [] as string[] },
-})
-
-const recentDistribution = ref({
-  series: [{ data: [] as number[] }],
-  chartOptions: { ...baseChartOptions, labels: [] as string[] },
+// 各ゲームモードごとの統計データを保持するオブジェクト
+const statisticsByMode = ref({
+  RANK: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'ランク', data: [] as number[] }], chartOptions: {} as any }, // ランクには時系列データはないが、構造を合わせる
+  },
+  RATE: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'レート', data: [] as number[] }], chartOptions: {} as any },
+  },
+  EVENT: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'イベント', data: [] as number[] }], chartOptions: {} as any }, // イベントには時系列データはないが、構造を合わせる
+  },
+  DC: {
+    monthlyDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    recentDistribution: { series: [{ data: [] as number[] }], chartOptions: { ...baseChartOptions, labels: [] as string[] } },
+    matchupData: [] as any[],
+    timeSeries: { series: [{ name: 'DC', data: [] as number[] }], chartOptions: {} as any },
+  },
 })
 
 const currentMonth = computed(() => {
-  const now = new Date()
-  return `${now.getFullYear()}年${now.getMonth() + 1}月`
+  return `${selectedYear.value}年${selectedMonth.value}月`
 })
 
 // --- Matchup Chart --- //
-const matchupData = ref<any[]>([])
 const matchupHeaders = [
   { title: '自分のデッキ', key: 'my_deck_name', sortable: true },
   { title: '相手のデッキ', key: 'opponent_deck_name', sortable: true },
@@ -152,47 +259,183 @@ const getWinRateColor = (winRate: number) => {
   return 'error'
 }
 
+// --- Time Series Charts --- //
+const lineChartOptions = computed(() => ({
+  chart: {
+    type: 'line',
+    background: 'transparent',
+    zoom: {
+      enabled: false
+    },
+    toolbar: {
+      show: false
+    }
+  },
+  xaxis: {
+    type: 'numeric', // 'datetime' から 'numeric' に変更
+    title: {
+      text: '対戦数', // 横軸のタイトルを追加
+      style: {
+        color: '#E4E7EC'
+      }
+    },
+    labels: {
+      // format: 'MM/dd', // 日付フォーマットは不要になる
+      style: {
+        colors: '#E4E7EC'
+      }
+    }
+  },
+  yaxis: {
+    labels: {
+      style: {
+        colors: '#E4E7EC'
+      }
+    }
+  },
+  stroke: {
+    curve: 'smooth',
+    width: 3
+  },
+  markers: {
+    size: 4,
+    colors: ['#00d9ff'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
+    hover: {
+      size: 7
+    }
+  },
+  grid: {
+    borderColor: 'rgba(0, 217, 255, 0.1)',
+    strokeDashArray: 4
+  },
+  tooltip: {
+    theme: 'dark',
+    // x: { // 日付フォーマットは不要になる
+    //   format: 'yyyy/MM/dd'
+    // }
+  },
+  dataLabels: {
+    enabled: false
+  },
+  theme: {
+    mode: 'dark'
+  }
+}))
+
+// 各ゲームモードの時系列グラフオプションを初期化
+statisticsByMode.value.RATE.timeSeries.chartOptions = computed(() => ({
+  ...lineChartOptions.value,
+  xaxis: {
+    ...lineChartOptions.value.xaxis,
+    categories: [] as number[] // categoriesの型も変更
+  },
+  colors: ['#00d9ff']
+}))
+
+statisticsByMode.value.DC.timeSeries.chartOptions = computed(() => ({
+  ...lineChartOptions.value,
+  xaxis: {
+    ...lineChartOptions.value.xaxis,
+    categories: [] as number[] // categoriesの型も変更
+  },
+  colors: ['#b536ff']
+}))
+
+
 // --- Data Fetching --- //
-onMounted(async () => {
+const fetchStatistics = async () => {
   loading.value = true
   try {
-    // 並列でAPIをコール
-    const [monthlyRes, recentRes, matchupRes] = await Promise.all([
-      api.get('/statistics/deck-distribution/monthly'),
-      api.get('/statistics/deck-distribution/recent'),
-      api.get('/statistics/matchup-chart'),
-    ])
+    const gameModes = ['RANK', 'RATE', 'EVENT', 'DC']
+    const promises: Promise<any>[] = []
 
-    // 月間分布
-    monthlyDistribution.value = {
-      series: [{
-        data: monthlyRes.data.map((d: any) => d.count),
-      }],
-      chartOptions: {
-        ...baseChartOptions,
-        labels: monthlyRes.data.map((d: any) => d.deck_name),
-      },
+    for (const mode of gameModes) {
+      promises.push(
+        api.get('/statistics/deck-distribution/monthly', {
+          params: {
+            year: selectedYear.value,
+            month: selectedMonth.value,
+            game_mode: mode
+          }
+        }),
+        api.get('/statistics/deck-distribution/recent', {
+          params: {
+            game_mode: mode
+          }
+        }),
+        api.get('/statistics/matchup-chart', {
+          params: {
+            year: selectedYear.value,
+            month: selectedMonth.value,
+            game_mode: mode
+          }
+        })
+      )
+      if (mode === 'RATE' || mode === 'DC') {
+        promises.push(
+          api.get(`/statistics/time-series/${mode}`,
+            {
+              params: {
+                year: selectedYear.value,
+                month: selectedMonth.value
+              }
+            }
+          )
+        )
+      }
     }
 
-    // 直近分布
-    recentDistribution.value = {
-      series: [{
-        data: recentRes.data.map((d: any) => d.count),
-      }],
-      chartOptions: {
-        ...baseChartOptions,
-        labels: recentRes.data.map((d: any) => d.deck_name),
-      },
-    }
+    const results = await Promise.all(promises)
+    let resultIndex = 0
 
-    // 相性表
-    matchupData.value = matchupRes.data
+    for (const mode of gameModes) {
+      // 月間分布
+      const monthlyRes = results[resultIndex++]
+      statisticsByMode.value[mode].monthlyDistribution = {
+        series: [{
+          data: monthlyRes.data.map((d: any) => d.count),
+        }],
+        chartOptions: {
+          ...baseChartOptions,
+          labels: monthlyRes.data.map((d: any) => d.deck_name),
+        },
+      }
+
+      // 直近分布
+      const recentRes = results[resultIndex++]
+      statisticsByMode.value[mode].recentDistribution = {
+        series: [{
+          data: recentRes.data.map((d: any) => d.count),
+        }],
+        chartOptions: {
+          ...baseChartOptions,
+          labels: recentRes.data.map((d: any) => d.deck_name),
+        },
+      }
+
+      // 相性表
+      const matchupRes = results[resultIndex++]
+      statisticsByMode.value[mode].matchupData = matchupRes.data
+
+      // 時系列データ (RATE, DCのみ)
+      if (mode === 'RATE' || mode === 'DC') {
+        const timeSeriesRes = results[resultIndex++]
+        statisticsByMode.value[mode].timeSeries.series[0].data = timeSeriesRes.data.map((d: any) => d.value)
+        statisticsByMode.value[mode].timeSeries.chartOptions.xaxis.categories = timeSeriesRes.data.map((d: any) => d.duel_number) // duel_numberを使用
+      }
+    }
 
   } catch (error) {
     console.error("Failed to fetch statistics:", error)
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  fetchStatistics()
 })
 </script>
 
