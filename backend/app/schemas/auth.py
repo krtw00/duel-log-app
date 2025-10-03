@@ -21,3 +21,15 @@ class TokenData(BaseModel):
     """トークンのペイロードデータ"""
     user_id: Optional[int] = None
     email: Optional[str] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    """パスワード再設定リクエスト"""
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """パスワードリセットリクエスト"""
+    token: str
+    new_password: str
+    confirm_password: str

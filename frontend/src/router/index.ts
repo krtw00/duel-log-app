@@ -6,6 +6,8 @@ import DashboardView from '../views/DashboardView.vue'
 import DecksView from '../views/DecksView.vue'
 import StatisticsView from '../views/StatisticsView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -18,6 +20,18 @@ export const routes: RouteRecordRaw[] = [
     path: '/register',
     name: 'Register',
     component: RegisterView,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPasswordView,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/reset-password/:token',
+    name: 'ResetPassword',
+    component: ResetPasswordView,
     meta: { requiresAuth: false }
   },
   {
