@@ -10,7 +10,8 @@ from fastapi import status
 from app.main import app
 from app.db.session import Base, get_db
 from app.models.user import User
-from app.core.security import get_password_hash, create_access_token
+from app.core.security import get_password_hash
+from app.api.deps import get_current_user
 
 
 # テスト用データベースURL
@@ -69,22 +70,16 @@ def authenticated_client(db_session, test_user):
     # データベースの依存性注入をオーバーライド
     def override_get_db():
         yield db_session
+    
+    # 認証をバイパスして常にtest_userを返す
+    def override_get_current_user():
+        return test_user
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
 
     # TestClientを作成
     with TestClient(app) as client:
-        # トークンを直接生成してクッキーに設定
-        token_data = {
-            "sub": str(test_user.id),
-            "email": test_user.email,
-            "username": test_user.username
-        }
-        access_token = create_access_token(data=token_data)
-        
-        # クッキーを手動で設定
-        client.cookies.set("access_token", access_token, domain="testserver")
-        
         yield client
 
     # 後処理
