@@ -169,6 +169,17 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         db.commit()
         return result
 
+    def get_or_create(self, db: Session, user_id: int, name: str, is_opponent: bool) -> Deck:
+        """
+        デッキを取得、なければ作成
+        """
+        deck = self.get_by_name(db, user_id=user_id, name=name, is_opponent=is_opponent)
+        if deck:
+            return deck
+        
+        deck_in = DeckCreate(name=name, is_opponent=is_opponent, active=True)
+        return self.create_user_deck(db, user_id=user_id, deck_in=deck_in)
+
 
 # シングルトンインスタンス
 deck_service = DeckService()
