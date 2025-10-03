@@ -254,26 +254,14 @@ npm run test:coverage
 
 ## 📖 ドキュメント
 
-プロジェクトに関する詳細なドキュメントは `docs/` ディレクトリにあります：
+プロジェクトに関する詳細なドキュメントは `docs/` ディレクトリにあります。
 
-### 一般
-- `PROJECT_OVERVIEW.md` - プロジェクト概要
-- `ER図.md` - データベース設計
-
-### バックエンド
-- `backend/CORS_FIX_QUICKSTART.md` - CORS設定ガイド
-- `backend/RENDER_CORS_SETUP.md` - Render環境でのCORS設定
-- `backend/LOGIN_REDIRECT_FIX.md` - ログイン後の画面遷移修正
-- `backend/PASSWORD_RESET_IMPLEMENTATION.md` - パスワードリセット機能実装ガイド
-
-### フロントエンド
-- `frontend/ENV_SETUP_GUIDE.md` - 環境変数設定ガイド
-- `frontend/VERCEL_ENV_SETUP.md` - Vercel環境変数設定ガイド
-- `frontend/README.md` - フロントエンド詳細
-
-### セキュリティ
-- `docs/SECURITY_IMPROVEMENTS.md` - セキュリティ改善の詳細
-- `docs/JWT認証実装ガイド.md` - JWT認証実装の詳細
+- **[データベーススキーマ定義](./docs/db-schema.md)**: テーブル定義、カラム、データ型、リレーションシップについて説明します。
+- **[APIリファレンス](./docs/api-reference.md)**: すべてのバックエンドAPIエンドポイントの詳細な仕様を記述します。
+- **[フロントエンドアーキテクチャ](./docs/frontend-architecture.md)**: コンポーネント設計、状態管理、ルーティングなど、フロントエンドの構造について説明します。
+- **[デプロイ手順書](./docs/deployment.md)**: Vercel（フロントエンド）とRender（バックエンド）へのデプロイ手順を詳述します。
+- **[開発ガイドライン](./docs/development-guide.md)**: コーディング規約、ブランチ戦略、コミットメッセージのルールなどを定めます。
+- **[エラーハンドリング設計](./docs/error-handling.md)**: アプリケーション全体のエラー処理戦略について説明します。
 
 ---
 
