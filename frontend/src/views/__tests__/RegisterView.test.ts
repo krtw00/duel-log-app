@@ -5,8 +5,8 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
-import { useNotificationStore } from '../../../stores/notification'
-import { api } from '../../../services/api'
+import { useNotificationStore } from '@/stores/notification'
+import { api } from '@/services/api'
 import { useRouter } from 'vue-router'
 
 const vuetify = createVuetify({
@@ -14,7 +14,7 @@ const vuetify = createVuetify({
   directives,
 })
 
-vi.mock('../../../services/api', () => ({
+vi.mock('@/services/api', () => ({
   api: {
     post: vi.fn(() => Promise.resolve({ data: {} })),
   },

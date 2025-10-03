@@ -5,15 +5,15 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
-import { api } from '../../../services/api'
-import { useNotificationStore } from '../../../stores/notification'
+import { api } from '@/services/api'
+import { useNotificationStore } from '@/stores/notification'
 
 const vuetify = createVuetify({
   components,
   directives,
 })
 
-vi.mock('../../../services/api', () => ({
+vi.mock('@/services/api', () => ({
   api: {
     get: vi.fn(() => Promise.resolve({ data: [] })),
     delete: vi.fn(() => Promise.resolve()),
