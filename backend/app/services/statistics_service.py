@@ -14,6 +14,14 @@ from app.models.deck import Deck
 class StatisticsService:
     """統計サービスクラス"""
 
+    def _build_base_duels_query(
+        self, db: Session, user_id: int, game_mode: Optional[str] = None
+    ):
+        query = db.query(Duel).filter(Duel.user_id == user_id)
+        if game_mode:
+            query = query.filter(Duel.game_mode == game_mode)
+        return query
+
     def get_deck_distribution(
         self, db: Session, user_id: int, duels_query
     ) -> List[Dict[str, Any]]:
@@ -45,13 +53,10 @@ class StatisticsService:
         self, db: Session, user_id: int, year: int, month: int, game_mode: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """月間の相手デッキ分布を取得"""
-        duels_query = db.query(Duel).filter(
-            Duel.user_id == user_id,
+        duels_query = self._build_base_duels_query(db, user_id, game_mode).filter(
             extract('year', Duel.played_date) == year,
             extract('month', Duel.played_date) == month,
         )
-        if game_mode:
-            duels_query = duels_query.filter(Duel.game_mode == game_mode)
         return self.get_deck_distribution(db, user_id, duels_query)
 
     def get_deck_distribution_recent(
@@ -59,31 +64,22 @@ class StatisticsService:
     ) -> List[Dict[str, Any]]:
         """直近の相手デッキ分布を取得"""
         recent_duels_subquery = (
-            db.query(Duel.id)
-            .filter(Duel.user_id == user_id)
-        )
-        if game_mode:
-            recent_duels_subquery = recent_duels_subquery.filter(Duel.game_mode == game_mode)
-
-        recent_duels_subquery = (
-            recent_duels_subquery
+            self._build_base_duels_query(db, user_id, game_mode)
             .order_by(Duel.played_date.desc())
             .limit(limit)
-            .subquery()
         )
+        recent_duels_subquery = recent_duels_subquery.subquery()
         duels_query = db.query(Duel).filter(Duel.id.in_(recent_duels_subquery))
         return self.get_deck_distribution(db, user_id, duels_query)
 
     def get_matchup_chart(self, db: Session, user_id: int, year: Optional[int] = None, month: Optional[int] = None, game_mode: Optional[str] = None) -> List[Dict[str, Any]]:
         """デッキ相性表のデータを取得"""
-        query = db.query(Duel).filter(Duel.user_id == user_id)
+        query = self._build_base_duels_query(db, user_id, game_mode)
 
         if year is not None:
             query = query.filter(extract('year', Duel.played_date) == year)
         if month is not None:
             query = query.filter(extract('month', Duel.played_date) == month)
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
 
         duels = query.all()
         my_decks = db.query(Deck).filter(Deck.user_id == user_id, Deck.is_opponent == False).all()
@@ -141,14 +137,12 @@ class StatisticsService:
 
         # 該当月のデュエルを取得
         duels = (
-            db.query(Duel)
+            self._build_base_duels_query(db, user_id, game_mode)
             .filter(
-                Duel.user_id == user_id,
-                Duel.game_mode == game_mode,
                 Duel.played_date >= start_date,
                 Duel.played_date <= end_date,
             )
-            .order_by(Duel.played_date)
+            .order_by(Duel.played_date, Duel.id) # played_dateが同じ場合はidでソート
             .all()
         )
 
