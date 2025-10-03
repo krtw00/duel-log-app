@@ -5,6 +5,7 @@
 from typing import List, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
+from sqlalchemy import extract as sa_extract # sa.extract を使用するためにインポート
 
 from app.models.duel import Duel
 from app.schemas.duel import DuelCreate, DuelUpdate
@@ -23,7 +24,9 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         user_id: int,
         deck_id: Optional[int] = None,
         start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
+        end_date: Optional[datetime] = None,
+        year: Optional[int] = None,
+        month: Optional[int] = None
     ) -> List[Duel]:
         """
         ユーザーのデュエルを取得（フィルタリング可能）
@@ -34,6 +37,8 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
             deck_id: デッキID（指定した場合、そのデッキのデュエルのみ）
             start_date: 開始日（指定した場合、この日以降のデュエル）
             end_date: 終了日（指定した場合、この日以前のデュエル）
+            year: 年（指定した場合、その年のデュエル）
+            month: 月（指定した場合、その月のデュエル）
         
         Returns:
             デュエルのリスト
@@ -48,6 +53,11 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         
         if end_date is not None:
             query = query.filter(Duel.played_date <= end_date)
+        
+        if year is not None:
+            query = query.filter(sa_extract('year', Duel.played_date) == year)
+        if month is not None:
+            query = query.filter(sa_extract('month', Duel.played_date) == month)
         
         return query.order_by(Duel.played_date.desc()).all()
     
