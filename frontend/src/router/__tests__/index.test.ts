@@ -1,16 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createRouter, createWebHistory, Router } from 'vue-router'
 import { routes } from '../index'
-import { useAuthStore } from '../../../stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { createTestingPinia } from '@pinia/testing'
 
 // Mock the auth store
-vi.mock('../../../stores/auth', () => ({
+vi.mock('@/stores/auth', () => ({
   useAuthStore: vi.fn(() => ({
-    isAuthenticated: false,
-    isInitialized: false,
     fetchUser: vi.fn(() => Promise.resolve()),
     logout: vi.fn(),
+    $patch: vi.fn(), // Add $patch to the mock
   })),
 }))
 
@@ -22,6 +21,8 @@ describe('Router Navigation Guards', () => {
     // Reset Pinia store before each test
     createTestingPinia({ createSpy: vi.fn })
     authStore = useAuthStore()
+    // Set initial state for authStore
+    authStore.$patch({ user: null, isInitialized: false })
 
     router = createRouter({
       history: createWebHistory(),
@@ -34,8 +35,7 @@ describe('Router Navigation Guards', () => {
   })
 
   it('should redirect to login if not authenticated and route requires auth', async () => {
-    authStore.isAuthenticated = false
-    authStore.isInitialized = true
+    authStore.$patch({ user: null, isInitialized: true })
 
     router.push('/')
     await router.isReady()
@@ -44,8 +44,7 @@ describe('Router Navigation Guards', () => {
   })
 
   it('should allow access if authenticated and route requires auth', async () => {
-    authStore.isAuthenticated = true
-    authStore.isInitialized = true
+    authStore.$patch({ user: { id: 1, email: 'test@example.com', username: 'testuser' }, isInitialized: true })
 
     router.push('/')
     await router.isReady()
@@ -54,8 +53,7 @@ describe('Router Navigation Guards', () => {
   })
 
   it('should redirect from login to dashboard if authenticated', async () => {
-    authStore.isAuthenticated = true
-    authStore.isInitialized = true
+    authStore.$patch({ user: { id: 1, email: 'test@example.com', username: 'testuser' }, isInitialized: true })
 
     router.push('/login')
     await router.isReady()
@@ -64,8 +62,7 @@ describe('Router Navigation Guards', () => {
   })
 
   it('should redirect from register to dashboard if authenticated', async () => {
-    authStore.isAuthenticated = true
-    authStore.isInitialized = true
+    authStore.$patch({ user: { id: 1, email: 'test@example.com', username: 'testuser' }, isInitialized: true })
 
     router.push('/register')
     await router.isReady()
@@ -74,8 +71,7 @@ describe('Router Navigation Guards', () => {
   })
 
   it('should allow access to login if not authenticated', async () => {
-    authStore.isAuthenticated = false
-    authStore.isInitialized = true
+    authStore.$patch({ user: null, isInitialized: true })
 
     router.push('/login')
     await router.isReady()
@@ -84,8 +80,7 @@ describe('Router Navigation Guards', () => {
   })
 
   it('should call fetchUser on initial load if not initialized', async () => {
-    authStore.isInitialized = false
-    authStore.isAuthenticated = false
+    authStore.$patch({ user: null, isInitialized: false })
 
     router.push('/')
     await router.isReady()
@@ -95,8 +90,7 @@ describe('Router Navigation Guards', () => {
   })
 
   it('should redirect unknown paths to dashboard', async () => {
-    authStore.isAuthenticated = true
-    authStore.isInitialized = true
+    authStore.$patch({ user: { id: 1, email: 'test@example.com', username: 'testuser' }, isInitialized: true })
 
     router.push('/non-existent-path')
     await router.isReady()
