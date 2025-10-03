@@ -3,7 +3,6 @@
     :model-value="isLoading"
     class="loading-overlay"
     persistent
-    contained
   >
     <div class="loading-content">
       <v-progress-circular
@@ -28,6 +27,9 @@ const { isLoading } = storeToRefs(loadingStore)
 <style scoped lang="scss">
 .loading-overlay {
   z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loading-content {
