@@ -4,7 +4,7 @@
 """
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, File, UploadFile
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -241,3 +241,23 @@ def get_latest_values(
     各ゲームモードの最新の値（ランク、レート、DC）を取得
     """
     return duel_service.get_latest_duel_values(db=db, user_id=current_user.id)
+
+@router.post("/import/csv", status_code=status.HTTP_201_CREATED)
+def import_duels_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    CSVファイルからデュエルデータをインポート
+    """
+    if file.content_type != "text/csv":
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a CSV file.")
+
+    try:
+        csv_content = file.file.read().decode("utf-8")
+        duel_service.import_duels_from_csv(db=db, user_id=current_user.id, csv_content=csv_content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to import CSV file: {e}")
+
+    return {"message": "CSV file imported successfully"}
