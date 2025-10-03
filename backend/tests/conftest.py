@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
+from fastapi import status
 
 from app.main import app
 from app.db.session import Base, get_db
@@ -48,26 +49,36 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def test_user(db_session):
-    """テスト用ユーザー"""
+from fastapi import status
+
+
+@pytest.fixture(scope="function")
+def authenticated_client(db_session):
+    """認証済みのテストクライアントを生成するフィクスチャ"""
+    # テストユーザーを作成
     user = User(
         username="testuser",
         email="test@example.com",
-        passwordhash=get_password_hash("testpassword")
+        passwordhash=get_password_hash("testpassword"),
     )
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
-    return user
 
+    # データベースの依存性注入をオーバーライド
+    def override_get_db():
+        yield db_session
 
-@pytest.fixture
-def authenticated_client(client, test_user):
-    """認証済みテストクライアント"""
-    # ログインしてクッキーにトークンをセット
-    client.post(
-        "/auth/login",
-        json={"email": test_user.email, "password": "testpassword"}
-    )
-    return client
+    app.dependency_overrides[get_db] = override_get_db
+
+    # TestClientを作成し、ログインして認証済みクライアントをyield
+    with TestClient(app) as client:
+        res = client.post(
+            "/auth/login",
+            json={"email": "test@example.com", "password": "testpassword"},
+        )
+        assert res.status_code == status.HTTP_200_OK
+        yield client
+
+    # 後処理
+    app.dependency_overrides.clear()
