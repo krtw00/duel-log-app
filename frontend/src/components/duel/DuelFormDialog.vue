@@ -312,6 +312,20 @@ const rules = {
   maxLength: (v: string) => !v || v.length <= 1000 || '1000文字以内で入力してください'
 }
 
+// datetime-local形式の文字列をタイムゾーン情報なしのISO形式に変換
+const localDateTimeToISO = (localDateTime: string): string => {
+  // datetime-local形式: "2025-10-04T05:36"
+  // ユーザーが入力した時刻をそのまま保存するため、秒とミリ秒を追加するだけ
+  return `${localDateTime}:00`
+}
+
+// ISO文字列をdatetime-local形式に変換
+const isoToLocalDateTime = (isoString: string): string => {
+  // タイムゾーン情報とミリ秒を削除して、datetime-local形式に変換
+  // "2025-10-04T05:36:00" または "2025-10-04T05:36:00.000Z" → "2025-10-04T05:36"
+  return isoString.replace(/\.\d{3}Z?$/, '').substring(0, 16)
+}
+
 // デッキ一覧を取得
 const fetchDecks = async () => {
   try {
@@ -397,13 +411,7 @@ watch(() => props.modelValue, async (newValue) => {
     if (props.duel) {
       // 編集モード
       // ISO文字列をdatetime-local形式に変換
-      const playedDate = new Date(props.duel.played_date)
-      const year = playedDate.getFullYear()
-      const month = String(playedDate.getMonth() + 1).padStart(2, '0')
-      const day = String(playedDate.getDate()).padStart(2, '0')
-      const hours = String(playedDate.getHours()).padStart(2, '0')
-      const minutes = String(playedDate.getMinutes()).padStart(2, '0')
-      const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`
+      const localDateTime = isoToLocalDateTime(props.duel.played_date)
       
       form.value = {
         deck_id: props.duel.deck_id,
@@ -477,12 +485,12 @@ const handleSubmit = async () => {
       return
     }
 
-    // datetime-local形式をISO文字列に変換
+    // datetime-local形式をISO文字列に変換（ローカルタイムゾーンを保持）
     const submitData = {
       ...form.value,
       deck_id: myDeckId,
       opponentDeck_id: opponentDeckId,
-      played_date: new Date(form.value.played_date).toISOString()
+      played_date: localDateTimeToISO(form.value.played_date)
     }
     
     if (isEdit.value && props.duel) {
