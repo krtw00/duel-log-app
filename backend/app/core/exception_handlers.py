@@ -49,11 +49,20 @@ async def validation_exception_handler(
         }
     )
     
+    # エラーをJSONシリアライズ可能な形式に変換
+    errors = []
+    for error in exc.errors():
+        errors.append({
+            "loc": error["loc"],
+            "msg": error["msg"],
+            "type": error["type"],
+        })
+
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "message": "入力値が不正です",
-            "detail": exc.errors(),
+            "detail": errors,
         }
     )
 
