@@ -60,7 +60,7 @@ describe('ToastNotification.vue', () => {
     
     // 通知を追加
     notificationStore.notifications = [
-      { id: '1', message: 'Test Message', type: 'success' }
+      { id: 1, message: 'Test Message', type: 'success' }
     ]
 
     const wrapper = mount(ToastNotification, {
