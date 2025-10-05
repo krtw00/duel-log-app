@@ -28,20 +28,19 @@ def wait_for_db(max_attempts=60):
     return False
 
 
-def fix_alembic_version_if_needed():
-    """存在しないリビジョンエラーの場合、最新リビジョンにスタンプ"""
+def get_current_db_state():
+    """現在のデータベース状態を取得"""
     try:
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
-            return
+            return None, None
         
-        # psycopg3用に変換
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
         
-        # テーブルが存在するか確認
         with psycopg.connect(database_url) as conn:
             with conn.cursor() as cur:
+                # テーブルの存在確認
                 cur.execute("""
                     SELECT EXISTS (
                         SELECT FROM information_schema.tables 
@@ -50,27 +49,65 @@ def fix_alembic_version_if_needed():
                 """)
                 tables_exist = cur.fetchone()[0]
                 
-                if tables_exist:
-                    # テーブルが既に存在する場合、最新リビジョンにスタンプ
-                    print("🔧 Tables already exist. Stamping with latest revision...")
+                # 現在のalembicバージョン確認
+                try:
+                    cur.execute("SELECT version_num FROM alembic_version")
+                    current_version = cur.fetchone()
+                    current_version = current_version[0] if current_version else None
+                except:
+                    current_version = None
+                
+                return tables_exist, current_version
+    except Exception as e:
+        print(f"⚠️ Could not get DB state: {e}")
+        return None, None
+
+
+def fix_alembic_version_if_needed():
+    """存在しないリビジョンエラーの場合、最新リビジョンにスタンプ"""
+    try:
+        tables_exist, current_version = get_current_db_state()
+        
+        print(f"📊 Current DB state:")
+        print(f"   - Tables exist: {tables_exist}")
+        print(f"   - Current version: {current_version}")
+        
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return
+        
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+        if tables_exist:
+            # テーブルが既に存在する場合、最新リビジョンにスタンプ
+            print("🔧 Tables already exist. Stamping with latest revision...")
+            print("   (This will NOT modify any tables or data)")
+            
+            with psycopg.connect(database_url) as conn:
+                with conn.cursor() as cur:
                     cur.execute("DELETE FROM alembic_version")
                     conn.commit()
-                    
-                    # alembic stampコマンドを実行
-                    result = subprocess.run(
-                        ["alembic", "stamp", "head"],
-                        capture_output=True,
-                        text=True
-                    )
-                    if result.returncode == 0:
-                        print("✅ Stamped database with latest revision")
-                    else:
-                        print(f"⚠️ Stamp failed: {result.stderr}")
-                else:
-                    # テーブルが存在しない場合、履歴をクリア
+            
+            # alembic stampコマンドを実行
+            result = subprocess.run(
+                ["alembic", "stamp", "head"],
+                capture_output=True,
+                text=True
+            )
+            if result.returncode == 0:
+                print("✅ Stamped database with latest revision")
+                print("   All existing data preserved")
+            else:
+                print(f"⚠️ Stamp failed: {result.stderr}")
+        else:
+            # テーブルが存在しない場合、履歴をクリア
+            with psycopg.connect(database_url) as conn:
+                with conn.cursor() as cur:
                     cur.execute("DELETE FROM alembic_version")
                     conn.commit()
-                    print("🔧 Cleared alembic_version table")
+            print("🔧 Cleared alembic_version table")
+            
     except Exception as e:
         print(f"⚠️ Could not fix alembic_version: {e}")
 
@@ -78,6 +115,15 @@ def fix_alembic_version_if_needed():
 def run_migrations():
     """Alembicマイグレーションを実行"""
     print("🔄 Running Alembic migrations...")
+    
+    # マイグレーション実行前にDB状態を確認
+    tables_exist, current_version = get_current_db_state()
+    
+    # テーブルが存在するがバージョンがない/不一致の場合、事前に修復
+    if tables_exist and not current_version:
+        print("🔧 Tables exist but no version found. Fixing before migration...")
+        fix_alembic_version_if_needed()
+    
     try:
         result = subprocess.run(
             ["alembic", "upgrade", "head"],
@@ -88,11 +134,12 @@ def run_migrations():
         print(result.stdout)
         print("✅ Migrations completed successfully!")
         return True
+        
     except subprocess.CalledProcessError as e:
         print("❌ Migration failed!")
         print(e.stderr)
         
-        # "Can't locate revision" エラーの場合、リセットして再試行
+        # "Can't locate revision" エラーの場合、修復して再試行
         if "Can't locate revision" in e.stderr:
             print("🔧 Attempting to fix alembic version conflict...")
             fix_alembic_version_if_needed()
@@ -110,6 +157,27 @@ def run_migrations():
                 return True
             except subprocess.CalledProcessError as e2:
                 print("❌ Migration still failed after fix!")
+                print(e2.stderr)
+                return False
+        
+        # "DuplicateTable" エラーの場合も修復
+        elif "DuplicateTable" in e.stderr or "already exists" in e.stderr:
+            print("🔧 Tables already exist. Fixing version mismatch...")
+            fix_alembic_version_if_needed()
+            
+            # 再試行（今度は変更なしで成功するはず）
+            try:
+                result = subprocess.run(
+                    ["alembic", "upgrade", "head"],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                print(result.stdout)
+                print("✅ Migrations synced successfully!")
+                return True
+            except subprocess.CalledProcessError as e2:
+                print("❌ Still failed after sync!")
                 print(e2.stderr)
                 return False
         
