@@ -1,7 +1,7 @@
 fastapi==0.111.1
 uvicorn[standard]==0.24.0
 sqlalchemy==2.0.22
-psycopg[binary]
+psycopg[binary,compat]
 python-dotenv==1.0.1
 alembic==1.11.1
 bcrypt==4.0.1
@@ -14,3 +14,4 @@ pydantic[email]==2.5.0
 pytest==7.4.3
 pytest-cov==4.1.0
 httpx==0.25.2
+Faker==26.0.0

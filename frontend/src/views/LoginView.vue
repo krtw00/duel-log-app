@@ -147,8 +147,7 @@ const handleLogin = async () => {
     await authStore.login(email.value, password.value)
     notificationStore.success('ログインに成功しました')
   } catch (error: any) {
-    // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    console.error('Login error:', error)
+    notificationStore.error(error.message || '不明なエラーが発生しました');
   } finally {
     loading.value = false
   }
