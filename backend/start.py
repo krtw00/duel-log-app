@@ -29,7 +29,7 @@ def wait_for_db(max_attempts=60):
 
 
 def fix_alembic_version_if_needed():
-    """存在しないリビジョンエラーの場合、alembic_versionをリセット"""
+    """存在しないリビジョンエラーの場合、最新リビジョンにスタンプ"""
     try:
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
@@ -39,12 +39,38 @@ def fix_alembic_version_if_needed():
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
         
+        # テーブルが存在するか確認
         with psycopg.connect(database_url) as conn:
             with conn.cursor() as cur:
-                # alembic_versionテーブルをクリア
-                cur.execute("DELETE FROM alembic_version")
-                conn.commit()
-                print("🔧 Cleared alembic_version table")
+                cur.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = 'users'
+                    )
+                """)
+                tables_exist = cur.fetchone()[0]
+                
+                if tables_exist:
+                    # テーブルが既に存在する場合、最新リビジョンにスタンプ
+                    print("🔧 Tables already exist. Stamping with latest revision...")
+                    cur.execute("DELETE FROM alembic_version")
+                    conn.commit()
+                    
+                    # alembic stampコマンドを実行
+                    result = subprocess.run(
+                        ["alembic", "stamp", "head"],
+                        capture_output=True,
+                        text=True
+                    )
+                    if result.returncode == 0:
+                        print("✅ Stamped database with latest revision")
+                    else:
+                        print(f"⚠️ Stamp failed: {result.stderr}")
+                else:
+                    # テーブルが存在しない場合、履歴をクリア
+                    cur.execute("DELETE FROM alembic_version")
+                    conn.commit()
+                    print("🔧 Cleared alembic_version table")
     except Exception as e:
         print(f"⚠️ Could not fix alembic_version: {e}")
 
