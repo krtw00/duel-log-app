@@ -172,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
 import { api } from '../services/api'
