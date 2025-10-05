@@ -48,4 +48,41 @@ describe('StatCard.vue', () => {
     expect(wrapper.find('.v-icon').classes()).toContain('mdi-trophy')
     expect(wrapper.classes()).toContain('stat-card--success')
   })
+
+  it('has proper responsive styling classes', () => {
+    const wrapper = mount(StatCard, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        title: 'Test Card',
+        value: 50,
+        icon: 'mdi-test',
+        color: 'primary',
+      },
+    })
+
+    // 基本クラスの確認
+    expect(wrapper.find('.stat-card__title').exists()).toBe(true)
+    expect(wrapper.find('.stat-card__value').exists()).toBe(true)
+    expect(wrapper.find('.stat-card__icon-wrapper').exists()).toBe(true)
+  })
+
+  it('displays icon with correct size', () => {
+    const wrapper = mount(StatCard, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        title: 'Test',
+        value: 10,
+        icon: 'mdi-chart-bar',
+        color: 'info',
+      },
+    })
+
+    const icon = wrapper.findComponent({ name: 'VIcon' })
+    expect(icon.exists()).toBe(true)
+    expect(icon.props('size')).toBe(40)
+  })
 })
