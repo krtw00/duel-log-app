@@ -4,11 +4,6 @@ import { useAuthStore } from '../auth'
 import { api } from '@/services/api'
 
 vi.mock('@/services/api')
-vi.mock('vue-router', () => ({
-  default: {
-    push: vi.fn(),
-  },
-}))
 
 describe('authStore', () => {
   beforeEach(() => {
