@@ -14,9 +14,11 @@ const vuetify = createVuetify({
 
 describe('LoadingOverlay.vue', () => {
   it('does not render when isLoading is false', () => {
-    const pinia = createTestingPinia()
-    const loadingStore = useLoadingStore(pinia)
-    loadingStore.stopAll() // Ensure no tasks are running
+    const pinia = createTestingPinia({
+      initialState: {
+        loading: { loadingTasks: new Set() },
+      },
+    })
 
     const wrapper = mount(LoadingOverlay, {
       global: {
@@ -28,18 +30,18 @@ describe('LoadingOverlay.vue', () => {
     expect(overlay.props('modelValue')).toBe(false)
   })
 
-  it('renders when isLoading is true', async () => {
-    const pinia = createTestingPinia()
+  it('renders when isLoading is true', () => {
+    const pinia = createTestingPinia({
+      initialState: {
+        loading: { loadingTasks: new Set(['global']) },
+      },
+    })
+
     const wrapper = mount(LoadingOverlay, {
       global: {
         plugins: [vuetify, pinia],
       },
     })
-    const loadingStore = useLoadingStore(pinia)
-
-    // Start a loading task
-    loadingStore.start()
-    await wrapper.vm.$nextTick()
 
     const overlay = wrapper.findComponent({ name: 'VOverlay' })
     expect(overlay.props('modelValue')).toBe(true)
