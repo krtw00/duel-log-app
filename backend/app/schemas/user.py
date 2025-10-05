@@ -12,12 +12,14 @@ class UserUpdate(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
     password: str | None = Field(None, min_length=8, max_length=72, description="パスワード (8〜72文字)")
+    streamer_mode: bool | None = None
 
 # レスポンス用
 class UserResponse(BaseModel):
     id: int
     username: str
     email: EmailStr
+    streamer_mode: bool
     createdat: Optional[datetime]
     updatedat: Optional[datetime]
 
