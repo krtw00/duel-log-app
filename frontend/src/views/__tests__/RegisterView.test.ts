@@ -88,7 +88,7 @@ describe('RegisterView.vue', () => {
       },
     })
 
-    // "アカウントをお持ちでない方は" のテキストをチェック
-    expect(wrapper.text()).toContain('アカウントをお持ちでない方は')
+    // "既にアカウントをお持ちの方は" のテキストをチェック
+    expect(wrapper.text()).toContain('既にアカウントをお持ちの方は')
   })
 })
