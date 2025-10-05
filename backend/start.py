@@ -7,24 +7,49 @@ import sys
 import time
 import subprocess
 import psycopg
+import logging
+
+# ログ設定（標準出力に確実に出力）
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 def wait_for_db(max_attempts=60):
     """データベース接続を待機"""
-    dsn = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST', 'db')}/{os.getenv('POSTGRES_DB')}"
+    # DATABASE_URLを使用（Render/Neon用）
+    dsn = os.getenv('DATABASE_URL')
+    if not dsn:
+        # フォールバック：個別の環境変数を使用
+        dsn = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST', 'db')}/{os.getenv('POSTGRES_DB')}"
     
-    print(f"⏳ Waiting for database at {os.getenv('POSTGRES_HOST', 'db')}...")
+    # psycopg3用に変換
+    if dsn.startswith("postgres://"):
+        dsn = dsn.replace("postgres://", "postgresql://", 1)
+    
+    logger.info(f"Database URL: {dsn.split('@')[1] if '@' in dsn else 'unknown'}")
+    
+    logger.info("⏳ Waiting for database connection...")
+    sys.stdout.flush()
     
     for attempt in range(1, max_attempts + 1):
         try:
             with psycopg.connect(dsn, connect_timeout=1) as conn:
-                print("✅ Database is ready!")
+                logger.info("✅ Database is ready!")
+                sys.stdout.flush()
                 return True
         except psycopg.OperationalError:
-            print(f"⏳ Waiting for database... ({attempt}/{max_attempts})")
+            logger.info(f"⏳ Waiting for database... ({attempt}/{max_attempts})")
+            sys.stdout.flush()
             time.sleep(1)
     
-    print(f"❌ Database connection timeout after {max_attempts} seconds")
+    logger.error(f"❌ Database connection timeout after {max_attempts} seconds")
+    sys.stdout.flush()
     return False
 
 
@@ -115,7 +140,10 @@ def fix_alembic_version_if_needed():
 
 def run_migrations():
     """Alembicマイグレーションを実行"""
-    print("🔄 Running Alembic migrations...")
+    logger.info("="*60)
+    logger.info("🔄 STARTING MIGRATION PROCESS")
+    logger.info("="*60)
+    sys.stdout.flush()
     
     # マイグレーション実行前にDB状態を確認
     tables_exist, current_version = get_current_db_state()
