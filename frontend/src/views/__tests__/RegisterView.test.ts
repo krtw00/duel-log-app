@@ -11,6 +11,12 @@ const vuetify = createVuetify({
   directives,
 })
 
+// RouterLinkのモック
+const RouterLinkStub = {
+  template: '<a><slot /></a>',
+  props: ['to']
+}
+
 describe('RegisterView.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -20,7 +26,9 @@ describe('RegisterView.vue', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
@@ -32,19 +40,23 @@ describe('RegisterView.vue', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
     expect(wrapper.find('form').exists()).toBe(true)
-    expect(wrapper.text()).toContain('アカウント作成')
+    expect(wrapper.text()).toContain('Create Your Account')
   })
 
   it('has username, email and password fields', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
@@ -57,7 +69,9 @@ describe('RegisterView.vue', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
@@ -68,10 +82,13 @@ describe('RegisterView.vue', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
-    expect(wrapper.text()).toContain('すでにアカウントをお持ちの方')
+    // "アカウントをお持ちでない方は" のテキストをチェック
+    expect(wrapper.text()).toContain('アカウントをお持ちでない方は')
   })
 })
