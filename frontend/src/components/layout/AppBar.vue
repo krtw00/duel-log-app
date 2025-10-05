@@ -32,14 +32,21 @@
           v-bind="props"
           class="mr-4"
           prepend-icon="mdi-account-circle"
-          color="primary"
+          :color="authStore.isStreamerModeEnabled ? 'purple' : 'primary'"
           variant="tonal"
         >
+          <v-icon v-if="authStore.isStreamerModeEnabled" size="small" class="mr-1">mdi-video</v-icon>
           {{ authStore.user.username }}
         </v-chip>
       </template>
 
       <v-list density="compact">
+        <v-list-item>
+          <v-list-item-title class="text-caption text-grey">
+            {{ displayEmail }}
+          </v-list-item-title>
+        </v-list-item>
+        <v-divider />
         <v-list-item to="/profile">
           <template v-slot:prepend>
             <v-icon>mdi-account-edit</v-icon>
@@ -59,8 +66,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { maskEmail } from '../../utils/maskEmail'
 
 defineProps<{
   currentView: 'dashboard' | 'decks' | 'statistics' | 'profile'
@@ -76,6 +85,13 @@ const navItems = [
   { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
   { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
 ]
+
+const displayEmail = computed(() => {
+  if (!authStore.user) return ''
+  return authStore.isStreamerModeEnabled 
+    ? maskEmail(authStore.user.email)
+    : authStore.user.email
+})
 </script>
 
 <style scoped lang="scss">
