@@ -183,9 +183,13 @@ describe('DecksView.vue', () => {
 
   it('does not delete a deck if confirmation is cancelled', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false)
+    
+    const pinia = createTestingPinia({ createSpy: vi.fn })
+    const notificationStore = useNotificationStore(pinia)
+    
     const wrapper = mount(DecksView, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
         },
