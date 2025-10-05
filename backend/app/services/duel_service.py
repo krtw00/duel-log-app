@@ -257,6 +257,20 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                 my_deck = deck_service.get_or_create(db, user_id=user_id, name=my_deck_name, is_opponent=False)
                 opponent_deck = deck_service.get_or_create(db, user_id=user_id, name=opponent_deck_name, is_opponent=True)
 
+                # 重複チェック
+                existing_duel = db.query(Duel).filter(
+                    Duel.user_id == user_id,
+                    Duel.deck_id == my_deck.id,
+                    Duel.opponentDeck_id == opponent_deck.id,
+                    Duel.played_date == played_date,
+                    Duel.game_mode == game_mode,
+                    Duel.result == result
+                ).first()
+
+                if existing_duel:
+                    print(f"Skipping duplicate duel: {row}")
+                    continue
+
                 duel_in = DuelCreate(
                     deck_id=my_deck.id,
                     opponentDeck_id=opponent_deck.id,
