@@ -1,10 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { setActivePinia, createPinia } from 'pinia'
 import router from '../index'
 
 describe('Router', () => {
   beforeEach(async () => {
-    await router.push('/')
-    await router.isReady()
+    // Pinia初期化
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
   })
 
   it('has correct routes defined', () => {
