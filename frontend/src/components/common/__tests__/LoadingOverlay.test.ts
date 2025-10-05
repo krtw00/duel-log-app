@@ -14,11 +14,11 @@ const vuetify = createVuetify({
 
 describe('LoadingOverlay.vue', () => {
   it('does not render when isLoading is false', () => {
-    const pinia = createTestingPinia({
-      initialState: {
-        loading: { loadingTasks: new Set() },
-      },
-    })
+    const pinia = createTestingPinia()
+    const loadingStore = useLoadingStore(pinia)
+    
+    // loadingTasksを空に設定
+    loadingStore.loadingTasks.clear()
 
     const wrapper = mount(LoadingOverlay, {
       global: {
@@ -31,11 +31,11 @@ describe('LoadingOverlay.vue', () => {
   })
 
   it('renders when isLoading is true', () => {
-    const pinia = createTestingPinia({
-      initialState: {
-        loading: { loadingTasks: new Set(['global']) },
-      },
-    })
+    const pinia = createTestingPinia()
+    const loadingStore = useLoadingStore(pinia)
+    
+    // loadingTasksにタスクを追加してローディング状態にする
+    loadingStore.loadingTasks.add('test-task')
 
     const wrapper = mount(LoadingOverlay, {
       global: {
