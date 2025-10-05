@@ -28,7 +28,7 @@ describe('Router', () => {
 
   it('login route does not require auth', () => {
     const loginRoute = router.getRoutes().find(r => r.name === 'Login')
-    expect(loginRoute?.meta?.requiresAuth).toBeUndefined()
+    expect(loginRoute?.meta?.requiresAuth).toBe(false)
   })
 
   it('has correct paths', () => {
