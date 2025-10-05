@@ -48,6 +48,9 @@
                   type="email"
                   :rules="[rules.required, rules.email]"
                   class="mb-4"
+                  :readonly="form.streamerMode"
+                  :hint="form.streamerMode ? '配信者モードが有効なため、メールアドレスはマスクされています' : ''"
+                  persistent-hint
                 ></v-text-field>
 
                 <v-text-field
@@ -74,6 +77,24 @@
                   class="mb-4"
                   clearable
                 ></v-text-field>
+
+                <v-divider class="my-4" />
+
+                <div class="streamer-mode-section">
+                  <div class="d-flex align-center mb-2">
+                    <v-icon color="purple" class="mr-2">mdi-video</v-icon>
+                    <span class="text-h6">配信者モード</span>
+                  </div>
+                  <p class="text-caption text-grey mb-3">
+                    有効にすると、アプリ内のメールアドレスが自動的にマスクされます。配信や録画時のプライバシー保護に便利です。
+                  </p>
+                  <v-switch
+                    v-model="form.streamerMode"
+                    color="purple"
+                    label="配信者モードを有効にする"
+                    hide-details
+                  ></v-switch>
+                </div>
               </v-form>
             </v-card-text>
 
@@ -151,11 +172,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
 import { api } from '../services/api'
 import AppBar from '../components/layout/AppBar.vue'
+import { maskEmail } from '../utils/maskEmail'
 
 const drawer = ref(false)
 const navItems = [
@@ -173,7 +195,8 @@ const form = ref({
   username: '',
   email: '',
   password: '',
-  passwordConfirm: ''
+  passwordConfirm: '',
+  streamerMode: false
 })
 
 const deleteDialog = ref(false)
@@ -193,10 +216,23 @@ const rules = {
   }
 }
 
+const actualEmail = ref('')
+
 onMounted(() => {
   if (authStore.user) {
     form.value.username = authStore.user.username
+    actualEmail.value = authStore.user.email
     form.value.email = authStore.user.email
+    form.value.streamerMode = authStore.user.streamer_mode
+  }
+})
+
+// 配信者モードの切り替え時にメールアドレスの表示を切り替え
+watch(() => form.value.streamerMode, (newValue) => {
+  if (newValue) {
+    form.value.email = maskEmail(actualEmail.value)
+  } else {
+    form.value.email = actualEmail.value
   }
 })
 
@@ -209,7 +245,8 @@ const handleUpdate = async () => {
   try {
     const payload: any = {
       username: form.value.username,
-      email: form.value.email
+      email: actualEmail.value, // 実際のメールアドレスを送信
+      streamer_mode: form.value.streamerMode
     }
 
     if (form.value.password) {
@@ -220,6 +257,10 @@ const handleUpdate = async () => {
 
     // ストアのユーザー情報を更新
     authStore.user = response.data
+    actualEmail.value = response.data.email
+    
+    // フォームのメールアドレスも更新
+    form.value.email = form.value.streamerMode ? maskEmail(response.data.email) : response.data.email
 
     notificationStore.success('プロフィールを更新しました')
 
