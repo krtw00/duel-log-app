@@ -16,13 +16,7 @@ const vuetify = createVuetify({
 vi.mock('@/services/api')
 
 describe('DashboardView.vue', () => {
-  let notificationStore: ReturnType<typeof useNotificationStore>
-
   beforeEach(() => {
-    const pinia = createTestingPinia({
-      createSpy: vi.fn,
-    })
-    notificationStore = useNotificationStore(pinia)
     vi.clearAllMocks()
     
     vi.mocked(api.get).mockResolvedValue({
@@ -138,9 +132,14 @@ describe('DashboardView.vue', () => {
   it('deletes a duel and shows success notification', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+    })
+    const notificationStore = useNotificationStore(pinia)
+    
     const wrapper = mount(DashboardView, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
           StatCard: true,
@@ -158,9 +157,14 @@ describe('DashboardView.vue', () => {
   it('does not delete a duel if confirmation is cancelled', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false)
     
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+    })
+    const notificationStore = useNotificationStore(pinia)
+    
     const wrapper = mount(DashboardView, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
           StatCard: true,
