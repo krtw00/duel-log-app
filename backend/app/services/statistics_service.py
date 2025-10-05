@@ -65,10 +65,11 @@ class StatisticsService:
         """直近の相手デッキ分布を取得"""
         recent_duels_subquery = (
             self._build_base_duels_query(db, user_id, game_mode)
+            .with_entities(Duel.id)
             .order_by(Duel.played_date.desc())
             .limit(limit)
+            .subquery()
         )
-        recent_duels_subquery = recent_duels_subquery.subquery()
         duels_query = db.query(Duel).filter(Duel.id.in_(recent_duels_subquery))
         return self.get_deck_distribution(db, user_id, duels_query)
 

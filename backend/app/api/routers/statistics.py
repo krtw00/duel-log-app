@@ -4,7 +4,7 @@
 """
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -13,6 +13,41 @@ from app.db.session import get_db
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
+
+
+@router.get("", response_model=Dict[str, Any])
+def get_all_statistics(
+    year: int = Query(datetime.now().year, description="年"),
+    month: int = Query(datetime.now().month, description="月"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """全ゲームモードの統計情報を一括取得"""
+    game_modes = ["RANK", "RATE", "EVENT", "DC"]
+    result = {}
+    
+    for mode in game_modes:
+        result[mode] = {
+            "monthly_deck_distribution": statistics_service.get_deck_distribution_monthly(
+                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
+            ),
+            "recent_deck_distribution": statistics_service.get_deck_distribution_recent(
+                db=db, user_id=current_user.id, limit=30, game_mode=mode
+            ),
+            "matchup_data": statistics_service.get_matchup_chart(
+                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
+            ),
+        }
+        
+        # レートとDCの場合は時系列データも取得
+        if mode in ["RATE", "DC"]:
+            result[mode]["time_series_data"] = statistics_service.get_time_series_data(
+                db=db, user_id=current_user.id, game_mode=mode, year=year, month=month
+            )
+        else:
+            result[mode]["time_series_data"] = []
+    
+    return result
 
 
 @router.get("/deck-distribution/monthly", response_model=List[Dict[str, Any]])
