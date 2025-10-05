@@ -4,6 +4,7 @@
     @update:modelValue="$emit('update:modelValue', $event)"
     max-width="700"
     persistent
+    :fullscreen="$vuetify.display.xs"
   >
     <v-card class="duel-form-card">
       <div class="card-glow"></div>
@@ -20,23 +21,24 @@
         <v-tabs
           v-model="form.game_mode"
           color="primary"
-          class="mb-4"
+          class="mb-4 mode-tabs-dialog"
+          show-arrows
         >
           <v-tab value="RANK">
-            <v-icon start>mdi-crown</v-icon>
-            ランク
+            <v-icon :start="$vuetify.display.smAndUp">mdi-crown</v-icon>
+            <span class="d-none d-sm-inline">ランク</span>
           </v-tab>
           <v-tab value="RATE">
-            <v-icon start>mdi-chart-line</v-icon>
-            レート
+            <v-icon :start="$vuetify.display.smAndUp">mdi-chart-line</v-icon>
+            <span class="d-none d-sm-inline">レート</span>
           </v-tab>
           <v-tab value="EVENT">
-            <v-icon start>mdi-calendar-star</v-icon>
-            イベント
+            <v-icon :start="$vuetify.display.smAndUp">mdi-calendar-star</v-icon>
+            <span class="d-none d-sm-inline">イベント</span>
           </v-tab>
           <v-tab value="DC">
-            <v-icon start>mdi-trophy-variant</v-icon>
-            DC
+            <v-icon :start="$vuetify.display.smAndUp">mdi-trophy-variant</v-icon>
+            <span class="d-none d-sm-inline">DC</span>
           </v-tab>
         </v-tabs>
 
@@ -544,5 +546,30 @@ const closeDialog = () => {
   0% { opacity: 0.5; }
   50% { opacity: 1; }
   100% { opacity: 0.5; }
+}
+
+// スマホ対応
+@media (max-width: 599px) {
+  .duel-form-card {
+    .v-card-title {
+      padding: 16px !important;
+      
+      .text-h5 {
+        font-size: 1.25rem !important;
+      }
+    }
+    
+    .v-card-text {
+      padding: 16px !important;
+    }
+  }
+  
+  .mode-tabs-dialog {
+    .v-tab {
+      min-width: 60px;
+      padding: 0 12px;
+      font-size: 0.875rem;
+    }
+  }
 }
 </style>

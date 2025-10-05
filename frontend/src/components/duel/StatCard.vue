@@ -100,4 +100,27 @@ defineProps<{
     border-radius: 50%;
   }
 }
+
+// スマホ対応
+@media (max-width: 599px) {
+  .stat-card {
+    &__title {
+      font-size: 10px !important;
+      letter-spacing: 0.5px;
+    }
+    
+    &__value {
+      font-size: 1.5rem !important;
+    }
+    
+    &__icon-wrapper {
+      width: 50px;
+      height: 50px;
+      
+      .v-icon {
+        font-size: 28px !important;
+      }
+    }
+  }
+}
 </style>

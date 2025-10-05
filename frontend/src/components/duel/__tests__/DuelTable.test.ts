@@ -127,4 +127,40 @@ describe('DuelTable.vue', () => {
     expect(wrapper.emitted().delete).toBeTruthy()
     expect((wrapper.emitted().delete as any)[0][0]).toBe(mockDuels[0].id)
   })
+
+  it('has mobile-breakpoint attribute for responsive design', () => {
+    const wrapper = mount(DuelTable, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        duels: mockDuels,
+        loading: false,
+      },
+    })
+
+    const dataTable = wrapper.findComponent({ name: 'VDataTable' })
+    expect(dataTable.exists()).toBe(true)
+    // mobile-breakpointが設定されていることを確認
+    expect(dataTable.props('mobileBreakpoint')).toBe('sm')
+  })
+
+  it('renders table with responsive styling', () => {
+    const wrapper = mount(DuelTable, {
+      global: {
+        plugins: [vuetify],
+      },
+      props: {
+        duels: mockDuels,
+        loading: false,
+      },
+    })
+
+    // テーブルが正しくレンダリングされていることを確認
+    const dataTable = wrapper.findComponent({ name: 'VDataTable' })
+    expect(dataTable.exists()).toBe(true)
+    
+    // レスポンシブクラスが適用されていることを確認
+    expect(wrapper.find('.duel-table').exists()).toBe(true)
+  })
 })

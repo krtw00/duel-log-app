@@ -16,6 +16,7 @@ describe('ToastNotification.vue', () => {
   let notificationStore: ReturnType<typeof useNotificationStore>
 
   beforeEach(() => {
+    vi.useFakeTimers()
     const pinia = createTestingPinia({
       initialState: {
         notification: {

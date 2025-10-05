@@ -9,18 +9,16 @@ import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
 import { useRouter } from 'vue-router'
 
-const vuetify = createVuetify({
-  components,
-  directives,
-})
-
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-  })),
-}))
-
 describe('LoginView.vue', () => {
+  vi.mock('vue-router', async () => {
+    const original = await vi.importActual('vue-router');
+    return {
+      ...original,
+      useRouter: vi.fn(() => ({
+        push: vi.fn(),
+      })),
+    };
+  });
   let authStore: ReturnType<typeof useAuthStore>
   let notificationStore: ReturnType<typeof useNotificationStore>
   let router: ReturnType<typeof useRouter>
