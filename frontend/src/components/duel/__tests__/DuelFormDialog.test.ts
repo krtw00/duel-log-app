@@ -1,175 +1,177 @@
-// Commented out for now due to missing deck.ts and persistent TypeScript errors.
-// import { describe, it, expect, beforeEach } from 'vitest'
-// import { mount } from '@vue/test-utils'
-// import DuelFormDialog from '../DuelFormDialog.vue'
-// import { createVuetify } from 'vuetify'
-// import * as components from 'vuetify/components'
-// import * as directives from 'vuetify/directives'
-// import { createTestingPinia } from '@pinia/testing'
-// import { useDeckStore } from '@/stores/deck'
-// import { useAuthStore } from '@/stores/auth'
-// import { nextTick } from 'vue'
-// import { api } from '@/services/api'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mount } from '@vue/test-utils'
+import DuelFormDialog from '../DuelFormDialog.vue'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import { createTestingPinia } from '@pinia/testing'
+import { api } from '@/services/api'
 
-// const vuetify = createVuetify({
-//   components,
-//   directives,
-// })
+const vuetify = createVuetify({
+  components,
+  directives,
+})
 
-// // Mock api
-// vi.mock('@/services/api', () => ({
-//   api: {
-//     get: vi.fn(),
-//     post: vi.fn(),
-//     put: vi.fn(),
-//   },
-// }))
+vi.mock('@/services/api')
 
-// describe('DuelFormDialog', () => {
-//   let deckStore: ReturnType<typeof useDeckStore>
-//   let authStore: ReturnType<typeof useAuthStore>
+describe('DuelFormDialog.vue', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(api.get).mockResolvedValue({
+      data: [],
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any
+    })
+    vi.mocked(api.post).mockResolvedValue({
+      data: {},
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any
+    })
+  })
 
-//   beforeEach(() => {
-//     createTestingPinia()
-//     deckStore = useDeckStore()
-//     authStore = useAuthStore()
+  it('renders correctly when opened', () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+      },
+    })
 
-//     // @ts-ignore
-//     api.get.mockResolvedValue({ data: [] })
-//     // @ts-ignore
-//     api.post.mockResolvedValue({ data: {} })
-//     // @ts-ignore
-//     api.put.mockResolvedValue({ data: {} })
+    expect(wrapper.exists()).toBe(true)
+    expect(wrapper.find('.duel-form-card').exists()).toBe(true)
+  })
 
-//     authStore.user = { id: 1, email: 'test@example.com', username: 'testuser' }
-//   })
+  it('does not render when modelValue is false', () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: false,
+        defaultGameMode: 'RANK',
+      },
+    })
 
-//   it('renders correctly', () => {
-//     const wrapper = mount(DuelFormDialog, {
-//       global: {
-//         plugins: [vuetify],
-//       },
-//       props: {
-//         modelValue: true,
-//       },
-//     })
-//     expect(wrapper.exists()).toBe(true)
-//   })
+    // ダイアログが閉じているときは、カード要素が存在しない
+    expect(wrapper.find('.duel-form-card').exists()).toBe(false)
+  })
 
-//   it('displays form fields when opened', async () => {
-//     const wrapper = mount(DuelFormDialog, {
-//       global: {
-//         plugins: [vuetify],
-//       },
-//       props: {
-//         modelValue: true,
-//       },
-//     })
+  it('displays game mode tabs', () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+      },
+    })
 
-//     await nextTick()
+    // 4つのゲームモードタブが存在
+    const tabs = wrapper.findAll('.v-tab')
+    expect(tabs.length).toBeGreaterThanOrEqual(4)
+  })
 
-//     expect(wrapper.find('#myDeck').exists()).toBe(true)
-//     expect(wrapper.find('#opponentDeck').exists()).toBe(true)
-//     expect(wrapper.find('#gameMode').exists()).toBe(true)
-//     expect(wrapper.find('#result').exists()).toBe(true)
-//     expect(wrapper.find('#rateValue').exists()).toBe(true)
-//     expect(wrapper.find('#dcValue').exists()).toBe(true)
-//   })
+  it('has fullscreen mode on mobile', () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+      },
+    })
 
-//   it('calls createDuel when saving a new duel', async () => {
-//     const wrapper = mount(DuelFormDialog, {
-//       global: {
-//         plugins: [vuetify],
-//       },
-//       props: {
-//         modelValue: true,
-//       },
-//     })
+    const dialog = wrapper.findComponent({ name: 'VDialog' })
+    expect(dialog.exists()).toBe(true)
+    // fullscreen プロパティが存在することを確認
+    expect(dialog.props()).toHaveProperty('fullscreen')
+  })
 
-//     await nextTick()
+  it('emits update:modelValue when closing', async () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+      },
+    })
 
-//     // Simulate form input
-//     wrapper.find('#myDeck').setValue(1)
-//     wrapper.find('#opponentDeck').setValue(2)
-//     wrapper.find('#gameMode').setValue('ranked')
-//     wrapper.find('#result').setValue('win')
-//     wrapper.find('#rateValue').setValue(100)
-//     wrapper.find('#dcValue').setValue(50)
+    // closeDialog を直接呼び出す
+    ;(wrapper.vm as any).closeDialog()
+    
+    expect(wrapper.emitted()['update:modelValue']).toBeTruthy()
+    expect(wrapper.emitted()['update:modelValue'][0]).toEqual([false])
+  })
 
-//     // @ts-ignore
-//     deckStore.myDecks = [{ id: 1, name: 'My Deck', is_opponent: false, created_at: '' }]
-//     // @ts-ignore
-//     deckStore.opponentDecks = [{ id: 2, name: 'Opponent Deck', is_opponent: true, created_at: '' }]
+  it('displays correct title for new duel', () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        duel: null,
+      },
+    })
 
-//     await wrapper.find('form').trigger('submit')
+    expect(wrapper.text()).toContain('新規対戦記録')
+  })
 
-//     expect(deckStore.createDuel).toHaveBeenCalledWith({
-//       my_deck_id: 1,
-//       opponent_deck_id: 2,
-//       game_mode: 'ranked',
-//       result: 'win',
-//       rate_value: 100,
-//       dc_value: 50,
-//     })
-//   })
+  it('displays correct title for editing duel', () => {
+    const mockDuel = {
+      id: 1,
+      deck_id: 1,
+      opponentDeck_id: 2,
+      result: true,
+      game_mode: 'RANK' as const,
+      rank: 18,
+      coin: true,
+      first_or_second: true,
+      played_date: '2023-01-01T12:00:00Z',
+      notes: 'Test',
+      create_date: '2023-01-01T12:00:00Z',
+      update_date: '2023-01-01T12:00:00Z',
+      user_id: 1,
+    }
 
-//   it('calls updateDuel when saving an existing duel', async () => {
-//     const existingDuel = {
-//       id: 1,
-//       my_deck_id: 1,
-//       opponent_deck_id: 2,
-//       game_mode: 'ranked',
-//       result: 'win',
-//       rate_value: 100,
-//       dc_value: 50,
-//       created_at: ''
-//     }
-//     const wrapper = mount(DuelFormDialog, {
-//       global: {
-//         plugins: [vuetify],
-//       },
-//       props: {
-//         modelValue: true,
-//         duel: existingDuel,
-//       },
-//     })
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        duel: mockDuel,
+      },
+    })
 
-//     await nextTick()
+    expect(wrapper.text()).toContain('対戦記録を編集')
+  })
 
-//     // Simulate form input change
-//     wrapper.find('#rateValue').setValue(150)
+  it('has responsive tab styling', () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+      },
+    })
 
-//     // @ts-ignore
-//     deckStore.myDecks = [{ id: 1, name: 'My Deck', is_opponent: false, created_at: '' }]
-//     // @ts-ignore
-//     deckStore.opponentDecks = [{ id: 2, name: 'Opponent Deck', is_opponent: true, created_at: '' }]
-
-//     await wrapper.find('form').trigger('submit')
-
-//     expect(deckStore.updateDuel).toHaveBeenCalledWith(existingDuel.id, {
-//       my_deck_id: 1,
-//       opponent_deck_id: 2,
-//       game_mode: 'ranked',
-//       result: 'win',
-//       rate_value: 150,
-//       dc_value: 50,
-//     })
-//   })
-
-//   it('emits update:modelValue(false) on close', async () => {
-//     const wrapper = mount(DuelFormDialog, {
-//       global: {
-//         plugins: [vuetify],
-//       },
-//       props: {
-//         modelValue: true,
-//       },
-//     })
-
-//     await nextTick()
-
-//     await wrapper.find('.v-card-actions button').trigger('click') // Click the close button
-
-//     expect(wrapper.emitted()['update:modelValue'][0]).toEqual([false])
-//   })
-// })
+    // mode-tabs-dialog クラスが存在することを確認
+    expect(wrapper.find('.mode-tabs-dialog').exists()).toBe(true)
+  })
+})

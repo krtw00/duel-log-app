@@ -18,41 +18,42 @@
 
     <!-- メインコンテンツ -->
     <v-main class="main-content">
-      <v-container fluid class="pa-6">
+      <v-container fluid class="pa-6 pa-sm-6 pa-xs-3">
         <!-- ゲームモード切り替えタブ -->
         <v-card class="mode-tab-card mb-4">
           <v-tabs
             v-model="currentMode"
             color="primary"
             align-tabs="center"
-            height="64"
+            show-arrows
             @update:model-value="handleModeChange"
+            class="mode-tabs"
           >
             <v-tab value="RANK" class="custom-tab">
-              <v-icon start>mdi-crown</v-icon>
-              ランク
-              <v-chip class="ml-2" size="small" color="primary">
+              <v-icon :start="$vuetify.display.smAndUp">mdi-crown</v-icon>
+              <span class="d-none d-sm-inline">ランク</span>
+              <v-chip class="ml-1 ml-sm-2" size="small" color="primary">
                 {{ rankDuels.length }}
               </v-chip>
             </v-tab>
             <v-tab value="RATE" class="custom-tab">
-              <v-icon start>mdi-chart-line</v-icon>
-              レート
-              <v-chip class="ml-2" size="small" color="info">
+              <v-icon :start="$vuetify.display.smAndUp">mdi-chart-line</v-icon>
+              <span class="d-none d-sm-inline">レート</span>
+              <v-chip class="ml-1 ml-sm-2" size="small" color="info">
                 {{ rateDuels.length }}
               </v-chip>
             </v-tab>
             <v-tab value="EVENT" class="custom-tab">
-              <v-icon start>mdi-calendar-star</v-icon>
-              イベント
-              <v-chip class="ml-2" size="small" color="secondary">
+              <v-icon :start="$vuetify.display.smAndUp">mdi-calendar-star</v-icon>
+              <span class="d-none d-sm-inline">イベント</span>
+              <v-chip class="ml-1 ml-sm-2" size="small" color="secondary">
                 {{ eventDuels.length }}
               </v-chip>
             </v-tab>
             <v-tab value="DC" class="custom-tab">
-              <v-icon start>mdi-trophy-variant</v-icon>
-              DC
-              <v-chip class="ml-2" size="small" color="warning">
+              <v-icon :start="$vuetify.display.smAndUp">mdi-trophy-variant</v-icon>
+              <span class="d-none d-sm-inline">DC</span>
+              <v-chip class="ml-1 ml-sm-2" size="small" color="warning">
                 {{ dcDuels.length }}
               </v-chip>
             </v-tab>
@@ -87,7 +88,7 @@
 
         <!-- 統計カード -->
         <v-row class="mb-4">
-          <v-col cols="12" sm="4" md="2">
+          <v-col cols="6" sm="4" md="2">
             <stat-card
               title="総試合数"
               :value="currentStats.total_duels"
@@ -95,23 +96,7 @@
               color="primary"
             />
           </v-col>
-          <v-col cols="12" sm="4" md="2">
-            <stat-card
-              title="コイン勝率"
-              :value="`${(currentStats.coin_win_rate * 100).toFixed(1)}%`"
-              icon="mdi-poker-chip"
-              color="yellow"
-            />
-          </v-col>
-          <v-col cols="12" sm="4" md="2">
-            <stat-card
-              title="先行率"
-              :value="`${(currentStats.go_first_rate * 100).toFixed(1)}%`"
-              icon="mdi-arrow-up-bold-hexagon-outline"
-              color="teal"
-            />
-          </v-col>
-          <v-col cols="12" sm="4" md="2">
+          <v-col cols="6" sm="4" md="2">
             <stat-card
               title="勝率"
               :value="`${(currentStats.win_rate * 100).toFixed(1)}%`"
@@ -119,7 +104,7 @@
               color="success"
             />
           </v-col>
-          <v-col cols="12" sm="4" md="2">
+          <v-col cols="6" sm="4" md="2">
             <stat-card
               title="先攻勝率"
               :value="`${(currentStats.first_turn_win_rate * 100).toFixed(1)}%`"
@@ -127,7 +112,7 @@
               color="warning"
             />
           </v-col>
-          <v-col cols="12" sm="4" md="2">
+          <v-col cols="6" sm="4" md="2">
             <stat-card
               title="後攻勝率"
               :value="`${(currentStats.second_turn_win_rate * 100).toFixed(1)}%`"
@@ -135,30 +120,92 @@
               color="secondary"
             />
           </v-col>
+          <v-col cols="6" sm="4" md="2">
+            <stat-card
+              title="コイン勝率"
+              :value="`${(currentStats.coin_win_rate * 100).toFixed(1)}%`"
+              icon="mdi-poker-chip"
+              color="yellow"
+            />
+          </v-col>
+          <v-col cols="6" sm="4" md="2">
+            <stat-card
+              title="先行率"
+              :value="`${(currentStats.go_first_rate * 100).toFixed(1)}%`"
+              icon="mdi-arrow-up-bold-hexagon-outline"
+              color="teal"
+            />
+          </v-col>
         </v-row>
 
         <!-- デュエルテーブル -->
         <v-card class="duel-card">
-          <v-card-title class="d-flex align-center pa-4">
-            <v-icon class="mr-2" color="primary">mdi-table</v-icon>
-            <span class="text-h6">対戦履歴</span>
-            <v-spacer />
-            <v-btn
-              color="secondary"
-              prepend-icon="mdi-download"
-              @click="exportCSV"
-              class="mr-2"
-            >
-              CSVエクスポート
-            </v-btn>
-            <v-btn
-              color="success"
-              prepend-icon="mdi-upload"
-              @click="triggerFileInput"
-              class="mr-2"
-            >
-              CSVインポート
-            </v-btn>
+          <v-card-title class="pa-4">
+            <div class="d-flex align-center mb-3">
+              <v-icon class="mr-2" color="primary">mdi-table</v-icon>
+              <span class="text-h6">対戦履歴</span>
+            </div>
+            
+            <!-- スマホ用: 縦並びボタン -->
+            <div class="d-flex d-sm-none flex-column ga-2">
+              <v-btn
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="openDuelDialog"
+                block
+                size="large"
+              >
+                対戦記録を追加
+              </v-btn>
+              <div class="d-flex ga-2">
+                <v-btn
+                  color="secondary"
+                  prepend-icon="mdi-download"
+                  @click="exportCSV"
+                  size="small"
+                  class="flex-grow-1"
+                >
+                  エクスポート
+                </v-btn>
+                <v-btn
+                  color="success"
+                  prepend-icon="mdi-upload"
+                  @click="triggerFileInput"
+                  size="small"
+                  class="flex-grow-1"
+                >
+                  インポート
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- PC用: 横並びボタン -->
+            <div class="d-none d-sm-flex align-center ga-2">
+              <v-spacer />
+              <v-btn
+                color="secondary"
+                prepend-icon="mdi-download"
+                @click="exportCSV"
+              >
+                CSVエクスポート
+              </v-btn>
+              <v-btn
+                color="success"
+                prepend-icon="mdi-upload"
+                @click="triggerFileInput"
+              >
+                CSVインポート
+              </v-btn>
+              <v-btn
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="openDuelDialog"
+                class="add-btn"
+              >
+                対戦記録を追加
+              </v-btn>
+            </div>
+            
             <input
               type="file"
               ref="fileInput"
@@ -166,14 +213,6 @@
               accept=".csv"
               style="display: none"
             />
-            <v-btn
-              color="primary"
-              prepend-icon="mdi-plus"
-              @click="openDuelDialog"
-              class="add-btn"
-            >
-              対戦記録を追加
-            </v-btn>
           </v-card-title>
 
           <v-divider />
@@ -466,12 +505,28 @@ onMounted(() => {
 }
 
 .custom-tab {
-  font-size: 1rem; // Adjust font size as needed
-  padding: 0 24px; // Adjust padding as needed
+  font-size: 1rem;
+  padding: 0 24px;
   transition: background-color 0.3s ease;
+  min-width: auto;
 
   &:hover {
     background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+// スマホ対応
+@media (max-width: 599px) {
+  .custom-tab {
+    padding: 0 8px;
+    font-size: 0.875rem;
+    min-width: 60px;
+  }
+  
+  .mode-tabs {
+    :deep(.v-slide-group__content) {
+      justify-content: space-between;
+    }
   }
 }
 </style>

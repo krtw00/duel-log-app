@@ -7,9 +7,9 @@
       @click="$emit('toggle-drawer')"
     />
 
-    <v-app-bar-title class="ml-4">
-      <span class="text-primary font-weight-black">DUEL</span>
-      <span class="text-secondary font-weight-black">LOG</span>
+    <v-app-bar-title class="ml-4 ml-sm-4 ml-xs-2">
+      <span class="text-primary font-weight-black app-title">DUEL</span>
+      <span class="text-secondary font-weight-black app-title">LOG</span>
     </v-app-bar-title>
 
     <v-spacer />
@@ -30,13 +30,14 @@
       <template v-slot:activator="{ props }">
         <v-chip
           v-bind="props"
-          class="mr-4"
+          class="mr-2 mr-sm-4"
           prepend-icon="mdi-account-circle"
           :color="authStore.isStreamerModeEnabled ? 'purple' : 'primary'"
           variant="tonal"
+          size="small"
         >
           <v-icon v-if="authStore.isStreamerModeEnabled" size="small" class="mr-1">mdi-video</v-icon>
-          {{ authStore.user.username }}
+          <span class="d-none d-sm-inline">{{ authStore.user.username }}</span>
         </v-chip>
       </template>
 
@@ -122,5 +123,18 @@ const displayEmail = computed(() => {
   0% { opacity: 0.5; }
   50% { opacity: 1; }
   100% { opacity: 0.5; }
+}
+
+// スマホ対応
+@media (max-width: 599px) {
+  .app-bar {
+    .app-title {
+      font-size: 1.25rem !important;
+    }
+    
+    .v-btn {
+      font-size: 14px !important;
+    }
+  }
 }
 </style>
