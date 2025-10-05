@@ -176,6 +176,15 @@
                 >
                   インポート
                 </v-btn>
+                <v-btn
+                  color="info"
+                  prepend-icon="mdi-share-variant"
+                  @click="shareDialogOpened = true"
+                  size="small"
+                  class="flex-grow-1"
+                >
+                  共有
+                </v-btn>
               </div>
             </div>
 
@@ -195,6 +204,13 @@
                 @click="triggerFileInput"
               >
                 CSVインポート
+              </v-btn>
+              <v-btn
+                color="info"
+                prepend-icon="mdi-share-variant"
+                @click="shareDialogOpened = true"
+              >
+                共有リンクを生成
               </v-btn>
               <v-btn
                 color="primary"
@@ -235,6 +251,14 @@
       :default-game-mode="currentMode"
       @saved="handleSaved"
     />
+
+    <!-- 共有リンク生成ダイアログ -->
+    <share-stats-dialog
+      v-model="shareDialogOpened"
+      :initial-year="selectedYear"
+      :initial-month="selectedMonth"
+      :initial-game-mode="currentMode"
+    />
   </v-app>
 </template>
 
@@ -246,6 +270,7 @@ import StatCard from '../components/duel/StatCard.vue'
 import DuelTable from '../components/duel/DuelTable.vue'
 import DuelFormDialog from '../components/duel/DuelFormDialog.vue'
 import AppBar from '../components/layout/AppBar.vue'
+import ShareStatsDialog from '../components/common/ShareStatsDialog.vue' // Import the new component
 import { useNotificationStore } from '../stores/notification'
 
 const drawer = ref(false)
@@ -263,6 +288,7 @@ const dialogOpen = ref(false)
 const selectedDuel = ref<Duel | null>(null)
 const decks = ref<Deck[]>([])
 const currentMode = ref<GameMode>('RANK')
+const shareDialogOpened = ref(false) // New ref for ShareStatsDialog
 
 // 年月選択関連
 const selectedYear = ref(new Date().getFullYear())
