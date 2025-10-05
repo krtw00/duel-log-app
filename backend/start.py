@@ -28,6 +28,27 @@ def wait_for_db(max_attempts=60):
     return False
 
 
+def fix_alembic_version_if_needed():
+    """存在しないリビジョンエラーの場合、alembic_versionをリセット"""
+    try:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return
+        
+        # psycopg3用に変換
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+        with psycopg.connect(database_url) as conn:
+            with conn.cursor() as cur:
+                # alembic_versionテーブルをクリア
+                cur.execute("DELETE FROM alembic_version")
+                conn.commit()
+                print("🔧 Cleared alembic_version table")
+    except Exception as e:
+        print(f"⚠️ Could not fix alembic_version: {e}")
+
+
 def run_migrations():
     """Alembicマイグレーションを実行"""
     print("🔄 Running Alembic migrations...")
@@ -44,6 +65,28 @@ def run_migrations():
     except subprocess.CalledProcessError as e:
         print("❌ Migration failed!")
         print(e.stderr)
+        
+        # "Can't locate revision" エラーの場合、リセットして再試行
+        if "Can't locate revision" in e.stderr:
+            print("🔧 Attempting to fix alembic version conflict...")
+            fix_alembic_version_if_needed()
+            
+            # 再試行
+            try:
+                result = subprocess.run(
+                    ["alembic", "upgrade", "head"],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                print(result.stdout)
+                print("✅ Migrations completed successfully after fix!")
+                return True
+            except subprocess.CalledProcessError as e2:
+                print("❌ Migration still failed after fix!")
+                print(e2.stderr)
+                return False
+        
         return False
 
 
