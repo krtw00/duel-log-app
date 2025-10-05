@@ -16,20 +16,20 @@ const vuetify = createVuetify({
 
 vi.mock('@/services/api', () => ({
   api: {
-    get: vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)),
-    post: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)),
-    put: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)),
-    delete: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)),
+    get: vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any,
+    post: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any,
+    put: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any,
+    delete: vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any,
   },
 }))
 
 describe('DecksView.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    api.get = vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
-    api.post = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
-    api.put = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
-    api.delete = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
+    api.get = vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any
+    api.post = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any
+    api.put = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any
+    api.delete = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any
   })
 
   it('renders correctly and fetches decks on mount', async () => {
@@ -82,7 +82,7 @@ describe('DecksView.vue', () => {
 
   it('opens deck dialog in edit mode', async () => {
     const mockDeck = { id: 1, name: 'Test Deck', is_opponent: false, createdat: '2023-01-01T00:00:00Z' }
-    api.get = vi.fn(() => Promise.resolve({ data: [mockDeck], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
+    api.get = vi.fn(() => Promise.resolve({ data: [mockDeck], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any
 
     const wrapper = mount(DecksView, {
       global: {
@@ -130,7 +130,7 @@ describe('DecksView.vue', () => {
 
   it('calls API to update a deck and shows success notification', async () => {
     const mockDeck = { id: 1, name: 'Old Deck', is_opponent: false, createdat: '2023-01-01T00:00:00Z' }
-    api.get = vi.fn(() => Promise.resolve({ data: [mockDeck], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
+    api.get = vi.fn(() => Promise.resolve({ data: [mockDeck], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>)) as any
 
     const pinia = createTestingPinia({ createSpy: vi.fn })
     const notificationStore = useNotificationStore(pinia)
