@@ -67,43 +67,41 @@ def seed_data(db: Session):
 
         logger.info(f"{len(my_decks)} own decks and {len(opponent_decks)} opponent decks created.")
 
-        # --- 3. ダミーデュエルの作成 (カレンダー月基準で300戦/月) ---
-        logger.info("Creating dummy duels based on calendar months...")
+        # --- 3. ダミーデュエルの作成 (各モード300戦ずつ) ---
+        logger.info("Creating dummy duels: 300 for each game mode...")
         total_created_count = 0
         now = datetime.now()
+        game_modes = ['RANK', 'RATE', 'EVENT', 'DC']
 
-        for month_index in range(3):
-            # --- 期間の計算 ---
-            first_day_of_current_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            target_month_start = first_day_of_current_month - timedelta(days=sum( (first_day_of_current_month - timedelta(days=d)).day == 1 for d in range(1, 32 * month_index + 1) ) * 30.4)
-            if month_index > 0:
-                temp_date = first_day_of_current_month
-                for _ in range(month_index):
-                    last_day_of_prev_month = temp_date - timedelta(days=1)
-                    temp_date = last_day_of_prev_month.replace(day=1)
-                start_date_month = temp_date
-            else:
-                start_date_month = first_day_of_current_month
-
-            if start_date_month.month == 12:
-                end_date_month = start_date_month.replace(year=start_date_month.year + 1, month=1, day=1) - timedelta(seconds=1)
-            else:
-                end_date_month = start_date_month.replace(month=start_date_month.month + 1, day=1) - timedelta(seconds=1)
-
-            if month_index == 0:
-                end_date_month = now
-
-            logger.info(f"  Creating 300 duels for period: {start_date_month.strftime('%Y-%m-%d')} to {end_date_month.strftime('%Y-%m-%d')}")
-
-            game_modes = ['RANK', 'RATE', 'EVENT', 'DC']
-            duels_per_month = 300
-            duels_per_mode = duels_per_month // len(game_modes)
-
+        for mode in game_modes:
+            logger.info(f"  Creating 300 duels for '{mode}' mode over the last 3 months...")
+            
             current_rank = random.randint(10, 20)
             current_rate = random.randint(2000, 3000)
 
-            for mode in game_modes:
-                for _ in range(duels_per_mode):
+            # 300戦を3ヶ月に分散 (1ヶ月あたり100戦)
+            duels_per_month_per_mode = 300
+            for month_index in range(3):
+                # --- 期間の計算 ---
+                first_day_of_current_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                if month_index > 0:
+                    temp_date = first_day_of_current_month
+                    for _ in range(month_index):
+                        last_day_of_prev_month = temp_date - timedelta(days=1)
+                        temp_date = last_day_of_prev_month.replace(day=1)
+                    start_date_month = temp_date
+                else:
+                    start_date_month = first_day_of_current_month
+
+                if start_date_month.month == 12:
+                    end_date_month = start_date_month.replace(year=start_date_month.year + 1, month=1, day=1) - timedelta(seconds=1)
+                else:
+                    end_date_month = start_date_month.replace(month=start_date_month.month + 1, day=1) - timedelta(seconds=1)
+
+                if month_index == 0:
+                    end_date_month = now
+
+                for _ in range(duels_per_month_per_mode):
                     my_deck = random.choice(my_decks)
                     opponent_deck = random.choice(opponent_decks)
                     result = random.choice([True, False])
@@ -123,19 +121,16 @@ def seed_data(db: Session):
                     }
 
                     if mode == 'RANK':
-                        if result: current_rank += random.choice([0, 1])
-                        else: current_rank -= random.choice([0, 1])
-                        current_rank = max(1, min(32, current_rank))
-                        duel_data['rank'] = current_rank
+                        duel_data['rank'] = 300
                     
                     elif mode == 'RATE':
-                        if result: current_rate += random.randint(10, 50)
-                        else: current_rate -= random.randint(10, 50)
-                        current_rate = max(1000, current_rate)
-                        duel_data['rate_value'] = current_rate
+                        duel_data['rate_value'] = 300
+
+                    elif mode == 'EVENT':
+                        duel_data['notes'] = "イベント300"
 
                     elif mode == 'DC':
-                        duel_data['dc_value'] = random.randint(1000, 20000)
+                        duel_data['dc_value'] = 300
 
                     duel_in = DuelCreate(**duel_data)
                     duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)
