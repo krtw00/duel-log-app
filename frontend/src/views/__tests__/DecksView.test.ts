@@ -24,13 +24,7 @@ vi.mock('@/services/api', () => ({
 }))
 
 describe('DecksView.vue', () => {
-  let notificationStore: ReturnType<typeof useNotificationStore>
-
   beforeEach(() => {
-    createTestingPinia({
-      createSpy: vi.fn,
-    })
-    notificationStore = useNotificationStore()
     vi.clearAllMocks()
     api.get = vi.fn(() => Promise.resolve({ data: [], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
     api.post = vi.fn(() => Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
@@ -111,16 +105,19 @@ describe('DecksView.vue', () => {
   })
 
   it('calls API to create a deck and shows success notification', async () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn })
+    const notificationStore = useNotificationStore(pinia)
+    
     const wrapper = mount(DecksView, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
         },
       },
     })
 
-    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }) }
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }), resetValidation: vi.fn() }
     ;(wrapper.vm as any).deckName = 'New Deck'
     ;(wrapper.vm as any).isOpponentDeck = false
 
@@ -135,9 +132,12 @@ describe('DecksView.vue', () => {
     const mockDeck = { id: 1, name: 'Old Deck', is_opponent: false, createdat: '2023-01-01T00:00:00Z' }
     api.get = vi.fn(() => Promise.resolve({ data: [mockDeck], status: 200, statusText: 'OK', headers: {}, config: {} as AxiosRequestConfig, request: {} } as AxiosResponse<any, any, any>))
 
+    const pinia = createTestingPinia({ createSpy: vi.fn })
+    const notificationStore = useNotificationStore(pinia)
+    
     const wrapper = mount(DecksView, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
         },
@@ -147,7 +147,7 @@ describe('DecksView.vue', () => {
     await (wrapper.vm as any).$nextTick() // Wait for fetchDecks
     await (wrapper.vm as any).$nextTick() // Wait for rendering
 
-    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }) }
+    ;(wrapper.vm as any).formRef = { validate: () => Promise.resolve({ valid: true }), resetValidation: vi.fn() }
     ;(wrapper.vm as any).isEdit = true
     ;(wrapper.vm as any).selectedDeckId = mockDeck.id
     ;(wrapper.vm as any).deckName = 'Updated Deck'
@@ -162,9 +162,13 @@ describe('DecksView.vue', () => {
 
   it('calls API to delete a deck and shows success notification', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
+    
+    const pinia = createTestingPinia({ createSpy: vi.fn })
+    const notificationStore = useNotificationStore(pinia)
+    
     const wrapper = mount(DecksView, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
         },

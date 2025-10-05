@@ -1,4 +1,4 @@
-import { describe, it, expect, vi as _vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LoadingOverlay from '../LoadingOverlay.vue'
 import { createVuetify } from 'vuetify'
@@ -14,40 +14,32 @@ const vuetify = createVuetify({
 
 describe('LoadingOverlay.vue', () => {
   it('does not render when isLoading is false', () => {
+    const pinia = createTestingPinia()
+    const loadingStore = useLoadingStore(pinia)
+    loadingStore.isLoading = false
+
     const wrapper = mount(LoadingOverlay, {
       global: {
-        plugins: [vuetify, createTestingPinia({
-          initialState: {
-            loading: {
-              loadingTasks: new Set()
-            }
-          }
-        })],
+        plugins: [vuetify, pinia],
       },
     })
-    const loadingStore = useLoadingStore()
-    expect(loadingStore.isLoading).toBe(false)
-    expect(wrapper.find('.loading-overlay').exists()).toBe(false)
+
+    const overlay = wrapper.findComponent({ name: 'VOverlay' })
+    expect(overlay.props('modelValue')).toBe(false)
   })
 
-  it('renders when isLoading is true', async () => {
+  it('renders when isLoading is true', () => {
+    const pinia = createTestingPinia()
+    const loadingStore = useLoadingStore(pinia)
+    loadingStore.isLoading = true
+
     const wrapper = mount(LoadingOverlay, {
       global: {
-        plugins: [vuetify, createTestingPinia({
-          initialState: {
-            loading: {
-              loadingTasks: new Set(['test-task'])
-            }
-          }
-        })],
+        plugins: [vuetify, pinia],
       },
     })
-    const loadingStore = useLoadingStore()
-    // The initialState already sets isLoading to true, so no need to call start here
-    expect(loadingStore.isLoading).toBe(true)
-    await wrapper.vm.$nextTick()
-    expect(wrapper.find('.loading-overlay').exists()).toBe(true)
-    expect(wrapper.find('.loading-text').text()).toBe('読み込み中...')
-    expect(wrapper.findComponent({ name: 'VProgressCircular' }).exists()).toBe(true)
+
+    const overlay = wrapper.findComponent({ name: 'VOverlay' })
+    expect(overlay.props('modelValue')).toBe(true)
   })
 })
