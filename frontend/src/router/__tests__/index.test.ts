@@ -5,13 +5,13 @@ import { useAuthStore } from '@/stores/auth'
 import { createTestingPinia } from '@pinia/testing'
 
 // Mock the auth store
-vi.mock('@/stores/auth', () => ({
-  useAuthStore: vi.fn(() => ({
-    fetchUser: vi.fn(() => Promise.resolve()),
-    logout: vi.fn(),
-    $patch: vi.fn(), // Add $patch to the mock
-  })),
-}))
+// vi.mock('@/stores/auth', () => ({
+//   useAuthStore: vi.fn(() => ({
+//     fetchUser: vi.fn(() => Promise.resolve()),
+//     logout: vi.fn(),
+//     $patch: vi.fn(), // Add $patch to the mock
+//   })),
+// }))
 
 describe('Router Navigation Guards', () => {
   let router: Router

@@ -6,6 +6,7 @@
     class="duel-table"
     hover
     density="comfortable"
+    mobile-breakpoint="sm"
   >
     <!-- 勝敗カラム -->
     <template #item.result="{ item }">
@@ -149,11 +150,11 @@ defineEmits<{
 
 const headers = [
   { title: '使用デッキ', key: 'deck', sortable: false },
-  { title: 'コイン', key: 'coin', sortable: false, width: 100 },
-  { title: '先攻/後攻', key: 'first_or_second', sortable: false, width: 120 },
   { title: '相手デッキ', key: 'opponentdeck', sortable: false },
   { title: '勝敗', key: 'result', sortable: true, width: 100 },
-  { title: 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120 },
+  { title: 'コイン', key: 'coin', sortable: false, width: 100, class: 'hidden-xs' },
+  { title: '先攻/後攻', key: 'first_or_second', sortable: false, width: 120, class: 'hidden-xs' },
+  { title: 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120, class: 'hidden-xs' },
   { title: '備考', key: 'notes', sortable: false, width: 200, class: 'hidden-sm-and-down' },
   { title: 'プレイ日時', key: 'played_date', sortable: true, class: 'hidden-sm-and-down' },
   { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' }
@@ -195,6 +196,36 @@ const formatDate = (dateString: string) => {
 
   .v-data-table__tr:hover {
     background: rgba(0, 217, 255, 0.05) !important;
+  }
+}
+
+// スマホ対応
+@media (max-width: 599px) {
+  .duel-table {
+    .v-data-table__th {
+      font-size: 9px !important;
+      padding: 0 8px !important;
+    }
+    
+    .v-data-table__td {
+      font-size: 14px !important;
+      padding: 8px 4px !important;
+      
+      .v-chip {
+        font-size: 12px !important;
+        height: 24px !important;
+        padding: 0 8px !important;
+      }
+      
+      .v-icon {
+        font-size: 18px !important;
+      }
+      
+      .v-btn {
+        width: 32px !important;
+        height: 32px !important;
+      }
+    }
   }
 }
 </style>
