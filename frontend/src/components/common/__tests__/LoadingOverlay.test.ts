@@ -16,7 +16,7 @@ describe('LoadingOverlay.vue', () => {
   it('does not render when isLoading is false', () => {
     const pinia = createTestingPinia()
     const loadingStore = useLoadingStore(pinia)
-    loadingStore.isLoading = false
+    loadingStore.stopAll() // Ensure no tasks are running
 
     const wrapper = mount(LoadingOverlay, {
       global: {
@@ -31,7 +31,7 @@ describe('LoadingOverlay.vue', () => {
   it('renders when isLoading is true', () => {
     const pinia = createTestingPinia()
     const loadingStore = useLoadingStore(pinia)
-    loadingStore.isLoading = true
+    loadingStore.start() // Start a loading task
 
     const wrapper = mount(LoadingOverlay, {
       global: {
