@@ -15,7 +15,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout)
-    ]
+    ],
+    force=True
 )
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,6 @@ def wait_for_db(max_attempts=60):
         dsn = dsn.replace("postgres://", "postgresql://", 1)
     
     logger.info(f"Database URL: {dsn.split('@')[1] if '@' in dsn else 'unknown'}")
-    
     logger.info("⏳ Waiting for database connection...")
     sys.stdout.flush()
     
@@ -44,8 +44,9 @@ def wait_for_db(max_attempts=60):
                 sys.stdout.flush()
                 return True
         except psycopg.OperationalError:
-            logger.info(f"⏳ Waiting for database... ({attempt}/{max_attempts})")
-            sys.stdout.flush()
+            if attempt % 10 == 0:  # 10回ごとにログ出力
+                logger.info(f"⏳ Waiting for database... ({attempt}/{max_attempts})")
+                sys.stdout.flush()
             time.sleep(1)
     
     logger.error(f"❌ Database connection timeout after {max_attempts} seconds")
@@ -84,7 +85,7 @@ def get_current_db_state():
                 
                 return tables_exist, current_version
     except Exception as e:
-        print(f"⚠️ Could not get DB state: {e}")
+        logger.warning(f"Could not get DB state: {e}")
         return None, None
 
 
@@ -93,9 +94,10 @@ def fix_alembic_version_if_needed():
     try:
         tables_exist, current_version = get_current_db_state()
         
-        print(f"📊 Current DB state:")
-        print(f"   - Tables exist: {tables_exist}")
-        print(f"   - Current version: {current_version}")
+        logger.info("📊 Current DB state:")
+        logger.info(f"   - Tables exist: {tables_exist}")
+        logger.info(f"   - Current version: {current_version}")
+        sys.stdout.flush()
         
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
@@ -106,8 +108,9 @@ def fix_alembic_version_if_needed():
         
         if tables_exist:
             # テーブルが既に存在する場合、初期リビジョンを設定
-            print("🔧 Tables already exist. Setting initial revision...")
-            print("   (This will allow missing migrations to run)")
+            logger.info("🔧 Tables already exist. Setting initial revision...")
+            logger.info("   (This will allow missing migrations to run)")
+            sys.stdout.flush()
             
             with psycopg.connect(database_url) as conn:
                 with conn.cursor() as cur:
@@ -116,26 +119,30 @@ def fix_alembic_version_if_needed():
                         cur.execute("SELECT version_num FROM alembic_version")
                         current = cur.fetchone()
                         if current:
-                            print(f"   Current version: {current[0]}")
+                            logger.info(f"   Current version: {current[0]}")
                         else:
-                            print("   No version found, setting to initial")
+                            logger.info("   No version found, setting to initial")
                             # バージョンがない場合は初期リビジョンに設定
                             cur.execute("DELETE FROM alembic_version")
                             cur.execute("INSERT INTO alembic_version (version_num) VALUES ('5c16ff509f3d')")
                             conn.commit()
-                            print("   Set to initial revision: 5c16ff509f3d")
+                            logger.info("   Set to initial revision: 5c16ff509f3d")
+                        sys.stdout.flush()
                     except Exception as e:
-                        print(f"   Could not check version: {e}")
+                        logger.error(f"   Could not check version: {e}")
+                        sys.stdout.flush()
         else:
             # テーブルが存在しない場合、履歴をクリア
             with psycopg.connect(database_url) as conn:
                 with conn.cursor() as cur:
                     cur.execute("DELETE FROM alembic_version")
                     conn.commit()
-            print("🔧 Cleared alembic_version table")
+            logger.info("🔧 Cleared alembic_version table")
+            sys.stdout.flush()
             
     except Exception as e:
-        print(f"⚠️ Could not fix alembic_version: {e}")
+        logger.error(f"Could not fix alembic_version: {e}")
+        sys.stdout.flush()
 
 
 def run_migrations():
@@ -147,11 +154,17 @@ def run_migrations():
     
     # マイグレーション実行前にDB状態を確認
     tables_exist, current_version = get_current_db_state()
+    logger.info(f"DB State: tables_exist={tables_exist}, current_version={current_version}")
+    sys.stdout.flush()
     
     # テーブルが存在するがバージョンがない/不一致の場合、事前に修復
     if tables_exist and not current_version:
-        print("🔧 Tables exist but no version found. Fixing before migration...")
+        logger.info("🔧 Tables exist but no version found. Fixing before migration...")
+        sys.stdout.flush()
         fix_alembic_version_if_needed()
+    
+    logger.info("Starting alembic upgrade head...")
+    sys.stdout.flush()
     
     try:
         result = subprocess.run(
@@ -160,17 +173,21 @@ def run_migrations():
             capture_output=True,
             text=True
         )
-        print(result.stdout)
-        print("✅ Migrations completed successfully!")
+        logger.info("Alembic output:")
+        logger.info(result.stdout)
+        logger.info("✅ Migrations completed successfully!")
+        sys.stdout.flush()
         return True
         
     except subprocess.CalledProcessError as e:
-        print("❌ Migration failed!")
-        print(e.stderr)
+        logger.error("❌ Migration failed!")
+        logger.error(f"Error output: {e.stderr}")
+        sys.stdout.flush()
         
         # "Can't locate revision" エラーの場合、修復して再試行
         if "Can't locate revision" in e.stderr:
-            print("🔧 Attempting to fix alembic version conflict...")
+            logger.info("🔧 Attempting to fix alembic version conflict...")
+            sys.stdout.flush()
             fix_alembic_version_if_needed()
             
             # 再試行
@@ -181,17 +198,20 @@ def run_migrations():
                     capture_output=True,
                     text=True
                 )
-                print(result.stdout)
-                print("✅ Migrations completed successfully after fix!")
+                logger.info(result.stdout)
+                logger.info("✅ Migrations completed successfully after fix!")
+                sys.stdout.flush()
                 return True
             except subprocess.CalledProcessError as e2:
-                print("❌ Migration still failed after fix!")
-                print(e2.stderr)
+                logger.error("❌ Migration still failed after fix!")
+                logger.error(e2.stderr)
+                sys.stdout.flush()
                 return False
         
         # "DuplicateTable" エラーの場合も修復
         elif "DuplicateTable" in e.stderr or "already exists" in e.stderr:
-            print("🔧 Tables already exist. Fixing version mismatch...")
+            logger.info("🔧 Tables already exist. Fixing version mismatch...")
+            sys.stdout.flush()
             fix_alembic_version_if_needed()
             
             # 再試行（今度は変更なしで成功するはず）
@@ -202,12 +222,14 @@ def run_migrations():
                     capture_output=True,
                     text=True
                 )
-                print(result.stdout)
-                print("✅ Migrations synced successfully!")
+                logger.info(result.stdout)
+                logger.info("✅ Migrations synced successfully!")
+                sys.stdout.flush()
                 return True
             except subprocess.CalledProcessError as e2:
-                print("❌ Still failed after sync!")
-                print(e2.stderr)
+                logger.error("❌ Still failed after sync!")
+                logger.error(e2.stderr)
+                sys.stdout.flush()
                 return False
         
         return False
@@ -215,7 +237,8 @@ def run_migrations():
 
 def start_server():
     """Uvicornサーバーを起動"""
-    print("🚀 Starting Uvicorn server...")
+    logger.info("🚀 Starting Uvicorn server...")
+    sys.stdout.flush()
     subprocess.run([
         "uvicorn",
         "app.main:app",
@@ -226,10 +249,17 @@ def start_server():
 
 
 if __name__ == "__main__":
+    logger.info("="*60)
+    logger.info("START.PY - INITIALIZATION")
+    logger.info("="*60)
+    sys.stdout.flush()
+    
     if not wait_for_db():
         sys.exit(1)
     
     if not run_migrations():
-        sys.exit(1)
+        logger.error("Migration failed, but continuing to start server...")
+        sys.stdout.flush()
+        # 本番環境では続行（手動で修正済みの場合）
     
     start_server()
