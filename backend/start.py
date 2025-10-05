@@ -64,7 +64,7 @@ def get_current_db_state():
 
 
 def fix_alembic_version_if_needed():
-    """存在しないリビジョンエラーの場合、最新リビジョンにスタンプ"""
+    """存在しないリビジョンエラーの場合、初期リビジョンを設定してマイグレーション実行"""
     try:
         tables_exist, current_version = get_current_db_state()
         
@@ -80,26 +80,27 @@ def fix_alembic_version_if_needed():
             database_url = database_url.replace("postgres://", "postgresql://", 1)
         
         if tables_exist:
-            # テーブルが既に存在する場合、最新リビジョンにスタンプ
-            print("🔧 Tables already exist. Stamping with latest revision...")
-            print("   (This will NOT modify any tables or data)")
+            # テーブルが既に存在する場合、初期リビジョンを設定
+            print("🔧 Tables already exist. Setting initial revision...")
+            print("   (This will allow missing migrations to run)")
             
             with psycopg.connect(database_url) as conn:
                 with conn.cursor() as cur:
-                    cur.execute("DELETE FROM alembic_version")
-                    conn.commit()
-            
-            # alembic stampコマンドを実行
-            result = subprocess.run(
-                ["alembic", "stamp", "head"],
-                capture_output=True,
-                text=True
-            )
-            if result.returncode == 0:
-                print("✅ Stamped database with latest revision")
-                print("   All existing data preserved")
-            else:
-                print(f"⚠️ Stamp failed: {result.stderr}")
+                    # 現在のバージョンを確認
+                    try:
+                        cur.execute("SELECT version_num FROM alembic_version")
+                        current = cur.fetchone()
+                        if current:
+                            print(f"   Current version: {current[0]}")
+                        else:
+                            print("   No version found, setting to initial")
+                            # バージョンがない場合は初期リビジョンに設定
+                            cur.execute("DELETE FROM alembic_version")
+                            cur.execute("INSERT INTO alembic_version (version_num) VALUES ('5c16ff509f3d')")
+                            conn.commit()
+                            print("   Set to initial revision: 5c16ff509f3d")
+                    except Exception as e:
+                        print(f"   Could not check version: {e}")
         else:
             # テーブルが存在しない場合、履歴をクリア
             with psycopg.connect(database_url) as conn:
