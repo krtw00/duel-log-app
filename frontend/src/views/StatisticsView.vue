@@ -177,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '../services/api';
 import AppBar from '../components/layout/AppBar.vue';
 
@@ -344,6 +344,8 @@ const fetchStatistics = async () => {
 };
 
 onMounted(fetchStatistics);
+
+watch([selectedYear, selectedMonth], fetchStatistics);
 </script>
 
 <style scoped lang="scss">
