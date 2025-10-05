@@ -2,6 +2,7 @@ export interface User {
   id: number
   username: string
   email: string
+  streamer_mode: boolean
 }
 
 export interface UserCreate {
