@@ -41,6 +41,7 @@ describe('DuelFormDialog.vue', () => {
       props: {
         modelValue: true,
         defaultGameMode: 'RANK',
+        duel: null,
       },
     })
 
@@ -56,6 +57,7 @@ describe('DuelFormDialog.vue', () => {
       props: {
         modelValue: false,
         defaultGameMode: 'RANK',
+        duel: null,
       },
     })
 
@@ -71,6 +73,7 @@ describe('DuelFormDialog.vue', () => {
       props: {
         modelValue: true,
         defaultGameMode: 'RANK',
+        duel: null,
       },
     })
 
@@ -87,6 +90,7 @@ describe('DuelFormDialog.vue', () => {
       props: {
         modelValue: true,
         defaultGameMode: 'RANK',
+        duel: null,
       },
     })
 
@@ -104,6 +108,7 @@ describe('DuelFormDialog.vue', () => {
       props: {
         modelValue: true,
         defaultGameMode: 'RANK',
+        duel: null,
       },
     })
 
@@ -168,6 +173,7 @@ describe('DuelFormDialog.vue', () => {
       props: {
         modelValue: true,
         defaultGameMode: 'RANK',
+        duel: null,
       },
     })
 

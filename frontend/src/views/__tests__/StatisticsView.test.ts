@@ -213,13 +213,15 @@ describe('StatisticsView.vue', () => {
     })
 
     await wrapper.vm.$nextTick()
-    vi.clearAllMocks()
+    const initialCallCount = vi.mocked(api.get).mock.calls.length
 
     // 年を変更
     ;(wrapper.vm as any).selectedYear = 2024
     await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
 
-    expect(api.get).toHaveBeenCalled()
+    // API呼び出しが増えたことを確認
+    expect(vi.mocked(api.get).mock.calls.length).toBeGreaterThan(initialCallCount)
   })
 
   it('handles API errors gracefully', async () => {
