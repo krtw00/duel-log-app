@@ -37,3 +37,4 @@ frontend_log.txt
 backend_log.txt
 db_log.txt
 gemini_log.txt
+venv/

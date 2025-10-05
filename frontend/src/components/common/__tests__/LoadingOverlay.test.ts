@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LoadingOverlay from '../LoadingOverlay.vue'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { createTestingPinia } from '@pinia/testing'
+import { setActivePinia, createPinia } from 'pinia'
 import { useLoadingStore } from '@/stores/loading'
 
 const vuetify = createVuetify({
@@ -13,37 +13,37 @@ const vuetify = createVuetify({
 })
 
 describe('LoadingOverlay.vue', () => {
-  it('does not render when isLoading is false', () => {
-    const pinia = createTestingPinia()
-    const loadingStore = useLoadingStore(pinia)
-    
-    // loadingTasksを空に設定
-    loadingStore.loadingTasks.clear()
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
 
+  it('does not render when isLoading is false', () => {
     const wrapper = mount(LoadingOverlay, {
       global: {
-        plugins: [vuetify, pinia],
+        plugins: [vuetify],
       },
     })
 
     const overlay = wrapper.findComponent({ name: 'VOverlay' })
+    expect(overlay.exists()).toBe(true)
     expect(overlay.props('modelValue')).toBe(false)
   })
 
   it('renders when isLoading is true', () => {
-    const pinia = createTestingPinia()
-    const loadingStore = useLoadingStore(pinia)
-    
-    // loadingTasksにタスクを追加してローディング状態にする
-    loadingStore.loadingTasks.add('test-task')
+    const loadingStore = useLoadingStore()
+    loadingStore.start('test-loading')
 
     const wrapper = mount(LoadingOverlay, {
       global: {
-        plugins: [vuetify, pinia],
+        plugins: [vuetify],
       },
     })
 
     const overlay = wrapper.findComponent({ name: 'VOverlay' })
+    expect(overlay.exists()).toBe(true)
     expect(overlay.props('modelValue')).toBe(true)
+
+    // クリーンアップ
+    loadingStore.stop('test-loading')
   })
 })
