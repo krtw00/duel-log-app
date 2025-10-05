@@ -6,31 +6,21 @@ import os
 import sys
 import time
 import subprocess
-import psycopg2
+import psycopg
 
 
 def wait_for_db(max_attempts=60):
     """データベース接続を待機"""
-    host = os.getenv('POSTGRES_HOST', 'db')
-    user = os.getenv('POSTGRES_USER')
-    password = os.getenv('POSTGRES_PASSWORD')
-    database = os.getenv('POSTGRES_DB')
+    dsn = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST', 'db')}/{os.getenv('POSTGRES_DB')}"
     
-    print(f"⏳ Waiting for database at {host}...")
+    print(f"⏳ Waiting for database at {os.getenv('POSTGRES_HOST', 'db')}...")
     
     for attempt in range(1, max_attempts + 1):
         try:
-            conn = psycopg2.connect(
-                host=host,
-                user=user,
-                password=password,
-                database=database,
-                connect_timeout=1
-            )
-            conn.close()
-            print("✅ Database is ready!")
-            return True
-        except psycopg2.OperationalError:
+            with psycopg.connect(dsn, connect_timeout=1) as conn:
+                print("✅ Database is ready!")
+                return True
+        except psycopg.OperationalError:
             print(f"⏳ Waiting for database... ({attempt}/{max_attempts})")
             time.sleep(1)
     
