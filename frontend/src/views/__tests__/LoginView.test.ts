@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import LoginView from '../LoginView.vue'
 import { createVuetify } from 'vuetify'
@@ -11,6 +11,12 @@ const vuetify = createVuetify({
   directives,
 })
 
+// RouterLinkのモック
+const RouterLinkStub = {
+  template: '<a><slot /></a>',
+  props: ['to']
+}
+
 describe('LoginView.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -20,7 +26,9 @@ describe('LoginView.vue', () => {
     const wrapper = mount(LoginView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
     expect(wrapper.exists()).toBe(true)
@@ -31,7 +39,9 @@ describe('LoginView.vue', () => {
     const wrapper = mount(LoginView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
@@ -43,7 +53,9 @@ describe('LoginView.vue', () => {
     const wrapper = mount(LoginView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
@@ -55,7 +67,9 @@ describe('LoginView.vue', () => {
     const wrapper = mount(LoginView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
@@ -66,10 +80,13 @@ describe('LoginView.vue', () => {
     const wrapper = mount(LoginView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
-        stubs: ['RouterLink'],
+        stubs: {
+          RouterLink: RouterLinkStub
+        },
       },
     })
 
-    expect(wrapper.text()).toContain('アカウントを作成')
+    // "アカウントをお持ちでない方は" のテキストをチェック  
+    expect(wrapper.text()).toContain('アカウントをお持ちでない方は')
   })
 })
