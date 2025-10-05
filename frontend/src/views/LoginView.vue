@@ -33,6 +33,10 @@
               color="primary"
               :rules="[rules.required, rules.email]"
               class="mb-2"
+              :class="{ 'streamer-mode-input': localStreamerMode }"
+              :hint="localStreamerMode ? '配信者モードが有効なため、入力内容は非表示になります' : ''"
+              persistent-hint
+              autocomplete="email"
             />
 
             <v-text-field
@@ -61,6 +65,26 @@
               ログイン
             </v-btn>
 
+            <!-- 配信者モード切り替え -->
+            <div class="mb-4">
+              <v-switch
+                v-model="localStreamerMode"
+                color="purple"
+                density="compact"
+                hide-details
+              >
+                <template v-slot:label>
+                  <div class="d-flex align-center">
+                    <v-icon size="small" class="mr-2">mdi-video</v-icon>
+                    <span class="text-caption">配信者モード</span>
+                  </div>
+                </template>
+              </v-switch>
+              <p class="text-caption text-grey ml-8 mt-1">
+                入力内容を非表示にし、再ログイン時にメールアドレスを保持します
+              </p>
+            </div>
+
             <!-- リンク -->
             <div class="text-center">
               <router-link to="/forgot-password" class="text-caption text-grey">パスワードを忘れた場合</router-link>
@@ -78,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
 
@@ -90,6 +114,20 @@ const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
+const localStreamerMode = ref(authStore.localStreamerMode)
+
+// ローカルストレージから最後のメールアドレスを読み込む
+onMounted(() => {
+  const savedEmail = localStorage.getItem('lastEmail')
+  if (savedEmail) {
+    email.value = savedEmail
+  }
+})
+
+// ローカル配信者モードの変更を監視してストアに反映
+watch(localStreamerMode, (newValue) => {
+  authStore.toggleStreamerMode(newValue)
+})
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
@@ -103,6 +141,9 @@ const handleLogin = async () => {
   loading.value = true
 
   try {
+    // ログイン前にメールアドレスをローカルストレージに保存
+    localStorage.setItem('lastEmail', email.value)
+    
     await authStore.login(email.value, password.value)
     notificationStore.success('ログインに成功しました')
   } catch (error: any) {
@@ -251,6 +292,27 @@ const handleLogin = async () => {
   
   &.v-field--focused {
     box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
+  }
+}
+
+// 配信者モード用のスタイル
+.streamer-mode-input {
+  :deep(input) {
+    color: transparent !important;
+    text-shadow: 0 0 8px rgba(181, 54, 255, 0.8);
+    letter-spacing: 0.3em;
+    
+    &::selection {
+      background-color: rgba(181, 54, 255, 0.3);
+      color: transparent;
+    }
+    
+    // プレースホルダーは表示
+    &::placeholder {
+      color: rgba(228, 231, 236, 0.3) !important;
+      text-shadow: none;
+      letter-spacing: normal;
+    }
   }
 }
 </style>
