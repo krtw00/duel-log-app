@@ -18,4 +18,5 @@ class Deck(Base):
     updatedat: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="decks")
-    duels: Mapped[list["Duel"]] = relationship("Duel", back_populates="deck")
+    duels = relationship("Duel", foreign_keys='[Duel.deck_id]', back_populates="deck")
+    opponent_duels = relationship("Duel", foreign_keys='[Duel.opponentDeck_id]', back_populates="opponent_deck")

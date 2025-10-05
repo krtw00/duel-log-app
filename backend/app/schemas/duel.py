@@ -14,7 +14,7 @@ class DuelBase(BaseModel):
     first_or_second: bool = Field(..., description="先攻後政（True: 先攻, False: 後攻）")
     result: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
     game_mode: Literal['RANK', 'RATE', 'EVENT', 'DC'] = Field(default='RANK', description="ゲームモード（RANK/RATE/EVENT/DC）")
-    rank: Optional[int] = Field(None, ge=1, le=32, description="ランク（1-32: ビギナー2～マスター1、RANKモード時のみ）")
+    rank: Optional[int] = Field(None, description="ランク（RANKモード時のみ）")
     rate_value: Optional[int] = Field(None, ge=0, description="レート数値（RATEモード時のみ）")
     dc_value: Optional[int] = Field(None, ge=0, description="DC数値（DCモード時のみ）")
     played_date: datetime = Field(..., description="対戦日時")
