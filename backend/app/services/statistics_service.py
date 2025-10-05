@@ -3,7 +3,7 @@
 統計に関するビジネスロジックを提供
 """
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract, desc
+from sqlalchemy import func, extract, desc, select
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 
@@ -70,7 +70,7 @@ class StatisticsService:
             .limit(limit)
             .subquery()
         )
-        duels_query = db.query(Duel).filter(Duel.id.in_(recent_duels_subquery))
+        duels_query = db.query(Duel).filter(Duel.id.in_(select(recent_duels_subquery.c.id)))
         return self.get_deck_distribution(db, user_id, duels_query)
 
     def get_matchup_chart(self, db: Session, user_id: int, year: Optional[int] = None, month: Optional[int] = None, game_mode: Optional[str] = None) -> List[Dict[str, Any]]:
