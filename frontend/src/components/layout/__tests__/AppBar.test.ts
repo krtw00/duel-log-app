@@ -67,7 +67,7 @@ describe('AppBar.vue', () => {
   })
 
   it('shows user chip and menu when user is authenticated', async () => {
-    authStore.user = { id: 1, username: 'testuser', email: 'test@example.com' }
+    authStore.user = { id: 1, username: 'testuser', email: 'test@example.com', streamer_mode: false }
     const wrapper = mount(AppBar, {
       global: {
         plugins: [vuetify, createTestingPinia()],
@@ -97,7 +97,7 @@ describe('AppBar.vue', () => {
   })
 
   it('calls logout when logout button is clicked', async () => {
-    authStore.user = { id: 1, username: 'testuser', email: 'test@example.com' }
+    authStore.user = { id: 1, username: 'testuser', email: 'test@example.com', streamer_mode: false }
     const wrapper = mount(AppBar, {
       global: {
         plugins: [vuetify, createTestingPinia()],
@@ -122,7 +122,7 @@ describe('AppBar.vue', () => {
   })
 
   it('navigates to profile when profile button is clicked', async () => {
-    authStore.user = { id: 1, username: 'testuser', email: 'test@example.com' }
+    authStore.user = { id: 1, username: 'testuser', email: 'test@example.com', streamer_mode: false }
     const wrapper = mount(AppBar, {
       global: {
         plugins: [vuetify, createTestingPinia()],
