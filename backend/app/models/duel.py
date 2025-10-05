@@ -9,7 +9,7 @@ class Duel(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     deck_id = Column(Integer, ForeignKey("decks.id"), nullable=False)
-    opponentDeck_id = Column(Integer, nullable=False)
+    opponentDeck_id = Column(Integer, ForeignKey("decks.id"), nullable=False)
 
     result = Column(Boolean, nullable=False)
     game_mode = Column(String(10), nullable=False, default='RANK', server_default='RANK')  # RANK, RATE, EVENT, DC
@@ -24,4 +24,5 @@ class Duel(Base):
     update_date = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="duels")
-    deck = relationship("Deck", back_populates="duels")
+    deck = relationship("Deck", foreign_keys=[deck_id], back_populates="duels")
+    opponent_deck = relationship("Deck", foreign_keys=[opponentDeck_id], back_populates="opponent_duels")

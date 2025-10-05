@@ -53,25 +53,82 @@ class StatisticsService:
         self, db: Session, user_id: int, year: int, month: int, game_mode: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """月間の相手デッキ分布を取得"""
-        duels_query = self._build_base_duels_query(db, user_id, game_mode).filter(
+        base_query = self._build_base_duels_query(db, user_id, game_mode).filter(
             extract('year', Duel.played_date) == year,
             extract('month', Duel.played_date) == month,
         )
-        return self.get_deck_distribution(db, user_id, duels_query)
+        
+        # total_duelsのクエリを構築
+        total_query = db.query(func.count(Duel.id)).filter(
+            Duel.user_id == user_id,
+            extract('year', Duel.played_date) == year,
+            extract('month', Duel.played_date) == month
+        )
+        if game_mode:
+            total_query = total_query.filter(Duel.game_mode == game_mode)
+        
+        total_duels = total_query.scalar()
+
+        if total_duels == 0:
+            return []
+
+        deck_counts = (
+            base_query
+            .join(Deck, Duel.opponentDeck_id == Deck.id)
+            .group_by(Deck.name)
+            .with_entities(Deck.name, func.count(Duel.id).label('count'))
+            .order_by(desc('count'))
+            .all()
+        )
+
+        distribution = [
+            {
+                "deck_name": name,
+                "count": count,
+                "percentage": (count / total_duels) * 100 if total_duels > 0 else 0,
+            }
+            for name, count in deck_counts
+        ]
+        return distribution
 
     def get_deck_distribution_recent(
         self, db: Session, user_id: int, limit: int = 30, game_mode: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """直近の相手デッキ分布を取得"""
-        recent_duels_subquery = (
+        # まずサブクエリで直近のデュエルIDを取得
+        recent_duel_ids = (
             self._build_base_duels_query(db, user_id, game_mode)
-            .with_entities(Duel.id)
             .order_by(Duel.played_date.desc())
             .limit(limit)
+            .with_entities(Duel.id)
             .subquery()
         )
-        duels_query = db.query(Duel).filter(Duel.id.in_(select(recent_duels_subquery.c.id)))
-        return self.get_deck_distribution(db, user_id, duels_query)
+        
+        # 直近のデュエル数をカウント
+        total_duels = db.query(func.count()).select_from(recent_duel_ids).scalar()
+
+        if total_duels == 0:
+            return []
+
+        # デッキ分布を計算（joinはlimitの前に適用）
+        deck_counts = (
+            db.query(Deck.name, func.count(Duel.id).label('count'))
+            .join(Duel, Duel.opponentDeck_id == Deck.id)
+            .filter(Duel.id.in_(db.query(recent_duel_ids.c.id)))
+            .group_by(Deck.name)
+            .order_by(desc('count'))
+            .all()
+        )
+
+        distribution = [
+            {
+                "deck_name": name,
+                "count": count,
+                "percentage": (count / total_duels) * 100 if total_duels > 0 else 0,
+            }
+            for name, count in deck_counts
+        ]
+        return distribution
 
     def get_matchup_chart(self, db: Session, user_id: int, year: Optional[int] = None, month: Optional[int] = None, game_mode: Optional[str] = None) -> List[Dict[str, Any]]:
         """デッキ相性表のデータを取得"""
@@ -114,8 +171,9 @@ class StatisticsService:
                 total = results["wins"] + results["losses"]
                 if total > 0:
                     chart_data.append({
-                        "my_deck_name": my_deck_name,
+                        "deck_name": my_deck_name,
                         "opponent_deck_name": opp_deck_name,
+                        "total_duels": total,
                         "wins": results["wins"],
                         "losses": results["losses"],
                         "win_rate": (results["wins"] / total) * 100 if total > 0 else 0
