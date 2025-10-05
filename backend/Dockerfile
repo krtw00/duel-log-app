@@ -2,6 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Set PYTHONPATH to include the current directory, making 'app' discoverable
+ENV PYTHONPATH=/app
+
 # システム依存関係のインストール（PostgreSQLクライアントを含む）
 RUN apt-get update && \
     apt-get install -y gcc libpq-dev postgresql-client && \

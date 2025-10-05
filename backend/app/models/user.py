@@ -29,3 +29,4 @@ class User(Base):
     duels: Mapped[list["Duel"]] = relationship("Duel", back_populates="user", cascade="all, delete-orphan")
     sharedurls: Mapped[list["SharedUrl"]] = relationship("SharedUrl", back_populates="user", cascade="all, delete-orphan")
     password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
+    shared_statistics: Mapped[list["SharedStatistics"]] = relationship("SharedStatistics", back_populates="user", cascade="all, delete-orphan")

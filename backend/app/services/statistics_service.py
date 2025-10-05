@@ -233,6 +233,91 @@ class StatisticsService:
         
         return time_series_data
 
+    def get_overall_stats(self, db: Session, user_id: int, year: int, month: int, game_mode: Optional[str] = None) -> Dict[str, Any]:
+        """指定された年月におけるユーザーの全体的なデュエル統計を取得"""
+        query = db.query(Duel).filter(
+            Duel.user_id == user_id,
+            extract('year', Duel.played_date) == year,
+            extract('month', Duel.played_date) == month,
+        )
+        if game_mode:
+            query = query.filter(Duel.game_mode == game_mode)
+        
+        duels = query.all()
+
+        total_duels = len(duels)
+        if total_duels == 0:
+            return {
+                "total_duels": 0,
+                "win_count": 0,
+                "lose_count": 0,
+                "win_rate": 0,
+                "first_turn_win_rate": 0,
+                "second_turn_win_rate": 0,
+                "coin_win_rate": 0,
+                "go_first_rate": 0,
+            }
+
+        win_count = sum(1 for d in duels if d.result is True)
+        lose_count = total_duels - win_count
+        win_rate = win_count / total_duels if total_duels > 0 else 0
+
+        first_turn_duels = [d for d in duels if d.first_or_second is True]
+        second_turn_duels = [d for d in duels if d.first_or_second is False]
+
+        first_turn_total = len(first_turn_duels)
+        first_turn_wins = sum(1 for d in first_turn_duels if d.result is True)
+        first_turn_win_rate = first_turn_wins / first_turn_total if first_turn_total > 0 else 0
+
+        second_turn_total = len(second_turn_duels)
+        second_turn_wins = sum(1 for d in second_turn_duels if d.result is True)
+        second_turn_win_rate = second_turn_wins / second_turn_total if second_turn_total > 0 else 0
+
+        coin_total = total_duels
+        coin_wins = sum(1 for d in duels if d.coin is True)
+        coin_win_rate = coin_wins / coin_total if coin_total > 0 else 0
+
+        go_first_total = sum(1 for d in duels if d.first_or_second is True)
+        go_first_rate = go_first_total / total_duels if total_duels > 0 else 0
+
+        return {
+            "total_duels": total_duels,
+            "win_count": win_count,
+            "lose_count": lose_count,
+            "win_rate": win_rate,
+            "first_turn_win_rate": first_turn_win_rate,
+            "second_turn_win_rate": second_turn_win_rate,
+            "coin_win_rate": coin_win_rate,
+            "go_first_rate": go_first_rate,
+        }
+
+    def get_duels_by_month(self, db: Session, user_id: int, year: int, month: int) -> List[Duel]:
+        """指定された年月におけるユーザーのデュエルリストを取得"""
+        duels = db.query(Duel).filter(
+            Duel.user_id == user_id,
+            extract('year', Duel.played_date) == year,
+            extract('month', Duel.played_date) == month,
+        ).order_by(Duel.played_date.desc()).all()
+
+        # デッキ情報を結合
+        deck_ids = list(set([d.deck_id for d in duels if d.deck_id] + [d.opponentDeck_id for d in duels if d.opponentDeck_id]))
+        if deck_ids:  # deck_ids が空でない場合のみクエリを実行
+            decks = db.query(Deck).filter(Deck.id.in_(deck_ids)).all()
+            deck_map = {deck.id: deck for deck in decks}
+        else:
+            deck_map = {}
+
+        for duel in duels:
+            # deck と opponent_deck オブジェクトを設定
+            duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
+            duel.opponent_deck = deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+            
+            # deck_name と opponent_deck_name 属性を必ず追加
+            duel.deck_name = duel.deck.name if duel.deck else "不明"
+            duel.opponent_deck_name = duel.opponent_deck.name if duel.opponent_deck else "不明"
+            
+        return duels
+
 
 # シングルトンインスタンス
 statistics_service = StatisticsService()

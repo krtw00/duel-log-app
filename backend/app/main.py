@@ -8,7 +8,7 @@ import os
 import re
 import logging
 
-from app.api.routers import decks, users, duels, auth, me, statistics
+from app.api.routers import decks, users, duels, auth, me, statistics, shared_statistics
 from app.core.config import settings
 from app.core.logging_config import setup_logging
 from app.core.exceptions import AppException
@@ -66,7 +66,9 @@ def is_allowed_origin(origin: str) -> bool:
     Returns:
         許可されている場合True
     """
+    logger.debug(f"Checking origin: {origin}")
     if not origin:
+        logger.debug("Origin is empty.")
         return False
         
     # 明示的に許可されたオリジンリストをチェック
@@ -139,6 +141,7 @@ app.include_router(users.router)
 app.include_router(decks.router)
 app.include_router(duels.router)
 app.include_router(statistics.router)
+app.include_router(shared_statistics.router)
 
 
 @app.get("/", tags=["root"])

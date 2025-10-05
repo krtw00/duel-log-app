@@ -81,6 +81,7 @@ defineProps<{
     text-transform: uppercase;
     letter-spacing: 1px;
     font-size: 20px !important;
+    white-space: nowrap;
   }
 
   &__value {

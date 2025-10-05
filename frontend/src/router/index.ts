@@ -8,6 +8,7 @@ import StatisticsView from '../views/StatisticsView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
+import SharedStatisticsView from '../views/SharedStatisticsView.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -57,6 +58,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'Profile',
     component: ProfileView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/shared-stats/:share_id',
+    name: 'SharedStatistics',
+    component: SharedStatisticsView,
+    meta: { requiresAuth: false }
   },
   {
     path: '/:pathMatch(.*)*',

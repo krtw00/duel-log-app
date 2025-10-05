@@ -10,5 +10,6 @@ from .deck import Deck
 from .duel import Duel
 from .sharedUrl import SharedUrl
 from .password_reset_token import PasswordResetToken
+from .shared_statistics import SharedStatistics
 
-__all__ = ["Base", "User", "Deck", "Duel", "SharedUrl", "PasswordResetToken"]
+__all__ = ["Base", "User", "Deck", "Duel", "SharedUrl", "PasswordResetToken", "SharedStatistics"]

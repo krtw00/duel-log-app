@@ -8,6 +8,7 @@ import time
 import subprocess
 import psycopg
 import logging
+from urllib.parse import urlparse, unquote
 
 # ログ設定（標準出力に確実に出力）
 logging.basicConfig(
@@ -23,30 +24,45 @@ logger = logging.getLogger(__name__)
 
 def wait_for_db(max_attempts=60):
     """データベース接続を待機"""
-    # DATABASE_URLを使用（Render/Neon用）
-    dsn = os.getenv('DATABASE_URL')
-    if not dsn:
+    dsn_url = os.getenv('DATABASE_URL')
+    if not dsn_url:
         # フォールバック：個別の環境変数を使用
-        dsn = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST', 'db')}/{os.getenv('POSTGRES_DB')}"
+        dsn_url = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST', 'db')}/{os.getenv('POSTGRES_DB')}"
     
-    # psycopg3用に変換
-    if dsn.startswith("postgres://"):
-        dsn = dsn.replace("postgres://", "postgresql://", 1)
+    # psycopg3用に変換 (psycopg.connectはpostgresql+psycopg://も解釈できるため、ここでは不要)
+    # if dsn_url.startswith("postgres://"):
+    #     dsn_url = dsn_url.replace("postgres://", "postgresql://", 1)
     
-    logger.info(f"Database URL: {dsn.split('@')[1] if '@' in dsn else 'unknown'}")
+    logger.info(f"Full Database DSN: {dsn_url}")
+    logger.info(f"Database URL: {dsn_url.split('@')[1] if '@' in dsn_url else 'unknown'}")
     logger.info("⏳ Waiting for database connection...")
     sys.stdout.flush()
     
+    # DSN URLをパースしてキーワード引数に変換
+    parsed_url = urlparse(dsn_url)
+    conn_params = {
+        "host": parsed_url.hostname,
+        "port": parsed_url.port,
+        "user": parsed_url.username,
+        "password": unquote(parsed_url.password) if parsed_url.password else None, # URLエンコードされたパスワードをデコード
+        "dbname": parsed_url.path.lstrip("/"),
+    }
+
     for attempt in range(1, max_attempts + 1):
         try:
-            with psycopg.connect(dsn, connect_timeout=1) as conn:
+            # キーワード引数で接続を試みる
+            with psycopg.connect(**conn_params, connect_timeout=1) as conn:
                 logger.info("✅ Database is ready!")
                 sys.stdout.flush()
                 return True
-        except psycopg.OperationalError:
+        except psycopg.OperationalError as e:
             if attempt % 10 == 0:  # 10回ごとにログ出力
-                logger.info(f"⏳ Waiting for database... ({attempt}/{max_attempts})")
+                logger.info(f"⏳ Waiting for database... ({attempt}/{max_attempts}) - Error: {e}")
                 sys.stdout.flush()
+            time.sleep(1)
+        except Exception as e:
+            logger.error(f"❌ Unexpected error during DB connection attempt: {e}")
+            sys.stdout.flush()
             time.sleep(1)
     
     logger.error(f"❌ Database connection timeout after {max_attempts} seconds")

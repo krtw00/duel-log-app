@@ -1,7 +1,7 @@
 """
 デュエルスキーマ
 """
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict, field_validator, computed_field
 from datetime import datetime
 from typing import Optional, Literal
 
