@@ -9,6 +9,7 @@ passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 pydantic-settings==2.0.3
 pydantic[email]==2.5.0
+fastapi-mail==1.4.1
 
 # テスト用
 pytest==7.4.3

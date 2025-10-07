@@ -30,9 +30,23 @@ class Settings(BaseSettings):
         default=[
             "http://localhost:5173",
             "http://127.0.0.1:5173",
+            # "https://your-production-domain.com" # 本番環境のドメイン
         ],
         description="許可するオリジン"
     )
+    
+    # フロントエンドURL
+    FRONTEND_URL: str = Field(default="http://localhost:5173", description="フロントエンドのURL")
+
+    # メール設定 (fastapi-mail)
+    MAIL_USERNAME: str = Field(default="your-email@example.com", description="メールユーザー名")
+    MAIL_PASSWORD: str = Field(default="your-email-password", description="メールパスワード")
+    MAIL_FROM: str = Field(default="your-email@example.com", description="送信元メールアドレス")
+    MAIL_PORT: int = Field(default=587, description="メールサーバーのポート")
+    MAIL_SERVER: str = Field(default="smtp.example.com", description="メールサーバーのホスト")
+    MAIL_STARTTLS: bool = Field(default=True, description="STARTTLSを使用するかどうか")
+    MAIL_SSL_TLS: bool = Field(default=False, description="SSL/TLSを使用するかどうか")
+    MAIL_FROM_NAME: str = Field(default="Duel Log App", description="送信元名")
     
     # ログ設定
     LOG_LEVEL: str = Field(default="INFO", description="ログレベル")

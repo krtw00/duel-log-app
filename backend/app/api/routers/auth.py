@@ -3,6 +3,9 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
+from pydantic import EmailStr
+
 from app.core.security import verify_password, create_access_token, generate_password_reset_token, get_password_hash
 from app.core.config import settings
 from app.schemas.auth import LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
@@ -20,6 +23,21 @@ router = APIRouter(
 
 # ロガー初期化
 logger = logging.getLogger(__name__)
+
+# メール設定
+conf = ConnectionConfig(
+    MAIL_USERNAME=settings.MAIL_USERNAME,
+    MAIL_PASSWORD=settings.MAIL_PASSWORD,
+    MAIL_FROM=settings.MAIL_FROM,
+    MAIL_PORT=settings.MAIL_PORT,
+    MAIL_SERVER=settings.MAIL_SERVER,
+    MAIL_STARTTLS=settings.MAIL_STARTTLS,
+    MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
+    MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True,
+    TEMPLATE_FOLDER='./app/templates/email' # Eメールテンプレートのパス
+)
 
 
 @router.post("/login")
@@ -113,7 +131,7 @@ def logout(response: Response):
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
-def forgot_password(
+async def forgot_password(
     request: ForgotPasswordRequest,
     db: Session = Depends(get_db)
 ):
@@ -143,10 +161,29 @@ def forgot_password(
     db.commit()
     db.refresh(reset_token_entry)
 
-    # TODO: メール送信機能の実装
-    reset_link = f"http://localhost:5173/reset-password/{token}" # フロントエンドのURL
-    logger.info(f"Password reset link for {user.email}: {reset_link}")
-    # send_email(user.email, "パスワード再設定のご案内", f"以下のリンクからパスワードを再設定してください: {reset_link}")
+    # メールを送信
+    reset_link = f"{settings.FRONTEND_URL}/reset-password/{token}"
+    
+    message = MessageSchema(
+        subject="パスワード再設定のご案内",
+        recipients=[user.email], # type: ignore
+        template_body={
+            "username": user.username,
+            "reset_link": reset_link
+        },
+        subtype=MessageType.html
+    )
+
+    try:
+        fm = FastMail(conf)
+        await fm.send_message(message, template_name="password_reset.html")
+        logger.info(f"Password reset email sent to {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send password reset email to {user.email}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="メールの送信に失敗しました。"
+        )
 
     return {"message": "パスワード再設定の案内をメールで送信しました。"}
 
