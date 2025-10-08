@@ -3,8 +3,8 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
-from pydantic import EmailStr
+from jinja2 import Environment, FileSystemLoader
+import resend
 
 from app.core.security import verify_password, create_access_token, generate_password_reset_token, get_password_hash
 from app.core.config import settings
@@ -24,20 +24,8 @@ router = APIRouter(
 # ロガー初期化
 logger = logging.getLogger(__name__)
 
-# メール設定
-conf = ConnectionConfig(
-    MAIL_USERNAME=settings.MAIL_USERNAME,
-    MAIL_PASSWORD=settings.MAIL_PASSWORD,
-    MAIL_FROM=settings.MAIL_FROM,
-    MAIL_PORT=settings.MAIL_PORT,
-    MAIL_SERVER=settings.MAIL_SERVER,
-    MAIL_STARTTLS=settings.MAIL_STARTTLS,
-    MAIL_SSL_TLS=settings.MAIL_SSL_TLS,
-    MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
-    USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True,
-    TEMPLATE_FOLDER='./app/templates/email' # Eメールテンプレートのパス
-)
+# Jinja2テンプレート環境の初期化
+jinja_env = Environment(loader=FileSystemLoader("./app/templates/email"))
 
 
 @router.post("/login")
@@ -136,7 +124,7 @@ async def forgot_password(
     db: Session = Depends(get_db)
 ):
     """
-    パスワード再設定メールを送信する
+    パスワード再設定メールを送信する (Resend APIを使用)
     """
     user = db.query(User).filter(User.email == request.email).first()
     if not user:
@@ -161,28 +149,36 @@ async def forgot_password(
     db.commit()
     db.refresh(reset_token_entry)
 
-    # メールを送信
+    # --- Resend API を使ったメール送信処理 ---
     reset_link = f"{settings.FRONTEND_URL}/reset-password/{token}"
     
-    message = MessageSchema(
-        subject="パスワード再設定のご案内",
-        recipients=[user.email], # type: ignore
-        template_body={
-            "username": user.username,
-            "reset_link": reset_link
-        },
-        subtype=MessageType.html
-    )
-
+    # HTMLテンプレートをレンダリング
     try:
-        fm = FastMail(conf)
-        await fm.send_message(message, template_name="password_reset.html")
-        logger.info(f"Password reset email sent to {user.email}")
+        template = jinja_env.get_template("password_reset.html")
+        html_content = template.render(username=user.username, reset_link=reset_link)
     except Exception as e:
-        logger.error(f"Failed to send password reset email to {user.email}: {e}")
+        logger.error(f"Failed to render email template: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="メールの送信に失敗しました。"
+            detail="メールテンプレートの生成に失敗しました。"
+        )
+
+    try:
+        resend.api_key = settings.RESEND_API_KEY
+        params = {
+            "from": f"{settings.MAIL_FROM_NAME} <{settings.MAIL_FROM}>",
+            "to": [user.email],
+            "subject": "パスワード再設定のご案内",
+            "html": html_content,
+        }
+        email = resend.Emails.send(params)
+        logger.info(f"Password reset email sent to {user.email} via Resend. Email ID: {email['id']}")
+
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while sending email to {user.email}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="メールの送信中に予期せぬエラーが発生しました。"
         )
 
     return {"message": "パスワード再設定の案内をメールで送信しました。"}

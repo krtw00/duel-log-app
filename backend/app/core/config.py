@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     MAIL_STARTTLS: bool = Field(default=True, description="STARTTLSを使用するかどうか")
     MAIL_SSL_TLS: bool = Field(default=False, description="SSL/TLSを使用するかどうか")
     MAIL_FROM_NAME: str = Field(default="Duel Log App", description="送信元名")
+    RESEND_API_KEY: str = Field(..., description="Resend APIキー")
     
     # ログ設定
     LOG_LEVEL: str = Field(default="INFO", description="ログレベル")

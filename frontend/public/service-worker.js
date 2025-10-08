@@ -3,9 +3,8 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/favicon.svg',
-  '/src/main.ts',
-  '/src/style.css',
-  // Add other essential assets here, e.g., compiled JS/CSS, images
+  // '/src/main.ts', // This path does not exist in the built output
+  // '/src/style.css', // This path does not exist in the built output
 ];
 
 self.addEventListener('install', (event) => {
@@ -13,7 +12,11 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // addAll can fail if any of the files are not found. 
+        // It's better to handle potential failures gracefully.
+        return cache.addAll(urlsToCache).catch(err => {
+          console.error('Failed to cache urls:', err);
+        });
       })
   );
 });
