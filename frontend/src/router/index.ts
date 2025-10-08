@@ -79,13 +79,12 @@ const router = createRouter({
 // ナビゲーションガード
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
+  const requiresAuth = to.meta.requiresAuth !== false
 
-  // アプリケーションの初回起動時にユーザー情報を取得する
-  if (!authStore.isInitialized) {
+  // 認証が必要なルートの場合、またはストアが初期化されていない場合にユーザー情報を取得
+  if (requiresAuth && !authStore.isInitialized) {
     await authStore.fetchUser()
   }
-
-  const requiresAuth = to.meta.requiresAuth !== false
 
   if (requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'Login' })

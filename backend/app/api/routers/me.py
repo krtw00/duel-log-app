@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=UserResponse)
+@router.get("", response_model=UserResponse)
 def get_my_profile(current_user: User = Depends(get_current_user)):
     """
     現在のユーザー情報を取得
@@ -20,7 +20,7 @@ def get_my_profile(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.put("/", response_model=UserResponse)
+@router.put("", response_model=UserResponse)
 def update_my_profile(
     user_in: UserUpdate,
     current_user: User = Depends(get_current_user),
@@ -37,7 +37,7 @@ def update_my_profile(
     return updated_user
 
 
-@router.delete("/", status_code=status.HTTP_200_OK)
+@router.delete("", status_code=status.HTTP_200_OK)
 def delete_my_account(
     response: Response,
     current_user: User = Depends(get_current_user),
