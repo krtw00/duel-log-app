@@ -23,7 +23,6 @@ const vuetify = createVuetify({
 });
 
 describe('DashboardView.vue', () => {
-  let authStore: ReturnType<typeof useAuthStore>;
   let pinia: ReturnType<typeof createTestingPinia>;
 
   beforeEach(() => {
@@ -41,7 +40,6 @@ describe('DashboardView.vue', () => {
         },
       },
     });
-    authStore = useAuthStore(pinia);
 
     vi.clearAllMocks();
 
