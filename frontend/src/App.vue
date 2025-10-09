@@ -1,16 +1,16 @@
 <template>
   <router-view />
-  
+
   <!-- グローバル通知システム -->
   <toast-notification />
-  
+
   <!-- グローバルローディングオーバーレイ -->
   <loading-overlay />
 </template>
 
 <script setup lang="ts">
-import ToastNotification from './components/common/ToastNotification.vue'
-import LoadingOverlay from './components/common/LoadingOverlay.vue'
+import ToastNotification from './components/common/ToastNotification.vue';
+import LoadingOverlay from './components/common/LoadingOverlay.vue';
 </script>
 
 <style lang="scss">
@@ -20,7 +20,8 @@ import LoadingOverlay from './components/common/LoadingOverlay.vue'
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   overflow-x: hidden;
 }
 </style>

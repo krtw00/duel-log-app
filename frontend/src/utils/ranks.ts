@@ -35,11 +35,11 @@ export const RANKS = [
 ];
 
 export const getRankName = (rankValue: number): string => {
-  const rank = RANKS.find(r => r.value === rankValue);
+  const rank = RANKS.find((r) => r.value === rankValue);
   return rank ? rank.label : '不明';
 };
 
 export const getRankValue = (rankLabel: string): number | null => {
-  const rank = RANKS.find(r => r.label === rankLabel);
+  const rank = RANKS.find((r) => r.label === rankLabel);
   return rank ? rank.value : null;
 };

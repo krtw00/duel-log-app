@@ -26,8 +26,8 @@
             color="primary"
             align-tabs="center"
             show-arrows
-            @update:model-value="handleModeChange"
             class="mode-tabs"
+            @update:model-value="handleModeChange"
           >
             <v-tab value="RANK" class="custom-tab">
               <v-icon :start="$vuetify.display.smAndUp">mdi-crown</v-icon>
@@ -145,15 +145,15 @@
               <v-icon class="mr-2" color="primary">mdi-table</v-icon>
               <span class="text-h6">対戦履歴</span>
             </div>
-            
+
             <!-- スマホ用: 縦並びボタン -->
             <div class="d-flex d-sm-none flex-column ga-2">
               <v-btn
                 color="primary"
                 prepend-icon="mdi-plus"
-                @click="openDuelDialog"
                 block
                 size="large"
+                @click="openDuelDialog"
               >
                 対戦記録を追加
               </v-btn>
@@ -161,27 +161,27 @@
                 <v-btn
                   color="secondary"
                   prepend-icon="mdi-download"
-                  @click="exportCSV"
                   size="small"
                   class="flex-grow-1"
+                  @click="exportCSV"
                 >
                   エクスポート
                 </v-btn>
                 <v-btn
                   color="success"
                   prepend-icon="mdi-upload"
-                  @click="triggerFileInput"
                   size="small"
                   class="flex-grow-1"
+                  @click="triggerFileInput"
                 >
                   インポート
                 </v-btn>
                 <v-btn
                   color="info"
                   prepend-icon="mdi-share-variant"
-                  @click="shareDialogOpened = true"
                   size="small"
                   class="flex-grow-1"
+                  @click="shareDialogOpened = true"
                 >
                   共有
                 </v-btn>
@@ -191,18 +191,10 @@
             <!-- PC用: 横並びボタン -->
             <div class="d-none d-sm-flex align-center ga-2">
               <v-spacer />
-              <v-btn
-                color="secondary"
-                prepend-icon="mdi-download"
-                @click="exportCSV"
-              >
+              <v-btn color="secondary" prepend-icon="mdi-download" @click="exportCSV">
                 CSVエクスポート
               </v-btn>
-              <v-btn
-                color="success"
-                prepend-icon="mdi-upload"
-                @click="triggerFileInput"
-              >
+              <v-btn color="success" prepend-icon="mdi-upload" @click="triggerFileInput">
                 CSVインポート
               </v-btn>
               <v-btn
@@ -215,19 +207,19 @@
               <v-btn
                 color="primary"
                 prepend-icon="mdi-plus"
-                @click="openDuelDialog"
                 class="add-btn"
+                @click="openDuelDialog"
               >
                 対戦記録を追加
               </v-btn>
             </div>
-            
+
             <input
-              type="file"
               ref="fileInput"
-              @change="handleFileUpload"
+              type="file"
               accept=".csv"
               style="display: none"
+              @change="handleFileUpload"
             />
           </v-card-title>
 
@@ -263,62 +255,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { api } from '../services/api'
-import { Duel, DuelStats, Deck, GameMode } from '../types'
-import StatCard from '../components/duel/StatCard.vue'
-import DuelTable from '../components/duel/DuelTable.vue'
-import DuelFormDialog from '../components/duel/DuelFormDialog.vue'
-import AppBar from '../components/layout/AppBar.vue'
-import ShareStatsDialog from '../components/common/ShareStatsDialog.vue' // Import the new component
-import { useNotificationStore } from '../stores/notification'
+import { ref, onMounted, computed } from 'vue';
+import { api } from '../services/api';
+import { Duel, DuelStats, Deck, GameMode } from '../types';
+import StatCard from '../components/duel/StatCard.vue';
+import DuelTable from '../components/duel/DuelTable.vue';
+import DuelFormDialog from '../components/duel/DuelFormDialog.vue';
+import AppBar from '../components/layout/AppBar.vue';
+import ShareStatsDialog from '../components/common/ShareStatsDialog.vue'; // Import the new component
+import { useNotificationStore } from '../stores/notification';
 
-const drawer = ref(false)
+const drawer = ref(false);
 const navItems = [
   { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
   { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
-]
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+];
 
-const notificationStore = useNotificationStore()
+const notificationStore = useNotificationStore();
 
-const duels = ref<Duel[]>([])
-const loading = ref(false)
-const dialogOpen = ref(false)
-const selectedDuel = ref<Duel | null>(null)
-const decks = ref<Deck[]>([])
-const currentMode = ref<GameMode>('RANK')
-const shareDialogOpened = ref(false) // New ref for ShareStatsDialog
+const duels = ref<Duel[]>([]);
+const loading = ref(false);
+const dialogOpen = ref(false);
+const selectedDuel = ref<Duel | null>(null);
+const decks = ref<Deck[]>([]);
+const currentMode = ref<GameMode>('RANK');
+const shareDialogOpened = ref(false); // New ref for ShareStatsDialog
 
 // 年月選択関連
-const selectedYear = ref(new Date().getFullYear())
-const selectedMonth = ref(new Date().getMonth() + 1)
+const selectedYear = ref(new Date().getFullYear());
+const selectedMonth = ref(new Date().getMonth() + 1);
 const years = computed(() => {
-  const currentYear = new Date().getFullYear()
-  return Array.from({ length: 5 }, (_, i) => currentYear - i) // 過去5年
-})
-const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 5 }, (_, i) => currentYear - i); // 過去5年
+});
+const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
 // ゲームモード別にデュエルをフィルタリング
-const rankDuels = computed(() => duels.value.filter(d => d.game_mode === 'RANK'))
-const rateDuels = computed(() => duels.value.filter(d => d.game_mode === 'RATE'))
-const eventDuels = computed(() => duels.value.filter(d => d.game_mode === 'EVENT'))
-const dcDuels = computed(() => duels.value.filter(d => d.game_mode === 'DC'))
+const rankDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RANK'));
+const rateDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RATE'));
+const eventDuels = computed(() => duels.value.filter((d) => d.game_mode === 'EVENT'));
+const dcDuels = computed(() => duels.value.filter((d) => d.game_mode === 'DC'));
 
 const currentDuels = computed(() => {
   switch (currentMode.value) {
     case 'RANK':
-      return rankDuels.value
+      return rankDuels.value;
     case 'RATE':
-      return rateDuels.value
+      return rateDuels.value;
     case 'EVENT':
-      return eventDuels.value
+      return eventDuels.value;
     case 'DC':
-      return dcDuels.value
+      return dcDuels.value;
     default:
-      return []
+      return [];
   }
-})
+});
 
 const emptyStats = (): DuelStats => ({
   total_duels: 0,
@@ -329,72 +321,76 @@ const emptyStats = (): DuelStats => ({
   second_turn_win_rate: 0,
   coin_win_rate: 0,
   go_first_rate: 0,
-})
+});
 
-const rankStats = ref<DuelStats>(emptyStats())
-const rateStats = ref<DuelStats>(emptyStats())
-const eventStats = ref<DuelStats>(emptyStats())
-const dcStats = ref<DuelStats>(emptyStats())
+const rankStats = ref<DuelStats>(emptyStats());
+const rateStats = ref<DuelStats>(emptyStats());
+const eventStats = ref<DuelStats>(emptyStats());
+const dcStats = ref<DuelStats>(emptyStats());
 
 const currentStats = computed(() => {
   switch (currentMode.value) {
     case 'RANK':
-      return rankStats.value
+      return rankStats.value;
     case 'RATE':
-      return rateStats.value
+      return rateStats.value;
     case 'EVENT':
-      return eventStats.value
+      return eventStats.value;
     case 'DC':
-      return dcStats.value
+      return dcStats.value;
     default:
-      return emptyStats()
+      return emptyStats();
   }
-})
+});
 
 const fetchDuels = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     // デッキ情報を先に取得
-    const decksResponse = await api.get('/decks/')
-    decks.value = decksResponse.data
-    
+    const decksResponse = await api.get('/decks/');
+    decks.value = decksResponse.data;
+
     // デュエル情報を取得
     const duelsResponse = await api.get('/duels/', {
       params: {
         year: selectedYear.value,
-        month: selectedMonth.value
-      }
-    })
+        month: selectedMonth.value,
+      },
+    });
     duels.value = duelsResponse.data.map((duel: Duel) => ({
       ...duel,
-      deck: decks.value.find(d => d.id === duel.deck_id),
-      opponentdeck: decks.value.find(d => d.id === duel.opponentDeck_id)
-    }))
-    
+      deck: decks.value.find((d) => d.id === duel.deck_id),
+      opponentdeck: decks.value.find((d) => d.id === duel.opponentDeck_id),
+    }));
+
     // 各モードの統計を計算
-    rankStats.value = calculateStats(rankDuels.value)
-    rateStats.value = calculateStats(rateDuels.value)
-    eventStats.value = calculateStats(eventDuels.value)
-    dcStats.value = calculateStats(dcDuels.value)
+    rankStats.value = calculateStats(rankDuels.value);
+    rateStats.value = calculateStats(rateDuels.value);
+    eventStats.value = calculateStats(eventDuels.value);
+    dcStats.value = calculateStats(dcDuels.value);
   } catch (error) {
-    console.error('Failed to fetch duels:', error)
+    console.error('Failed to fetch duels:', error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const calculateStats = (duelList: Duel[]): DuelStats => {
-  const total = duelList.length
+  const total = duelList.length;
   if (total === 0) {
-    return emptyStats()
+    return emptyStats();
   }
 
-  const wins = duelList.filter(d => d.result === true).length
-  const coinWins = duelList.filter(d => d.coin === true).length
-  const firstTurnTotal = duelList.filter(d => d.first_or_second === true).length
-  const firstTurnWins = duelList.filter(d => d.result === true && d.first_or_second === true).length
-  const secondTurnTotal = duelList.filter(d => d.first_or_second === false).length
-  const secondTurnWins = duelList.filter(d => d.result === true && d.first_or_second === false).length
+  const wins = duelList.filter((d) => d.result === true).length;
+  const coinWins = duelList.filter((d) => d.coin === true).length;
+  const firstTurnTotal = duelList.filter((d) => d.first_or_second === true).length;
+  const firstTurnWins = duelList.filter(
+    (d) => d.result === true && d.first_or_second === true,
+  ).length;
+  const secondTurnTotal = duelList.filter((d) => d.first_or_second === false).length;
+  const secondTurnWins = duelList.filter(
+    (d) => d.result === true && d.first_or_second === false,
+  ).length;
 
   return {
     total_duels: total,
@@ -405,98 +401,98 @@ const calculateStats = (duelList: Duel[]): DuelStats => {
     go_first_rate: firstTurnTotal / total,
     first_turn_win_rate: firstTurnTotal > 0 ? firstTurnWins / firstTurnTotal : 0,
     second_turn_win_rate: secondTurnTotal > 0 ? secondTurnWins / secondTurnTotal : 0,
-  }
-}
+  };
+};
 
 const handleModeChange = (mode: any) => {
-  currentMode.value = mode as GameMode
-}
+  currentMode.value = mode as GameMode;
+};
 
 const openDuelDialog = () => {
-  selectedDuel.value = null
-  dialogOpen.value = true
-}
+  selectedDuel.value = null;
+  dialogOpen.value = true;
+};
 
 const editDuel = (duel: Duel) => {
-  selectedDuel.value = duel
-  dialogOpen.value = true
-}
+  selectedDuel.value = duel;
+  dialogOpen.value = true;
+};
 
 const deleteDuel = async (duelId: number) => {
-  if (!confirm('この対戦記録を削除しますか？')) return
-  
+  if (!confirm('この対戦記録を削除しますか？')) return;
+
   try {
-    await api.delete(`/duels/${duelId}`)
-    await fetchDuels()
-    notificationStore.success('対戦記録を削除しました')
+    await api.delete(`/duels/${duelId}`);
+    await fetchDuels();
+    notificationStore.success('対戦記録を削除しました');
   } catch (error) {
     // エラーはAPIインターセプターで処理される
-    console.error('Failed to delete duel:', error)
+    console.error('Failed to delete duel:', error);
   }
-}
+};
 
 const handleSaved = () => {
-  dialogOpen.value = false
-  fetchDuels()
-}
+  dialogOpen.value = false;
+  fetchDuels();
+};
 
-const fileInput = ref<HTMLInputElement | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const triggerFileInput = () => {
-  fileInput.value?.click()
-}
+  fileInput.value?.click();
+};
 
 const handleFileUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
 
-  const formData = new FormData()
-  formData.append('file', file)
+  const formData = new FormData();
+  formData.append('file', file);
 
-  loading.value = true
+  loading.value = true;
   try {
     await api.post('/duels/import/csv', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-    notificationStore.success('CSVファイルをインポートしました')
-    await fetchDuels()
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    notificationStore.success('CSVファイルをインポートしました');
+    await fetchDuels();
   } catch (error) {
-    console.error('Failed to import CSV:', error)
+    console.error('Failed to import CSV:', error);
     // エラーはAPIインターセプターで処理される
   } finally {
-    loading.value = false
+    loading.value = false;
     // 同じファイルを再度選択できるように、inputの値をクリア
     if (fileInput.value) {
-      fileInput.value.value = ''
+      fileInput.value.value = '';
     }
   }
-}
+};
 
 const exportCSV = async () => {
-  notificationStore.success('CSVファイルを生成しています... ダウンロードが開始されます。')
+  notificationStore.success('CSVファイルを生成しています... ダウンロードが開始されます。');
   try {
     const response = await api.get('/duels/export/csv', {
       responseType: 'blob',
-    })
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'duels.csv')
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'duels.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   } catch (error) {
-    console.error('CSVエクスポートに失敗しました:', error)
+    console.error('CSVエクスポートに失敗しました:', error);
     // エラー通知はインターセプターで処理される想定
   }
-}
+};
 
 onMounted(() => {
-  fetchDuels()
-})
+  fetchDuels();
+});
 </script>
 
 <style scoped lang="scss">
@@ -523,7 +519,7 @@ onMounted(() => {
   font-weight: 600;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
@@ -548,7 +544,7 @@ onMounted(() => {
     font-size: 0.875rem;
     min-width: 60px;
   }
-  
+
   .mode-tabs {
     :deep(.v-slide-group__content) {
       justify-content: space-between;

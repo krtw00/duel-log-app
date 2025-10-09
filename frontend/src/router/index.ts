@@ -1,98 +1,98 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import LoginView from '../views/LoginView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import DecksView from '../views/DecksView.vue'
-import StatisticsView from '../views/StatisticsView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import ForgotPasswordView from '../views/ForgotPasswordView.vue'
-import ResetPasswordView from '../views/ResetPasswordView.vue'
-import SharedStatisticsView from '../views/SharedStatisticsView.vue'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+import LoginView from '../views/LoginView.vue';
+import RegisterView from '../views/RegisterView.vue';
+import DashboardView from '../views/DashboardView.vue';
+import DecksView from '../views/DecksView.vue';
+import StatisticsView from '../views/StatisticsView.vue';
+import ProfileView from '../views/ProfileView.vue';
+import ForgotPasswordView from '../views/ForgotPasswordView.vue';
+import ResetPasswordView from '../views/ResetPasswordView.vue';
+import SharedStatisticsView from '../views/SharedStatisticsView.vue';
 
 export const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
     component: LoginView,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false },
   },
   {
     path: '/register',
     name: 'Register',
     component: RegisterView,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false },
   },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
     component: ForgotPasswordView,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false },
   },
   {
     path: '/reset-password/:token',
     name: 'ResetPassword',
     component: ResetPasswordView,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false },
   },
   {
     path: '/',
     name: 'Dashboard',
     component: DashboardView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/decks',
     name: 'Decks',
     component: DecksView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/statistics',
     name: 'Statistics',
     component: StatisticsView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/profile',
     name: 'Profile',
     component: ProfileView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/shared-stats/:share_id',
     name: 'SharedStatistics',
     component: SharedStatisticsView,
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false },
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
-  }
-]
+    redirect: '/',
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
 // ナビゲーションガード
 router.beforeEach(async (to, _from, next) => {
-  const authStore = useAuthStore()
-  const requiresAuth = to.meta.requiresAuth !== false
+  const authStore = useAuthStore();
+  const requiresAuth = to.meta.requiresAuth !== false;
 
   // 認証が必要なルートの場合、またはストアが初期化されていない場合にユーザー情報を取得
   if (requiresAuth && !authStore.isInitialized) {
-    await authStore.fetchUser()
+    await authStore.fetchUser();
   }
 
   if (requiresAuth && !authStore.isAuthenticated) {
-    next({ name: 'Login' })
+    next({ name: 'Login' });
   } else if ((to.name === 'Login' || to.name === 'Register') && authStore.isAuthenticated) {
-    next({ name: 'Dashboard' })
+    next({ name: 'Dashboard' });
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;

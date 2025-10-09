@@ -1,26 +1,29 @@
-from sqlalchemy.orm import Session
-from typing import Optional
-from datetime import datetime, timezone
 import secrets
+from datetime import datetime, timezone
+from typing import Optional
+
+from sqlalchemy.orm import Session
 
 from app.models.shared_statistics import SharedStatistics
 from app.schemas.shared_statistics import SharedStatisticsCreate
 from app.services.base.base_service import BaseService
 
-class SharedStatisticsService(BaseService[SharedStatistics, SharedStatisticsCreate, None]):
+
+class SharedStatisticsService(
+    BaseService[SharedStatistics, SharedStatisticsCreate, None]
+):
     def __init__(self):
         super().__init__(SharedStatistics)
 
     def create_shared_statistics(
-        self,
-        db: Session,
-        user_id: int,
-        shared_stats_in: SharedStatisticsCreate
+        self, db: Session, user_id: int, shared_stats_in: SharedStatisticsCreate
     ) -> SharedStatistics:
         """
         共有統計エントリを作成し、ユニークな共有IDを生成します。
         """
-        share_id = secrets.token_urlsafe(16) # Generate a URL-safe text string, 16 bytes for good randomness
+        share_id = secrets.token_urlsafe(
+            16
+        )  # Generate a URL-safe text string, 16 bytes for good randomness
 
         db_obj = SharedStatistics(
             share_id=share_id,
@@ -29,7 +32,7 @@ class SharedStatisticsService(BaseService[SharedStatistics, SharedStatisticsCrea
             month=shared_stats_in.month,
             game_mode=shared_stats_in.game_mode,
             expires_at=shared_stats_in.expires_at,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(db_obj)
         db.commit()
@@ -40,21 +43,32 @@ class SharedStatisticsService(BaseService[SharedStatistics, SharedStatisticsCrea
         """
         共有IDに基づいて共有統計エントリを取得します。
         """
-        return db.query(SharedStatistics).filter(SharedStatistics.share_id == share_id).first()
+        return (
+            db.query(SharedStatistics)
+            .filter(SharedStatistics.share_id == share_id)
+            .first()
+        )
 
-    def delete_shared_statistics(self, db: Session, share_id: str, user_id: int) -> bool:
+    def delete_shared_statistics(
+        self, db: Session, share_id: str, user_id: int
+    ) -> bool:
         """
         共有IDに基づいて共有統計エントリを削除します。
         ユーザーIDが一致する場合のみ削除を許可します。
         """
-        db_obj = db.query(SharedStatistics).filter(
-            SharedStatistics.share_id == share_id,
-            SharedStatistics.user_id == user_id
-        ).first()
+        db_obj = (
+            db.query(SharedStatistics)
+            .filter(
+                SharedStatistics.share_id == share_id,
+                SharedStatistics.user_id == user_id,
+            )
+            .first()
+        )
         if db_obj:
             db.delete(db_obj)
             db.commit()
             return True
         return False
+
 
 shared_statistics_service = SharedStatisticsService()

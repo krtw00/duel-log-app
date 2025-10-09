@@ -1,23 +1,25 @@
 """
 メインアプリケーション
 """
+
+import logging
+import os
+import re
+
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
-import os
-import re
-import logging
 
-from app.api.routers import decks, users, duels, auth, me, statistics, shared_statistics
+from app.api.routers import auth, decks, duels, me, shared_statistics, statistics, users
 from app.core.config import settings
-from app.core.logging_config import setup_logging
-from app.core.exceptions import AppException
 from app.core.exception_handlers import (
     app_exception_handler,
-    validation_exception_handler,
-    sqlalchemy_exception_handler,
     general_exception_handler,
+    sqlalchemy_exception_handler,
+    validation_exception_handler,
 )
+from app.core.exceptions import AppException
+from app.core.logging_config import setup_logging
 
 # ロギング設定
 setup_logging(level=settings.LOG_LEVEL)
@@ -39,12 +41,14 @@ allowed_origins = [origin.strip() for origin in frontend_url.split(",")]
 
 # 開発環境の場合はlocalhostを追加
 if settings.ENVIRONMENT == "development":
-    allowed_origins.extend([
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-    ])
+    allowed_origins.extend(
+        [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:3000",
+        ]
+    )
 
 logger.info(f"Environment: {settings.ENVIRONMENT}")
 logger.info(f"Allowed CORS origins: {allowed_origins}")
@@ -52,17 +56,18 @@ logger.info(f"Allowed CORS origins: {allowed_origins}")
 # 許可するオリジンのパターン（正規表現）
 allowed_patterns = [
     r"^https://.*\.vercel\.app$",  # すべてのVercelドメイン
-    r"^http://localhost:\d+$",      # ローカルホスト
+    r"^http://localhost:\d+$",  # ローカルホスト
     r"^http://127\.0\.0\.1:\d+$",  # 127.0.0.1
 ]
+
 
 def is_allowed_origin(origin: str) -> bool:
     """
     オリジンが許可されているか確認
-    
+
     Args:
         origin: チェックするオリジン
-        
+
     Returns:
         許可されている場合True
     """
@@ -70,20 +75,21 @@ def is_allowed_origin(origin: str) -> bool:
     if not origin:
         logger.debug("Origin is empty.")
         return False
-        
+
     # 明示的に許可されたオリジンリストをチェック
     if origin in allowed_origins:
         logger.debug(f"Origin allowed (explicit): {origin}")
         return True
-    
+
     # パターンマッチング
     for pattern in allowed_patterns:
         if re.match(pattern, origin):
             logger.debug(f"Origin allowed (pattern match): {origin}")
             return True
-    
+
     logger.warning(f"Origin not allowed: {origin}")
     return False
+
 
 # カスタムCORSミドルウェア
 @app.middleware("http")
@@ -93,7 +99,7 @@ async def cors_middleware(request: Request, call_next):
     動的なVercelプレビューURLに対応
     """
     origin = request.headers.get("origin")
-    
+
     # プリフライトリクエスト（OPTIONS）の処理
     if request.method == "OPTIONS":
         if origin and is_allowed_origin(origin):
@@ -106,27 +112,29 @@ async def cors_middleware(request: Request, call_next):
                     "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Origin, User-Agent, X-Requested-With",
                     "Access-Control-Allow-Credentials": "true",
                     "Access-Control-Max-Age": "86400",  # 24時間キャッシュ
-                }
+                },
             )
         else:
             logger.warning(f"CORS preflight rejected for origin: {origin}")
-            return Response(
-                status_code=403,
-                content="Origin not allowed"
-            )
-    
+            return Response(status_code=403, content="Origin not allowed")
+
     # 通常のリクエスト処理
     response = await call_next(request)
-    
+
     # オリジンが許可されている場合、CORSヘッダーを追加
     if origin and is_allowed_origin(origin):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, Origin, User-Agent, X-Requested-With"
+        response.headers["Access-Control-Allow-Methods"] = (
+            "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+        )
+        response.headers["Access-Control-Allow-Headers"] = (
+            "Content-Type, Authorization, Accept, Origin, User-Agent, X-Requested-With"
+        )
         response.headers["Vary"] = "Origin"
-    
+
     return response
+
 
 # 例外ハンドラーの登録
 app.add_exception_handler(AppException, app_exception_handler)
@@ -147,17 +155,10 @@ app.include_router(shared_statistics.router)
 @app.get("/", tags=["root"])
 def root():
     """ルートエンドポイント"""
-    return {
-        "message": "Duel Log API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+    return {"message": "Duel Log API", "version": "1.0.0", "docs": "/docs"}
 
 
 @app.get("/health", tags=["health"])
 def health_check():
     """ヘルスチェックエンドポイント"""
-    return {
-        "status": "healthy",
-        "database": "connected"
-    }
+    return {"status": "healthy", "database": "connected"}
