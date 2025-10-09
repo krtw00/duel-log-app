@@ -176,7 +176,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '../services/api';
-import { storeToRefs } from 'pinia';
 
 const drawer = ref(false);
 const navItems = [
