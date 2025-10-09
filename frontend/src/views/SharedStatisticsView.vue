@@ -232,7 +232,7 @@
                               ></apexchart>
                               <div v-else class="no-data-placeholder">
                                 <v-icon size="64" color="grey">{{
-                                  mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
+                                  'mdi-chart-line'
                                 }}</v-icon>
                                 <p class="text-body-1 text-grey mt-4">データがありません</p>
                               </div>
