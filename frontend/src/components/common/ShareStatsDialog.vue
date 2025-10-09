@@ -156,9 +156,11 @@ const years = computed(() => {
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 
-const selectDate = (date: Date) => {
-  expiresAt.value = date.toISOString().substring(0, 10); // YYYY-MM-DD
-  menu.value = false; // Close the date picker
+const selectDate = (date: Date | null) => {
+  if (date) {
+    expiresAt.value = date.toISOString().substring(0, 10); // YYYY-MM-DD
+    menu.value = false; // Close the date picker
+  }
 };
 
 const generateLink = async () => {
@@ -225,6 +227,12 @@ watch(dialog, (newVal) => {
     expiresAt.value = '';
     datePickerDate.value = null; // Reset date picker
   }
+});
+
+// Expose for testing
+defineExpose({
+  generatedLink,
+  expiresAt,
 });
 </script>
 

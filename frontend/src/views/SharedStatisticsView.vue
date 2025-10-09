@@ -141,14 +141,14 @@
                             <v-card-text>
                               <apexchart
                                 v-if="
-                                  processedStats[mode].monthlyDistribution &&
-                                  processedStats[mode].monthlyDistribution.series &&
-                                  processedStats[mode].monthlyDistribution.series.length > 0
+                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution &&
+                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution.series &&
+                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution.series.length > 0
                                 "
                                 type="pie"
                                 height="350"
-                                :options="processedStats[mode].monthlyDistribution.chartOptions"
-                                :series="processedStats[mode].monthlyDistribution.series"
+                                :options="(processedStats[mode] as StatisticsModeData).monthlyDistribution.chartOptions"
+                                :series="(processedStats[mode] as StatisticsModeData).monthlyDistribution.series"
                               ></apexchart>
                               <div v-else class="no-data-placeholder">
                                 <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
@@ -165,14 +165,14 @@
                             <v-card-text>
                               <apexchart
                                 v-if="
-                                  processedStats[mode].recentDistribution &&
-                                  processedStats[mode].recentDistribution.series &&
-                                  processedStats[mode].recentDistribution.series.length > 0
+                                  (processedStats[mode] as StatisticsModeData).recentDistribution &&
+                                  (processedStats[mode] as StatisticsModeData).recentDistribution.series &&
+                                  (processedStats[mode] as StatisticsModeData).recentDistribution.series.length > 0
                                 "
                                 type="pie"
                                 height="350"
-                                :options="processedStats[mode].recentDistribution.chartOptions"
-                                :series="processedStats[mode].recentDistribution.series"
+                                :options="(processedStats[mode] as StatisticsModeData).recentDistribution.chartOptions"
+                                :series="(processedStats[mode] as StatisticsModeData).recentDistribution.series"
                               ></apexchart>
                               <div v-else class="no-data-placeholder">
                                 <v-icon size="64" color="grey">mdi-chart-donut</v-icon>
@@ -189,13 +189,13 @@
                             <v-card-text>
                               <div
                                 v-if="
-                                  processedStats[mode].matchupData &&
-                                  processedStats[mode].matchupData.length > 0
+                                  (processedStats[mode] as StatisticsModeData).matchupData &&
+                                  (processedStats[mode] as StatisticsModeData).matchupData.length > 0
                                 "
                               >
                                 <v-data-table
                                   :headers="matchupHeaders"
-                                  :items="processedStats[mode].matchupData"
+                                  :items="(processedStats[mode] as StatisticsModeData).matchupData"
                                   class="matchup-table"
                                   density="compact"
                                 >
@@ -213,24 +213,22 @@
                         </v-col>
 
                         <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
-                        <v-col v-if="mode === 'RATE' || mode === 'DC'" cols="12">
+                        <v-col v-if="mode === 'STATISTICS'" cols="12" style="display: none;">
                           <v-card class="stats-card">
-                            <v-card-title>{{
-                              mode === 'RATE' ? 'レート変動' : 'DC変動'
-                            }}</v-card-title>
+                            <v-card-title>変動グラフ</v-card-title>
                             <v-card-text>
                               <apexchart
                                 v-if="
-                                  processedStats[mode].timeSeries &&
-                                  processedStats[mode].timeSeries.series &&
-                                  processedStats[mode].timeSeries.series[0] &&
-                                  processedStats[mode].timeSeries.series[0].data &&
-                                  processedStats[mode].timeSeries.series[0].data.length > 0
+                                  (processedStats[mode] as StatisticsModeData).timeSeries &&
+                                  (processedStats[mode] as StatisticsModeData).timeSeries.series &&
+                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0] &&
+                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0].data &&
+                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0].data.length > 0
                                 "
                                 type="line"
                                 height="350"
-                                :options="processedStats[mode].timeSeries.chartOptions"
-                                :series="processedStats[mode].timeSeries.series"
+                                :options="(processedStats[mode] as StatisticsModeData).timeSeries.chartOptions"
+                                :series="(processedStats[mode] as StatisticsModeData).timeSeries.series"
                               ></apexchart>
                               <div v-else class="no-data-placeholder">
                                 <v-icon size="64" color="grey">{{
@@ -426,7 +424,7 @@ const fetchSharedStatistics = async () => {
   sharedStatisticsStore.loading = true;
   try {
     // 共有リンクから取得する際は、共有リンク作成時の年月を使用（selectedYear/selectedMonthを渡さない）
-    const success = await sharedStatisticsStore.getSharedStatistics(shareId, undefined, undefined);
+    const success = await sharedStatisticsStore.getSharedStatistics(shareId, selectedYear.value, selectedMonth.value);
     if (success && sharedStatisticsStore.sharedStatsData) {
       const tempProcessedStats: AllStatisticsData = {};
       // Process game mode specific statistics
@@ -435,9 +433,10 @@ const fetchSharedStatistics = async () => {
 
         if (mode === 'DASHBOARD') {
           // Process DASHBOARD data
+          const dashboardStats = rawStats as any;
           tempProcessedStats['DASHBOARD'] = {
-            ...rawStats.overall_stats,
-            duels: rawStats.duels || [],
+            ...(dashboardStats.overall_stats || {}),
+            duels: dashboardStats.duels || [],
           } as any;
         } else if (mode === 'STATISTICS') {
           // Process STATISTICS data (all game modes combined)
@@ -505,8 +504,9 @@ const fetchSharedStatistics = async () => {
 
       // 共有リンクの年月を表示用に設定（STATISTICSまたはDASHBOARDから取得）
       if (tempProcessedStats['STATISTICS']) {
-        displayYear.value = tempProcessedStats['STATISTICS'].year;
-        displayMonth.value = tempProcessedStats['STATISTICS'].month;
+        const statsData = tempProcessedStats['STATISTICS'] as StatisticsModeData;
+        displayYear.value = statsData.year;
+        displayMonth.value = statsData.month;
       }
 
       // Initialize currentTab if it's not set or not in available modes
@@ -533,6 +533,16 @@ onMounted(() => {
 });
 
 watch([currentTab], fetchSharedStatistics);
+
+// Expose for testing
+defineExpose({
+  selectedYear,
+  selectedMonth,
+  displayYear,
+  displayMonth,
+  processedStats,
+  fetchSharedStatistics,
+});
 </script>
 
 <style scoped lang="scss">

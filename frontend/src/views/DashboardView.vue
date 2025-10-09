@@ -493,6 +493,11 @@ const exportCSV = async () => {
 onMounted(() => {
   fetchDuels();
 });
+
+// Expose for testing
+defineExpose({
+  shareDialogOpened,
+});
 </script>
 
 <style scoped lang="scss">
