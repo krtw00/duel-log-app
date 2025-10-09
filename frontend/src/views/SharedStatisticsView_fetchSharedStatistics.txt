@@ -1,0 +1,113 @@
+const fetchSharedStatistics = async () => {
+  const shareId = route.params.share_id as string;
+  if (!shareId) {
+    console.error('Share ID is missing.');
+    return;
+  }
+
+  sharedStatisticsStore.loading = true;
+  try {
+    // 共有リンクから取得する際は、共有リンク作成時の年月を使用（selectedYear/selectedMonthを渡さない）
+    const success = await sharedStatisticsStore.getSharedStatistics(shareId, undefined, undefined);
+    if (success && sharedStatisticsStore.sharedStatsData) {
+      const tempProcessedStats: AllStatisticsData = {};
+      // Process game mode specific statistics
+      Object.keys(sharedStatisticsStore.sharedStatsData).forEach((mode) => {
+        const rawStats = sharedStatisticsStore.sharedStatsData[mode];
+
+        if (mode === 'DASHBOARD') {
+          // Process DASHBOARD data
+          const dashboardStats = rawStats as any;
+          tempProcessedStats['DASHBOARD'] = {
+            ...(dashboardStats.overall_stats || {}),
+            duels: dashboardStats.duels || [],
+          } as any;
+        } else if (mode === 'STATISTICS') {
+          // Process STATISTICS data (all game modes combined)
+          tempProcessedStats['STATISTICS'] = {
+            year: rawStats.year || selectedYear.value,
+            month: rawStats.month || selectedMonth.value,
+            monthlyDistribution: {
+              series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
+              chartOptions: {
+                ...baseChartOptions,
+                labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
+              },
+            },
+            recentDistribution: {
+              series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
+              chartOptions: {
+                ...baseChartOptions,
+                labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
+              },
+            },
+            matchupData: rawStats.matchup_data || [],
+            timeSeries: {
+              series: [],
+              chartOptions: lineChartBaseOptions,
+            },
+          };
+        } else {
+          // Process other game mode specific data (RANK, RATE, EVENT, DC) - though these shouldn't exist now
+          tempProcessedStats[mode] = {
+            year: rawStats.year || selectedYear.value,
+            month: rawStats.month || selectedMonth.value,
+            monthlyDistribution: {
+              series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
+              chartOptions: {
+                ...baseChartOptions,
+                labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
+              },
+            },
+            recentDistribution: {
+              series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
+              chartOptions: {
+                ...baseChartOptions,
+                labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
+              },
+            },
+            matchupData: rawStats.matchup_data || [],
+            timeSeries: {
+              series: [
+                { name: mode, data: rawStats.time_series_data?.map((d: any) => d.value) || [] },
+              ],
+              chartOptions: {
+                ...lineChartBaseOptions,
+                xaxis: {
+                  ...lineChartBaseOptions.xaxis,
+                  categories: rawStats.time_series_data?.map((_: any, i: number) => i + 1) || [],
+                },
+                colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
+              },
+            },
+          };
+        }
+      });
+
+      processedStats.value = tempProcessedStats;
+
+      // 共有リンクの年月を表示用に設定（STATISTICSまたはDASHBOARDから取得）
+      if (tempProcessedStats['STATISTICS']) {
+        const statsData = tempProcessedStats['STATISTICS'] as StatisticsModeData;
+        displayYear.value = statsData.year;
+        displayMonth.value = statsData.month;
+      }
+
+      // Initialize currentTab if it's not set or not in available modes
+      if (!currentTab.value || !displayModes.value.includes(currentTab.value)) {
+        if (displayModes.value.length > 0) {
+          currentTab.value = displayModes.value[0];
+        }
+      }
+    } else {
+      processedStats.value = null; // Clear stats if fetch failed
+      currentTab.value = ''; // Clear current tab
+    }
+  } catch (error) {
+    console.error('Failed to fetch shared statistics:', error);
+    processedStats.value = null;
+    currentTab.value = ''; // Clear current tab
+  } finally {
+    sharedStatisticsStore.loading = false;
+  }
+};
