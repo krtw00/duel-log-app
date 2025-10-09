@@ -1,13 +1,16 @@
 """
 デッキスキーマ
 """
-from pydantic import BaseModel, Field, ConfigDict
+
 from datetime import datetime
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DeckBase(BaseModel):
     """デッキ基底スキーマ"""
+
     name: str = Field(..., min_length=1, max_length=100, description="デッキ名")
     is_opponent: bool = Field(default=False, description="対戦相手のデッキかどうか")
     active: bool = Field(default=True, description="アクティブ状態")
@@ -15,30 +18,36 @@ class DeckBase(BaseModel):
 
 class DeckCreate(DeckBase):
     """デッキ作成スキーマ"""
+
     model_config = ConfigDict(extra="forbid")
 
 
 class DeckUpdate(BaseModel):
     """デッキ更新スキーマ"""
-    name: Optional[str] = Field(None, min_length=1, max_length=100, description="デッキ名")
+
+    name: Optional[str] = Field(
+        None, min_length=1, max_length=100, description="デッキ名"
+    )
     is_opponent: Optional[bool] = Field(None, description="対戦相手のデッキかどうか")
     active: Optional[bool] = Field(None, description="アクティブ状態")
-    
+
     model_config = ConfigDict(extra="forbid")
 
 
 class DeckRead(DeckBase):
     """デッキ読み取りスキーマ"""
+
     id: int
     user_id: int
     createdat: datetime
     updatedat: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class DeckWithStats(DeckRead):
     """統計情報付きデッキスキーマ"""
+
     total_duels: int = Field(default=0, description="総デュエル数")
     wins: int = Field(default=0, description="勝利数")
     losses: int = Field(default=0, description="敗北数")

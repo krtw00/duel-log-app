@@ -2,10 +2,7 @@
   <v-app-bar elevation="0" class="app-bar">
     <div class="app-bar-glow"></div>
 
-    <v-app-bar-nav-icon
-      class="hidden-md-and-up"
-      @click="$emit('toggle-drawer')"
-    />
+    <v-app-bar-nav-icon class="hidden-md-and-up" @click="$emit('toggle-drawer')" />
 
     <v-app-bar-title class="ml-4 ml-sm-4 ml-xs-2">
       <span class="text-primary font-weight-black app-title">DUEL</span>
@@ -27,7 +24,7 @@
     </template>
 
     <v-menu v-if="authStore.user" location="bottom">
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <v-chip
           v-bind="props"
           class="mr-2 mr-sm-4"
@@ -36,7 +33,9 @@
           variant="tonal"
           size="small"
         >
-          <v-icon v-if="authStore.isStreamerModeEnabled" size="small" class="mr-1">mdi-video</v-icon>
+          <v-icon v-if="authStore.isStreamerModeEnabled" size="small" class="mr-1"
+            >mdi-video</v-icon
+          >
           <span class="d-none d-sm-inline">{{ authStore.user.username }}</span>
         </v-chip>
       </template>
@@ -49,50 +48,47 @@
         </v-list-item>
         <v-divider />
         <v-list-item to="/profile">
-          <template v-slot:prepend>
+          <template #prepend>
             <v-icon>mdi-account-edit</v-icon>
           </template>
           <v-list-item-title>プロフィール</v-list-item-title>
         </v-list-item>
         <v-list-item @click="authStore.logout">
-          <template v-slot:prepend>
+          <template #prepend>
             <v-icon>mdi-logout</v-icon>
           </template>
           <v-list-item-title>ログアウト</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
-
   </v-app-bar>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../../stores/auth'
-import { maskEmail } from '../../utils/maskEmail'
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../../stores/auth';
+import { maskEmail } from '../../utils/maskEmail';
 
 defineProps<{
-  currentView: 'dashboard' | 'decks' | 'statistics' | 'profile'
-}>()
+  currentView: 'dashboard' | 'decks' | 'statistics' | 'profile';
+}>();
 
-defineEmits(['toggle-drawer'])
+defineEmits(['toggle-drawer']);
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
 const navItems = [
   { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
   { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
-]
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+];
 
 const displayEmail = computed(() => {
-  if (!authStore.user) return ''
-  return authStore.isStreamerModeEnabled 
-    ? maskEmail(authStore.user.email)
-    : authStore.user.email
-})
+  if (!authStore.user) return '';
+  return authStore.isStreamerModeEnabled ? maskEmail(authStore.user.email) : authStore.user.email;
+});
 </script>
 
 <style scoped lang="scss">
@@ -120,9 +116,15 @@ const displayEmail = computed(() => {
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 // スマホ対応
@@ -131,7 +133,7 @@ const displayEmail = computed(() => {
     .app-title {
       font-size: 1.25rem !important;
     }
-    
+
     .v-btn {
       font-size: 14px !important;
     }

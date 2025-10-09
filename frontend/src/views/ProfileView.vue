@@ -17,7 +17,7 @@
 
     <v-main class="main-content">
       <v-container class="d-flex justify-center align-center fill-height">
-        <div style="width: 100%; max-width: 600px;">
+        <div style="width: 100%; max-width: 600px">
           <v-card class="profile-card mb-6">
             <div class="card-glow"></div>
             <v-card-title class="pa-6">
@@ -49,7 +49,11 @@
                   :rules="[rules.required, rules.email]"
                   class="mb-4"
                   :readonly="form.streamerMode"
-                  :hint="form.streamerMode ? '配信者モードが有効なため、メールアドレスはマスクされています' : ''"
+                  :hint="
+                    form.streamerMode
+                      ? '配信者モードが有効なため、メールアドレスはマスクされています'
+                      : ''
+                  "
                   persistent-hint
                 ></v-text-field>
 
@@ -102,12 +106,7 @@
 
             <v-card-actions class="pa-4">
               <v-spacer />
-              <v-btn
-                color="primary"
-                :loading="loading"
-                @click="handleUpdate"
-                size="large"
-              >
+              <v-btn color="primary" :loading="loading" size="large" @click="handleUpdate">
                 <v-icon start>mdi-content-save</v-icon>
                 更新
               </v-btn>
@@ -122,13 +121,10 @@
             </v-card-title>
             <v-divider />
             <v-card-text class="pa-6">
-              <p class="text-body-1 mb-4">この操作は元に戻せません。アカウントを削除すると、すべてのデッキと対戦履歴が完全に削除されます。</p>
-              <v-btn
-                color="error"
-                @click="deleteDialog = true"
-                block
-                size="large"
-              >
+              <p class="text-body-1 mb-4">
+                この操作は元に戻せません。アカウントを削除すると、すべてのデッキと対戦履歴が完全に削除されます。
+              </p>
+              <v-btn color="error" block size="large" @click="deleteDialog = true">
                 <v-icon start>mdi-delete-forever</v-icon>
                 アカウントを削除する
               </v-btn>
@@ -141,11 +137,13 @@
     <!-- Deletion Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="500" persistent>
       <v-card class="delete-dialog-card">
-        <v-card-title class="text-h5">
-          本当にアカウントを削除しますか？
-        </v-card-title>
+        <v-card-title class="text-h5"> 本当にアカウントを削除しますか？ </v-card-title>
         <v-card-text>
-          <p class="mb-4">この操作は取り消せません。続行するには、以下のボックスに「<strong class="text-error">DELETE</strong>」と入力してください。</p>
+          <p class="mb-4">
+            この操作は取り消せません。続行するには、以下のボックスに「<strong class="text-error"
+              >DELETE</strong
+            >」と入力してください。
+          </p>
           <v-text-field
             v-model="deleteConfirmText"
             label="確認のため 'DELETE' と入力"
@@ -167,132 +165,137 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { useNotificationStore } from '../stores/notification'
-import { api } from '../services/api'
-import AppBar from '../components/layout/AppBar.vue'
-import { maskEmail } from '../utils/maskEmail'
+import { ref, onMounted, watch } from 'vue';
+import { useAuthStore } from '../stores/auth';
+import { useNotificationStore } from '../stores/notification';
+import { api } from '../services/api';
+import AppBar from '../components/layout/AppBar.vue';
+import { maskEmail } from '../utils/maskEmail';
 
-const drawer = ref(false)
+const drawer = ref(false);
 const navItems = [
   { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
   { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
-]
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+];
 
-const authStore = useAuthStore()
-const notificationStore = useNotificationStore()
+const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 
-const formRef = ref()
-const loading = ref(false)
+const formRef = ref();
+const loading = ref(false);
 const form = ref({
   username: '',
   email: '',
   password: '',
   passwordConfirm: '',
-  streamerMode: false
-})
+  streamerMode: false,
+});
 
-const deleteDialog = ref(false)
-const deleteConfirmText = ref('')
-const deleting = ref(false)
+const deleteDialog = ref(false);
+const deleteConfirmText = ref('');
+const deleting = ref(false);
 
 const rules = {
   required: (v: any) => !!v || '入力必須です',
   email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
   password: (v: string) => {
-    if (!v) return true // パスワードは任意
-    return (v.length >= 8 && v.length <= 72) || 'パスワードは8文字以上、72文字以下で入力してください'
+    if (!v) return true; // パスワードは任意
+    return (
+      (v.length >= 8 && v.length <= 72) || 'パスワードは8文字以上、72文字以下で入力してください'
+    );
   },
   passwordConfirm: (v: string) => {
-    if (!form.value.password) return true
-    return v === form.value.password || 'パスワードが一致しません'
-  }
-}
+    if (!form.value.password) return true;
+    return v === form.value.password || 'パスワードが一致しません';
+  },
+};
 
-const actualEmail = ref('')
+const actualEmail = ref('');
 
 onMounted(() => {
   if (authStore.user) {
-    form.value.username = authStore.user.username
-    actualEmail.value = authStore.user.email
-    form.value.email = authStore.user.email
-    form.value.streamerMode = authStore.user.streamer_mode
+    form.value.username = authStore.user.username;
+    actualEmail.value = authStore.user.email;
+    form.value.email = authStore.user.email;
+    form.value.streamerMode = authStore.user.streamer_mode;
   }
-})
+});
 
 // 配信者モードの切り替え時にメールアドレスの表示を切り替え
-watch(() => form.value.streamerMode, (newValue) => {
-  if (newValue) {
-    form.value.email = maskEmail(actualEmail.value)
-  } else {
-    form.value.email = actualEmail.value
-  }
-})
+watch(
+  () => form.value.streamerMode,
+  (newValue) => {
+    if (newValue) {
+      form.value.email = maskEmail(actualEmail.value);
+    } else {
+      form.value.email = actualEmail.value;
+    }
+  },
+);
 
 const handleUpdate = async () => {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
-  loading.value = true
+  loading.value = true;
 
   try {
     const payload: any = {
       username: form.value.username,
       email: actualEmail.value, // 実際のメールアドレスを送信
-      streamer_mode: form.value.streamerMode
-    }
+      streamer_mode: form.value.streamerMode,
+    };
 
     if (form.value.password) {
-      payload.password = form.value.password
+      payload.password = form.value.password;
     }
 
-    const response = await api.put('/me/', payload)
+    const response = await api.put('/me/', payload);
 
     // ストアのユーザー情報を更新
-    authStore.user = response.data
-    actualEmail.value = response.data.email
-    
-    // フォームのメールアドレスも更新
-    form.value.email = form.value.streamerMode ? maskEmail(response.data.email) : response.data.email
+    authStore.user = response.data;
+    actualEmail.value = response.data.email;
 
-    notificationStore.success('プロフィールを更新しました')
+    // フォームのメールアドレスも更新
+    form.value.email = form.value.streamerMode
+      ? maskEmail(response.data.email)
+      : response.data.email;
+
+    notificationStore.success('プロフィールを更新しました');
 
     // パスワードフィールドをクリア
-    form.value.password = ''
-    form.value.passwordConfirm = ''
-    formRef.value.resetValidation()
-
+    form.value.password = '';
+    form.value.passwordConfirm = '';
+    formRef.value.resetValidation();
   } catch (error) {
-    console.error('Failed to update profile:', error)
+    console.error('Failed to update profile:', error);
     // エラー通知はapi.tsのインターセプターが処理
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const handleDeleteAccount = async () => {
-  if (deleteConfirmText.value !== 'DELETE') return
+  if (deleteConfirmText.value !== 'DELETE') return;
 
-  deleting.value = true
+  deleting.value = true;
   try {
-    await api.delete('/me/')
-    notificationStore.success('アカウントが正常に削除されました')
+    await api.delete('/me/');
+    notificationStore.success('アカウントが正常に削除されました');
     // ログアウト処理でリダイレクト
-    await authStore.logout()
+    await authStore.logout();
   } catch (error) {
-    console.error('Failed to delete account:', error)
+    console.error('Failed to delete account:', error);
   } finally {
-    deleting.value = false
-    deleteDialog.value = false
+    deleting.value = false;
+    deleteDialog.value = false;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -300,7 +303,9 @@ const handleDeleteAccount = async () => {
   background: #0a0e27;
 }
 
-.profile-card, .delete-card, .delete-dialog-card {
+.profile-card,
+.delete-card,
+.delete-dialog-card {
   background: rgba(18, 22, 46, 0.98) !important;
   backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 217, 255, 0.2);
@@ -328,8 +333,14 @@ const handleDeleteAccount = async () => {
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 </style>

@@ -2,13 +2,15 @@
 統計サービス
 統計に関するビジネスロジックを提供
 """
-from sqlalchemy.orm import Session
-from sqlalchemy import func, extract, desc, select
-from datetime import datetime, timedelta, timezone
-from typing import List, Dict, Any, Optional
 
-from app.models.duel import Duel
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy import desc, extract, func
+from sqlalchemy.orm import Session
+
 from app.models.deck import Deck
+from app.models.duel import Duel
 
 
 class StatisticsService:
@@ -33,8 +35,8 @@ class StatisticsService:
         deck_counts = (
             duels_query.join(Deck, Duel.opponentDeck_id == Deck.id)
             .group_by(Deck.name)
-            .with_entities(Deck.name, func.count(Duel.id).label('count'))
-            .order_by(desc('count'))
+            .with_entities(Deck.name, func.count(Duel.id).label("count"))
+            .order_by(desc("count"))
             .all()
         )
 
@@ -50,34 +52,38 @@ class StatisticsService:
         return distribution
 
     def get_deck_distribution_monthly(
-        self, db: Session, user_id: int, year: int, month: int, game_mode: Optional[str] = None
+        self,
+        db: Session,
+        user_id: int,
+        year: int,
+        month: int,
+        game_mode: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """月間の相手デッキ分布を取得"""
         base_query = self._build_base_duels_query(db, user_id, game_mode).filter(
-            extract('year', Duel.played_date) == year,
-            extract('month', Duel.played_date) == month,
+            extract("year", Duel.played_date) == year,
+            extract("month", Duel.played_date) == month,
         )
-        
+
         # total_duelsのクエリを構築
         total_query = db.query(func.count(Duel.id)).filter(
             Duel.user_id == user_id,
-            extract('year', Duel.played_date) == year,
-            extract('month', Duel.played_date) == month
+            extract("year", Duel.played_date) == year,
+            extract("month", Duel.played_date) == month,
         )
         if game_mode:
             total_query = total_query.filter(Duel.game_mode == game_mode)
-        
+
         total_duels = total_query.scalar()
 
         if total_duels == 0:
             return []
 
         deck_counts = (
-            base_query
-            .join(Deck, Duel.opponentDeck_id == Deck.id)
+            base_query.join(Deck, Duel.opponentDeck_id == Deck.id)
             .group_by(Deck.name)
-            .with_entities(Deck.name, func.count(Duel.id).label('count'))
-            .order_by(desc('count'))
+            .with_entities(Deck.name, func.count(Duel.id).label("count"))
+            .order_by(desc("count"))
             .all()
         )
 
@@ -92,7 +98,11 @@ class StatisticsService:
         return distribution
 
     def get_deck_distribution_recent(
-        self, db: Session, user_id: int, limit: int = 30, game_mode: Optional[str] = None
+        self,
+        db: Session,
+        user_id: int,
+        limit: int = 30,
+        game_mode: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """直近の相手デッキ分布を取得"""
         # まずサブクエリで直近のデュエルIDを取得
@@ -103,7 +113,7 @@ class StatisticsService:
             .with_entities(Duel.id)
             .subquery()
         )
-        
+
         # 直近のデュエル数をカウント
         total_duels = db.query(func.count()).select_from(recent_duel_ids).scalar()
 
@@ -112,11 +122,11 @@ class StatisticsService:
 
         # デッキ分布を計算（joinはlimitの前に適用）
         deck_counts = (
-            db.query(Deck.name, func.count(Duel.id).label('count'))
+            db.query(Deck.name, func.count(Duel.id).label("count"))
             .join(Duel, Duel.opponentDeck_id == Deck.id)
             .filter(Duel.id.in_(db.query(recent_duel_ids.c.id)))
             .group_by(Deck.name)
-            .order_by(desc('count'))
+            .order_by(desc("count"))
             .all()
         )
 
@@ -130,18 +140,33 @@ class StatisticsService:
         ]
         return distribution
 
-    def get_matchup_chart(self, db: Session, user_id: int, year: Optional[int] = None, month: Optional[int] = None, game_mode: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_matchup_chart(
+        self,
+        db: Session,
+        user_id: int,
+        year: Optional[int] = None,
+        month: Optional[int] = None,
+        game_mode: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         """デッキ相性表のデータを取得"""
         query = self._build_base_duels_query(db, user_id, game_mode)
 
         if year is not None:
-            query = query.filter(extract('year', Duel.played_date) == year)
+            query = query.filter(extract("year", Duel.played_date) == year)
         if month is not None:
-            query = query.filter(extract('month', Duel.played_date) == month)
+            query = query.filter(extract("month", Duel.played_date) == month)
 
         duels = query.all()
-        my_decks = db.query(Deck).filter(Deck.user_id == user_id, Deck.is_opponent == False).all()
-        opponent_decks = db.query(Deck).filter(Deck.user_id == user_id, Deck.is_opponent == True).all()
+        my_decks = (
+            db.query(Deck)
+            .filter(Deck.user_id == user_id, Deck.is_opponent.is_(False))
+            .all()
+        )
+        opponent_decks = (
+            db.query(Deck)
+            .filter(Deck.user_id == user_id, Deck.is_opponent.is_(True))
+            .all()
+        )
 
         my_deck_map = {deck.id: deck.name for deck in my_decks}
         opponent_deck_map = {deck.id: deck.name for deck in opponent_decks}
@@ -163,21 +188,25 @@ class StatisticsService:
                     matchups[my_deck_name][opp_deck_name]["wins"] += 1
                 else:
                     matchups[my_deck_name][opp_deck_name]["losses"] += 1
-        
+
         # フロントエンドが扱いやすい形式に変換
         chart_data = []
         for my_deck_name, opponents in matchups.items():
             for opp_deck_name, results in opponents.items():
                 total = results["wins"] + results["losses"]
                 if total > 0:
-                    chart_data.append({
-                        "deck_name": my_deck_name,
-                        "opponent_deck_name": opp_deck_name,
-                        "total_duels": total,
-                        "wins": results["wins"],
-                        "losses": results["losses"],
-                        "win_rate": (results["wins"] / total) * 100 if total > 0 else 0
-                    })
+                    chart_data.append(
+                        {
+                            "deck_name": my_deck_name,
+                            "opponent_deck_name": opp_deck_name,
+                            "total_duels": total,
+                            "wins": results["wins"],
+                            "losses": results["losses"],
+                            "win_rate": (
+                                (results["wins"] / total) * 100 if total > 0 else 0
+                            ),
+                        }
+                    )
 
         return chart_data
 
@@ -190,9 +219,13 @@ class StatisticsService:
         # 月の最初の日と最後の日を計算
         start_date = datetime(year, month, 1, 0, 0, 0, tzinfo=timezone.utc)
         if month == 12:
-            end_date = datetime(year + 1, 1, 1, 0, 0, 0, tzinfo=timezone.utc) - timedelta(microseconds=1)
+            end_date = datetime(
+                year + 1, 1, 1, 0, 0, 0, tzinfo=timezone.utc
+            ) - timedelta(microseconds=1)
         else:
-            end_date = datetime(year, month + 1, 1, 0, 0, 0, tzinfo=timezone.utc) - timedelta(microseconds=1)
+            end_date = datetime(
+                year, month + 1, 1, 0, 0, 0, tzinfo=timezone.utc
+            ) - timedelta(microseconds=1)
 
         # 該当月のデュエルを取得
         duels = (
@@ -201,7 +234,7 @@ class StatisticsService:
                 Duel.played_date >= start_date,
                 Duel.played_date <= end_date,
             )
-            .order_by(Duel.played_date, Duel.id) # played_dateが同じ場合はidでソート
+            .order_by(Duel.played_date, Duel.id)  # played_dateが同じ場合はidでソート
             .all()
         )
 
@@ -215,34 +248,38 @@ class StatisticsService:
                 value = duel.rate_value
             elif game_mode == "DC" and duel.dc_value is not None:
                 value = duel.dc_value
-            
+
             if value is not None:
                 current_value = value
-            
+
             # その日の最後の値、または直前の値を使用
-            time_series_data.append({
-                "date": date_str,
-                "value": current_value
-            })
-        
+            time_series_data.append({"date": date_str, "value": current_value})
+
         # 同じ日付で複数のデュエルがある場合、最後の値のみを保持
         # また、欠損日を補完し、直前の値で埋める
         processed_data = {}
         for item in time_series_data:
             processed_data[item["date"]] = item["value"]
-        
+
         return time_series_data
 
-    def get_overall_stats(self, db: Session, user_id: int, year: int, month: int, game_mode: Optional[str] = None) -> Dict[str, Any]:
+    def get_overall_stats(
+        self,
+        db: Session,
+        user_id: int,
+        year: int,
+        month: int,
+        game_mode: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """指定された年月におけるユーザーの全体的なデュエル統計を取得"""
         query = db.query(Duel).filter(
             Duel.user_id == user_id,
-            extract('year', Duel.played_date) == year,
-            extract('month', Duel.played_date) == month,
+            extract("year", Duel.played_date) == year,
+            extract("month", Duel.played_date) == month,
         )
         if game_mode:
             query = query.filter(Duel.game_mode == game_mode)
-        
+
         duels = query.all()
 
         total_duels = len(duels)
@@ -267,11 +304,15 @@ class StatisticsService:
 
         first_turn_total = len(first_turn_duels)
         first_turn_wins = sum(1 for d in first_turn_duels if d.result is True)
-        first_turn_win_rate = first_turn_wins / first_turn_total if first_turn_total > 0 else 0
+        first_turn_win_rate = (
+            first_turn_wins / first_turn_total if first_turn_total > 0 else 0
+        )
 
         second_turn_total = len(second_turn_duels)
         second_turn_wins = sum(1 for d in second_turn_duels if d.result is True)
-        second_turn_win_rate = second_turn_wins / second_turn_total if second_turn_total > 0 else 0
+        second_turn_win_rate = (
+            second_turn_wins / second_turn_total if second_turn_total > 0 else 0
+        )
 
         coin_total = total_duels
         coin_wins = sum(1 for d in duels if d.coin is True)
@@ -291,16 +332,28 @@ class StatisticsService:
             "go_first_rate": go_first_rate,
         }
 
-    def get_duels_by_month(self, db: Session, user_id: int, year: int, month: int) -> List[Duel]:
+    def get_duels_by_month(
+        self, db: Session, user_id: int, year: int, month: int
+    ) -> List[Duel]:
         """指定された年月におけるユーザーのデュエルリストを取得"""
-        duels = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            extract('year', Duel.played_date) == year,
-            extract('month', Duel.played_date) == month,
-        ).order_by(Duel.played_date.desc()).all()
+        duels = (
+            db.query(Duel)
+            .filter(
+                Duel.user_id == user_id,
+                extract("year", Duel.played_date) == year,
+                extract("month", Duel.played_date) == month,
+            )
+            .order_by(Duel.played_date.desc())
+            .all()
+        )
 
         # デッキ情報を結合
-        deck_ids = list(set([d.deck_id for d in duels if d.deck_id] + [d.opponentDeck_id for d in duels if d.opponentDeck_id]))
+        deck_ids = list(
+            set(
+                [d.deck_id for d in duels if d.deck_id]
+                + [d.opponentDeck_id for d in duels if d.opponentDeck_id]
+            )
+        )
         if deck_ids:  # deck_ids が空でない場合のみクエリを実行
             decks = db.query(Deck).filter(Deck.id.in_(deck_ids)).all()
             deck_map = {deck.id: deck for deck in decks}
@@ -310,12 +363,16 @@ class StatisticsService:
         for duel in duels:
             # deck と opponent_deck オブジェクトを設定
             duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
-            duel.opponent_deck = deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
-            
+            duel.opponent_deck = (
+                deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+            )
+
             # deck_name と opponent_deck_name 属性を必ず追加
             duel.deck_name = duel.deck.name if duel.deck else "不明"
-            duel.opponent_deck_name = duel.opponent_deck.name if duel.opponent_deck else "不明"
-            
+            duel.opponent_deck_name = (
+                duel.opponent_deck.name if duel.opponent_deck else "不明"
+            )
+
         return duels
 
 
