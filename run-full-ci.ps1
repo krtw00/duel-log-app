@@ -76,6 +76,7 @@ try {
         $env:PYTHONPATH = "."
         $env:DATABASE_URL = "sqlite:///./test.db"
         $env:SECRET_KEY = "a_very_secure_and_long_32_char_test_secret_key"
+        $env:RESEND_API_KEY = "test_key"
         $env:DEBUG = "true"
         
         pytest --tb=short --quiet
