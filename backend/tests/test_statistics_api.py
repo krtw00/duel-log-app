@@ -1,8 +1,9 @@
 """
 統計API のテスト
 """
-import pytest
+
 from fastapi import status
+
 
 def test_get_all_statistics_unauthorized(client):
     """未認証で統計取得を試みる"""
@@ -18,20 +19,20 @@ def test_get_all_statistics_success(authenticated_client):
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    
+
     # 全ゲームモードのデータが含まれている
     assert "RANK" in data
     assert "RATE" in data
     assert "EVENT" in data
     assert "DC" in data
-    
+
     # 各モードに必要なキーが含まれている
     for mode in ["RANK", "RATE", "EVENT", "DC"]:
         assert "monthly_deck_distribution" in data[mode]
         assert "recent_deck_distribution" in data[mode]
         assert "matchup_data" in data[mode]
         assert "time_series_data" in data[mode]
-        
+
         # 各データがリスト形式
         assert isinstance(data[mode]["monthly_deck_distribution"], list)
         assert isinstance(data[mode]["recent_deck_distribution"], list)
@@ -46,7 +47,7 @@ def test_get_all_statistics_with_default_params(authenticated_client):
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    
+
     # デフォルトで現在の年月のデータが返される
     assert "RANK" in data
     assert "RATE" in data
@@ -140,7 +141,11 @@ def test_get_time_series_data_invalid_mode(authenticated_client):
         params={"year": 2025, "month": 10},
     )
     # ゲームモードのバリデーションエラー
-    assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY, status.HTTP_500_INTERNAL_SERVER_ERROR]
+    assert response.status_code in [
+        status.HTTP_400_BAD_REQUEST,
+        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+    ]
 
 
 def test_get_statistics_with_game_mode_filter(authenticated_client):

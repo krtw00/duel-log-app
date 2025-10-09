@@ -11,7 +11,7 @@
       <!-- パスワードリセットカード -->
       <v-card class="reset-password-card" elevation="24">
         <div class="card-glow"></div>
-        
+
         <v-card-text class="pa-8">
           <!-- タイトル -->
           <div class="text-center mb-8">
@@ -23,18 +23,18 @@
           </div>
 
           <!-- フォーム -->
-          <v-form @submit.prevent="handleResetPassword" ref="formRef">
+          <v-form ref="formRef" @submit.prevent="handleResetPassword">
             <v-text-field
               v-model="newPassword"
               label="新しいパスワード"
               prepend-inner-icon="mdi-lock-outline"
               :type="showNewPassword ? 'text' : 'password'"
               :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showNewPassword = !showNewPassword"
               variant="outlined"
               color="primary"
               :rules="[rules.required, rules.min]"
               class="mb-2"
+              @click:append-inner="showNewPassword = !showNewPassword"
             />
 
             <v-text-field
@@ -43,11 +43,11 @@
               prepend-inner-icon="mdi-lock-check-outline"
               :type="showConfirmPassword ? 'text' : 'password'"
               :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showConfirmPassword = !showConfirmPassword"
               variant="outlined"
               color="primary"
               :rules="[rules.required, rules.min, rules.passwordMatch]"
               class="mb-4"
+              @click:append-inner="showConfirmPassword = !showConfirmPassword"
             />
 
             <!-- 送信ボタン -->
@@ -65,7 +65,9 @@
 
             <!-- ログインページへのリンク -->
             <div class="text-center">
-              <router-link to="/login" class="text-caption text-grey">ログインページに戻る</router-link>
+              <router-link to="/login" class="text-caption text-grey"
+                >ログインページに戻る</router-link
+              >
             </div>
           </v-form>
         </v-card-text>
@@ -75,51 +77,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useNotificationStore } from '../stores/notification'
-import api from '../services/api'
+import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useNotificationStore } from '../stores/notification';
+import api from '../services/api';
 
-const route = useRoute()
-const router = useRouter()
-const notificationStore = useNotificationStore()
+const route = useRoute();
+const router = useRouter();
+const notificationStore = useNotificationStore();
 
-const formRef = ref()
-const newPassword = ref('')
-const confirmPassword = ref('')
-const showNewPassword = ref(false)
-const showConfirmPassword = ref(false)
-const loading = ref(false)
+const formRef = ref();
+const newPassword = ref('');
+const confirmPassword = ref('');
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
+const loading = ref(false);
 
-const token = route.params.token as string
+const token = route.params.token as string;
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
   min: (v: string) => v.length >= 8 || '8文字以上で入力してください',
-  passwordMatch: (v: string) => v === newPassword.value || 'パスワードが一致しません'
-}
+  passwordMatch: (v: string) => v === newPassword.value || 'パスワードが一致しません',
+};
 
 const handleResetPassword = async () => {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
-  loading.value = true
+  loading.value = true;
 
   try {
     await api.post('/auth/reset-password', {
       token: token,
       new_password: newPassword.value,
-      confirm_password: confirmPassword.value
-    })
-    notificationStore.success('パスワードが正常にリセットされました。')
-    router.push('/login') // ログインページに戻る
+      confirm_password: confirmPassword.value,
+    });
+    notificationStore.success('パスワードが正常にリセットされました。');
+    router.push('/login'); // ログインページに戻る
   } catch (error: any) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    console.error('Reset password error:', error)
+    console.error('Reset password error:', error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -146,7 +148,7 @@ const handleResetPassword = async () => {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -154,8 +156,12 @@ const handleResetPassword = async () => {
 }
 
 @keyframes gridScroll {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
 }
 
 .glow-orb {
@@ -185,8 +191,13 @@ const handleResetPassword = async () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
 }
 
 .reset-password-card {
@@ -213,9 +224,15 @@ const handleResetPassword = async () => {
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .app-title {
@@ -242,7 +259,7 @@ const handleResetPassword = async () => {
   font-weight: 600;
   letter-spacing: 1px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
@@ -252,11 +269,11 @@ const handleResetPassword = async () => {
 :deep(.v-field--variant-outlined) {
   border-radius: 8px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
   }
-  
+
   &.v-field--focused {
     box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
   }

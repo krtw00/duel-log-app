@@ -1,0 +1,201 @@
+[0;36m==================================================[0m
+[0;36m[1/4] Checking environment...[0m
+[0;36m--------------------------------------------------[0m
+
+[0;32m✅ Python found: Python 3.12.3 (using python3.12)[0m
+[0;32m✅ Node.js found: v22.20.0[0m
+
+[0;36m==================================================[0m
+[0;36m[2/4] Running backend setup and tests...[0m
+[0;36m--------------------------------------------------[0m
+
+[0;32m✅ Virtual environment activated.[0m
+[0;33mInstalling backend dependencies...[0m
+[0;32m✅ Backend dependencies are up to date.[0m
+[0;33mRunning backend tests...[0m
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-7.4.3, pluggy-1.6.0
+rootdir: /home/b20a0686/duel-log-app/backend
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-4.1.0, Faker-26.0.0, anyio-4.11.0
+collected 30 items
+
+tests/test_deck_api.py ........                                          [ 26%]
+tests/test_deck_service.py ........                                      [ 53%]
+tests/test_statistics_api.py ..............                              [100%]
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                        Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------------
+app/__init__.py                                 0      0   100%
+app/api/deps.py                                32     20    38%   36-56, 74-80
+app/api/routers/auth.py                        79     56    29%   54-94, 107-116, 126-183, 191-226
+app/api/routers/decks.py                       42      8    81%   68-69, 130, 135-136, 159, 179-180
+app/api/routers/duels.py                       56     27    52%   29-37, 63, 91, 114-121, 146-155, 175-178, 200-204, 214, 226-239
+app/api/routers/me.py                          19      6    68%   17, 29-32, 46-48
+app/api/routers/shared_statistics.py           58     38    34%   32-49, 62-185, 197-201
+app/api/routers/statistics.py                  33      0   100%
+app/api/routers/users.py                       37     19    49%   22-34, 41-44, 51, 58-65, 72-75
+app/auth.py                                     2      0   100%
+app/core/config.py                             47      2    96%   77, 87
+app/core/exception_handlers.py                 22      9    59%   45-64, 79-87, 100-108
+app/core/exceptions/__init__.py                23      4    83%   26, 42, 49, 58
+app/core/logging_config.py                     13      1    92%   47
+app/core/security.py                           32     16    50%   26, 41-43, 75-94, 107-113
+app/db/__init__.py                              1      0   100%
+app/db/seed.py                                 89     89     0%   1-165
+app/db/session.py                              16      6    62%   11, 13, 25-29
+app/main.py                                    69     26    62%   44, 74-91, 105-119, 126-134, 158, 164
+app/models/__init__.py                         10      0   100%
+app/models/deck.py                             18      0   100%
+app/models/duel.py                             24      0   100%
+app/models/password_reset_token.py             17      1    94%   34
+app/models/sharedUrl.py                        16      0   100%
+app/models/shared_statistics.py                15      0   100%
+app/models/user.py                             21      0   100%
+app/schemas/__init__.py                         3      0   100%
+app/schemas/auth.py                            17      0   100%
+app/schemas/deck.py                            25      0   100%
+app/schemas/duel.py                            74     20    73%   38, 44-49, 55-60, 66-71, 105
+app/schemas/shared_statistics.py               16      0   100%
+app/schemas/user.py                            20      0   100%
+app/services/base/__init__.py                   2      0   100%
+app/services/base/base_service.py              45      6    87%   70-75, 124, 150
+app/services/deck_service.py                   47      9    81%   126, 156-162, 170-175
+app/services/duel_service.py                   91     71    22%   51-67, 81, 97-109, 115-157, 163-234, 240-303
+app/services/shared_statistics_service.py      27     13    52%   24-40, 46, 59-71
+app/services/statistics_service.py            125     69    45%   31-52, 82-98, 124-141, 183-190, 195-198, 222, 245-256, 262, 275-324, 339-376
+app/services/user_service.py                   41     28    32%   22-40, 47-69
+-------------------------------------------------------------------------
+TOTAL                                        1324    544    59%
+Coverage HTML written to dir htmlcov
+
+
+============================= 30 passed in 14.13s ==============================
+[0;32m✅ Backend tests passed![0m
+
+[0;36m==================================================[0m
+[0;36m[3/4] Running frontend setup and tests...[0m
+[0;36m--------------------------------------------------[0m
+
+[0;33mRunning frontend tests...[0m
+
+> duel-log-frontend@0.0.0 test:unit
+> vitest run
+
+
+ RUN  v3.2.4 /home/b20a0686/duel-log-app/frontend
+
+ ❯ src/stores/__tests__/shared_statistics.test.ts (7 tests | 6 failed) 41ms
+   ✓ sharedStatisticsStore > initializes with null sharedStatsData and loading false 14ms
+   × sharedStatisticsStore > createSharedLink > creates a shared link successfully 16ms
+     → expected "spy" to be called with arguments: [ '/shared-statistics/', …(1) ][90m
+
+Number of calls: [1m0[22m
+[39m
+   × sharedStatisticsStore > createSharedLink > handles error during shared link creation 2ms
+     → expected "spy" to be called with arguments: [ '/shared-statistics/', …(1) ][90m
+
+Number of calls: [1m0[22m
+[39m
+   × sharedStatisticsStore > getSharedStatistics > fetches shared statistics successfully 2ms
+     → expected "spy" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+   × sharedStatisticsStore > getSharedStatistics > handles error during shared statistics fetch 2ms
+     → expected "spy" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[39m
+   × sharedStatisticsStore > deleteSharedLink > deletes a shared link successfully 2ms
+     → expected "spy" to be called with arguments: [ '/shared-statistics/test_share_id' ][90m
+
+Number of calls: [1m0[22m
+[39m
+   × sharedStatisticsStore > deleteSharedLink > handles error during shared link deletion 1ms
+     → expected "spy" to be called with arguments: [ '/shared-statistics/test_share_id' ][90m
+
+Number of calls: [1m0[22m
+[39m
+ ❯ src/views/__tests__/SharedStatisticsView.test.ts (4 tests | 2 failed) 1137ms
+   ✓ SharedStatisticsView.vue > renders correctly with a simple app bar  452ms
+   × SharedStatisticsView.vue > fetches and displays shared statistics on mount 363ms
+     → expected 'Duel Log Shared Statistics共有統計データ' to contain 'ランク - 2023年 10月'
+   × SharedStatisticsView.vue > displays error message if shared statistics fetch fails 202ms
+     → expected 'Duel Log Shared Statistics共有統計データ' to contain '共有統計データを読み込めませんでした。リンクが有効期限切れか、存在しない可…'
+   ✓ SharedStatisticsView.vue > displays loading state 110ms
+ ✓ src/components/duel/__tests__/DuelTable.test.ts (7 tests) 2505ms
+   ✓ DuelTable.vue > renders duel data correctly  483ms
+   ✓ DuelTable.vue > emits edit event with duel object when edit button is clicked  340ms
+   ✓ DuelTable.vue > emits delete event with duel id when delete button is clicked  337ms
+   ✓ DuelTable.vue > has mobile-breakpoint attribute for responsive design  405ms
+   ✓ DuelTable.vue > renders table with responsive styling  425ms
+ ❯ src/views/__tests__/DashboardView.test.ts (3 tests | 2 failed) 2076ms
+   ✓ DashboardView.vue > renders the dashboard view  873ms
+   × DashboardView.vue > opens the ShareStatsDialog when the "共有リンクを生成" button is clicked (PC) 574ms
+     → expected false to be true // Object.is equality
+   × DashboardView.vue > opens the ShareStatsDialog when the "共有" button is clicked (Mobile) 624ms
+     → expected false to be true // Object.is equality
+ ✓ src/views/__tests__/DecksView.test.ts (8 tests) 2779ms
+   ✓ DecksView.vue > renders correctly and fetches decks on mount  416ms
+   ✓ DecksView.vue > opens deck dialog in create mode for my deck  454ms
+   ✓ DecksView.vue > opens deck dialog in create mode for opponent deck  379ms
+   ✓ DecksView.vue > opens deck dialog in edit mode  431ms
+   ✓ DecksView.vue > calls API to update a deck and shows success notification  316ms
+ ✓ src/components/duel/__tests__/DuelFormDialog.test.ts (5 tests) 3349ms
+   ✓ DuelFormDialog.vue > renders with required props  975ms
+   ✓ DuelFormDialog.vue > has fullscreen mode on mobile  699ms
+   ✓ DuelFormDialog.vue > emits update:modelValue when closing  802ms
+   ✓ DuelFormDialog.vue > accepts duel prop for editing  818ms
+ ✓ src/views/__tests__/ProfileView.test.ts (3 tests) 1912ms
+   ✓ ProfileView.vue > renders correctly  768ms
+   ✓ ProfileView.vue > displays user information in form  576ms
+   ✓ ProfileView.vue > has streamer mode toggle  563ms
+ ❯ src/components/common/__tests__/ShareStatsDialog.test.ts (7 tests | 5 failed) 2561ms
+   ✓ ShareStatsDialog.vue > renders correctly and is hidden by default 167ms
+   × ShareStatsDialog.vue > opens when modelValue is true 603ms
+     → expected false to be true // Object.is equality
+   × ShareStatsDialog.vue > generates a link successfully with no expiration 378ms
+     → Cannot call find on an empty DOMWrapper.
+   × ShareStatsDialog.vue > generates a link successfully with YYYY-MM-DD expiration 340ms
+     → Cannot call find on an empty DOMWrapper.
+   × ShareStatsDialog.vue > shows error for invalid YYYY-MM-DD format 375ms
+     → Cannot call find on an empty DOMWrapper.
+   × ShareStatsDialog.vue > shows error for non-existent date (e.g., 2025-02-30) 322ms
+     → Cannot call find on an empty DOMWrapper.
+   ✓ ShareStatsDialog.vue > resets generated link and expiration on dialog close  369ms
+ ✓ src/views/__tests__/StatisticsView.test.ts (1 test) 1099ms
+   ✓ StatisticsView.vue > renders correctly and fetches statistics on mount  1093ms
+ ✓ src/views/__tests__/RegisterView.test.ts (5 tests) 1793ms
+   ✓ RegisterView.vue > renders correctly  606ms
+   ✓ RegisterView.vue > has username, email and password fields  324ms
+   ✓ RegisterView.vue > has register button  322ms
+ ✓ src/components/duel/__tests__/StatCard.test.ts (4 tests) 556ms
+   ✓ StatCard.vue > renders props correctly  302ms
+ ✓ src/views/__tests__/LoginView.test.ts (5 tests) 1667ms
+   ✓ LoginView.vue > renders correctly  548ms
+   ✓ LoginView.vue > has link to register page  313ms
+ ✓ src/components/common/__tests__/ToastNotification.test.ts (4 tests) 416ms
+ ✓ src/components/common/__tests__/LoadingOverlay.test.ts (2 tests) 554ms
+ ✓ src/App.test.ts (2 tests) 376ms
+ ✓ src/stores/__tests__/notification.test.ts (8 tests) 52ms
+ ✓ src/stores/__tests__/loading.test.ts (7 tests) 22ms
+ ✓ src/utils/__tests__/maskEmail.test.ts (12 tests) 24ms
+ ✓ src/utils/__tests__/ranks.test.ts (5 tests) 10ms
+ ✓ src/stores/__tests__/auth.test.ts (4 tests) 27ms
+ ✓ src/components/layout/__tests__/AppBar.test.ts (1 test) 6ms
+ ✓ src/router/__tests__/index.test.ts (4 tests) 25ms
+ ✓ src/services/__tests__/api.test.ts (1 test) 4ms
+ ✓ src/router/__tests__/router.test.ts (1 test) 4ms
+
+ Test Files  4 failed | 20 passed (24)
+      Tests  15 failed | 95 passed (110)
+   Start at  14:56:11
+   Duration  30.94s (transform 8.76s, setup 5.82s, collect 69.37s, tests 22.99s, environment 81.67s, prepare 7.12s)
+
+
+[0;33mDeactivating virtual environment...[0m
+[0;32m✅ Virtual environment deactivated.[0m
+[0;31m❌ CI script failed![0m

@@ -6,8 +6,8 @@
     :color="getColor(notification.type)"
     :timeout="notification.duration || 5000"
     location="top right"
-    @update:model-value="(val) => !val && removeNotification(notification.id)"
     class="toast-notification"
+    @update:model-value="(val) => !val && removeNotification(notification.id)"
   >
     <div class="d-flex align-center">
       <v-icon :icon="getIcon(notification.type)" class="mr-3" />
@@ -26,62 +26,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useNotificationStore } from '../../stores/notification'
+import { ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useNotificationStore } from '../../stores/notification';
 
-const notificationStore = useNotificationStore()
-const { notifications } = storeToRefs(notificationStore)
+const notificationStore = useNotificationStore();
+const { notifications } = storeToRefs(notificationStore);
 
-const snackbarStates = ref<Record<number, boolean>>({})
+const snackbarStates = ref<Record<number, boolean>>({});
 
 // 新しい通知が追加されたらsnackbarを開く
 watch(
   notifications,
   (newNotifications) => {
-    newNotifications.forEach(notification => {
+    newNotifications.forEach((notification) => {
       if (!(notification.id in snackbarStates.value)) {
-        snackbarStates.value[notification.id] = true
+        snackbarStates.value[notification.id] = true;
       }
-    })
+    });
   },
-  { deep: true }
-)
+  { deep: true },
+);
 
 const getColor = (type: string) => {
   switch (type) {
     case 'success':
-      return 'success'
+      return 'success';
     case 'error':
-      return 'error'
+      return 'error';
     case 'warning':
-      return 'warning'
+      return 'warning';
     case 'info':
-      return 'info'
+      return 'info';
     default:
-      return 'primary'
+      return 'primary';
   }
-}
+};
 
 const getIcon = (type: string) => {
   switch (type) {
     case 'success':
-      return 'mdi-check-circle'
+      return 'mdi-check-circle';
     case 'error':
-      return 'mdi-alert-circle'
+      return 'mdi-alert-circle';
     case 'warning':
-      return 'mdi-alert'
+      return 'mdi-alert';
     case 'info':
-      return 'mdi-information'
+      return 'mdi-information';
     default:
-      return 'mdi-bell'
+      return 'mdi-bell';
   }
-}
+};
 
 const removeNotification = (id: number) => {
-  snackbarStates.value[id] = false
-  notificationStore.remove(id)
-}
+  snackbarStates.value[id] = false;
+  notificationStore.remove(id);
+};
 </script>
 
 <style scoped lang="scss">
