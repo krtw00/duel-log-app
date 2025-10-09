@@ -5,7 +5,7 @@ import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import { createTestingPinia } from '@pinia/testing';
 import DashboardView from '../DashboardView.vue';
-import { useAuthStore } from '../../stores/auth';
+
 import { api } from '@/services/api';
 
 // Mock API and stores

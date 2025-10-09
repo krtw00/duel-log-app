@@ -431,9 +431,10 @@ const fetchSharedStatistics = async () => {
     );
     if (success && sharedStatisticsStore.sharedStatsData) {
       const tempProcessedStats: AllStatisticsData = {};
+      const statsData = sharedStatisticsStore.sharedStatsData;
       // Process game mode specific statistics
-      Object.keys(sharedStatisticsStore.sharedStatsData).forEach((mode) => {
-        const rawStats = sharedStatisticsStore.sharedStatsData[mode];
+      Object.keys(statsData).forEach((mode) => {
+        const rawStats = statsData[mode];
 
         if (mode === 'DASHBOARD') {
           // Process DASHBOARD data
