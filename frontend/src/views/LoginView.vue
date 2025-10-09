@@ -11,7 +11,7 @@
       <!-- ログインカード -->
       <v-card class="login-card" elevation="24">
         <div class="card-glow"></div>
-        
+
         <v-card-text class="pa-8">
           <!-- ロゴ・タイトル -->
           <div class="text-center mb-8">
@@ -23,7 +23,7 @@
           </div>
 
           <!-- ログインフォーム -->
-          <v-form @submit.prevent="handleLogin" ref="formRef">
+          <v-form ref="formRef" @submit.prevent="handleLogin">
             <v-text-field
               v-model="email"
               label="メールアドレス"
@@ -34,7 +34,9 @@
               :rules="[rules.required, rules.email]"
               class="mb-2"
               :class="{ 'streamer-mode-input': localStreamerMode }"
-              :hint="localStreamerMode ? '配信者モードが有効なため、入力内容は非表示になります' : ''"
+              :hint="
+                localStreamerMode ? '配信者モードが有効なため、入力内容は非表示になります' : ''
+              "
               persistent-hint
               autocomplete="email"
             />
@@ -45,11 +47,11 @@
               prepend-inner-icon="mdi-lock-outline"
               :type="showPassword ? 'text' : 'password'"
               :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showPassword = !showPassword"
               variant="outlined"
               color="primary"
               :rules="[rules.required]"
               class="mb-4"
+              @click:append-inner="showPassword = !showPassword"
             />
 
             <!-- ログインボタン -->
@@ -67,13 +69,8 @@
 
             <!-- 配信者モード切り替え -->
             <div class="mb-4">
-              <v-switch
-                v-model="localStreamerMode"
-                color="purple"
-                density="compact"
-                hide-details
-              >
-                <template v-slot:label>
+              <v-switch v-model="localStreamerMode" color="purple" density="compact" hide-details>
+                <template #label>
                   <div class="d-flex align-center">
                     <v-icon size="small" class="mr-2">mdi-video</v-icon>
                     <span class="text-caption">配信者モード</span>
@@ -87,7 +84,9 @@
 
             <!-- リンク -->
             <div class="text-center">
-              <router-link to="/forgot-password" class="text-caption text-grey">パスワードを忘れた場合</router-link>
+              <router-link to="/forgot-password" class="text-caption text-grey"
+                >パスワードを忘れた場合</router-link
+              >
               <v-divider class="my-3" />
               <p class="text-caption text-grey">
                 アカウントをお持ちでない方は
@@ -102,56 +101,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { useNotificationStore } from '../stores/notification'
+import { ref, watch, onMounted } from 'vue';
+import { useAuthStore } from '../stores/auth';
+import { useNotificationStore } from '../stores/notification';
 
-const authStore = useAuthStore()
-const notificationStore = useNotificationStore()
+const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 
-const formRef = ref()
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
-const loading = ref(false)
-const localStreamerMode = ref(authStore.localStreamerMode)
+const formRef = ref();
+const email = ref('');
+const password = ref('');
+const showPassword = ref(false);
+const loading = ref(false);
+const localStreamerMode = ref(authStore.localStreamerMode);
 
 // ローカルストレージから最後のメールアドレスを読み込む
 onMounted(() => {
-  const savedEmail = localStorage.getItem('lastEmail')
+  const savedEmail = localStorage.getItem('lastEmail');
   if (savedEmail) {
-    email.value = savedEmail
+    email.value = savedEmail;
   }
-})
+});
 
 // ローカル配信者モードの変更を監視してストアに反映
 watch(localStreamerMode, (newValue) => {
-  authStore.toggleStreamerMode(newValue)
-})
+  authStore.toggleStreamerMode(newValue);
+});
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
-  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません'
-}
+  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
+};
 
 const handleLogin = async () => {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
-  loading.value = true
+  loading.value = true;
 
   try {
     // ログイン前にメールアドレスをローカルストレージに保存
-    localStorage.setItem('lastEmail', email.value)
-    
-    await authStore.login(email.value, password.value)
-    notificationStore.success('ログインに成功しました')
+    localStorage.setItem('lastEmail', email.value);
+
+    await authStore.login(email.value, password.value);
+    notificationStore.success('ログインに成功しました');
   } catch (error: any) {
     notificationStore.error(error.message || '不明なエラーが発生しました');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -178,7 +177,7 @@ const handleLogin = async () => {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -186,8 +185,12 @@ const handleLogin = async () => {
 }
 
 @keyframes gridScroll {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
 }
 
 .glow-orb {
@@ -217,8 +220,13 @@ const handleLogin = async () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
 }
 
 .login-card {
@@ -245,9 +253,15 @@ const handleLogin = async () => {
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .app-title {
@@ -274,7 +288,7 @@ const handleLogin = async () => {
   font-weight: 600;
   letter-spacing: 1px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
@@ -284,11 +298,11 @@ const handleLogin = async () => {
 :deep(.v-field--variant-outlined) {
   border-radius: 8px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
   }
-  
+
   &.v-field--focused {
     box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
   }
@@ -300,12 +314,12 @@ const handleLogin = async () => {
     color: transparent !important;
     text-shadow: 0 0 8px rgba(181, 54, 255, 0.8);
     letter-spacing: 0.3em;
-    
+
     &::selection {
       background-color: rgba(181, 54, 255, 0.3);
       color: transparent;
     }
-    
+
     // プレースホルダーは表示
     &::placeholder {
       color: rgba(228, 231, 236, 0.3) !important;

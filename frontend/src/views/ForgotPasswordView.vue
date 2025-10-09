@@ -11,7 +11,7 @@
       <!-- パスワード再設定カード -->
       <v-card class="forgot-password-card" elevation="24">
         <div class="card-glow"></div>
-        
+
         <v-card-text class="pa-8">
           <!-- タイトル -->
           <div class="text-center mb-8">
@@ -23,7 +23,7 @@
           </div>
 
           <!-- フォーム -->
-          <v-form @submit.prevent="handleForgotPassword" ref="formRef">
+          <v-form ref="formRef" @submit.prevent="handleForgotPassword">
             <v-text-field
               v-model="email"
               label="メールアドレス"
@@ -50,7 +50,9 @@
 
             <!-- ログインページへのリンク -->
             <div class="text-center">
-              <router-link to="/login" class="text-caption text-grey">ログインページに戻る</router-link>
+              <router-link to="/login" class="text-caption text-grey"
+                >ログインページに戻る</router-link
+              >
             </div>
           </v-form>
         </v-card-text>
@@ -60,40 +62,40 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useNotificationStore } from '../stores/notification'
-import api from '../services/api'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useNotificationStore } from '../stores/notification';
+import api from '../services/api';
 
-const router = useRouter()
-const notificationStore = useNotificationStore()
+const router = useRouter();
+const notificationStore = useNotificationStore();
 
-const formRef = ref()
-const email = ref('')
-const loading = ref(false)
+const formRef = ref();
+const email = ref('');
+const loading = ref(false);
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
-  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません'
-}
+  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
+};
 
 const handleForgotPassword = async () => {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
-  loading.value = true
+  loading.value = true;
 
   try {
-    await api.post('/auth/forgot-password', { email: email.value })
-    notificationStore.success('パスワード再設定の案内をメールで送信しました。')
-    router.push('/login') // ログインページに戻る
+    await api.post('/auth/forgot-password', { email: email.value });
+    notificationStore.success('パスワード再設定の案内をメールで送信しました。');
+    router.push('/login'); // ログインページに戻る
   } catch (error: any) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    console.error('Forgot password error:', error)
+    console.error('Forgot password error:', error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -120,7 +122,7 @@ const handleForgotPassword = async () => {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -128,8 +130,12 @@ const handleForgotPassword = async () => {
 }
 
 @keyframes gridScroll {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
 }
 
 .glow-orb {
@@ -159,8 +165,13 @@ const handleForgotPassword = async () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
 }
 
 .forgot-password-card {
@@ -187,9 +198,15 @@ const handleForgotPassword = async () => {
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .app-title {
@@ -216,7 +233,7 @@ const handleForgotPassword = async () => {
   font-weight: 600;
   letter-spacing: 1px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
@@ -226,11 +243,11 @@ const handleForgotPassword = async () => {
 :deep(.v-field--variant-outlined) {
   border-radius: 8px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
   }
-  
+
   &.v-field--focused {
     box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
   }

@@ -1,15 +1,15 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import DuelTable from '../DuelTable.vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-import { Duel } from '@/types'
+import { describe, it, expect } from 'vitest';
+import { mount } from '@vue/test-utils';
+import DuelTable from '../DuelTable.vue';
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
+import { Duel } from '@/types';
 
 const vuetify = createVuetify({
   components,
   directives,
-})
+});
 
 describe('DuelTable.vue', () => {
   const mockDuels: Duel[] = [
@@ -47,7 +47,7 @@ describe('DuelTable.vue', () => {
       deck: { id: 1, name: 'My Deck', is_opponent: false, active: true },
       opponentdeck: { id: 3, name: 'Another Opponent Deck', is_opponent: true, active: true },
     },
-  ]
+  ];
 
   it('renders duel data correctly', () => {
     const wrapper = mount(DuelTable, {
@@ -58,15 +58,15 @@ describe('DuelTable.vue', () => {
         duels: mockDuels,
         loading: false,
       },
-    })
+    });
 
-    expect(wrapper.text()).toContain('My Deck')
-    expect(wrapper.text()).toContain('Opponent Deck')
-    expect(wrapper.text()).toContain('勝利')
-    expect(wrapper.text()).toContain('敗北')
-    expect(wrapper.text()).toContain('プラチナ5') // Rank 18
-    expect(wrapper.text()).toContain('1500') // Rate value
-  })
+    expect(wrapper.text()).toContain('My Deck');
+    expect(wrapper.text()).toContain('Opponent Deck');
+    expect(wrapper.text()).toContain('勝利');
+    expect(wrapper.text()).toContain('敗北');
+    expect(wrapper.text()).toContain('プラチナ5'); // Rank 18
+    expect(wrapper.text()).toContain('1500'); // Rate value
+  });
 
   it('displays loading skeleton when loading is true', () => {
     const wrapper = mount(DuelTable, {
@@ -77,10 +77,10 @@ describe('DuelTable.vue', () => {
         duels: [],
         loading: true,
       },
-    })
+    });
 
-    expect(wrapper.findComponent({ name: 'VSkeletonLoader' }).exists()).toBe(true)
-  })
+    expect(wrapper.findComponent({ name: 'VSkeletonLoader' }).exists()).toBe(true);
+  });
 
   it('displays no data message when duels array is empty and not loading', () => {
     const wrapper = mount(DuelTable, {
@@ -91,10 +91,10 @@ describe('DuelTable.vue', () => {
         duels: [],
         loading: false,
       },
-    })
+    });
 
-    expect(wrapper.text()).toContain('対戦記録がありません')
-  })
+    expect(wrapper.text()).toContain('対戦記録がありません');
+  });
 
   it('emits edit event with duel object when edit button is clicked', async () => {
     const wrapper = mount(DuelTable, {
@@ -105,12 +105,12 @@ describe('DuelTable.vue', () => {
         duels: mockDuels,
         loading: false,
       },
-    })
+    });
 
-    await wrapper.findAll('.v-btn')[0].trigger('click') // First edit button
-    expect(wrapper.emitted().edit).toBeTruthy()
-    expect((wrapper.emitted().edit as any)[0][0]).toEqual(mockDuels[0])
-  })
+    await wrapper.findAll('.v-btn')[0].trigger('click'); // First edit button
+    expect(wrapper.emitted().edit).toBeTruthy();
+    expect((wrapper.emitted().edit as any)[0][0]).toEqual(mockDuels[0]);
+  });
 
   it('emits delete event with duel id when delete button is clicked', async () => {
     const wrapper = mount(DuelTable, {
@@ -121,12 +121,12 @@ describe('DuelTable.vue', () => {
         duels: mockDuels,
         loading: false,
       },
-    })
+    });
 
-    await wrapper.findAll('.v-btn')[1].trigger('click') // First delete button
-    expect(wrapper.emitted().delete).toBeTruthy()
-    expect((wrapper.emitted().delete as any)[0][0]).toBe(mockDuels[0].id)
-  })
+    await wrapper.findAll('.v-btn')[1].trigger('click'); // First delete button
+    expect(wrapper.emitted().delete).toBeTruthy();
+    expect((wrapper.emitted().delete as any)[0][0]).toBe(mockDuels[0].id);
+  });
 
   it('has mobile-breakpoint attribute for responsive design', () => {
     const wrapper = mount(DuelTable, {
@@ -137,13 +137,13 @@ describe('DuelTable.vue', () => {
         duels: mockDuels,
         loading: false,
       },
-    })
+    });
 
-    const dataTable = wrapper.findComponent({ name: 'VDataTable' })
-    expect(dataTable.exists()).toBe(true)
+    const dataTable = wrapper.findComponent({ name: 'VDataTable' });
+    expect(dataTable.exists()).toBe(true);
     // mobile-breakpointが設定されていることを確認
-    expect(dataTable.props('mobileBreakpoint')).toBe('sm')
-  })
+    expect(dataTable.props('mobileBreakpoint')).toBe('sm');
+  });
 
   it('renders table with responsive styling', () => {
     const wrapper = mount(DuelTable, {
@@ -154,13 +154,13 @@ describe('DuelTable.vue', () => {
         duels: mockDuels,
         loading: false,
       },
-    })
+    });
 
     // テーブルが正しくレンダリングされていることを確認
-    const dataTable = wrapper.findComponent({ name: 'VDataTable' })
-    expect(dataTable.exists()).toBe(true)
-    
+    const dataTable = wrapper.findComponent({ name: 'VDataTable' });
+    expect(dataTable.exists()).toBe(true);
+
     // レスポンシブクラスが適用されていることを確認
-    expect(wrapper.find('.duel-table').exists()).toBe(true)
-  })
-})
+    expect(wrapper.find('.duel-table').exists()).toBe(true);
+  });
+});

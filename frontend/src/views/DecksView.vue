@@ -22,13 +22,7 @@
         <!-- アーカイブボタン -->
         <v-row class="mb-4">
           <v-col cols="12">
-            <v-alert
-              type="info"
-              variant="tonal"
-              prominent
-              border="start"
-              class="archive-alert"
-            >
+            <v-alert type="info" variant="tonal" prominent border="start" class="archive-alert">
               <template #prepend>
                 <v-icon size="large">mdi-archive</v-icon>
               </template>
@@ -43,8 +37,8 @@
                   color="warning"
                   prepend-icon="mdi-archive"
                   variant="elevated"
-                  @click="confirmArchiveAll"
                   size="large"
+                  @click="confirmArchiveAll"
                 >
                   全デッキをアーカイブ
                 </v-btn>
@@ -64,8 +58,8 @@
                 <v-btn
                   color="primary"
                   prepend-icon="mdi-plus"
-                  @click="openDeckDialog(false)"
                   class="add-btn"
+                  @click="openDeckDialog(false)"
                 >
                   追加
                 </v-btn>
@@ -75,11 +69,7 @@
 
               <v-card-text class="pa-4">
                 <v-list v-if="myDecks.length > 0" class="deck-list">
-                  <v-list-item
-                    v-for="deck in myDecks"
-                    :key="deck.id"
-                    class="deck-list-item"
-                  >
+                  <v-list-item v-for="deck in myDecks" :key="deck.id" class="deck-list-item">
                     <template #prepend>
                       <v-avatar color="primary" size="40">
                         <v-icon>mdi-cards-playing</v-icon>
@@ -130,8 +120,8 @@
                 <v-btn
                   color="secondary"
                   prepend-icon="mdi-plus"
-                  @click="openDeckDialog(true)"
                   class="add-btn"
+                  @click="openDeckDialog(true)"
                 >
                   追加
                 </v-btn>
@@ -141,11 +131,7 @@
 
               <v-card-text class="pa-4">
                 <v-list v-if="opponentDecks.length > 0" class="deck-list">
-                  <v-list-item
-                    v-for="deck in opponentDecks"
-                    :key="deck.id"
-                    class="deck-list-item"
-                  >
+                  <v-list-item v-for="deck in opponentDecks" :key="deck.id" class="deck-list-item">
                     <template #prepend>
                       <v-avatar color="secondary" size="40">
                         <v-icon>mdi-account-circle</v-icon>
@@ -180,7 +166,9 @@
                 <div v-else class="text-center pa-8">
                   <v-icon size="64" color="grey">mdi-account-outline</v-icon>
                   <p class="text-body-1 text-grey mt-4">相手のデッキが登録されていません</p>
-                  <p class="text-caption text-grey">「追加」ボタンから相手のデッキを登録しましょう</p>
+                  <p class="text-caption text-grey">
+                    「追加」ボタンから相手のデッキを登録しましょう
+                  </p>
                 </div>
               </v-card-text>
             </v-card>
@@ -190,20 +178,18 @@
     </v-main>
 
     <!-- デッキ登録/編集ダイアログ -->
-    <v-dialog
-      v-model="dialogOpen"
-      max-width="500"
-      persistent
-    >
+    <v-dialog v-model="dialogOpen" max-width="500" persistent>
       <v-card class="deck-form-card">
         <div class="card-glow"></div>
-        
+
         <v-card-title class="pa-6">
           <v-icon class="mr-2" :color="isOpponentDeck ? 'secondary' : 'primary'">
             {{ isOpponentDeck ? 'mdi-account' : 'mdi-cards' }}
           </v-icon>
           <span class="text-h5">
-            {{ isEdit ? 'デッキを編集' : (isOpponentDeck ? '相手のデッキを追加' : '自分のデッキを追加') }}
+            {{
+              isEdit ? 'デッキを編集' : isOpponentDeck ? '相手のデッキを追加' : '自分のデッキを追加'
+            }}
           </span>
         </v-card-title>
 
@@ -228,12 +214,7 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn
-            variant="text"
-            @click="closeDialog"
-          >
-            キャンセル
-          </v-btn>
+          <v-btn variant="text" @click="closeDialog"> キャンセル </v-btn>
           <v-btn
             :color="isOpponentDeck ? 'secondary' : 'primary'"
             :loading="loading"
@@ -249,187 +230,189 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { api } from '../services/api'
-import { Deck } from '../types'
-import AppBar from '../components/layout/AppBar.vue'
-import { useNotificationStore } from '../stores/notification'
+import { ref, onMounted, computed } from 'vue';
+import { api } from '../services/api';
+import { Deck } from '../types';
+import AppBar from '../components/layout/AppBar.vue';
+import { useNotificationStore } from '../stores/notification';
 
-const drawer = ref(false)
+const drawer = ref(false);
 const navItems = [
   { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
   { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
-]
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+];
 
-const notificationStore = useNotificationStore()
+const notificationStore = useNotificationStore();
 
-const myDecks = ref<Deck[]>([])
-const opponentDecks = ref<Deck[]>([])
-const dialogOpen = ref(false)
-const loading = ref(false)
-const isEdit = ref(false)
-const isOpponentDeck = ref(false)
-const deckName = ref('')
-const selectedDeckId = ref<number | null>(null)
-const formRef = ref()
+const myDecks = ref<Deck[]>([]);
+const opponentDecks = ref<Deck[]>([]);
+const dialogOpen = ref(false);
+const loading = ref(false);
+const isEdit = ref(false);
+const isOpponentDeck = ref(false);
+const deckName = ref('');
+const selectedDeckId = ref<number | null>(null);
+const formRef = ref();
 
 // 現在のデッキタイプのデッキリストを取得
 const currentDecks = computed(() => {
-  return isOpponentDeck.value ? opponentDecks.value : myDecks.value
-})
+  return isOpponentDeck.value ? opponentDecks.value : myDecks.value;
+});
 
 // 重複チェック関数
 const isDuplicateName = (name: string): boolean => {
-  if (!name.trim()) return false
-  
-  const trimmedName = name.trim()
-  return currentDecks.value.some(deck => {
+  if (!name.trim()) return false;
+
+  const trimmedName = name.trim();
+  return currentDecks.value.some((deck) => {
     // 編集中の場合は、自分自身を除外
     if (isEdit.value && deck.id === selectedDeckId.value) {
-      return false
+      return false;
     }
-    return deck.name === trimmedName
-  })
-}
+    return deck.name === trimmedName;
+  });
+};
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
   duplicate: (v: string) => {
-    if (!v) return true // 空の場合はrequiredルールでチェック
+    if (!v) return true; // 空の場合はrequiredルールでチェック
     if (isDuplicateName(v)) {
-      const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ'
-      return `同じ名前の${deckType}が既に存在します`
+      const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ';
+      return `同じ名前の${deckType}が既に存在します`;
     }
-    return true
-  }
-}
+    return true;
+  },
+};
 
 // 入力時に重複チェックをトリガー
 const validateDuplicate = () => {
   if (formRef.value) {
-    formRef.value.validate()
+    formRef.value.validate();
   }
-}
+};
 
 const fetchDecks = async () => {
   try {
-    const response = await api.get('/decks/')
-    const allDecks = response.data
-    myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent)
-    opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent)
+    const response = await api.get('/decks/');
+    const allDecks = response.data;
+    myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent);
+    opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent);
   } catch (error) {
-    console.error('Failed to fetch decks:', error)
+    console.error('Failed to fetch decks:', error);
   }
-}
+};
 
 const openDeckDialog = (opponent: boolean) => {
-  isEdit.value = false
-  isOpponentDeck.value = opponent
-  deckName.value = ''
-  selectedDeckId.value = null
-  dialogOpen.value = true
-}
+  isEdit.value = false;
+  isOpponentDeck.value = opponent;
+  deckName.value = '';
+  selectedDeckId.value = null;
+  dialogOpen.value = true;
+};
 
 const editDeck = (deck: Deck) => {
-  isEdit.value = true
-  isOpponentDeck.value = deck.is_opponent
-  deckName.value = deck.name
-  selectedDeckId.value = deck.id
-  dialogOpen.value = true
-}
+  isEdit.value = true;
+  isOpponentDeck.value = deck.is_opponent;
+  deckName.value = deck.name;
+  selectedDeckId.value = deck.id;
+  dialogOpen.value = true;
+};
 
 const handleSubmit = async () => {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
   // 念のため送信前にも重複チェック
   if (isDuplicateName(deckName.value)) {
-    const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ'
-    notificationStore.error(`同じ名前の${deckType}が既に存在します`)
-    return
+    const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ';
+    notificationStore.error(`同じ名前の${deckType}が既に存在します`);
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
 
   try {
     if (isEdit.value && selectedDeckId.value) {
       await api.put(`/decks/${selectedDeckId.value}`, {
         name: deckName.value,
-        is_opponent: isOpponentDeck.value
-      })
+        is_opponent: isOpponentDeck.value,
+      });
     } else {
       await api.post('/decks/', {
         name: deckName.value,
-        is_opponent: isOpponentDeck.value
-      })
+        is_opponent: isOpponentDeck.value,
+      });
     }
 
-    await fetchDecks()
-    closeDialog()
-    notificationStore.success(
-      isEdit.value ? 'デッキを更新しました' : 'デッキを登録しました'
-    )
+    await fetchDecks();
+    closeDialog();
+    notificationStore.success(isEdit.value ? 'デッキを更新しました' : 'デッキを登録しました');
   } catch (error) {
-    console.error('Failed to save deck:', error)
+    console.error('Failed to save deck:', error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const deleteDeck = async (deckId: number) => {
-  if (!confirm('このデッキを削除しますか？')) return
+  if (!confirm('このデッキを削除しますか？')) return;
 
   try {
-    await api.delete(`/decks/${deckId}`)
-    await fetchDecks()
-    notificationStore.success('デッキを削除しました')
+    await api.delete(`/decks/${deckId}`);
+    await fetchDecks();
+    notificationStore.success('デッキを削除しました');
   } catch (error) {
-    console.error('Failed to delete deck:', error)
+    console.error('Failed to delete deck:', error);
   }
-}
+};
 
 const closeDialog = () => {
-  dialogOpen.value = false
-  deckName.value = ''
-  selectedDeckId.value = null
-  formRef.value?.resetValidation()
-}
+  dialogOpen.value = false;
+  deckName.value = '';
+  selectedDeckId.value = null;
+  formRef.value?.resetValidation();
+};
 
 const formatDate = (dateString: string | undefined) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
+  if (!dateString) return '-';
+  const date = new Date(dateString);
   return date.toLocaleDateString('ja-JP', {
     year: 'numeric',
     month: '2-digit',
-    day: '2-digit'
-  })
-}
+    day: '2-digit',
+  });
+};
 
 const confirmArchiveAll = async () => {
-  const totalDecks = myDecks.value.length + opponentDecks.value.length
+  const totalDecks = myDecks.value.length + opponentDecks.value.length;
   if (totalDecks === 0) {
-    notificationStore.info('アーカイブするデッキがありません')
-    return
+    notificationStore.info('アーカイブするデッキがありません');
+    return;
   }
 
-  if (!confirm(`${totalDecks}件のデッキをアーカイブしますか？\n\nアーカイブしても過去の対戦記録は保持されます。`)) {
-    return
+  if (
+    !confirm(
+      `${totalDecks}件のデッキをアーカイブしますか？\n\nアーカイブしても過去の対戦記録は保持されます。`,
+    )
+  ) {
+    return;
   }
 
   try {
-    const response = await api.post('/decks/archive-all')
-    notificationStore.success(response.data.message)
-    await fetchDecks()
+    const response = await api.post('/decks/archive-all');
+    notificationStore.success(response.data.message);
+    await fetchDecks();
   } catch (error) {
-    console.error('Failed to archive decks:', error)
-    notificationStore.error('アーカイブに失敗しました')
+    console.error('Failed to archive decks:', error);
+    notificationStore.error('アーカイブに失敗しました');
   }
-}
+};
 
 onMounted(() => {
-  fetchDecks()
-})
+  fetchDecks();
+});
 </script>
 
 <style scoped lang="scss">
@@ -455,7 +438,7 @@ onMounted(() => {
   border-radius: 8px;
   margin-bottom: 8px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background: rgba(0, 217, 255, 0.05);
     transform: translateX(4px);
@@ -466,7 +449,7 @@ onMounted(() => {
   font-weight: 600;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
@@ -493,15 +476,21 @@ onMounted(() => {
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .archive-alert {
   border-left: 4px solid rgb(var(--v-theme-warning)) !important;
   background: rgba(255, 193, 7, 0.05) !important;
-  
+
   :deep(.v-alert__prepend) {
     color: rgb(var(--v-theme-warning));
   }

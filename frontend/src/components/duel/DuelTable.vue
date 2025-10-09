@@ -9,12 +9,8 @@
     mobile-breakpoint="sm"
   >
     <!-- 勝敗カラム -->
-    <template #item.result="{ item }">
-      <v-chip
-        :color="item.result ? 'success' : 'error'"
-        variant="flat"
-        class="font-weight-bold"
-      >
+    <template #[`item.result`]="{ item }">
+      <v-chip :color="item.result ? 'success' : 'error'" variant="flat" class="font-weight-bold">
         <v-icon start>
           {{ item.result ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
@@ -23,52 +19,38 @@
     </template>
 
     <!-- 使用デッキカラム -->
-    <template #item.deck="{ item }">
-      <v-chip
-        color="primary"
-        variant="tonal"
-      >
+    <template #[`item.deck`]="{ item }">
+      <v-chip color="primary" variant="tonal">
         {{ item.deck?.name || '不明' }}
       </v-chip>
     </template>
 
     <!-- 相手デッキカラム -->
-    <template #item.opponentdeck="{ item }">
-      <v-chip
-        color="secondary"
-        variant="tonal"
-      >
+    <template #[`item.opponentdeck`]="{ item }">
+      <v-chip color="secondary" variant="tonal">
         {{ item.opponentdeck?.name || '不明' }}
       </v-chip>
     </template>
 
     <!-- コインカラム -->
-    <template #item.coin="{ item }">
-      <v-icon
-        :color="item.coin ? 'warning' : 'grey'"
-      >
+    <template #[`item.coin`]="{ item }">
+      <v-icon :color="item.coin ? 'warning' : 'grey'">
         {{ item.coin ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
       </v-icon>
       {{ item.coin ? '表' : '裏' }}
     </template>
 
     <!-- 先攻/後攻カラム -->
-    <template #item.first_or_second="{ item }">
-      <v-icon
-        :color="item.first_or_second ? 'info' : 'purple'"
-      >
+    <template #[`item.first_or_second`]="{ item }">
+      <v-icon :color="item.first_or_second ? 'info' : 'purple'">
         {{ item.first_or_second ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
       </v-icon>
       {{ item.first_or_second ? '先攻' : '後攻' }}
     </template>
 
     <!-- ランク/レートカラム -->
-    <template #item.rank_or_rate="{ item }">
-      <v-chip
-        v-if="item.game_mode === 'RANK' && item.rank"
-        color="warning"
-        variant="outlined"
-      >
+    <template #[`item.rank_or_rate`]="{ item }">
+      <v-chip v-if="item.game_mode === 'RANK' && item.rank" color="warning" variant="outlined">
         <v-icon start size="small">mdi-crown</v-icon>
         {{ getRankName(item.rank) }}
       </v-chip>
@@ -80,11 +62,7 @@
         <v-icon start size="small">mdi-chart-line</v-icon>
         {{ item.rate_value }}
       </v-chip>
-      <v-chip
-        v-else-if="item.game_mode === 'EVENT'"
-        color="secondary"
-        variant="outlined"
-      >
+      <v-chip v-else-if="item.game_mode === 'EVENT'" color="secondary" variant="outlined">
         <v-icon start size="small">mdi-calendar-star</v-icon>
         EVENT
       </v-chip>
@@ -92,29 +70,20 @@
     </template>
 
     <!-- プレイ日時カラム -->
-    <template #item.played_date="{ item }">
+    <template #[`item.played_date`]="{ item }">
       {{ formatDate(item.played_date) }}
     </template>
 
     <!-- 備考カラム -->
-    <template #item.notes="{ item }">
+    <template #[`item.notes`]="{ item }">
       <span v-if="item.notes">{{ item.notes }}</span>
       <span v-else class="text-grey">-</span>
     </template>
 
     <!-- アクションカラム -->
-    <template #item.actions="{ item }">
-      <v-btn
-        icon="mdi-pencil"
-        variant="text"
-        @click="$emit('edit', item)"
-      />
-      <v-btn
-        icon="mdi-delete"
-        variant="text"
-        color="error"
-        @click="$emit('delete', item.id)"
-      />
+    <template #[`item.actions`]="{ item }">
+      <v-btn icon="mdi-pencil" variant="text" @click="$emit('edit', item)" />
+      <v-btn icon="mdi-delete" variant="text" color="error" @click="$emit('delete', item.id)" />
     </template>
 
     <!-- ローディング -->
@@ -134,19 +103,19 @@
 </template>
 
 <script setup lang="ts">
-import { Duel } from '../../types'
-import { getRankName } from '../../utils/ranks'
+import { Duel } from '../../types';
+import { getRankName } from '../../utils/ranks';
 
 defineProps<{
-  duels: Duel[]
-  loading: boolean
-}>()
+  duels: Duel[];
+  loading: boolean;
+}>();
 
 defineEmits<{
-  refresh: []
-  edit: [duel: Duel]
-  delete: [id: number]
-}>()
+  refresh: [];
+  edit: [duel: Duel];
+  delete: [id: number];
+}>();
 
 const headers = [
   { title: '使用デッキ', key: 'deck', sortable: false },
@@ -157,18 +126,18 @@ const headers = [
   { title: 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120, class: 'hidden-xs' },
   { title: '備考', key: 'notes', sortable: false, width: 200, class: 'hidden-sm-and-down' },
   { title: 'プレイ日時', key: 'played_date', sortable: true, class: 'hidden-sm-and-down' },
-  { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' }
-] as const
+  { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' },
+] as const;
 
 const formatDate = (dateString: string) => {
   // ISO形式の文字列をそのまま表示用にフォーマット
   // "2025-10-04T05:36:00" → "2025/10/04 05:36"
-  const cleanedString = dateString.replace(/\.\d{3}Z?$/, '')
-  const [datePart, timePart] = cleanedString.split('T')
-  const [year, month, day] = datePart.split('-')
-  const [hour, minute] = timePart.split(':')
-  return `${year}/${month}/${day} ${hour}:${minute}`
-}
+  const cleanedString = dateString.replace(/\.\d{3}Z?$/, '');
+  const [datePart, timePart] = cleanedString.split('T');
+  const [year, month, day] = datePart.split('-');
+  const [hour, minute] = timePart.split(':');
+  return `${year}/${month}/${day} ${hour}:${minute}`;
+};
 </script>
 
 <style lang="scss">
@@ -206,21 +175,21 @@ const formatDate = (dateString: string) => {
       font-size: 9px !important;
       padding: 0 8px !important;
     }
-    
+
     .v-data-table__td {
       font-size: 14px !important;
       padding: 8px 4px !important;
-      
+
       .v-chip {
         font-size: 12px !important;
         height: 24px !important;
         padding: 0 8px !important;
       }
-      
+
       .v-icon {
         font-size: 18px !important;
       }
-      
+
       .v-btn {
         width: 32px !important;
         height: 32px !important;

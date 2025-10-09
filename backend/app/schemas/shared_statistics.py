@@ -1,15 +1,21 @@
-from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
-from typing import Optional, Literal
+from typing import Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class SharedStatisticsBase(BaseModel):
     year: int = Field(..., description="対象年")
     month: int = Field(..., description="対象月")
-    game_mode: Literal['RANK', 'RATE', 'EVENT', 'DC'] = Field(..., description="ゲームモード")
+    game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
+        ..., description="ゲームモード"
+    )
     expires_at: Optional[datetime] = Field(None, description="有効期限日時 (UTC)")
+
 
 class SharedStatisticsCreate(SharedStatisticsBase):
     model_config = ConfigDict(extra="forbid")
+
 
 class SharedStatisticsRead(SharedStatisticsBase):
     id: int
