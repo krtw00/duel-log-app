@@ -8,7 +8,12 @@
           <p class="stat-card__value text-h4 font-weight-bold">{{ value }}</p>
         </div>
         <div class="stat-card__icon-wrapper">
-          <v-icon :icon="icon" size="40" :class="`text-${color}`" style="-webkit-text-fill-color: initial;" />
+          <v-icon
+            :icon="icon"
+            size="40"
+            :class="`text-${color}`"
+            style="-webkit-text-fill-color: initial"
+          />
         </div>
       </div>
     </v-card-text>
@@ -17,11 +22,11 @@
 
 <script setup lang="ts">
 defineProps<{
-  title: string
-  value: string | number
-  icon: string
-  color: string
-}>()
+  title: string;
+  value: string | number;
+  icon: string;
+  color: string;
+}>();
 </script>
 
 <style scoped lang="scss">
@@ -33,11 +38,11 @@ defineProps<{
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-4px);
     border-color: rgba(0, 217, 255, 0.3);
-    
+
     .stat-card__glow {
       opacity: 1;
     }
@@ -109,15 +114,15 @@ defineProps<{
       font-size: 10px !important;
       letter-spacing: 0.5px;
     }
-    
+
     &__value {
       font-size: 1.5rem !important;
     }
-    
+
     &__icon-wrapper {
       width: 50px;
       height: 50px;
-      
+
       .v-icon {
         font-size: 28px !important;
       }

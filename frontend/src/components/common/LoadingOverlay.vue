@@ -1,27 +1,18 @@
 <template>
-  <v-overlay
-    :model-value="isLoading"
-    class="loading-overlay"
-    persistent
-  >
+  <v-overlay :model-value="isLoading" class="loading-overlay" persistent>
     <div class="loading-content">
-      <v-progress-circular
-        indeterminate
-        size="64"
-        width="6"
-        color="primary"
-      />
+      <v-progress-circular indeterminate size="64" width="6" color="primary" />
       <p class="loading-text mt-4">読み込み中...</p>
     </div>
   </v-overlay>
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useLoadingStore } from '../../stores/loading'
+import { storeToRefs } from 'pinia';
+import { useLoadingStore } from '../../stores/loading';
 
-const loadingStore = useLoadingStore()
-const { isLoading } = storeToRefs(loadingStore)
+const loadingStore = useLoadingStore();
+const { isLoading } = storeToRefs(loadingStore);
 </script>
 
 <style scoped lang="scss">

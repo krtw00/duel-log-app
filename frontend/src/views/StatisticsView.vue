@@ -49,12 +49,7 @@
 
         <!-- ゲームモード切り替えタブ -->
         <v-card class="mode-tab-card mb-4">
-          <v-tabs
-            v-model="currentTab"
-            color="primary"
-            align-tabs="center"
-            height="64"
-          >
+          <v-tabs v-model="currentTab" color="primary" align-tabs="center" height="64">
             <v-tab value="RANK" class="custom-tab">
               <v-icon start>mdi-crown</v-icon>
               ランク
@@ -75,11 +70,7 @@
         </v-card>
 
         <v-window v-model="currentTab">
-          <v-window-item
-            v-for="mode in ['RANK', 'RATE', 'EVENT', 'DC']"
-            :key="mode"
-            :value="mode"
-          >
+          <v-window-item v-for="mode in ['RANK', 'RATE', 'EVENT', 'DC']" :key="mode" :value="mode">
             <v-row>
               <!-- 月間デッキ分布 -->
               <v-col cols="12" md="6">
@@ -87,7 +78,9 @@
                   <v-card-title>月間デッキ分布 ({{ currentMonth }})</v-card-title>
                   <v-card-text>
                     <apexchart
-                      v-if="!loading && statisticsByMode[mode].monthlyDistribution.series.length > 0"
+                      v-if="
+                        !loading && statisticsByMode[mode].monthlyDistribution.series.length > 0
+                      "
                       type="pie"
                       height="350"
                       :options="statisticsByMode[mode].monthlyDistribution.chartOptions"
@@ -133,11 +126,9 @@
                       class="matchup-table"
                       density="compact"
                     >
-                      <template #item.win_rate="{ item }">
-                        <v-chip :color="getWinRateColor(item.win_rate)" variant="flat">
-                          {{ item.win_rate.toFixed(1) }}%
-                        </v-chip>
-                      </template>
+            <template #[`item.win_rate`]='{ item }'>
+              {{ item.wins }} / {{ item.total_duels }} ({{ (item.win_rate * 100).toFixed(1) }}%)
+            </template>
                       <template #no-data>
                         <div class="no-data-placeholder py-8">
                           <v-icon size="64" color="grey">mdi-table-off</v-icon>
@@ -150,9 +141,13 @@
               </v-col>
 
               <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
-              <v-col cols="12" v-if="mode === 'RATE' || mode === 'DC'">
+              <v-col v-if="mode === 'RATE' || mode === 'DC'" cols="12">
                 <v-card class="stats-card">
-                  <v-card-title>{{ mode === 'RATE' ? 'レート変動' : 'DC変動' }} ({{ currentMonth }})</v-card-title>
+                  <v-card-title
+                    >{{ mode === 'RATE' ? 'レート変動' : 'DC変動' }} ({{
+                      currentMonth
+                    }})</v-card-title
+                  >
                   <v-card-text>
                     <apexchart
                       v-if="!loading && statisticsByMode[mode].timeSeries.series[0].data.length > 0"
@@ -162,7 +157,9 @@
                       :series="statisticsByMode[mode].timeSeries.series"
                     ></apexchart>
                     <div v-else class="no-data-placeholder">
-                      <v-icon size="64" color="grey">{{ mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant' }}</v-icon>
+                      <v-icon size="64" color="grey">{{
+                        mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
+                      }}</v-icon>
                       <p class="text-body-1 text-grey mt-4">データがありません</p>
                     </div>
                   </v-card-text>
@@ -179,13 +176,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '../services/api';
-import AppBar from '../components/layout/AppBar.vue';
+import { storeToRefs } from 'pinia';
 
 const drawer = ref(false);
 const navItems = [
   { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
   { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' }
+  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
 ];
 
 // --- Types ---
@@ -210,7 +207,6 @@ interface AllStatisticsData {
   [key: string]: StatisticsModeData;
 }
 
-
 const loading = ref(true);
 const currentTab = ref('RANK');
 
@@ -233,17 +229,24 @@ const baseChartOptions = {
     monochrome: { enabled: true, color: '#00d9ff', shadeTo: 'dark', shadeIntensity: 0.65 },
   },
   legend: { position: 'bottom' },
-  responsive: [{
-    breakpoint: 480,
-    options: {
-      chart: { width: 200 },
-      legend: { position: 'bottom' },
+  responsive: [
+    {
+      breakpoint: 480,
+      options: {
+        chart: { width: 200 },
+        legend: { position: 'bottom' },
+      },
     },
-  }],
+  ],
 };
 
 const lineChartBaseOptions = {
-  chart: { type: 'line', background: 'transparent', zoom: { enabled: false }, toolbar: { show: false } },
+  chart: {
+    type: 'line',
+    background: 'transparent',
+    zoom: { enabled: false },
+    toolbar: { show: false },
+  },
   xaxis: {
     type: 'numeric',
     title: { text: '対戦数', style: { color: '#E4E7EC' } },
@@ -251,7 +254,13 @@ const lineChartBaseOptions = {
   },
   yaxis: { labels: { style: { colors: '#E4E7EC' } } },
   stroke: { curve: 'smooth', width: 3 },
-  markers: { size: 4, colors: ['#00d9ff'], strokeColors: '#fff', strokeWidth: 2, hover: { size: 7 } },
+  markers: {
+    size: 4,
+    colors: ['#00d9ff'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
+    hover: { size: 7 },
+  },
   grid: { borderColor: 'rgba(0, 217, 255, 0.1)', strokeDashArray: 4 },
   tooltip: { theme: 'dark' },
   dataLabels: { enabled: false },
@@ -262,7 +271,7 @@ const lineChartBaseOptions = {
 const createInitialStats = (): AllStatisticsData => {
   const modes = ['RANK', 'RATE', 'EVENT', 'DC'];
   const stats: AllStatisticsData = {};
-  modes.forEach(mode => {
+  modes.forEach((mode) => {
     stats[mode] = {
       monthlyDistribution: { series: [], chartOptions: { ...baseChartOptions, labels: [] } },
       recentDistribution: { series: [], chartOptions: { ...baseChartOptions, labels: [] } },
@@ -282,6 +291,55 @@ const createInitialStats = (): AllStatisticsData => {
 
 const statisticsByMode = ref<AllStatisticsData>(createInitialStats());
 
+const fetchStatistics = async () => {
+  loading.value = true;
+  try {
+    const params = { year: selectedYear.value, month: selectedMonth.value };
+    const response = await api.get('/statistics/', { params });
+    const data = response.data;
+
+    const modes = ['RANK', 'RATE', 'EVENT', 'DC'];
+    modes.forEach((mode) => {
+      const modeData = data[mode] || {};
+      // Monthly Distribution
+      const monthlyLabels = modeData.monthly_deck_distribution?.map((d: any) => d.deck_name) || [];
+      const monthlySeries = modeData.monthly_deck_distribution?.map((d: any) => d.count) || [];
+      statisticsByMode.value[mode].monthlyDistribution = {
+        series: monthlySeries,
+        chartOptions: { ...baseChartOptions, labels: monthlyLabels },
+      };
+
+      // Recent Distribution
+      const recentLabels = modeData.recent_deck_distribution?.map((d: any) => d.deck_name) || [];
+      const recentSeries = modeData.recent_deck_distribution?.map((d: any) => d.count) || [];
+      statisticsByMode.value[mode].recentDistribution = {
+        series: recentSeries,
+        chartOptions: { ...baseChartOptions, labels: recentLabels },
+      };
+
+      // Matchup Data
+      statisticsByMode.value[mode].matchupData = modeData.matchup_data || [];
+
+      // Time Series Data
+      const timeSeriesData = modeData.time_series_data || [];
+      const categories = timeSeriesData.map((_: any, i: number) => i + 1);
+      const seriesData = timeSeriesData.map((d: any) => d.value);
+      statisticsByMode.value[mode].timeSeries = {
+        series: [{ name: mode, data: seriesData }],
+        chartOptions: {
+          ...lineChartBaseOptions,
+          xaxis: { ...lineChartBaseOptions.xaxis, categories },
+          colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
+        },
+      };
+    });
+  } catch (error) {
+    console.error('Failed to fetch statistics:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
 // --- Data Table ---
 const matchupHeaders = [
   { title: '使用デッキ', key: 'deck_name', sortable: false },
@@ -289,59 +347,6 @@ const matchupHeaders = [
   { title: '対戦数', key: 'total_duels', sortable: true },
   { title: '勝率', key: 'win_rate', sortable: true },
 ];
-
-const getWinRateColor = (winRate: number) => {
-  if (winRate >= 60) return 'success';
-  if (winRate >= 40) return 'warning';
-  return 'error';
-};
-
-// --- API Call ---
-const fetchStatistics = async () => {
-  loading.value = true;
-  try {
-    const { data } = await api.get('/statistics', {
-      params: {
-        year: selectedYear.value,
-        month: selectedMonth.value,
-      },
-    });
-
-    const newStats = createInitialStats();
-    
-    Object.keys(data).forEach(mode => {
-      if (newStats[mode]) {
-        const stats = data[mode];
-        // Monthly Distribution
-        newStats[mode].monthlyDistribution.series = stats.monthly_deck_distribution.map((d: any) => d.count);
-        newStats[mode].monthlyDistribution.chartOptions.labels = stats.monthly_deck_distribution.map((d: any) => d.deck_name);
-
-        // Recent Distribution
-        newStats[mode].recentDistribution.series = stats.recent_deck_distribution.map((d: any) => d.count);
-        newStats[mode].recentDistribution.chartOptions.labels = stats.recent_deck_distribution.map((d: any) => d.deck_name);
-        
-        // Matchup Data
-        newStats[mode].matchupData = stats.matchup_data;
-
-        // Time Series
-        if (stats.time_series_data) {
-          newStats[mode].timeSeries.series = [{
-            name: mode,
-            data: stats.time_series_data.map((d: any) => d.value)
-          }];
-          newStats[mode].timeSeries.chartOptions.xaxis.categories = stats.time_series_data.map((_: any, i: number) => i + 1);
-        }
-      }
-    });
-    statisticsByMode.value = newStats;
-
-  } catch (error) {
-    console.error('Failed to fetch statistics:', error);
-    // You might want to show a notification to the user here
-  } finally {
-    loading.value = false;
-  }
-};
 
 onMounted(fetchStatistics);
 

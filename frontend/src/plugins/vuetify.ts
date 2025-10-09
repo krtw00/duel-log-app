@@ -1,8 +1,8 @@
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-import '@mdi/font/css/materialdesignicons.css'
-import 'vuetify/styles'
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
+import '@mdi/font/css/materialdesignicons.css';
+import 'vuetify/styles';
 
 const customDarkTheme = {
   dark: true,
@@ -19,8 +19,8 @@ const customDarkTheme = {
     warning: '#ffaa00',
     'on-background': '#e4e7ec',
     'on-surface': '#e4e7ec',
-  }
-}
+  },
+};
 
 export default createVuetify({
   components,
@@ -28,8 +28,8 @@ export default createVuetify({
   theme: {
     defaultTheme: 'customDarkTheme',
     themes: {
-      customDarkTheme
-    }
+      customDarkTheme,
+    },
   },
   defaults: {
     VBtn: {
@@ -38,6 +38,6 @@ export default createVuetify({
     },
     VCard: {
       elevation: 0,
-    }
-  }
-})
+    },
+  },
+});

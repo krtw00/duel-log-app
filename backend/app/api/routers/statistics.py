@@ -2,15 +2,17 @@
 統計エンドポイント
 統計関連のデータを提供
 """
-from typing import List, Dict, Any, Optional
+
 from datetime import datetime
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.auth import get_current_user
+from app.db.session import get_db
 from app.models.user import User
 from app.services.statistics_service import statistics_service
-from app.db.session import get_db
-from app.auth import get_current_user
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
@@ -25,7 +27,7 @@ def get_all_statistics(
     """全ゲームモードの統計情報を一括取得"""
     game_modes = ["RANK", "RATE", "EVENT", "DC"]
     result = {}
-    
+
     for mode in game_modes:
         result[mode] = {
             "monthly_deck_distribution": statistics_service.get_deck_distribution_monthly(
@@ -38,7 +40,7 @@ def get_all_statistics(
                 db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
             ),
         }
-        
+
         # レートとDCの場合は時系列データも取得
         if mode in ["RATE", "DC"]:
             result[mode]["time_series_data"] = statistics_service.get_time_series_data(
@@ -46,7 +48,7 @@ def get_all_statistics(
             )
         else:
             result[mode]["time_series_data"] = []
-    
+
     return result
 
 
@@ -86,7 +88,9 @@ def get_matchup_chart(
     current_user: User = Depends(get_current_user),
 ):
     """デッキ相性表のデータを取得"""
-    return statistics_service.get_matchup_chart(db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode)
+    return statistics_service.get_matchup_chart(
+        db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode
+    )
 
 
 @router.get("/time-series/{game_mode}", response_model=List[Dict[str, Any]])

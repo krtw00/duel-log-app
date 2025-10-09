@@ -1,10 +1,16 @@
 from __future__ import annotations
-from datetime import datetime
-from sqlalchemy import String, DateTime, ForeignKey, Boolean
+
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models import Base
-from app.models.duel import Duel
+
+if TYPE_CHECKING:
+    from app.models.user import User
+
 
 class Deck(Base):
     __tablename__ = "decks"
@@ -14,9 +20,12 @@ class Deck(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     is_opponent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    createdat: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updatedat: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    createdat: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updatedat: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
     user: Mapped["User"] = relationship("User", back_populates="decks")
-    duels = relationship("Duel", foreign_keys='[Duel.deck_id]', back_populates="deck")
-    opponent_duels = relationship("Duel", foreign_keys='[Duel.opponentDeck_id]', back_populates="opponent_deck")
+    duels = relationship("Duel", foreign_keys="[Duel.deck_id]", back_populates="deck")
+    opponent_duels = relationship(
+        "Duel", foreign_keys="[Duel.opponentDeck_id]", back_populates="opponent_deck"
+    )

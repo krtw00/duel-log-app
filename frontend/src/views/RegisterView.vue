@@ -11,7 +11,7 @@
       <!-- 新規登録カード -->
       <v-card class="register-card" elevation="24">
         <div class="card-glow"></div>
-        
+
         <v-card-text class="pa-8">
           <!-- ロゴ・タイトル -->
           <div class="text-center mb-8">
@@ -23,7 +23,7 @@
           </div>
 
           <!-- 新規登録フォーム -->
-          <v-form @submit.prevent="handleRegister" ref="formRef">
+          <v-form ref="formRef" @submit.prevent="handleRegister">
             <v-text-field
               v-model="username"
               label="ユーザー名"
@@ -52,11 +52,11 @@
               prepend-inner-icon="mdi-lock-outline"
               :type="showPassword ? 'text' : 'password'"
               :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showPassword = !showPassword"
               variant="outlined"
               color="primary"
               :rules="[rules.required, rules.password]"
               class="mb-2"
+              @click:append-inner="showPassword = !showPassword"
             />
 
             <v-text-field
@@ -65,11 +65,11 @@
               prepend-inner-icon="mdi-lock-check-outline"
               :type="showPasswordConfirm ? 'text' : 'password'"
               :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
               variant="outlined"
               color="primary"
               :rules="[rules.required, rules.passwordMatch]"
               class="mb-4"
+              @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
             />
 
             <!-- 登録ボタン -->
@@ -101,57 +101,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { api } from '../services/api'
-import { useNotificationStore } from '../stores/notification'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { api } from '../services/api';
+import { useNotificationStore } from '../stores/notification';
 
-const router = useRouter()
-const notificationStore = useNotificationStore()
+const router = useRouter();
+const notificationStore = useNotificationStore();
 
-const formRef = ref()
-const username = ref('')
-const email = ref('')
-const password = ref('')
-const passwordConfirm = ref('')
-const showPassword = ref(false)
-const showPasswordConfirm = ref(false)
-const loading = ref(false)
+const formRef = ref();
+const username = ref('');
+const email = ref('');
+const password = ref('');
+const passwordConfirm = ref('');
+const showPassword = ref(false);
+const showPasswordConfirm = ref(false);
+const loading = ref(false);
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
   username: (v: string) => (v && v.length >= 3) || 'ユーザー名は3文字以上で入力してください',
   email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
   password: (v: string) => (v && v.length >= 6) || 'パスワードは6文字以上で入力してください',
-  passwordMatch: (v: string) => v === password.value || 'パスワードが一致しません'
-}
+  passwordMatch: (v: string) => v === password.value || 'パスワードが一致しません',
+};
 
 const handleRegister = async () => {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
+  const { valid } = await formRef.value.validate();
+  if (!valid) return;
 
-  loading.value = true
+  loading.value = true;
 
   try {
     await api.post('/users/', {
       username: username.value,
       email: email.value,
-      password: password.value
-    })
+      password: password.value,
+    });
 
-    notificationStore.success('登録が完了しました。ログイン画面に移動します...')
-    
+    notificationStore.success('登録が完了しました。ログイン画面に移動します...');
+
     // 2秒後にログイン画面へ遷移
     setTimeout(() => {
-      router.push('/login')
-    }, 2000)
+      router.push('/login');
+    }, 2000);
   } catch (error: any) {
     // エラーはAPIインターセプターで処理される
-    console.error('Failed to register:', error)
+    console.error('Failed to register:', error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">
@@ -178,7 +178,7 @@ const handleRegister = async () => {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
@@ -186,8 +186,12 @@ const handleRegister = async () => {
 }
 
 @keyframes gridScroll {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
 }
 
 .glow-orb {
@@ -217,8 +221,13 @@ const handleRegister = async () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
 }
 
 .register-card {
@@ -245,9 +254,15 @@ const handleRegister = async () => {
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 .app-title {
@@ -274,7 +289,7 @@ const handleRegister = async () => {
   font-weight: 600;
   letter-spacing: 1px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
@@ -284,11 +299,11 @@ const handleRegister = async () => {
 :deep(.v-field--variant-outlined) {
   border-radius: 8px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
   }
-  
+
   &.v-field--focused {
     box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
   }
