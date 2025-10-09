@@ -423,8 +423,12 @@ const fetchSharedStatistics = async () => {
 
   sharedStatisticsStore.loading = true;
   try {
-    // 共有リンクから取得する際は、共有リンク作成時の年月を使用（selectedYear/selectedMonthを渡さない）
-    const success = await sharedStatisticsStore.getSharedStatistics(shareId, undefined, undefined);
+    // 共有リンクから取得する際は、選択された年月を使用
+    const success = await sharedStatisticsStore.getSharedStatistics(
+      shareId,
+      selectedYear.value,
+      selectedMonth.value,
+    );
     if (success && sharedStatisticsStore.sharedStatsData) {
       const tempProcessedStats: AllStatisticsData = {};
       // Process game mode specific statistics
