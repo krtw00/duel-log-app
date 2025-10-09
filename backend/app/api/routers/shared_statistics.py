@@ -1,25 +1,29 @@
-from typing import Dict, Any, Optional
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import extract
+from typing import Any, Dict, Optional
 
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import extract
+from sqlalchemy.orm import Session
+
+from app.auth import get_current_user
+from app.db.session import get_db
 from app.models.duel import Duel
+from app.models.user import User
+from app.schemas.duel import DuelWithDeckNames  # Import DuelWithDeckNames
 from app.schemas.shared_statistics import SharedStatisticsCreate, SharedStatisticsRead
-from app.schemas.duel import DuelWithDeckNames # Import DuelWithDeckNames
 from app.services.shared_statistics_service import shared_statistics_service
 from app.services.statistics_service import statistics_service
-from app.db.session import get_db
-from app.auth import get_current_user
 
 router = APIRouter(prefix="/shared-statistics", tags=["shared-statistics"])
 
-@router.post("/", response_model=SharedStatisticsRead, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/", response_model=SharedStatisticsRead, status_code=status.HTTP_201_CREATED
+)
 def create_shared_statistics_link(
     shared_stats_in: SharedStatisticsCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     ユーザーの統計情報への共有リンクを生成します。
@@ -30,28 +34,27 @@ def create_shared_statistics_link(
         user_id=current_user.id,
         year=shared_stats_in.year,
         month=shared_stats_in.month,
-        game_mode=shared_stats_in.game_mode
+        game_mode=shared_stats_in.game_mode,
     )
     if not existing_stats:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="指定された年月とゲームモードの統計データが見つかりません。"
+            detail="指定された年月とゲームモードの統計データが見つかりません。",
         )
 
     # 共有リンクを生成
     shared_link = shared_statistics_service.create_shared_statistics(
-        db=db,
-        user_id=current_user.id,
-        shared_stats_in=shared_stats_in
+        db=db, user_id=current_user.id, shared_stats_in=shared_stats_in
     )
     return shared_link
+
 
 @router.get("/{share_id}", response_model=Dict[str, Any])
 def get_shared_statistics(
     share_id: str,
     year: Optional[int] = Query(None, description="統計データを取得する年"),
     month: Optional[int] = Query(None, description="統計データを取得する月"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     共有IDを使用して統計情報を取得します。
@@ -60,15 +63,14 @@ def get_shared_statistics(
 
     if not shared_link:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="共有リンクが見つかりません。"
+            status_code=status.HTTP_404_NOT_FOUND, detail="共有リンクが見つかりません。"
         )
 
     # 有効期限の確認
     if shared_link.expires_at and shared_link.expires_at < datetime.now(timezone.utc):
         raise HTTPException(
-            status_code=status.HTTP_410_GONE, # 410 Gone for expired resource
-            detail="この共有リンクは期限切れです。"
+            status_code=status.HTTP_410_GONE,  # 410 Gone for expired resource
+            detail="この共有リンクは期限切れです。",
         )
 
     # 共有リンク作成時に指定されたゲームモードではなく、すべてのゲームモードのデータを取得
@@ -78,23 +80,38 @@ def get_shared_statistics(
 
     user_id = shared_link.user_id
     game_mode = shared_link.game_mode  # 共有リンク作成時に指定されたゲームモード
-    
+
     # 指定されたゲームモードの全体統計 (ダッシュボード用)
     overall_stats = statistics_service.get_overall_stats(
-        db=db, user_id=user_id, year=target_year, month=target_month, game_mode=game_mode
+        db=db,
+        user_id=user_id,
+        year=target_year,
+        month=target_month,
+        game_mode=game_mode,
     )
-    
+
     # 指定されたゲームモードのダッシュボード用のデュエルリストを取得
-    dashboard_duels_query = db.query(Duel).filter(
-        Duel.user_id == user_id,
-        extract('year', Duel.played_date) == target_year,
-        extract('month', Duel.played_date) == target_month,
-        Duel.game_mode == game_mode
-    ).order_by(Duel.played_date.desc()).all()
-    
+    dashboard_duels_query = (
+        db.query(Duel)
+        .filter(
+            Duel.user_id == user_id,
+            extract("year", Duel.played_date) == target_year,
+            extract("month", Duel.played_date) == target_month,
+            Duel.game_mode == game_mode,
+        )
+        .order_by(Duel.played_date.desc())
+        .all()
+    )
+
     # デッキ情報を結合
     from app.models.deck import Deck
-    deck_ids = list(set([d.deck_id for d in dashboard_duels_query if d.deck_id] + [d.opponentDeck_id for d in dashboard_duels_query if d.opponentDeck_id]))
+
+    deck_ids = list(
+        set(
+            [d.deck_id for d in dashboard_duels_query if d.deck_id]
+            + [d.opponentDeck_id for d in dashboard_duels_query if d.opponentDeck_id]
+        )
+    )
     if deck_ids:
         decks = db.query(Deck).filter(Deck.id.in_(deck_ids)).all()
         deck_map = {deck.id: deck for deck in decks}
@@ -103,10 +120,14 @@ def get_shared_statistics(
 
     for duel in dashboard_duels_query:
         duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
-        duel.opponent_deck = deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+        duel.opponent_deck = (
+            deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+        )
         duel.deck_name = duel.deck.name if duel.deck else "不明"
-        duel.opponent_deck_name = duel.opponent_deck.name if duel.opponent_deck else "不明"
-    
+        duel.opponent_deck_name = (
+            duel.opponent_deck.name if duel.opponent_deck else "不明"
+        )
+
     # DuelモデルをPydanticスキーマに変換
     serialized_duels = []
     for d in dashboard_duels_query:
@@ -127,16 +148,13 @@ def get_shared_statistics(
             "notes": d.notes,
             "create_date": d.create_date,
             "update_date": d.update_date,
-            "deck_name": getattr(d, 'deck_name', '不明'),
-            "opponent_deck_name": getattr(d, 'opponent_deck_name', '不明')
+            "deck_name": getattr(d, "deck_name", "不明"),
+            "opponent_deck_name": getattr(d, "opponent_deck_name", "不明"),
         }
         serialized_duels.append(DuelWithDeckNames.model_validate(duel_dict))
 
     response_data = {
-        "DASHBOARD": {
-            "overall_stats": overall_stats,
-            "duels": serialized_duels
-        }
+        "DASHBOARD": {"overall_stats": overall_stats, "duels": serialized_duels}
     }
 
     # STATISTICS タブ用：指定されたゲームモードの統計データを返す
@@ -144,32 +162,43 @@ def get_shared_statistics(
         "year": target_year,
         "month": target_month,
         "monthly_deck_distribution": statistics_service.get_deck_distribution_monthly(
-            db=db, user_id=user_id, year=target_year, month=target_month, game_mode=game_mode
+            db=db,
+            user_id=user_id,
+            year=target_year,
+            month=target_month,
+            game_mode=game_mode,
         ),
         "recent_deck_distribution": statistics_service.get_deck_distribution_recent(
             db=db, user_id=user_id, limit=30, game_mode=game_mode
         ),
         "matchup_data": statistics_service.get_matchup_chart(
-            db=db, user_id=user_id, year=target_year, month=target_month, game_mode=game_mode
+            db=db,
+            user_id=user_id,
+            year=target_year,
+            month=target_month,
+            game_mode=game_mode,
         ),
     }
-    
+
     response_data["STATISTICS"] = statistics_data
-    
+
     return response_data
+
 
 @router.delete("/{share_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_shared_statistics_link(
     share_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     共有リンクを削除します。
     """
-    success = shared_statistics_service.delete_shared_statistics(db, share_id, current_user.id)
+    success = shared_statistics_service.delete_shared_statistics(
+        db, share_id, current_user.id
+    )
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="共有リンクが見つからないか、削除する権限がありません。"
+            detail="共有リンクが見つからないか、削除する権限がありません。",
         )

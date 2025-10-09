@@ -1,94 +1,94 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
-import RegisterView from '../RegisterView.vue'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-import { createTestingPinia } from '@pinia/testing'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mount } from '@vue/test-utils';
+import RegisterView from '../RegisterView.vue';
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
+import { createTestingPinia } from '@pinia/testing';
 
 const vuetify = createVuetify({
   components,
   directives,
-})
+});
 
 // RouterLinkのモック
 const RouterLinkStub = {
   template: '<a><slot /></a>',
-  props: ['to']
-}
+  props: ['to'],
+};
 
 describe('RegisterView.vue', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it('renders correctly', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
-          RouterLink: RouterLinkStub
+          RouterLink: RouterLinkStub,
         },
       },
-    })
+    });
 
-    expect(wrapper.exists()).toBe(true)
-    expect(wrapper.text()).toContain('DUEL')
-  })
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.text()).toContain('DUEL');
+  });
 
   it('displays registration form', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
-          RouterLink: RouterLinkStub
+          RouterLink: RouterLinkStub,
         },
       },
-    })
+    });
 
-    expect(wrapper.find('form').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Create Your Account')
-  })
+    expect(wrapper.find('form').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Create Your Account');
+  });
 
   it('has username, email and password fields', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
-          RouterLink: RouterLinkStub
+          RouterLink: RouterLinkStub,
         },
       },
-    })
+    });
 
-    expect(wrapper.text()).toContain('ユーザー名')
-    expect(wrapper.text()).toContain('メールアドレス')
-    expect(wrapper.text()).toContain('パスワード')
-  })
+    expect(wrapper.text()).toContain('ユーザー名');
+    expect(wrapper.text()).toContain('メールアドレス');
+    expect(wrapper.text()).toContain('パスワード');
+  });
 
   it('has register button', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
-          RouterLink: RouterLinkStub
+          RouterLink: RouterLinkStub,
         },
       },
-    })
+    });
 
-    expect(wrapper.find('button[type="submit"]').exists()).toBe(true)
-  })
+    expect(wrapper.find('button[type="submit"]').exists()).toBe(true);
+  });
 
   it('has link to login page', () => {
     const wrapper = mount(RegisterView, {
       global: {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
-          RouterLink: RouterLinkStub
+          RouterLink: RouterLinkStub,
         },
       },
-    })
+    });
 
     // "既にアカウントをお持ちの方は" のテキストをチェック
-    expect(wrapper.text()).toContain('既にアカウントをお持ちの方は')
-  })
-})
+    expect(wrapper.text()).toContain('既にアカウントをお持ちの方は');
+  });
+});

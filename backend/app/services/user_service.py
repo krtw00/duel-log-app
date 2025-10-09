@@ -1,14 +1,16 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException
 import logging
 
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.core.security import get_password_hash
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
-from app.core.security import get_password_hash
 from app.services.base import BaseService
 
 logger = logging.getLogger(__name__)
+
 
 class UserService(BaseService[User, UserCreate, UserUpdate]):
     """ユーザーサービスクラス"""
@@ -20,9 +22,9 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
         create_data = obj_in.model_dump()
         create_data.pop("password")
         create_data["passwordhash"] = get_password_hash(obj_in.password)
-        
+
         db_obj = self.model(**create_data)
-        
+
         try:
             db.add(db_obj)
             db.commit()
@@ -30,8 +32,11 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
         except IntegrityError as e:
             db.rollback()
             logger.error(f"❌ IntegrityError on user creation: {e}")
-            raise HTTPException(status_code=409, detail="ユーザー名またはメールアドレスは既に使用されています")
-            
+            raise HTTPException(
+                status_code=409,
+                detail="ユーザー名またはメールアドレスは既に使用されています",
+            ) from e
+
         return db_obj
 
     def update_profile(self, db: Session, *, db_obj: User, obj_in: UserUpdate) -> User:
@@ -56,10 +61,13 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
             db.refresh(db_obj)
         except IntegrityError as e:
             db.rollback()
-            logger.error(f"❌ IntegrityError on user update: {e}")
-            raise HTTPException(status_code=409, detail="ユーザー名またはメールアドレスは既に使用されています")
+            raise HTTPException(
+                status_code=409,
+                detail="ユーザー名またはメールアドレスは既に使用されています",
+            ) from e
 
         return db_obj
+
 
 # シングルトンインスタンス
 user_service = UserService(User)

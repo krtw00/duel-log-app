@@ -1,134 +1,136 @@
-import axios, { AxiosError } from 'axios'
-import { useNotificationStore } from '../stores/notification'
-import { useLoadingStore } from '../stores/loading'
-import { useAuthStore } from '../stores/auth'
+import axios, { AxiosError } from 'axios';
+import { useNotificationStore } from '../stores/notification';
+import { useLoadingStore } from '../stores/loading';
+import { useAuthStore } from '../stores/auth';
 
 // 環境変数からAPIのベースURLを取得
-const API_BASE_URL = import.meta.env.VITE_API_URL
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // 環境変数が設定されていない場合の警告
 if (!API_BASE_URL) {
-  console.error('VITE_API_URL environment variable is not set')
-  throw new Error('API URL is not configured. Please check your .env file.')
+  console.error('VITE_API_URL environment variable is not set');
+  throw new Error('API URL is not configured. Please check your .env file.');
 }
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  withCredentials: true // クロスオリジンリクエストでクッキーを送信するために必要
-})
+  withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
+});
 
 // リクエストインターセプター
 api.interceptors.request.use(
   (config) => {
     // ローディング開始
-    const loadingStore = useLoadingStore()
-    const requestId = `${config.method}-${config.url}`
-    config.metadata = { requestId }
-    loadingStore.start(requestId)
+    const loadingStore = useLoadingStore();
+    const requestId = `${config.method}-${config.url}`;
+    config.metadata = { requestId };
+    loadingStore.start(requestId);
 
-    return config
+    return config;
   },
   (error) => {
-    const loadingStore = useLoadingStore()
-    loadingStore.stopAll()
-    return Promise.reject(error)
-  }
-)
+    const loadingStore = useLoadingStore();
+    loadingStore.stopAll();
+    return Promise.reject(error);
+  },
+);
 
 // レスポンスインターセプター
 api.interceptors.response.use(
   (response) => {
     // ローディング終了
-    const loadingStore = useLoadingStore()
-    const requestId = response.config.metadata?.requestId
+    const loadingStore = useLoadingStore();
+    const requestId = response.config.metadata?.requestId;
     if (requestId) {
-      loadingStore.stop(requestId)
+      loadingStore.stop(requestId);
     }
 
-    return response
+    return response;
   },
   (error: AxiosError) => {
     // ローディング終了
-    const loadingStore = useLoadingStore()
-    const requestId = error.config?.metadata?.requestId
+    const loadingStore = useLoadingStore();
+    const requestId = error.config?.metadata?.requestId;
     if (requestId) {
-      loadingStore.stop(requestId)
+      loadingStore.stop(requestId);
     }
 
-    const notificationStore = useNotificationStore()
-    const authStore = useAuthStore()
+    const notificationStore = useNotificationStore();
+    const authStore = useAuthStore();
 
     // エラーメッセージの取得
-    let message = 'エラーが発生しました'
+    let message = 'エラーが発生しました';
 
     if (error.response) {
       // サーバーからのレスポンスがある場合
-      const status = error.response.status
-      const data = error.response.data as any
+      const status = error.response.status;
+      const data = error.response.data as any;
 
       switch (status) {
         case 400:
-          message = data?.detail || 'リクエストが正しくありません'
-          break
+          message = data?.detail || 'リクエストが正しくありません';
+          break;
         case 401:
-          message = '認証エラーです。再度ログインしてください'
+          message = '認証エラーです。再度ログインしてください';
           // トークンを削除してログイン画面へ
-          authStore.logout()
-          break
+          authStore.logout();
+          break;
         case 403:
-          message = 'この操作を行う権限がありません'
-          break
+          message = 'この操作を行う権限がありません';
+          break;
         case 404:
-          message = data?.detail || 'リソースが見つかりません'
-          break
+          message = data?.detail || 'リソースが見つかりません';
+          break;
         case 422:
           // バリデーションエラー
           if (data?.detail && Array.isArray(data.detail)) {
-            const errors = data.detail.map((err: any) => {
-              const field = err.loc?.join('.') || 'フィールド'
-              return `${field}: ${err.msg}`
-            }).join(', ')
-            message = `入力エラー: ${errors}`
+            const errors = data.detail
+              .map((err: any) => {
+                const field = err.loc?.join('.') || 'フィールド';
+                return `${field}: ${err.msg}`;
+              })
+              .join(', ');
+            message = `入力エラー: ${errors}`;
           } else {
-            message = data?.detail || '入力内容に誤りがあります'
+            message = data?.detail || '入力内容に誤りがあります';
           }
-          break
+          break;
         case 500:
-          message = 'サーバーエラーが発生しました'
-          break
+          message = 'サーバーエラーが発生しました';
+          break;
         case 503:
-          message = 'サービスが一時的に利用できません'
-          break
+          message = 'サービスが一時的に利用できません';
+          break;
         default:
-          message = data?.detail || `エラーが発生しました (${status})`
+          message = data?.detail || `エラーが発生しました (${status})`;
       }
     } else if (error.request) {
       // リクエストは送信されたがレスポンスがない
-      message = 'サーバーに接続できません。ネットワーク接続を確認してください'
+      message = 'サーバーに接続できません。ネットワーク接続を確認してください';
     } else {
       // リクエスト設定時のエラー
-      message = error.message || 'リクエストの作成に失敗しました'
+      message = error.message || 'リクエストの作成に失敗しました';
     }
 
     // 401以外のエラーは通知を表示
     if (error.response?.status !== 401) {
-      notificationStore.error(message)
+      notificationStore.error(message);
     }
 
-    return Promise.reject(error)
-  }
-)
+    return Promise.reject(error);
+  },
+);
 
 // TypeScript用の型拡張
 declare module 'axios' {
   export interface AxiosRequestConfig {
     metadata?: {
-      requestId: string
-    }
+      requestId: string;
+    };
   }
 }
 
-export default api
+export default api;
