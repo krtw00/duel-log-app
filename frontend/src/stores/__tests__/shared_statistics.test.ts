@@ -1,26 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { setActivePinia, createPinia } from 'pinia';
 import { createTestingPinia } from '@pinia/testing';
 
 import { useNotificationStore } from '../notification';
 import { useSharedStatisticsStore } from '../shared_statistics';
-import api from '../../services/api'; // This will be the mocked api
+import api from '../../services/api';
+
+// Mock the api module
+vi.mock('../../services/api', () => ({
+  default: {
+    post: vi.fn(),
+    get: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
 
 describe('sharedStatisticsStore', () => {
   let sharedStatisticsStore: ReturnType<typeof useSharedStatisticsStore>;
   let notificationStore: ReturnType<typeof useNotificationStore>;
 
-
   beforeEach(async () => {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
+      stubActions: false, // Important: we want real actions to run
     });
     vi.clearAllMocks();
-    vi.spyOn(api, 'post').mockResolvedValue({});
-    vi.spyOn(api, 'get').mockResolvedValue({});
-    vi.spyOn(api, 'delete').mockResolvedValue({});
     sharedStatisticsStore = useSharedStatisticsStore(pinia);
     notificationStore = useNotificationStore(pinia);
+    
+    // Spy on notification methods
+    vi.spyOn(notificationStore, 'success');
+    vi.spyOn(notificationStore, 'error');
   });
 
   it('initializes with null sharedStatsData and loading false', () => {
@@ -32,7 +41,7 @@ describe('sharedStatisticsStore', () => {
     const mockPayload = {
       year: 2023,
       month: 10,
-      game_mode: 'RANK',
+      game_mode: 'RANK' as const,
       expires_at: '2023-11-01T00:00:00Z',
     };
     const mockResponse = {
@@ -45,7 +54,7 @@ describe('sharedStatisticsStore', () => {
     const createLinkErrorMessage = 'Failed to create link';
 
     it('creates a shared link successfully', async () => {
-
+      vi.mocked(api.post).mockResolvedValue({ data: mockResponse });
 
       const shareId = await sharedStatisticsStore.createSharedLink(mockPayload);
 
@@ -56,7 +65,14 @@ describe('sharedStatisticsStore', () => {
     });
 
     it('handles error during shared link creation', async () => {
-
+      const errorResponse = {
+        response: {
+          data: {
+            detail: createLinkErrorMessage
+          }
+        }
+      };
+      vi.mocked(api.post).mockRejectedValue(errorResponse);
 
       const shareId = await sharedStatisticsStore.createSharedLink(mockPayload);
 
@@ -71,6 +87,8 @@ describe('sharedStatisticsStore', () => {
     const mockShareId = 'test_share_id';
     const mockStatsData = {
       RANK: {
+        year: 2023,
+        month: 10,
         monthly_deck_distribution: [{ deck_name: 'Deck A', count: 10, percentage: 50 }],
         recent_deck_distribution: [],
         matchup_data: [],
@@ -78,7 +96,9 @@ describe('sharedStatisticsStore', () => {
       },
     };
     const fetchStatsErrorMessage = 'Failed to fetch stats';
+    
     it('fetches shared statistics successfully', async () => {
+      vi.mocked(api.get).mockResolvedValue({ data: mockStatsData });
 
       const success = await sharedStatisticsStore.getSharedStatistics(mockShareId, 2023, 10);
 
@@ -89,11 +109,19 @@ describe('sharedStatisticsStore', () => {
         },
       });
       expect(success).toBe(true);
+      expect(sharedStatisticsStore.sharedStatsData).toEqual(mockStatsData);
       expect(sharedStatisticsStore.loading).toBe(false);
     });
 
     it('handles error during shared statistics fetch', async () => {
-
+      const errorResponse = {
+        response: {
+          data: {
+            detail: fetchStatsErrorMessage
+          }
+        }
+      };
+      vi.mocked(api.get).mockRejectedValue(errorResponse);
 
       const success = await sharedStatisticsStore.getSharedStatistics(mockShareId, 2023, 10);
 
@@ -115,22 +143,29 @@ describe('sharedStatisticsStore', () => {
     const deleteLinkErrorMessage = 'Failed to delete link';
 
     it('deletes a shared link successfully', async () => {
-
+      vi.mocked(api.delete).mockResolvedValue({ data: {} });
 
       const success = await sharedStatisticsStore.deleteSharedLink(mockShareId);
 
-      expect(mockApiDelete).toHaveBeenCalledWith(`/shared-statistics/${mockShareId}`);
+      expect(api.delete).toHaveBeenCalledWith(`/shared-statistics/${mockShareId}`);
       expect(notificationStore.success).toHaveBeenCalledWith('共有リンクが削除されました。');
       expect(success).toBe(true);
       expect(sharedStatisticsStore.loading).toBe(false);
     });
 
     it('handles error during shared link deletion', async () => {
-
+      const errorResponse = {
+        response: {
+          data: {
+            detail: deleteLinkErrorMessage
+          }
+        }
+      };
+      vi.mocked(api.delete).mockRejectedValue(errorResponse);
 
       const success = await sharedStatisticsStore.deleteSharedLink(mockShareId);
 
-      expect(mockApiDelete).toHaveBeenCalledWith(`/shared-statistics/${mockShareId}`);
+      expect(api.delete).toHaveBeenCalledWith(`/shared-statistics/${mockShareId}`);
       expect(notificationStore.error).toHaveBeenCalledWith(deleteLinkErrorMessage);
       expect(success).toBe(false);
       expect(sharedStatisticsStore.loading).toBe(false);
