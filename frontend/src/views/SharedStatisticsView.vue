@@ -424,7 +424,7 @@ const fetchSharedStatistics = async () => {
   sharedStatisticsStore.loading = true;
   try {
     // 共有リンクから取得する際は、共有リンク作成時の年月を使用（selectedYear/selectedMonthを渡さない）
-    const success = await sharedStatisticsStore.getSharedStatistics(shareId, selectedYear.value, selectedMonth.value);
+    const success = await sharedStatisticsStore.getSharedStatistics(shareId, undefined, undefined);
     if (success && sharedStatisticsStore.sharedStatsData) {
       const tempProcessedStats: AllStatisticsData = {};
       // Process game mode specific statistics
@@ -441,8 +441,8 @@ const fetchSharedStatistics = async () => {
         } else if (mode === 'STATISTICS') {
           // Process STATISTICS data (all game modes combined)
           tempProcessedStats['STATISTICS'] = {
-            year: selectedYear.value,
-            month: selectedMonth.value,
+            year: (rawStats as any).year || selectedYear.value,
+            month: (rawStats as any).month || selectedMonth.value,
             monthlyDistribution: {
               series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
@@ -466,8 +466,8 @@ const fetchSharedStatistics = async () => {
         } else {
           // Process other game mode specific data (RANK, RATE, EVENT, DC) - though these shouldn't exist now
           tempProcessedStats[mode] = {
-            year: selectedYear.value,
-            month: selectedMonth.value,
+            year: (rawStats as any).year || selectedYear.value,
+            month: (rawStats as any).month || selectedMonth.value,
             monthlyDistribution: {
               series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
