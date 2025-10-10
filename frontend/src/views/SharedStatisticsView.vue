@@ -200,7 +200,7 @@
                                   density="compact"
                                 >
             <template #[`item.win_rate`]='{ item }'>
-              {{ item.wins }} / {{ item.total_duels }} ({{ (item.win_rate * 100).toFixed(1) }}%)
+              {{ item.wins }} / {{ item.total_duels }} ({{ item.total_duels > 0 ? (item.wins / item.total_duels * 100).toFixed(1) : 0 }}%)
             </template>
                                 </v-data-table>
                               </div>
@@ -327,8 +327,8 @@ const baseChartOptions = {
   labels: [],
   theme: {
     mode: 'dark',
-    monochrome: { enabled: true, color: '#00d9ff', shadeTo: 'dark', shadeIntensity: 0.65 },
   },
+  colors: ['#00D9FF', '#FF4560', '#775DD0', '#FEB019', '#00E396', '#D4526E', '#3F51B5', '#26A69A', '#E91E63', '#FFC107'],
   legend: { position: 'bottom' },
   responsive: [
     {
