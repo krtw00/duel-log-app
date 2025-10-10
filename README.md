@@ -1,308 +1,137 @@
 # Duel Log App
 
-**Duel Log App** は、遊戯王マスターデュエルの戦績を効率的に管理・分析するためのWebアプリケーションです。対戦履歴の登録から統計分析、デッキ管理まで幅広い機能を提供し、プレイヤーの戦績向上をサポートします。
+## 概要
 
----
+Duel Log Appは、トレーディングカードゲーム（TCG）の対戦履歴を記録・管理し、詳細な統計情報を分析するためのWebアプリケーションです。自分のデッキと相手のデッキの相性、勝率、ゲームモードごとのパフォーマンスなどを視覚的に把握できます。
 
-## 🌐 本番環境
+## 機能
 
-本アプリケーションは以下のURLで公開されています：
+- **対戦履歴の記録**: 使用デッキ、相手デッキ、勝敗、先攻/後攻、コイントス結果、ゲームモード（ランク、レート、イベント、DC）、ランク/レート/DC値、対戦日時、メモなどを詳細に記録。
+- **デッキ管理**: 自分のデッキと相手のデッキを登録・管理。
+- **統計情報の可視化**:
+    - 月間・直近の相手デッキ分布
+    - デッキ相性表
+    - 時系列でのレート/DC値の推移
+- **CSVインポート/エクスポート**: 対戦履歴のCSV形式での一括インポートおよびエクスポート。
+- **配信者モード**: ライブ配信時にメールアドレスなどの個人情報を自動的にマスクする機能。
+- **統計情報の共有**: 特定の期間の統計情報を共有可能なURLを生成。
 
-- **フロントエンド**: https://duel-log-app.vercel.app/
-- **バックエンドAPI**: https://duel-log-app.onrender.com
-- **APIドキュメント**: https://duel-log-app.onrender.com/docs
-
-### デプロイ環境
-
-| サービス | プラットフォーム | URL |
-|---------|--------------|-----|
-| フロントエンド | Vercel | https://duel-log-app.vercel.app/ |
-| バックエンド | Render | https://duel-log-app.onrender.com |
-| データベース | Neon (PostgreSQL) | - |
-
----
-
-## 🚀 主な機能
-
-- **ダッシュボード**: ゲームモード（ランク、レート、イベント、DC）ごとの対戦履歴と各種統計情報（勝率、先行/後攻率など）を一覧表示
-- **レスポンシブデザイン**: PC、タブレット、スマートフォンなど、あらゆるデバイスで快適に操作可能
-- **対戦記録**: 使用デッキ、相手デッキ、勝敗、先攻/後攻、ランク/レートなど、詳細な対戦データを記録・編集・削除
-- **デッキ管理**: 自分のデッキと、対戦相手のデッキを分けて登録・管理
-- **統計分析**: デッキの分布（月間、直近）や、デッキ間の相性を円グラフや表で視覚的に分析
-- **CSVインポート/エクスポート**: 対戦履歴データをCSV形式で一括ダウンロード・アップロード
-- **ユーザー管理**: 安全なユーザー登録、ログイン機能
-- **プロフィール管理**: ユーザー名、メールアドレス、パスワードの変更、およびアカウントの削除機能
-- **パスワードリセット**: メールによるパスワード再設定機能
-
----
-
-## ⚙️ 技術スタック
+## 技術スタック
 
 ### バックエンド
-- **フレームワーク**: FastAPI
+
 - **言語**: Python
+- **フレームワーク**: FastAPI
+- **データベース**: PostgreSQL (Neon)
 - **ORM**: SQLAlchemy
-- **バリデーション**: Pydantic
 - **マイグレーション**: Alembic
-- **認証**: JWT (JSON Web Tokens) with HttpOnly Cookies
-- **パスワードハッシュ化**: bcrypt
+- **認証**: JWT (HttpOnly Cookie)
 
 ### フロントエンド
-- **フレームワーク**: Vue.js (Composition API)
+
 - **言語**: TypeScript
-- **ビルドツール**: Vite
-- **UIフレームワーク**: Vuetify
+- **フレームワーク**: Vue.js 3 (Composition API)
+- **UIフレームワーク**: Vuetify 3
 - **状態管理**: Pinia
 - **ルーティング**: Vue Router
 - **HTTP通信**: Axios
+- **ビルドツール**: Vite
 - **チャート**: ApexCharts
 
-### データベース
-- **RDBMS**: PostgreSQL (hosted on Neon)
-
-### インフラ・デプロイ
-- **コンテナ**: Docker, Docker Compose
-- **CI/CD**: GitHub Actions
-- **ホスティング**: 
-  - フロントエンド: Vercel
-  - バックエンド: Render
-  - データベース: Neon
-
----
-
-## 🏁 ローカル開発環境のセットアップ
-
-Dockerがインストールされていれば、簡単なステップでローカル開発環境を起動できます。
+## 開発環境のセットアップ
 
 ### 前提条件
 
-- Docker Desktop (Windows/Mac) または Docker Engine (Linux)
-- Docker Compose
-- Git
+- Docker および Docker Compose
+- Node.js (v18以上) および npm
+- Python (v3.9以上) および pip
 
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/krtw00/duel-log-app.git
+git clone https://github.com/your-username/duel-log-app.git
 cd duel-log-app
 ```
 
 ### 2. 環境変数の設定
 
-`.env.example` ファイルをコピーして `.env` ファイルを作成します。
+`.env.example` を参考に、`.env` ファイルをプロジェクトルートに作成し、必要な環境変数を設定してください。
+
+```
+# .env (例)
+DATABASE_URL="postgresql://user:password@db:5432/duel_log_db"
+SECRET_KEY="your_secret_key_for_jwt"
+ENVIRONMENT="development"
+FRONTEND_URL="http://localhost:5173" # フロントエンドのURL
+```
+
+### 3. Docker Compose でサービスを起動
 
 ```bash
-cp .env.example .env
+docker-compose up --build
 ```
 
-次に、`.env` ファイルを開き、`SECRET_KEY` の値を生成したものに置き換えてください。
+これにより、PostgreSQLデータベース、バックエンドAPI、およびフロントエンド開発サーバーが起動します。
 
-**Linux/macOSの場合:**
-```bash
-# ターミナルで以下のコマンドを実行し、生成された文字列をSECRET_KEYに設定
-openssl rand -hex 32
-```
+### 4. データベースの初期化とマイグレーション
 
-**Windowsの場合:**
-PowerShellで以下のコマンドを実行：
-```powershell
--join ((33..126) | Get-Random -Count 32 | ForEach-Object {[char]$_})
-```
-
-### 3. アプリケーションの起動
-
-以下のコマンドを実行すると、必要なDockerイメージのビルド、コンテナの起動、データベースのマイグレーションが**すべて自動的に**行われます。
+バックエンドサービスが起動したら、データベースの初期化とマイグレーションを実行します。
 
 ```bash
-docker-compose up -d --build
+docker-compose exec backend alembic upgrade head
+docker-compose exec backend python -c "from app.db.seed import seed_db; seed_db()" # 必要であればシードデータ投入
 ```
 
-### 4. アプリケーションへのアクセス
-
-- **フロントエンド**: http://localhost:5173
-- **バックエンドAPIドキュメント (Swagger UI)**: http://localhost:8000/docs
-- **バックエンドAPIドキュメント (ReDoc)**: http://localhost:8000/redoc
-
-### 5. 停止とクリーンアップ
+### 5. フロントエンドの依存関係のインストール
 
 ```bash
-# コンテナの停止
-docker-compose down
-
-# コンテナとボリュームの削除
-docker-compose down -v
-```
-
----
-
-## 📁 プロジェクト構造
-
-```
-duel-log-app/
-├── backend/                # バックエンド (FastAPI)
-│   ├── alembic/           # データベースマイグレーション
-│   ├── app/
-│   │   ├── api/           # APIエンドポイント
-│   │   ├── core/          # コア機能（設定、セキュリティ）
-│   │   ├── db/            # データベース接続
-│   │   ├── models/        # SQLAlchemyモデル
-│   │   ├── schemas/       # Pydanticスキーマ
-│   │   ├── services/      # ビジネスロジック
-│   │   └── main.py        # アプリケーションエントリーポイント
-│   ├── tests/             # テストコード
-│   ├── requirements.txt   # Python依存関係
-│   └── Dockerfile         # Dockerイメージ定義
-├── frontend/              # フロントエンド (Vue.js)
-│   ├── src/
-│   │   ├── assets/        # 静的アセット
-│   │   ├── components/    # Vueコンポーネント
-│   │   ├── router/        # ルーティング設定
-│   │   ├── services/      # API通信
-│   │   ├── stores/        # Pinia状態管理
-│   │   ├── types/         # TypeScript型定義
-│   │   ├── utils/         # ユーティリティ関数
-│   │   ├── views/         # ページコンポーネント
-│   │   └── main.ts        # エントリーポイント
-│   ├── package.json       # Node.js依存関係
-│   └── Dockerfile         # Dockerイメージ定義
-├── docs/                  # ドキュメント
-├── .github/               # GitHub Actions設定
-├── docker-compose.yml     # Docker Compose設定
-├── .env.example           # 環境変数サンプル
-└── README.md             # このファイル
-```
-
----
-
-## 🧪 テスト
-
-### バックエンドのテスト
-
-```bash
-# Dockerコンテナ内でテストを実行
-docker-compose exec backend pytest
-
-# カバレッジレポート付きで実行
-docker-compose exec backend pytest --cov=app --cov-report=html
-```
-
-### フロントエンドのテスト
-
-```bash
-# フロントエンドディレクトリに移動
 cd frontend
-
-# テストを実行
-npm run test
-
-# カバレッジレポート付きで実行
-npm run test:coverage
+npm install
+cd ..
 ```
 
----
+### 6. アプリケーションの実行
 
-## 🚢 デプロイ
+`docker-compose up` で既に起動していますが、フロントエンド開発サーバーは `http://localhost:5173` でアクセス可能です。
 
-### フロントエンド (Vercel)
+## 開発ガイドライン
 
-1. Vercelアカウントにログイン
-2. GitHubリポジトリを接続
-3. `frontend`ディレクトリをルートディレクトリに設定
-4. 環境変数を設定：
-   - `VITE_API_URL`: バックエンドAPIのURL
+詳細な開発ガイドラインについては、[開発ガイドライン](docs/development-guide.md) を参照してください。
 
-詳細は `frontend/VERCEL_ENV_SETUP.md` を参照。
+- コーディング規約 (Black, Ruff, Prettier, ESLint)
+- ブランチ戦略 (GitHub Flow)
+- コミットメッセージ (Conventional Commits)
+- テスト
 
-### バックエンド (Render)
+## デプロイ
 
-1. Renderアカウントにログイン
-2. 新しいWeb Serviceを作成
-3. GitHubリポジトリを接続
-4. `backend`ディレクトリをルートディレクトリに設定
-5. 環境変数を設定：
-   - `DATABASE_URL`: PostgreSQL接続URL
-   - `SECRET_KEY`: JWT署名用秘密鍵
-   - `ENVIRONMENT`: `production`
-   - `FRONTEND_URL`: フロントエンドのURL
+本アプリケーションのデプロイ手順については、[デプロイ手順書](docs/deployment.md) を参照してください。
 
-詳細は `backend/RENDER_CORS_SETUP.md` を参照。
+- フロントエンド: Vercel
+- バックエンド: Render
+- データベース: Neon (PostgreSQL)
+- CI/CD: GitHub Actions
 
----
+## APIリファレンス
 
-## 🛡️ セキュリティ
+バックエンドAPIの詳細については、[APIリファレンス](docs/api-reference.md) を参照してください。
 
-本アプリケーションでは、以下のセキュリティ対策を実装しています：
+## データベーススキーマ
 
-### 認証・認可
-- **JWT認証**: HttpOnlyクッキーを使用した安全なトークン管理
-- **パスワードハッシュ化**: bcryptアルゴリズムによる強力なハッシュ化
-- **CORS設定**: クロスオリジンリクエストの適切な制御
+データベースのテーブル構造については、[データベーススキーマ](docs/db-schema.md) を参照してください。
 
-### データ保護
-- **HttpOnlyクッキー**: XSS攻撃からトークンを保護
-- **SameSite属性**: CSRF攻撃の防止
-- **Secure属性**: HTTPS経由でのみクッキーを送信（本番環境）
+## エラーハンドリング
 
-### その他
-- **環境変数**: 機密情報の安全な管理
-- **入力バリデーション**: Pydanticによる厳格なバリデーション
-- **SQLインジェクション対策**: SQLAlchemy ORMの使用
+エラーハンドリングの設計方針については、[エラーハンドリング設計](docs/error-handling.md) を参照してください。
 
-詳細は `docs/SECURITY_IMPROVEMENTS.md` を参照してください。
+## フロントエンドアーキテクチャ
 
----
+フロントエンドのアーキテクチャについては、[フロントエンドアーキテクチャ](docs/frontend-architecture.md) を参照してください。
 
-## 📖 ドキュメント
+## 配信者モード
 
-プロジェクトに関する詳細なドキュメントは `docs/` ディレクトリにあります。
+配信者モードの詳細については、[配信者モード](docs/streamer-mode.md) を参照してください。
 
-- **[データベーススキーマ定義](./docs/db-schema.md)**: テーブル定義、カラム、データ型、リレーションシップについて説明します。
-- **[APIリファレンス](./docs/api-reference.md)**: すべてのバックエンドAPIエンドポイントの詳細な仕様を記述します。
-- **[フロントエンドアーキテクチャ](./docs/frontend-architecture.md)**: コンポーネント設計、状態管理、ルーティングなど、フロントエンドの構造について説明します。
-- **[デプロイ手順書](./docs/deployment.md)**: Vercel（フロントエンド）とRender（バックエンド）へのデプロイ手順を詳述します。
-- **[開発ガイドライン](./docs/development-guide.md)**: コーディング規約、ブランチ戦略、コミットメッセージのルールなどを定めます。
-- **[エラーハンドリング設計](./docs/error-handling.md)**: アプリケーション全体のエラー処理戦略について説明します。
+## ライセンス
 
----
-
-## 🤝 コントリビューション
-
-プルリクエストを歓迎します。大きな変更の場合は、まずissueを開いて変更内容を議論してください。
-
-### 開発フロー
-
-1. このリポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
-
----
-
-## 📝 ライセンス
-
-このプロジェクトは MIT ライセンスの下で公開されています。詳細は `LICENSE` ファイルを参照してください。
-
----
-
-## 👤 作成者
-
-- **GitHub**: [@krtw00](https://github.com/krtw00)
-
----
-
-## 🙏 謝辞
-
-このプロジェクトは以下のオープンソースプロジェクトを使用しています：
-
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [Vue.js](https://vuejs.org/)
-- [Vuetify](https://vuetifyjs.com/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Docker](https://www.docker.com/)
-
----
-
-## 📞 サポート
-
-問題が発生した場合は、[GitHub Issues](https://github.com/krtw00/duel-log-app/issues)で報告してください。
+このプロジェクトは MIT ライセンスの下で公開されています。詳細については [LICENSE](LICENSE) ファイルを参照してください。
