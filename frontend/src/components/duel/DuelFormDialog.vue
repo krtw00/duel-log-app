@@ -445,7 +445,6 @@ watch(
             form.value.dc_value = latest.value ?? DEFAULT_DC;
           }
           selectedMyDeck.value = myDecks.value.find((d) => d.id === latest.deck_id) || null;
-          selectedOpponentDeck.value = opponentDecks.value.find((d) => d.id === latest.opponentDeck_id) || null;
         } else {
           // If no latest value, use defaults and clear deck selections
           if (form.value.game_mode === 'RANK') {
@@ -484,7 +483,6 @@ watch(
         form.value.dc_value = latest.value ?? DEFAULT_DC;
       }
       selectedMyDeck.value = myDecks.value.find((d) => d.id === latest.deck_id) || null;
-      selectedOpponentDeck.value = opponentDecks.value.find((d) => d.id === latest.opponentDeck_id) || null;
     } else {
       // If no latest value, use defaults and clear deck selections
       if (newMode === 'RANK') {
