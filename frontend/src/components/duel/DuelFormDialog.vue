@@ -245,7 +245,7 @@ const formRef = ref();
 const loading = ref(false);
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
-const latestValues = ref<{ [key: string]: number }>({});
+const latestValues = ref<{ [key: string]: { value: number; deck_id: number; opponentDeck_id: number } }>({});
 
 // コンボボックス用の選択値
 const selectedMyDeck = ref<Deck | string | null>(null);
@@ -435,12 +435,28 @@ watch(
         selectedOpponentDeck.value = null;
 
         // Set initial value based on game mode
-        if (form.value.game_mode === 'RANK') {
-          form.value.rank = latestValues.value.RANK ?? DEFAULT_RANK;
-        } else if (form.value.game_mode === 'RATE') {
-          form.value.rate_value = latestValues.value.RATE ?? DEFAULT_RATE;
-        } else if (form.value.game_mode === 'DC') {
-          form.value.dc_value = latestValues.value.DC ?? DEFAULT_DC;
+        const latest = latestValues.value[form.value.game_mode];
+        if (latest) {
+          if (form.value.game_mode === 'RANK') {
+            form.value.rank = latest.value ?? DEFAULT_RANK;
+          } else if (form.value.game_mode === 'RATE') {
+            form.value.rate_value = latest.value ?? DEFAULT_RATE;
+          } else if (form.value.game_mode === 'DC') {
+            form.value.dc_value = latest.value ?? DEFAULT_DC;
+          }
+          selectedMyDeck.value = myDecks.value.find((d) => d.id === latest.deck_id) || null;
+          selectedOpponentDeck.value = opponentDecks.value.find((d) => d.id === latest.opponentDeck_id) || null;
+        } else {
+          // If no latest value, use defaults and clear deck selections
+          if (form.value.game_mode === 'RANK') {
+            form.value.rank = DEFAULT_RANK;
+          } else if (form.value.game_mode === 'RATE') {
+            form.value.rate_value = DEFAULT_RATE;
+          } else if (form.value.game_mode === 'DC') {
+            form.value.dc_value = DEFAULT_DC;
+          }
+          selectedMyDeck.value = null;
+          selectedOpponentDeck.value = null;
         }
       }
     }
@@ -458,12 +474,28 @@ watch(
     form.value.rate_value = undefined;
     form.value.dc_value = undefined;
 
-    if (newMode === 'RANK') {
-      form.value.rank = latestValues.value.RANK ?? DEFAULT_RANK;
-    } else if (newMode === 'RATE') {
-      form.value.rate_value = latestValues.value.RATE ?? DEFAULT_RATE;
-    } else if (newMode === 'DC') {
-      form.value.dc_value = latestValues.value.DC ?? DEFAULT_DC;
+    const latest = latestValues.value[newMode];
+    if (latest) {
+      if (newMode === 'RANK') {
+        form.value.rank = latest.value ?? DEFAULT_RANK;
+      } else if (newMode === 'RATE') {
+        form.value.rate_value = latest.value ?? DEFAULT_RATE;
+      } else if (newMode === 'DC') {
+        form.value.dc_value = latest.value ?? DEFAULT_DC;
+      }
+      selectedMyDeck.value = myDecks.value.find((d) => d.id === latest.deck_id) || null;
+      selectedOpponentDeck.value = opponentDecks.value.find((d) => d.id === latest.opponentDeck_id) || null;
+    } else {
+      // If no latest value, use defaults and clear deck selections
+      if (newMode === 'RANK') {
+        form.value.rank = DEFAULT_RANK;
+      } else if (newMode === 'RATE') {
+        form.value.rate_value = DEFAULT_RATE;
+      } else if (newMode === 'DC') {
+        form.value.dc_value = DEFAULT_DC;
+      }
+      selectedMyDeck.value = null;
+      selectedOpponentDeck.value = null;
     }
   },
 );
