@@ -28,6 +28,7 @@
 | `passwordhash` | `String` | **Not Null** | ハッシュ化されたパスワード |
 | `createdat` | `DateTime(timezone=True)` | **Not Null**, Default: `now()` | 作成日時 (UTC) |
 | `updatedat` | `DateTime(timezone=True)` | **Not Null**, Default: `now()`, On Update: `now()` | 更新日時 (UTC) |
+| `streamer_mode` | `Boolean` | **Not Null**, Default: `False` | 配信者モードの有効/無効 |
 
 ### `decks` テーブル
 
@@ -89,3 +90,18 @@
 | `url` | `String` | **Unique**, **Not Null**, Default: `uuid4()` | 共有URLのユニークな文字列 |
 | `createdat` | `DateTime` | Default: `utcnow()` | 作成日時 |
 | `updatedat` | `DateTime` | Default: `utcnow()`, On Update: `utcnow()` | 更新日時 |
+
+### `shared_statistics` テーブル
+
+共有統計情報を管理します。
+
+| カラム名 | データ型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `id` | `Integer` | **Primary Key** | 共有統計ID |
+| `share_id` | `String` | **Unique**, **Not Null** | 共有ID (URLに使用) |
+| `user_id` | `Integer` | **Foreign Key (users.id)**, **Not Null** | ユーザーID |
+| `year` | `Integer` | **Not Null** | 対象年 |
+| `month` | `Integer` | **Not Null** | 対象月 |
+| `game_mode` | `String(10)` | **Not Null** | ゲームモード (RANK, RATE, EVENT, DC) |
+| `created_at` | `DateTime(timezone=True)` | **Not Null**, Default: `now(utc)` | 作成日時 (UTC) |
+| `expires_at` | `DateTime(timezone=True)` | Nullable | 有効期限 (UTC) |
