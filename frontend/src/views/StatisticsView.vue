@@ -176,6 +176,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '../services/api';
+import AppBar from '../components/layout/AppBar.vue';
 
 const drawer = ref(false);
 const navItems = [
