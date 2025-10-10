@@ -28,7 +28,8 @@
     "user": {
       "id": 1,
       "username": "string",
-      "email": "user@example.com"
+      "email": "user@example.com",
+      "streamer_mode": false
     }
   }
   ```
@@ -236,6 +237,58 @@ CSVファイルから対戦履歴を一括でインポートします。
 各ゲームモードの最新のランク、レート、DC値を取得します。
 
 - **レスポンス (200 OK):** `{"RANK": value, "RATE": value, "DC": value}`
+
+---
+
+## 共有統計 (Shared Statistics)
+
+`prefix: /shared-statistics`
+
+### `POST /`
+
+ユーザーの統計情報への共有リンクを生成します。
+
+- **リクエストボディ:** `SharedStatisticsCreate` スキーマ
+  ```json
+  {
+    "year": 2023,
+    "month": 10,
+    "game_mode": "RANK",
+    "expires_at": "2023-12-31T23:59:59Z"
+  }
+  ```
+- **レスポンス (201 Created):** `SharedStatisticsRead` スキーマ
+  ```json
+  {
+    "id": 1,
+    "share_id": "unique_share_id_string",
+    "user_id": 1,
+    "year": 2023,
+    "month": 10,
+    "game_mode": "RANK",
+    "created_at": "2023-10-26T10:00:00Z",
+    "expires_at": "2023-12-31T23:59:59Z"
+  }
+  ```
+
+### `GET /{share_id}`
+
+共有IDを使用して統計情報を取得します。
+
+- **パスパラメータ:**
+  - `share_id` (string): 共有ID
+- **クエリパラメータ:**
+  - `year` (int, optional): 統計データを取得する年 (デフォルトは共有リンク作成時の年)
+  - `month` (int, optional): 統計データを取得する月 (デフォルトは共有リンク作成時の月)
+- **レスポンス (200 OK):** `Dict[str, Any]` (統計データを含むJSONオブジェクト)
+
+### `DELETE /{share_id}`
+
+共有リンクを削除します。
+
+- **パスパラメータ:**
+  - `share_id` (string): 共有ID
+- **レスポンス (204 No Content):**
 
 ---
 
