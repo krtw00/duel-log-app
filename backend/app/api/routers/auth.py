@@ -6,10 +6,8 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 import resend
-import starlette
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from jinja2 import Environment, FileSystemLoader
-from packaging.version import parse as parse_version
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -60,7 +58,6 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
 
     is_production = settings.ENVIRONMENT == "production"
 
-    # Cookieパラメータを構築
     cookie_params = {
         "key": "access_token",
         "value": access_token,
@@ -71,12 +68,19 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
         "max_age": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
 
-    # Starletteのバージョンをチェックして、partitioned属性を安全に追加
-    if is_production and parse_version(starlette.__version__) >= parse_version("0.36.0"):
-        cookie_params["partitioned"] = True
-        logger.info("Partitioned attribute added to the cookie.")
-
-    response.set_cookie(**cookie_params)
+    if is_production:
+        try:
+            # partitioned属性をサポートしているか試行
+            response.set_cookie(**cookie_params, partitioned=True)
+            logger.info("Partitioned attribute added to the cookie.")
+        except TypeError:
+            # 未サポートの場合はフォールバック
+            logger.warning(
+                "Partitioned attribute not supported. Setting cookie without it."
+            )
+            response.set_cookie(**cookie_params)
+    else:
+        response.set_cookie(**cookie_params)
 
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
 
@@ -95,7 +99,6 @@ def logout(response: Response):
     """
     is_production = settings.ENVIRONMENT == "production"
 
-    # Cookieを削除するために、max_age=0で設定し直す
     cookie_params = {
         "key": "access_token",
         "value": "",
@@ -106,12 +109,19 @@ def logout(response: Response):
         "max_age": 0,
     }
 
-    # Starletteのバージョンをチェックして、partitioned属性を安全に追加
-    if is_production and parse_version(starlette.__version__) >= parse_version("0.36.0"):
-        cookie_params["partitioned"] = True
-        logger.info("Partitioned attribute added to the logout cookie.")
-
-    response.set_cookie(**cookie_params)
+    if is_production:
+        try:
+            # partitioned属性をサポートしているか試行
+            response.set_cookie(**cookie_params, partitioned=True)
+            logger.info("Partitioned attribute added to the logout cookie.")
+        except TypeError:
+            # 未サポートの場合はフォールバック
+            logger.warning(
+                "Partitioned attribute not supported. Setting logout cookie without it."
+            )
+            response.set_cookie(**cookie_params)
+    else:
+        response.set_cookie(**cookie_params)
 
     return {"message": "Logout successful"}
 
