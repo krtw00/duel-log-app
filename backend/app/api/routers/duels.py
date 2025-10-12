@@ -21,20 +21,47 @@ router = APIRouter(prefix="/duels", tags=["duels"])
 
 @router.get("/export/csv")
 def export_duels_csv(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    year: Optional[int] = Query(None, description="年でフィルタリング"),
+    month: Optional[int] = Query(None, description="月でフィルタリング"),
+    game_mode: Optional[str] = Query(None, description="ゲームモードでフィルタリング"),
+    columns: Optional[str] = Query(None, description="エクスポートするカラム（カンマ区切り）"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """
     ログインユーザーの戦績データをCSV形式でエクスポート
     """
-    csv_data = duel_service.export_duels_to_csv(db=db, user_id=current_user.id)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"Exporting CSV with columns: {columns}")
 
-    response = StreamingResponse(
-        iter([csv_data]),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=duels.csv"},
-    )
+    try:
+        column_list = columns.split(",") if columns else None
+        csv_data = duel_service.export_duels_to_csv(
+            db=db,
+            user_id=current_user.id,
+            year=year,
+            month=month,
+            game_mode=game_mode,
+            columns=column_list,
+        )
 
-    return response
+        # ファイル名に日付を追加
+        filename = f"duels_{datetime.now().strftime('%Y%m%d')}.csv"
+
+        response = StreamingResponse(
+            iter([csv_data]),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
+        return response
+    except Exception as e:
+        logger.error(f"CSV export failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"CSV export failed: {str(e)}",
+        )
 
 
 @router.get("/", response_model=List[DuelRead])
@@ -223,17 +250,34 @@ def import_duels_csv(
     """
     CSVファイルからデュエルデータをインポート
     """
-    if file.content_type != "text/csv":
+    # ファイル名の拡張子をチェック（Content-Typeは不確実なため）
+    if not file.filename or not file.filename.endswith('.csv'):
         raise HTTPException(
-            status_code=400, detail="Invalid file type. Please upload a CSV file."
+            status_code=400, 
+            detail="Invalid file type. Please upload a CSV file (.csv)"
         )
 
     try:
         csv_content = file.file.read().decode("utf-8")
-        duel_service.import_duels_from_csv(
+        result = duel_service.import_duels_from_csv(
             db=db, user_id=current_user.id, csv_content=csv_content
         )
+        
+        # インポート結果を返す
+        response = {
+            "message": "CSV file imported successfully",
+            "created": result['created'],
+            "errors": result['errors']
+        }
+        
+        # エラーがある場合は警告を追加
+        if result['errors']:
+            response["warning"] = f"{len(result['errors'])} rows had errors"
+        
+        return response
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to import CSV file: {e}") from e
-
-    return {"message": "CSV file imported successfully"}
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail=f"Failed to import CSV file: {str(e)}"
+        ) from e
