@@ -452,12 +452,21 @@ const handleFileUpload = async (event: Event) => {
 
   loading.value = true;
   try {
-    await api.post('/duels/import/csv', formData, {
+    const response = await api.post('/duels/import/csv', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    notificationStore.success('CSVファイルをインポートしました');
+
+    const { created, errors } = response.data;
+
+    if (errors && errors.length > 0) {
+      notificationStore.error('CSVのインポート中にエラーが発生しました。');
+      console.error('CSV Import Errors:', errors);
+    } else {
+      notificationStore.success(`${created}件の対戦記録をインポートしました`);
+    }
+
     await fetchDuels();
   } catch (error) {
     console.error('Failed to import CSV:', error);
@@ -473,14 +482,35 @@ const handleFileUpload = async (event: Event) => {
 
 const exportCSV = async () => {
   notificationStore.success('CSVファイルを生成しています... ダウンロードが開始されます。');
+
+  const columns = [
+    'deck_name',
+    'opponent_deck_name',
+    'result',
+    'game_mode',
+    'rank',
+    'rate_value',
+    'dc_value',
+    'coin',
+    'first_or_second',
+    'played_date',
+    'notes',
+  ];
+
   try {
     const response = await api.get('/duels/export/csv', {
+      params: {
+        year: selectedYear.value,
+        month: selectedMonth.value,
+        game_mode: currentMode.value,
+        columns: columns.join(','),
+      },
       responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'duels.csv');
+    link.setAttribute('download', `duels_${selectedYear.value}_${selectedMonth.value}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
