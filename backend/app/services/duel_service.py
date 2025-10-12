@@ -301,6 +301,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         from app.services.deck_service import deck_service
 
         created_count = 0
+        skipped_count = 0
         errors = []
 
         # UTF-8 BOMを除去
@@ -315,10 +316,17 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
             try:
                 deck_name = row.get("使用デッキ")
                 opponent_deck_name = row.get("相手デッキ")
+                played_date_str = row.get("対戦日時")
 
                 if not deck_name or not opponent_deck_name:
                     errors.append(f"行{row_num}: 使用デッキまたは相手デッキの名前が不足しています")
                     continue
+                
+                if not played_date_str:
+                    errors.append(f"行{row_num}: 対戦日時が不足しています")
+                    continue
+                
+                played_date = datetime.strptime(played_date_str, '%Y-%m-%d %H:%M:%S')
 
                 with db.begin_nested():
                     # デッキを取得または作成
@@ -328,6 +336,22 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                     opponent_deck = deck_service.get_or_create(
                         db, user_id=user_id, name=opponent_deck_name, is_opponent=True
                     )
+
+                    # 重複チェック
+                    existing_duel = (
+                        db.query(Duel)
+                        .filter_by(
+                            user_id=user_id,
+                            deck_id=my_deck.id,
+                            opponentDeck_id=opponent_deck.id,
+                            played_date=played_date,
+                        )
+                        .first()
+                    )
+
+                    if existing_duel:
+                        skipped_count += 1
+                        continue
 
                     rank_str = row.get('ランク')
                     rank_value = None
@@ -349,7 +373,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                         'dc_value': int(row['DC値']) if row.get('DC値') and row['DC値'].isdigit() else None,
                         'coin': row.get('コイン', '') == '表',
                         'first_or_second': row.get('先攻/後攻', '') == '先攻',
-                        'played_date': datetime.strptime(row['対戦日時'], '%Y-%m-%d %H:%M:%S') if row.get('対戦日時') else datetime.now(),
+                        'played_date': played_date,
                         'notes': row.get('メモ', '')
                     }
 
@@ -371,6 +395,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
 
         return {
             'created': created_count,
+            'skipped': skipped_count,
             'errors': errors
         }
 
