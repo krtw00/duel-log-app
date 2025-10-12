@@ -319,10 +319,15 @@ const fetchDecks = async () => {
   try {
     // 編集モードの場合はアーカイブされたデッキも含める
     const activeOnly = !isEdit.value;
-    const response = await api.get(`/decks/?active_only=${activeOnly}`);
-    const allDecks = response.data;
-    myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent);
-    opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent);
+    const params = `active_only=${activeOnly}`;
+
+    const [myDecksResponse, opponentDecksResponse] = await Promise.all([
+      api.get(`/decks/?is_opponent=false&${params}`),
+      api.get(`/decks/?is_opponent=true&${params}`),
+    ]);
+
+    myDecks.value = myDecksResponse.data;
+    opponentDecks.value = opponentDecksResponse.data;
   } catch (error) {
     console.error('Failed to fetch decks:', error);
   }
