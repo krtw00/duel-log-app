@@ -3,11 +3,14 @@
 デッキに関するビジネスロジックを提供
 """
 
+from datetime import datetime
 from typing import List, Optional
 
+from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
+from app.models.duel import Duel
 from app.schemas.deck import DeckCreate, DeckUpdate
 from app.services.base import BaseService
 
@@ -37,6 +40,41 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         Returns:
             デッキのリスト
         """
+        if is_opponent:
+            now = datetime.utcnow()
+
+            # CTE to count duels for each opponent deck in the current month
+            duel_counts = (
+                db.query(
+                    Duel.opponentDeck_id.label("deck_id"),
+                    func.count(Duel.id).label("duel_count"),
+                )
+                .filter(
+                    Duel.user_id == user_id,
+                    extract("month", Duel.played_date) == now.month,
+                    extract("year", Duel.played_date) == now.year,
+                )
+                .group_by(Duel.opponentDeck_id)
+                .subquery("duel_counts")
+            )
+
+            query = db.query(Deck).outerjoin(
+                duel_counts, Deck.id == duel_counts.c.deck_id
+            )
+
+            query = query.filter(Deck.user_id == user_id)
+            query = query.filter(Deck.is_opponent.is_(True))
+
+            if active_only:
+                query = query.filter(Deck.active.is_(True))
+
+            query = query.order_by(
+                func.coalesce(duel_counts.c.duel_count, 0).desc(), Deck.name
+            )
+
+            return query.all()
+
+        # Original logic for other cases
         query = db.query(Deck).filter(Deck.user_id == user_id)
 
         if is_opponent is not None:
