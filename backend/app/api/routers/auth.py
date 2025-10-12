@@ -76,7 +76,8 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
     is_production = settings.ENVIRONMENT == "production"
 
     # HttpOnlyクッキーにトークンを設定
-    # Partitioned属性を追加してサードパーティCookieの警告を解消
+    # 注: partitioned属性はStarlette 0.36.0+で利用可能
+    # 現在のバージョンでは未サポートのため、基本的なCookie設定のみ使用
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -85,12 +86,11 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
         secure=is_production,  # 本番環境（HTTPS）では必ずTrue
         path="/",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # 秒単位
-        partitioned=True,  # サードパーティCookieのPartitioned属性を追加
     )
 
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
     logger.info(
-        f"Cookie settings - SameSite: {'none' if is_production else 'lax'}, Secure: {is_production}, Partitioned: True"
+        f"Cookie settings - SameSite: {'none' if is_production else 'lax'}, Secure: {is_production}"
     )
 
     return {
@@ -108,12 +108,13 @@ def logout(response: Response):
     """
     is_production = settings.ENVIRONMENT == "production"
 
+    # 注: partitioned属性はStarlette 0.36.0+で利用可能
+    # 現在のバージョンでは未サポートのため、基本的なCookie削除のみ使用
     response.delete_cookie(
         key="access_token",
         path="/",
         samesite="none" if is_production else "lax",
         secure=is_production,
-        partitioned=True,  # ログアウト時もPartitioned属性を指定
     )
 
     return {"message": "Logout successful"}
