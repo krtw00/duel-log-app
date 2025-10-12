@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Response, status, File
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -46,3 +46,39 @@ def delete_my_account(
     user_service.delete(db=db, id=current_user.id)
     response.delete_cookie("access_token")
     return {"message": "アカウントが正常に削除されました"}
+
+
+@router.get("/export", response_class=Response)
+def export_my_data(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    現在のユーザーの全データをCSVとしてエクスポート
+    """
+    from datetime import datetime
+    from fastapi.responses import StreamingResponse
+
+    csv_data = user_service.export_all_data_to_csv(db=db, user_id=current_user.id)
+    filename = f"duellog_backup_{datetime.now().strftime('%Y%m%d')}.csv"
+    response = StreamingResponse(
+        iter([csv_data]),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+    return response
+
+
+@router.post("/import", status_code=status.HTTP_201_CREATED)
+def import_my_data(
+    file: bytes = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    CSVファイルからデータをインポートして復元
+    （既存のデータはすべて削除されます）
+    """
+    return user_service.import_all_data_from_csv(
+        db=db, user_id=current_user.id, csv_content=file.decode("utf-8")
+    )
