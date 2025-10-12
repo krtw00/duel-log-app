@@ -68,19 +68,20 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
         "max_age": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
 
+    response.set_cookie(**cookie_params)
+
+    # ライブラリが古い環境向けの強制的な対応
     if is_production:
-        try:
-            # partitioned属性をサポートしているか試行
-            response.set_cookie(**cookie_params, partitioned=True)
-            logger.info("Partitioned attribute added to the cookie.")
-        except TypeError:
-            # 未サポートの場合はフォールバック
-            logger.warning(
-                "Partitioned attribute not supported. Setting cookie without it."
-            )
-            response.set_cookie(**cookie_params)
-    else:
-        response.set_cookie(**cookie_params)
+        header_index_to_modify = -1
+        for i, (key, value) in enumerate(response.raw_headers):
+            if key == b"set-cookie" and value.startswith(b"access_token="):
+                header_index_to_modify = i
+                break
+
+        if header_index_to_modify != -1:
+            key, value = response.raw_headers[header_index_to_modify]
+            response.raw_headers[header_index_to_modify] = (key, value + b"; Partitioned")
+            logger.info("Manually appended 'Partitioned' to the cookie header.")
 
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
 
@@ -109,19 +110,20 @@ def logout(response: Response):
         "max_age": 0,
     }
 
+    response.set_cookie(**cookie_params)
+
+    # ライブラリが古い環境向けの強制的な対応
     if is_production:
-        try:
-            # partitioned属性をサポートしているか試行
-            response.set_cookie(**cookie_params, partitioned=True)
-            logger.info("Partitioned attribute added to the logout cookie.")
-        except TypeError:
-            # 未サポートの場合はフォールバック
-            logger.warning(
-                "Partitioned attribute not supported. Setting logout cookie without it."
-            )
-            response.set_cookie(**cookie_params)
-    else:
-        response.set_cookie(**cookie_params)
+        header_index_to_modify = -1
+        for i, (key, value) in enumerate(response.raw_headers):
+            if key == b"set-cookie" and value.startswith(b"access_token="):
+                header_index_to_modify = i
+                break
+
+        if header_index_to_modify != -1:
+            key, value = response.raw_headers[header_index_to_modify]
+            response.raw_headers[header_index_to_modify] = (key, value + b"; Partitioned")
+            logger.info("Manually appended 'Partitioned' to the logout cookie header.")
 
     return {"message": "Logout successful"}
 
