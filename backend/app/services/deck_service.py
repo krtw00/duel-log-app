@@ -110,7 +110,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
             .first()
         )
 
-    def create_user_deck(self, db: Session, user_id: int, deck_in: DeckCreate) -> Deck:
+    def create_user_deck(self, db: Session, user_id: int, deck_in: DeckCreate, commit: bool = True) -> Deck:
         """
         ユーザーのデッキを作成
 
@@ -138,7 +138,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         deck_data = deck_in.model_dump(exclude={"user_id"})
         deck_obj = DeckCreate(**deck_data)
 
-        return self.create(db, deck_obj, user_id=user_id)
+        return self.create(db, deck_obj, user_id=user_id, commit=commit)
 
     def update_user_deck(
         self, db: Session, deck_id: int, user_id: int, deck_in: DeckUpdate
@@ -210,7 +210,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
             return deck
 
         deck_in = DeckCreate(name=name, is_opponent=is_opponent, active=True)
-        return self.create_user_deck(db, user_id=user_id, deck_in=deck_in)
+        return self.create_user_deck(db, user_id=user_id, deck_in=deck_in, commit=False)
 
 
 # シングルトンインスタンス

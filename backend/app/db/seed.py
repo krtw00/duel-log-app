@@ -136,7 +136,7 @@ def seed_data(db: Session):
                     }
 
                     if mode == "RANK":
-                        duel_data["rank"] = 300
+                        duel_data["rank"] = random.randint(1, 32)
 
                     elif mode == "RATE":
                         duel_data["rate_value"] = 300
