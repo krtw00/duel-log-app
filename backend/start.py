@@ -50,6 +50,10 @@ def wait_for_db(max_attempts=60):
         ),  # URLエンコードされたパスワードをデコード
         "dbname": parsed_url.path.lstrip("/"),
     }
+    
+    # NeonDB用のSSL設定（sslmodeパラメータがある場合）
+    if "sslmode=require" in dsn_url:
+        conn_params["sslmode"] = "require"
 
     for attempt in range(1, max_attempts + 1):
         try:
@@ -85,7 +89,21 @@ def get_current_db_state():
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-        with psycopg.connect(database_url) as conn:
+        # URLをパースして接続パラメータを取得
+        parsed_url = urlparse(database_url)
+        conn_params = {
+            "host": parsed_url.hostname,
+            "port": parsed_url.port,
+            "user": parsed_url.username,
+            "password": unquote(parsed_url.password) if parsed_url.password else None,
+            "dbname": parsed_url.path.lstrip("/"),
+        }
+        
+        # NeonDB用のSSL設定
+        if "sslmode=require" in database_url:
+            conn_params["sslmode"] = "require"
+
+        with psycopg.connect(**conn_params) as conn:
             with conn.cursor() as cur:
                 # テーブルの存在確認
                 cur.execute(
@@ -128,6 +146,20 @@ def fix_alembic_version_if_needed():
 
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+        # URLをパースして接続パラメータを取得
+        parsed_url = urlparse(database_url)
+        conn_params = {
+            "host": parsed_url.hostname,
+            "port": parsed_url.port,
+            "user": parsed_url.username,
+            "password": unquote(parsed_url.password) if parsed_url.password else None,
+            "dbname": parsed_url.path.lstrip("/"),
+        }
+        
+        # NeonDB用のSSL設定
+        if "sslmode=require" in database_url:
+            conn_params["sslmode"] = "require"
 
         if tables_exist:
             # テーブルが既に存在する場合、初期リビジョンを設定
@@ -135,7 +167,7 @@ def fix_alembic_version_if_needed():
             logger.info("   (This will allow missing migrations to run)")
             sys.stdout.flush()
 
-            with psycopg.connect(database_url) as conn:
+            with psycopg.connect(**conn_params) as conn:
                 with conn.cursor() as cur:
                     # 現在のバージョンを確認
                     try:
@@ -158,7 +190,7 @@ def fix_alembic_version_if_needed():
                         sys.stdout.flush()
         else:
             # テーブルが存在しない場合、履歴をクリア
-            with psycopg.connect(database_url) as conn:
+            with psycopg.connect(**conn_params) as conn:
                 with conn.cursor() as cur:
                     cur.execute("DELETE FROM alembic_version")
                     conn.commit()
@@ -263,9 +295,26 @@ def start_server():
     """Uvicornサーバーを起動"""
     logger.info("🚀 Starting Uvicorn server...")
     sys.stdout.flush()
-    subprocess.run(
-        ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-    )
+    
+    # Renderの場合、PORT環境変数からポートを取得
+    port = int(os.getenv("PORT", "8000"))
+    host = os.getenv("HOST", "0.0.0.0")
+    
+    # 本番環境では--reloadを無効化
+    environment = os.getenv("ENVIRONMENT", "development")
+    reload = environment != "production"
+    
+    logger.info(f"🔧 Server config: host={host}, port={port}, reload={reload}")
+    sys.stdout.flush()
+    
+    if reload:
+        subprocess.run(
+            ["uvicorn", "app.main:app", "--host", host, "--port", str(port), "--reload"]
+        )
+    else:
+        subprocess.run(
+            ["uvicorn", "app.main:app", "--host", host, "--port", str(port)]
+        )
 
 
 if __name__ == "__main__":
