@@ -130,6 +130,41 @@
               </v-btn>
             </v-card-text>
           </v-card>
+
+          <!-- Data Management Card -->
+          <v-card class="data-management-card mt-6">
+            <v-card-title class="pa-6">
+              <v-icon class="mr-2" color="primary">mdi-database</v-icon>
+              <span class="text-h5">データ管理</span>
+            </v-card-title>
+            <v-divider />
+            <v-card-text class="pa-6">
+              <p class="text-body-1 mb-4">
+                全データをCSVファイルとしてエクスポート（バックアップ）したり、インポート（復元）したりできます。
+              </p>
+              <v-row>
+                <v-col cols="6">
+                  <v-btn color="primary" block size="large" @click="exportAllData">
+                    <v-icon start>mdi-export</v-icon>
+                    エクスポート
+                  </v-btn>
+                </v-col>
+                <v-col cols="6">
+                  <v-btn color="secondary" block size="large" @click="triggerImportFileInput">
+                    <v-icon start>mdi-import</v-icon>
+                    インポート
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <input
+                ref="importFileInput"
+                type="file"
+                accept=".csv"
+                style="display: none"
+                @change="importBackup"
+              />
+            </v-card-text>
+          </v-card>
         </div>
       </v-container>
     </v-main>
@@ -199,6 +234,81 @@ const form = ref({
 const deleteDialog = ref(false);
 const deleteConfirmText = ref('');
 const deleting = ref(false);
+
+const importFileInput = ref<HTMLInputElement | null>(null);
+
+const triggerImportFileInput = () => {
+  importFileInput.value?.click();
+};
+
+const exportAllData = async () => {
+  notificationStore.info('全データのバックアップを生成しています...');
+  try {
+    const response = await api.get('/me/export', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    const filename = `duellog_backup_${new Date().toISOString().split('T')[0]}.csv`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    notificationStore.success('バックアップファイルをダウンロードしました。');
+  } catch (error) {
+    console.error('Failed to export data:', error);
+    notificationStore.error('データのエクスポートに失敗しました。');
+  }
+};
+
+const importBackup = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  if (!confirm('本当にバックアップから復元しますか？現在のデータはすべて削除されます。')) {
+    // Clear the file input so the same file can be selected again
+    if (importFileInput.value) {
+      importFileInput.value.value = '';
+    }
+    return;
+  }
+
+  loading.value = true;
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await api.post('/me/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    const { created, errors } = response.data;
+
+    if (errors && errors.length > 0) {
+      notificationStore.error('復元中にエラーが発生しました。');
+      console.error('Import Errors:', errors);
+    } else {
+      notificationStore.success(`${created}件の対戦記録を復元しました`);
+    }
+
+    // Refresh data on the dashboard
+    // This is a bit of a hack, but it's the easiest way to refresh the data
+    // after a successful import on a different view.
+    // A better solution would be a shared service or a more robust state management.
+    await authStore.fetchUser(); // to refresh user related data if any
+
+  } catch (error) {
+    console.error('Failed to import data:', error);
+    notificationStore.error('データのインポートに失敗しました。');
+  } finally {
+    loading.value = false;
+    if (importFileInput.value) {
+      importFileInput.value.value = '';
+    }
+  }
+};
 
 const rules = {
   required: (v: any) => !!v || '入力必須です',

@@ -102,7 +102,6 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db.refresh(db_obj)
         else:
             db.flush()
-            db.refresh(db_obj)
             
         return db_obj
 
