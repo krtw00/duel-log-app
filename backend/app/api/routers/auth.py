@@ -6,8 +6,10 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 import resend
+import starlette
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from jinja2 import Environment, FileSystemLoader
+from packaging.version import parse as parse_version
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -38,22 +40,9 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
     ユーザーログイン
 
     メールアドレスとパスワードで認証し、HttpOnlyクッキーにJWTアクセストークンを設定する
-
-    Args:
-        response: FastAPIのレスポンスオブジェクト
-        login_data: ログイン情報（email, password）
-        db: データベースセッション
-
-    Returns:
-        ログイン成功メッセージ
-
-    Raises:
-        HTTPException: 認証失敗時（401 Unauthorized）
     """
-    # メールアドレスでユーザーを検索
     user = db.query(User).filter(User.email == login_data.email).first()
 
-    # ユーザーが存在しない、またはパスワードが一致しない場合
     if not user or not verify_password(login_data.password, user.passwordhash):
         logger.warning(f"Login failed for email: {login_data.email}")
         raise HTTPException(
@@ -62,36 +51,34 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # JWTトークンのペイロードを作成
     token_data = {
-        "sub": str(user.id),  # "sub"はJWTの標準クレーム（subject）
+        "sub": str(user.id),
         "email": user.email,
         "username": user.username,
     }
-
-    # アクセストークンを生成
     access_token = create_access_token(data=token_data)
 
-    # クロスオリジン対応のクッキー設定
     is_production = settings.ENVIRONMENT == "production"
 
-    # HttpOnlyクッキーにトークンを設定
-    # 注: partitioned属性はStarlette 0.36.0+で利用可能
-    # 現在のバージョンでは未サポートのため、基本的なCookie設定のみ使用
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        samesite="none" if is_production else "lax",  # クロスオリジンの場合は"none"
-        secure=is_production,  # 本番環境（HTTPS）では必ずTrue
-        path="/",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # 秒単位
-    )
+    # Cookieパラメータを構築
+    cookie_params = {
+        "key": "access_token",
+        "value": access_token,
+        "httponly": True,
+        "samesite": "none" if is_production else "lax",
+        "secure": is_production,
+        "path": "/",
+        "max_age": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    }
+
+    # Starletteのバージョンをチェックして、partitioned属性を安全に追加
+    if is_production and parse_version(starlette.__version__) >= parse_version("0.36.0"):
+        cookie_params["partitioned"] = True
+        logger.info("Partitioned attribute added to the cookie.")
+
+    response.set_cookie(**cookie_params)
 
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
-    logger.info(
-        f"Cookie settings - SameSite: {'none' if is_production else 'lax'}, Secure: {is_production}"
-    )
 
     return {
         "message": "Login successful",
@@ -108,14 +95,23 @@ def logout(response: Response):
     """
     is_production = settings.ENVIRONMENT == "production"
 
-    # 注: partitioned属性はStarlette 0.36.0+で利用可能
-    # 現在のバージョンでは未サポートのため、基本的なCookie削除のみ使用
-    response.delete_cookie(
-        key="access_token",
-        path="/",
-        samesite="none" if is_production else "lax",
-        secure=is_production,
-    )
+    # Cookieを削除するために、max_age=0で設定し直す
+    cookie_params = {
+        "key": "access_token",
+        "value": "",
+        "httponly": True,
+        "samesite": "none" if is_production else "lax",
+        "secure": is_production,
+        "path": "/",
+        "max_age": 0,
+    }
+
+    # Starletteのバージョンをチェックして、partitioned属性を安全に追加
+    if is_production and parse_version(starlette.__version__) >= parse_version("0.36.0"):
+        cookie_params["partitioned"] = True
+        logger.info("Partitioned attribute added to the logout cookie.")
+
+    response.set_cookie(**cookie_params)
 
     return {"message": "Logout successful"}
 
