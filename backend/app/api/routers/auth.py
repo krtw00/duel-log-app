@@ -84,6 +84,7 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
         httponly=True,
         samesite="none" if is_production else "lax",  # クロスオリジンの場合は"none"
         secure=is_production,  # 本番環境（HTTPS）では必ずTrue
+        partitioned=is_production,  # サードパーティCookieとして許可
         path="/",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # 秒単位
     )
@@ -108,13 +109,16 @@ def logout(response: Response):
     """
     is_production = settings.ENVIRONMENT == "production"
 
-    # 注: partitioned属性はStarlette 0.36.0+で利用可能
-    # 現在のバージョンでは未サポートのため、基本的なCookie削除のみ使用
-    response.delete_cookie(
+    # Cookieを削除するために、max_age=0で設定し直す
+    response.set_cookie(
         key="access_token",
-        path="/",
+        value="",
+        httponly=True,
         samesite="none" if is_production else "lax",
         secure=is_production,
+        partitioned=is_production,
+        path="/",
+        max_age=0,
     )
 
     return {"message": "Logout successful"}
