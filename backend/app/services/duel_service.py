@@ -15,6 +15,35 @@ from app.schemas.duel import DuelCreate, DuelUpdate
 from app.services.base import BaseService
 
 
+def get_rank_name(rank_value: Optional[int]) -> str:
+    if rank_value is None:
+        return ""
+    ranks = {
+        1: 'ビギナー2', 2: 'ビギナー1', 3: 'ブロンズ5', 4: 'ブロンズ4', 5: 'ブロンズ3',
+        6: 'ブロンズ2', 7: 'ブロンズ1', 8: 'シルバー5', 9: 'シルバー4', 10: 'シルバー3',
+        11: 'シルバー2', 12: 'シルバー1', 13: 'ゴールド5', 14: 'ゴールド4', 15: 'ゴールド3',
+        16: 'ゴールド2', 17: 'ゴールド1', 18: 'プラチナ5', 19: 'プラチナ4', 20: 'プラチナ3',
+        21: 'プラチナ2', 22: 'プラチナ1', 23: 'ダイヤ5', 24: 'ダイヤ4', 25: 'ダイヤ3',
+        26: 'ダイヤ2', 27: 'ダイヤ1', 28: 'マスター5', 29: 'マスター4', 30: 'マスター3',
+        31: 'マスター2', 32: 'マスター1'
+    }
+    return ranks.get(rank_value, '不明')
+
+def get_rank_value(rank_label: Optional[str]) -> Optional[int]:
+    if not rank_label:
+        return None
+    ranks = {
+        'ビギナー2': 1, 'ビギナー1': 2, 'ブロンズ5': 3, 'ブロンズ4': 4, 'ブロンズ3': 5,
+        'ブロンズ2': 6, 'ブロンズ1': 7, 'シルバー5': 8, 'シルバー4': 9, 'シルバー3': 10,
+        'シルバー2': 11, 'シルバー1': 12, 'ゴールド5': 13, 'ゴールド4': 14, 'ゴールド3': 15,
+        'ゴールド2': 16, 'ゴールド1': 17, 'プラチナ5': 18, 'プラチナ4': 19, 'プラチナ3': 20,
+        'プラチナ2': 21, 'プラチナ1': 22, 'ダイヤ5': 23, 'ダイヤ4': 24, 'ダイヤ3': 25,
+        'ダイヤ2': 26, 'ダイヤ1': 27, 'マスター5': 28, 'マスター4': 29, 'マスター3': 30,
+        'マスター2': 31, 'マスター1': 32
+    }
+    return ranks.get(rank_label)
+
+
 class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
     """デュエルサービスクラス"""
 
@@ -214,7 +243,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
             ),
             "result": ("結果", lambda d: "勝利" if d.result else "敗北"),
             "game_mode": ("ゲームモード", lambda d: d.game_mode or ""),
-            "rank": ("ランク", lambda d: d.rank if d.rank is not None else ""),
+            "rank": ("ランク", lambda d: get_rank_name(d.rank)),
             "rate_value": ("レート", lambda d: d.rate_value if d.rate_value is not None else ""),
             "dc_value": ("DC値", lambda d: d.dc_value if d.dc_value is not None else ""),
             "coin": ("コイン", lambda d: "表" if d.coin else "裏"),
@@ -300,6 +329,14 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                         db, user_id=user_id, name=opponent_deck_name, is_opponent=True
                     )
 
+                    rank_str = row.get('ランク')
+                    rank_value = None
+                    if rank_str:
+                        if rank_str.isdigit():
+                            rank_value = int(rank_str)
+                        else:
+                            rank_value = get_rank_value(rank_str)
+
                     # Duelオブジェクトを作成
                     duel_data = {
                         'user_id': user_id,
@@ -307,7 +344,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                         'opponentDeck_id': opponent_deck.id,
                         'result': row.get('結果') == '勝利',
                         'game_mode': row.get('ゲームモード', 'RANK'),
-                        'rank': int(row['ランク']) if row.get('ランク') and row['ランク'].isdigit() else None,
+                        'rank': rank_value,
                         'rate_value': int(row['レート']) if row.get('レート') and row['レート'].isdigit() else None,
                         'dc_value': int(row['DC値']) if row.get('DC値') and row['DC値'].isdigit() else None,
                         'coin': row.get('コイン', '') == '表',
