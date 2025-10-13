@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., min_length=32, description="JWT署名用秘密鍵")
     ALGORITHM: str = Field(default="HS256", description="JWT署名アルゴリズム")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
-        default=30, ge=1, description="アクセストークン有効期限（分）"
+        default=10080, ge=1, description="アクセストークン有効期限（分）"
     )
 
     # CORS設定
