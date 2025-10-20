@@ -231,10 +231,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { api } from '../services/api';
-import { Deck } from '../types';
-import AppBar from '../components/layout/AppBar.vue';
-import { useNotificationStore } from '../stores/notification';
+import { api } from '@/services/api';
+import { Deck } from '@/types';
+import AppBar from '@/components/layout/AppBar.vue';
+import { useNotificationStore } from '@/stores/notification';
 
 const drawer = ref(false);
 const navItems = [
