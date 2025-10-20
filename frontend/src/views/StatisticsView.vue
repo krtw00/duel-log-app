@@ -19,7 +19,7 @@
     <!-- メインコンテンツ -->
     <v-main class="main-content">
       <v-container fluid class="pa-6">
-        <h1 class="text-h4 text-white mb-6">統計情報</h1>
+        <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
 
         <!-- 年月選択 -->
         <v-row class="mb-4">
@@ -411,10 +411,15 @@ watch([selectedYear, selectedMonth], fetchStatistics);
   min-height: 100vh;
 }
 
+.statistics-title {
+  color: rgb(var(--v-theme-on-surface));
+}
+
 .stats-card {
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(128, 128, 128, 0.2);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 12px !important;
+  background-color: rgba(var(--v-theme-surface), 0.92);
 }
 
 .no-data-placeholder {
@@ -423,19 +428,34 @@ watch([selectedYear, selectedMonth], fetchStatistics);
   align-items: center;
   justify-content: center;
   height: 350px;
+  color: rgba(var(--v-theme-on-surface), 0.65);
+
+  p {
+    color: inherit;
+  }
+}
+
+:deep(.stats-card .v-card-title) {
+  color: rgb(var(--v-theme-on-surface));
+  font-weight: 600;
+}
+
+:deep(.stats-card .v-card-text) {
+  color: rgb(var(--v-theme-on-surface));
 }
 
 .matchup-table {
   background: transparent !important;
+}
 
-  .v-data-table__th {
-    background: rgba(26, 31, 58, 0.5) !important;
-    color: rgba(228, 231, 236, 0.8) !important;
-    font-weight: 600 !important;
-  }
+:deep(.matchup-table .v-data-table__th) {
+  background: rgba(var(--v-theme-surface), 0.85) !important;
+  color: rgba(var(--v-theme-on-surface), 0.75) !important;
+  font-weight: 600 !important;
+}
 
-  .v-data-table__td {
-    border-bottom: 1px solid rgba(0, 217, 255, 0.05) !important;
-  }
+:deep(.matchup-table .v-data-table__td) {
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.1) !important;
+  color: rgba(var(--v-theme-on-surface), 0.9);
 }
 </style>

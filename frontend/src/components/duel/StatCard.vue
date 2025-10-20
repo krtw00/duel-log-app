@@ -4,7 +4,7 @@
     <v-card-text class="pa-4">
       <div class="d-flex align-center justify-space-between">
         <div>
-          <p class="stat-card__title text-caption text-grey mb-2">{{ title }}</p>
+          <p class="stat-card__title text-caption mb-2">{{ title }}</p>
           <p class="stat-card__value text-h4 font-weight-bold">{{ value }}</p>
         </div>
         <div class="stat-card__icon-wrapper">
@@ -86,6 +86,7 @@ defineProps<{
     letter-spacing: 1px;
     font-size: 20px !important;
     white-space: nowrap;
+    color: rgba(var(--v-theme-on-surface), 0.72);
   }
 
   &__value {
@@ -99,7 +100,8 @@ defineProps<{
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(128, 128, 128, 0.1);
+    background: rgba(var(--v-theme-on-surface), 0.08);
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
     border-radius: 50%;
   }
 }
