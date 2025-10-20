@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <div>
     <!-- Simple App Bar for shared view -->
     <v-app-bar app flat color="transparent">
       <v-toolbar-title class="d-flex align-center">
@@ -254,7 +254,7 @@
         </v-row>
       </v-container>
     </v-main>
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -552,7 +552,6 @@ defineExpose({
 
 <style scoped lang="scss">
 .main-content {
-  background: #0a0e27;
   min-height: 100vh;
   padding-top: 64px; /* Adjust for app bar height */
 }
