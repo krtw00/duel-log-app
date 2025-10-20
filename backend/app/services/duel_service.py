@@ -326,7 +326,14 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                     errors.append(f"行{row_num}: 対戦日時が不足しています")
                     continue
                 
-                played_date = datetime.strptime(played_date_str, '%Y-%m-%d %H:%M:%S')
+                try:
+                    played_date = datetime.strptime(played_date_str, '%Y-%m-%d %H:%M:%S')
+                except ValueError:
+                    try:
+                        played_date = datetime.strptime(played_date_str, '%Y/%m/%d %H:%M')
+                    except ValueError:
+                        errors.append(f"行{row_num}: 対戦日時の形式が不正です: {played_date_str}")
+                        continue
 
                 with db.begin_nested():
                     # デッキを取得または作成
@@ -372,7 +379,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                         'rate_value': int(row['レート']) if row.get('レート') and row['レート'].isdigit() else None,
                         'dc_value': int(row['DC値']) if row.get('DC値') and row['DC値'].isdigit() else None,
                         'coin': row.get('コイン', '') == '表',
-                        'first_or_second': row.get('先攻/後攻', '') == '先攻',
+                        'first_or_second': row.get('先攻/後攻', '') in ['先攻', '先行'],
                         'played_date': played_date,
                         'notes': row.get('メモ', '')
                     }

@@ -487,14 +487,13 @@ const exportCSV = async () => {
     'deck_name',
     'opponent_deck_name',
     'result',
-    'game_mode',
+    'coin',
+    'first_or_second',
     'rank',
     'rate_value',
     'dc_value',
-    'coin',
-    'first_or_second',
-    'played_date',
     'notes',
+    'played_date',
   ];
 
   try {
