@@ -27,7 +27,13 @@ describe('StatisticsView.vue', () => {
     const wrapper = mount(StatisticsView, {
       global: {
         plugins: [vuetify, createTestingPinia({ createSpy: vi.fn })],
-        stubs: { AppBar: true, apexchart: true },
+        stubs: {
+          AppBar: true,
+          apexchart: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' }
+        },
       },
     });
     await wrapper.vm.$nextTick(); // Wait for onMounted hook

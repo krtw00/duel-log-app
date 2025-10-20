@@ -43,6 +43,10 @@ describe('SharedStatisticsView.vue', () => {
         plugins: [vuetify, pinia],
         stubs: {
           apexchart: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -85,6 +89,10 @@ describe('SharedStatisticsView.vue', () => {
           apexchart: true,
           StatCard: true,
           DuelTable: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -119,6 +127,10 @@ describe('SharedStatisticsView.vue', () => {
         plugins: [vuetify, pinia],
         stubs: {
           apexchart: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -154,6 +166,10 @@ describe('SharedStatisticsView.vue', () => {
         plugins: [vuetify, pinia],
         stubs: {
           apexchart: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });

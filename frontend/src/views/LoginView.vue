@@ -274,7 +274,7 @@ const handleLogin = async () => {
 }
 
 .app-subtitle {
-  color: rgba(228, 231, 236, 0.6);
+  color: rgba(var(--v-theme-on-surface), 0.6);
   font-size: 0.9rem;
   letter-spacing: 3px;
   text-transform: uppercase;
