@@ -110,6 +110,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -124,6 +127,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -141,6 +147,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -175,6 +184,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, createTestingPinia()],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -199,6 +211,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -243,6 +258,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -276,6 +294,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
@@ -297,6 +318,9 @@ describe('DecksView.vue', () => {
         plugins: [vuetify, pinia],
         stubs: {
           AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
