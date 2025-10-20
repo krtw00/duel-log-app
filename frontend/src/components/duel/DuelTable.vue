@@ -7,6 +7,8 @@
     hover
     density="comfortable"
     mobile-breakpoint="sm"
+    fixed-header
+    height="70vh"
   >
     <!-- 勝敗カラム -->
     <template #[`item.result`]="{ item }">
@@ -145,8 +147,8 @@ const formatDate = (dateString: string) => {
   background: transparent !important;
 
   .v-data-table__th {
-    background: rgba(26, 31, 58, 0.5) !important;
-    color: rgba(228, 231, 236, 0.8) !important;
+    background: rgb(var(--v-theme-surface-variant)) !important;
+    color: rgb(var(--v-theme-on-surface)) !important;
     font-weight: 600 !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
