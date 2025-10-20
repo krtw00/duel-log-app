@@ -39,6 +39,9 @@ def get_all_statistics(
             "matchup_data": statistics_service.get_matchup_chart(
                 db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
             ),
+            "my_deck_win_rates": statistics_service.get_my_deck_win_rates(
+                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
+            ),
         }
 
         # レートとDCの場合は時系列データも取得
