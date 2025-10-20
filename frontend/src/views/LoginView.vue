@@ -100,8 +100,8 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
-import { useAuthStore } from '../stores/auth';
-import { useNotificationStore } from '../stores/notification';
+import { useAuthStore } from '@/stores/auth';
+import { useNotificationStore } from '@/stores/notification';
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
