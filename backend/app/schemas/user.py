@@ -20,6 +20,7 @@ class UserUpdate(BaseModel):
         None, min_length=8, max_length=72, description="パスワード (8〜72文字)"
     )
     streamer_mode: bool | None = None
+    theme_preference: str | None = None
 
 
 # レスポンス用
@@ -28,6 +29,7 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     streamer_mode: bool
+    theme_preference: str
     createdat: Optional[datetime]
     updatedat: Optional[datetime]
 

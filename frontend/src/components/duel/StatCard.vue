@@ -31,9 +31,8 @@ defineProps<{
 
 <style scoped lang="scss">
 .stat-card {
-  background: rgba(18, 22, 46, 0.95) !important;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
   position: relative;
   overflow: hidden;
@@ -41,7 +40,7 @@ defineProps<{
 
   &:hover {
     transform: translateY(-4px);
-    border-color: rgba(0, 217, 255, 0.3);
+    opacity: 0.9;
 
     .stat-card__glow {
       opacity: 1;
@@ -90,10 +89,8 @@ defineProps<{
   }
 
   &__value {
-    background: linear-gradient(135deg, #e4e7ec 0%, rgba(228, 231, 236, 0.7) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: rgb(var(--v-theme-on-surface));
+    font-weight: 900;
   }
 
   &__icon-wrapper {
@@ -102,7 +99,7 @@ defineProps<{
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 217, 255, 0.05);
+    background: rgba(128, 128, 128, 0.1);
     border-radius: 50%;
   }
 }
