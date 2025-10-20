@@ -11,17 +11,27 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import ToastNotification from './components/common/ToastNotification.vue';
 import LoadingOverlay from './components/common/LoadingOverlay.vue';
 import { useThemeStore } from './stores/theme';
+import { useAuthStore } from './stores/auth';
 
 const themeStore = useThemeStore();
+const authStore = useAuthStore();
 
 // アプリ起動時にテーマを読み込む
 onMounted(() => {
   themeStore.loadTheme();
 });
+
+// ユーザー情報が変更されたらテーマを再読み込み
+watch(
+  () => authStore.user,
+  () => {
+    themeStore.loadTheme();
+  },
+);
 </script>
 
 <style lang="scss">
