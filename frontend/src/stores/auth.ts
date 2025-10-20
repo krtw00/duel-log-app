@@ -63,13 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
       // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
       const response = await api.get('/me');
       user.value = response.data;
-
-      // ユーザー情報取得後、テーマを読み込む
-      // 循環参照を避けるため、動的インポートを使用
-      const { useThemeStore } = await import('./theme');
-      const themeStore = useThemeStore();
-      themeStore.loadTheme();
-    } catch (error) {
+    } catch {
       // エラー（クッキーがない、または無効）の場合はユーザー情報をクリア
       user.value = null;
     } finally {

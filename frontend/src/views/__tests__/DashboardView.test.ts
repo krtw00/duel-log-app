@@ -65,11 +65,15 @@ describe('DashboardView.vue', () => {
           DuelTable: true,
           DuelFormDialog: true,
           ShareStatsDialog: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
 
     await flushPromises();
+    await wrapper.vm.$nextTick();
 
     expect(wrapper.text()).toContain('対戦履歴');
     expect(wrapper.findComponent({ name: 'ShareStatsDialog' }).exists()).toBe(true);
@@ -82,6 +86,9 @@ describe('DashboardView.vue', () => {
         stubs: {
           AppBar: true,
           StatCard: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
           DuelTable: true,
           DuelFormDialog: true,
           ShareStatsDialog: {
@@ -126,6 +133,9 @@ describe('DashboardView.vue', () => {
         stubs: {
           AppBar: true,
           StatCard: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
           DuelTable: true,
           DuelFormDialog: true,
           ShareStatsDialog: {
