@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   streamer_mode: boolean;
+  theme_preference: string;
 }
 
 export interface UserCreate {
