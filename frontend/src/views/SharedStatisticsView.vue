@@ -594,6 +594,11 @@ onMounted(() => {
 
 watch([currentTab], fetchSharedStatistics);
 
+// テーマ変更時にグラフを再描画
+watch(() => themeStore.isDark, () => {
+  fetchSharedStatistics();
+});
+
 // Expose for testing
 defineExpose({
   selectedYear,
