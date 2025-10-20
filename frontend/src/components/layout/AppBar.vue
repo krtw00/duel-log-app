@@ -11,6 +11,14 @@
 
     <v-spacer />
 
+    <!-- テーマ切り替えボタン -->
+    <v-btn
+      :icon="themeStore.isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+      variant="text"
+      @click="themeStore.toggleTheme"
+      class="mr-2"
+    />
+
     <template v-for="item in navItems" :key="item.view">
       <v-btn
         v-if="currentView !== item.view"
@@ -68,6 +76,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
+import { useThemeStore } from '../../stores/theme';
 import { maskEmail } from '../../utils/maskEmail';
 
 defineProps<{
@@ -78,6 +87,7 @@ defineEmits(['toggle-drawer']);
 
 const router = useRouter();
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
 
 const navItems = [
   { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
@@ -93,9 +103,8 @@ const displayEmail = computed(() => {
 
 <style scoped lang="scss">
 .app-bar {
-  background: rgba(18, 22, 46, 0.95) !important;
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 217, 255, 0.1);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
   position: relative;
   overflow: hidden;
 
