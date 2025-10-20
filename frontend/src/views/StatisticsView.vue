@@ -114,6 +114,32 @@
                 </v-card>
               </v-col>
 
+              <!-- 自分のデッキ勝率 -->
+              <v-col cols="12">
+                <v-card class="stats-card">
+                  <v-card-title>自分のデッキ勝率</v-card-title>
+                  <v-card-text>
+                    <v-data-table
+                      :headers="myDeckWinRatesHeaders"
+                      :items="statisticsByMode[mode].myDeckWinRates"
+                      :loading="loading"
+                      class="matchup-table"
+                      density="compact"
+                    >
+                      <template #[`item.win_rate`]='{ item }'>
+                        {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
+                      </template>
+                      <template #no-data>
+                        <div class="no-data-placeholder py-8">
+                          <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
+                          <p class="text-body-1 text-grey mt-4">データがありません</p>
+                        </div>
+                      </template>
+                    </v-data-table>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+
               <!-- 相性表 -->
               <v-col cols="12">
                 <v-card class="stats-card">
@@ -209,6 +235,7 @@ interface StatisticsModeData {
   monthlyDistribution: DistributionData;
   recentDistribution: DistributionData;
   matchupData: any[];
+  myDeckWinRates: any[];
   timeSeries: TimeSeriesData;
 }
 
@@ -290,6 +317,7 @@ const createInitialStats = (): AllStatisticsData => {
       monthlyDistribution: { series: [], chartOptions: { ...baseChartOptions.value, labels: [] } },
       recentDistribution: { series: [], chartOptions: { ...baseChartOptions.value, labels: [] } },
       matchupData: [],
+      myDeckWinRates: [],
       timeSeries: {
         series: [{ name: mode, data: [] }],
         chartOptions: {
@@ -334,6 +362,9 @@ const fetchStatistics = async () => {
       // Matchup Data
       statisticsByMode.value[mode].matchupData = modeData.matchup_data || [];
 
+      // My Deck Win Rates
+      statisticsByMode.value[mode].myDeckWinRates = modeData.my_deck_win_rates || [];
+
       // Time Series Data
       const timeSeriesData = modeData.time_series_data || [];
       const categories = timeSeriesData.map((_: any, i: number) => i + 1);
@@ -362,6 +393,12 @@ const matchupHeaders = [
   { title: '勝率', key: 'win_rate', sortable: true },
   { title: '先行勝率', key: 'win_rate_first', sortable: true },
   { title: '後攻勝率', key: 'win_rate_second', sortable: true },
+];
+
+const myDeckWinRatesHeaders = [
+  { title: 'デッキ名', key: 'deck_name', sortable: true },
+  { title: '対戦数', key: 'total_duels', sortable: true },
+  { title: '勝率', key: 'win_rate', sortable: true },
 ];
 
 onMounted(fetchStatistics);
