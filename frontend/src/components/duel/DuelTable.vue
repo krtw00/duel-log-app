@@ -103,8 +103,8 @@
 </template>
 
 <script setup lang="ts">
-import { Duel } from '../../types';
-import { getRankName } from '../../utils/ranks';
+import { Duel } from '@/types';
+import { getRankName } from '@/utils/ranks';
 
 defineProps<{
   duels: Duel[];

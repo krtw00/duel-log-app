@@ -260,9 +260,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { useSharedStatisticsStore } from '../stores/shared_statistics';
-import StatCard from '../components/duel/StatCard.vue';
-import DuelTable from '../components/duel/DuelTable.vue'; // Import DuelTable // Import ApexCharts
+import { useSharedStatisticsStore } from '@/stores/shared_statistics';
+import StatCard from '@/components/duel/StatCard.vue';
+import DuelTable from '@/components/duel/DuelTable.vue';
 
 // --- Types ---
 interface DistributionData {
