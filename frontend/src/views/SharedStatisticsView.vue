@@ -506,21 +506,21 @@ const fetchSharedStatistics = async () => {
             monthlyDistribution: {
               series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions,
+                ...baseChartOptions.value,
                 labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
             recentDistribution: {
               series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions,
+                ...baseChartOptions.value,
                 labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
             matchupData: rawStats.matchup_data || [],
             timeSeries: {
               series: [],
-              chartOptions: lineChartBaseOptions,
+              chartOptions: lineChartBaseOptions.value,
             },
           };
         } else {
@@ -531,14 +531,14 @@ const fetchSharedStatistics = async () => {
             monthlyDistribution: {
               series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions,
+                ...baseChartOptions.value,
                 labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
             recentDistribution: {
               series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions,
+                ...baseChartOptions.value,
                 labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
@@ -548,9 +548,9 @@ const fetchSharedStatistics = async () => {
                 { name: mode, data: rawStats.time_series_data?.map((d: any) => d.value) || [] },
               ],
               chartOptions: {
-                ...lineChartBaseOptions,
+                ...lineChartBaseOptions.value,
                 xaxis: {
-                  ...lineChartBaseOptions.xaxis,
+                  ...lineChartBaseOptions.value.xaxis,
                   categories: rawStats.time_series_data?.map((_: any, i: number) => i + 1) || [],
                 },
                 colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
