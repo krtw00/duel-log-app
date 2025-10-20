@@ -6,7 +6,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import desc, extract, func
+from sqlalchemy import desc, extract, func, case
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
@@ -23,6 +23,53 @@ class StatisticsService:
         if game_mode:
             query = query.filter(Duel.game_mode == game_mode)
         return query
+
+    def get_my_deck_win_rates(
+        self,
+        db: Session,
+        user_id: int,
+        year: Optional[int] = None,
+        month: Optional[int] = None,
+        game_mode: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        ユーザー自身の各デッキの勝率を計算
+        """
+        query = self._build_base_duels_query(db, user_id, game_mode)
+
+        if year is not None:
+            query = query.filter(extract("year", Duel.played_date) == year)
+        if month is not None:
+            query = query.filter(extract("month", Duel.played_date) == month)
+
+        # Group by user's deck and calculate stats
+        deck_stats = (
+            query.join(Deck, Duel.deck_id == Deck.id)
+            .group_by(Deck.id, Deck.name)
+            .with_entities(
+                Deck.name,
+                func.count(Duel.id).label("total_duels"),
+                func.sum(case((Duel.result == True, 1), else_=0)).label("wins"),
+            )
+            .order_by(desc("total_duels"))
+            .all()
+        )
+
+        win_rates_data = []
+        for name, total_duels, wins in deck_stats:
+            losses = total_duels - wins
+            win_rate = (wins / total_duels) * 100 if total_duels > 0 else 0
+            win_rates_data.append(
+                {
+                    "deck_name": name,
+                    "total_duels": total_duels,
+                    "wins": wins,
+                    "losses": losses,
+                    "win_rate": win_rate,
+                }
+            )
+
+        return win_rates_data
 
     def get_deck_distribution(
         self, db: Session, user_id: int, duels_query
