@@ -75,9 +75,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '../../stores/auth';
-import { useThemeStore } from '../../stores/theme.ts';
-import { maskEmail } from '../../utils/maskEmail';
+import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme';
+import { maskEmail } from '@/utils/maskEmail';
 
 defineProps<{
   currentView: 'dashboard' | 'decks' | 'statistics' | 'profile';

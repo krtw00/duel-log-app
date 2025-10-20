@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { useLoadingStore } from '../../stores/loading';
+import { useLoadingStore } from '@/stores/loading';
 
 const loadingStore = useLoadingStore();
 const { isLoading } = storeToRefs(loadingStore);
