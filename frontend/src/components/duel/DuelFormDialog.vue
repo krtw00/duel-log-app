@@ -555,9 +555,8 @@ const closeDialog = () => {
 
 <style scoped lang="scss">
 .duel-form-card {
-  background: rgba(18, 22, 46, 0.98) !important;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 217, 255, 0.2);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
   position: relative;
   overflow: hidden;

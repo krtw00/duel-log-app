@@ -7,16 +7,17 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #12162e;
+  background: rgb(var(--v-theme-surface-variant));
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #00d9ff, #b536ff);
+  background: rgb(var(--v-theme-primary));
   border-radius: 10px;
+  opacity: 0.8;
 
   &:hover {
-    background: linear-gradient(180deg, #00f0ff, #c550ff);
+    opacity: 1;
   }
 }
 
