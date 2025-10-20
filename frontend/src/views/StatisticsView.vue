@@ -404,6 +404,11 @@ const myDeckWinRatesHeaders = [
 onMounted(fetchStatistics);
 
 watch([selectedYear, selectedMonth], fetchStatistics);
+
+// テーマ変更時にグラフを再描画
+watch(() => themeStore.isDark, () => {
+  fetchStatistics();
+});
 </script>
 
 <style scoped lang="scss">
