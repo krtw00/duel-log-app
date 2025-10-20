@@ -13,6 +13,8 @@ from app.schemas.duel import DuelWithDeckNames  # Import DuelWithDeckNames
 from app.schemas.shared_statistics import SharedStatisticsCreate, SharedStatisticsRead
 from app.services.shared_statistics_service import shared_statistics_service
 from app.services.statistics_service import statistics_service
+from app.services.duel_service import duel_service
+from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/shared-statistics", tags=["shared-statistics"])
 
@@ -201,4 +203,61 @@ def delete_shared_statistics_link(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="共有リンクが見つからないか、削除する権限がありません。",
+        )
+
+
+@router.get("/{share_id}/export/csv")
+def export_shared_duels_csv(
+    share_id: str,
+    year: Optional[int] = Query(None, description="年でフィルタリング"),
+    month: Optional[int] = Query(None, description="月でフィルタリング"),
+    game_mode: Optional[str] = Query(None, description="ゲームモードでフィルタリング"),
+    db: Session = Depends(get_db),
+):
+    """
+    共有IDを使用してデュエルデータをCSV形式でエクスポート
+    """
+    shared_link = shared_statistics_service.get_by_share_id(db, share_id)
+
+    if not shared_link:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="共有リンクが見つかりません。"
+        )
+
+    # 有効期限の確認
+    if shared_link.expires_at and shared_link.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="この共有リンクは期限切れです。",
+        )
+
+    user_id = shared_link.user_id
+    
+    # If year, month, or game_mode are not provided in query, use the ones from the shared link
+    target_year = year if year is not None else shared_link.year
+    target_month = month if month is not None else shared_link.month
+    target_game_mode = game_mode if game_mode is not None else shared_link.game_mode
+
+    try:
+        csv_data = duel_service.export_duels_to_csv(
+            db=db,
+            user_id=user_id,
+            year=target_year,
+            month=target_month,
+            game_mode=target_game_mode,
+        )
+
+        filename = f"duels_{target_year}_{target_month}.csv"
+
+        response = StreamingResponse(
+            iter([csv_data]),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"CSV export failed: {str(e)}",
         )
