@@ -5,9 +5,13 @@ import router from '../router';
 import type { AxiosError } from 'axios';
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<{ id: number; email: string; username: string; streamer_mode: boolean } | null>(
-    null,
-  );
+  const user = ref<{
+    id: number;
+    email: string;
+    username: string;
+    streamer_mode: boolean;
+    theme_preference: string;
+  } | null>(null);
   const isInitialized = ref(false);
 
   // ローカルストレージから配信者モード設定を読み込む
@@ -59,6 +63,12 @@ export const useAuthStore = defineStore('auth', () => {
       // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
       const response = await api.get('/me');
       user.value = response.data;
+
+      // ユーザー情報取得後、テーマを読み込む
+      // 循環参照を避けるため、動的インポートを使用
+      const { useThemeStore } = await import('./theme');
+      const themeStore = useThemeStore();
+      themeStore.loadTheme();
     } catch (error) {
       // エラー（クッキーがない、または無効）の場合はユーザー情報をクリア
       user.value = null;

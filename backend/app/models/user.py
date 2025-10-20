@@ -31,6 +31,9 @@ class User(Base):
     streamer_mode: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="false"
     )
+    theme_preference: Mapped[str] = mapped_column(
+        String, nullable=False, server_default="dark"
+    )
     createdat: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

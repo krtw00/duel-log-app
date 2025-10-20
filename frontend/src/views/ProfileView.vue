@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <div>
     <app-bar current-view="profile" @toggle-drawer="drawer = !drawer" />
 
     <!-- レスポンシブ対応のナビゲーションドロワー -->
@@ -200,7 +200,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -410,22 +410,20 @@ const handleDeleteAccount = async () => {
 
 <style scoped lang="scss">
 .main-content {
-  background: #0a0e27;
 }
 
 .profile-card,
 .delete-card,
 .delete-dialog-card {
-  background: rgba(18, 22, 46, 0.98) !important;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 217, 255, 0.2);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
   position: relative;
   overflow: hidden;
 }
 
 .delete-card {
-  border-color: rgba(255, 72, 72, 0.3);
+  border-color: rgba(255, 72, 72, 0.5);
 }
 
 .card-glow {

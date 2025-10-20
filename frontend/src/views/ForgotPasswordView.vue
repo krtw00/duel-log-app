@@ -1,6 +1,5 @@
 <template>
-  <v-app>
-    <div class="forgot-password-container">
+  <div class="forgot-password-container">
       <!-- 背景装飾 -->
       <div class="background-overlay">
         <div class="grid-pattern"></div>
@@ -57,8 +56,7 @@
           </v-form>
         </v-card-text>
       </v-card>
-    </div>
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -106,7 +104,7 @@ const handleForgotPassword = async () => {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  background: #0a0e27;
+  background: rgb(var(--v-theme-background));
 }
 
 .background-overlay {
@@ -180,9 +178,8 @@ const handleForgotPassword = async () => {
   width: 100%;
   max-width: 450px;
   margin: 20px;
-  background: rgba(18, 22, 46, 0.95) !important;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 16px !important;
   overflow: hidden;
 }
