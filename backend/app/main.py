@@ -50,8 +50,8 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_origin_regex=vercel_preview_pattern,
     allow_credentials=True,
-    allow_methods=["*"],  # すべてのメソッドを許可
-    allow_headers=["*"],  # すべてのヘッダーを許可
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # --- 例外ハンドラーの登録 ---
