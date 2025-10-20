@@ -242,12 +242,12 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                 lambda d: d.opponent_deck.name if d.opponent_deck else "",
             ),
             "result": ("結果", lambda d: "勝利" if d.result else "敗北"),
+            "coin": ("コイン", lambda d: "表" if d.coin else "裏"),
+            "first_or_second": ("先攻/後攻", lambda d: "先攻" if d.first_or_second else "後攻"),
             "game_mode": ("ゲームモード", lambda d: d.game_mode or ""),
             "rank": ("ランク", lambda d: get_rank_name(d.rank)),
             "rate_value": ("レート", lambda d: d.rate_value if d.rate_value is not None else ""),
             "dc_value": ("DC値", lambda d: d.dc_value if d.dc_value is not None else ""),
-            "coin": ("コイン", lambda d: "表" if d.coin else "裏"),
-            "first_or_second": ("先攻/後攻", lambda d: "先攻" if d.first_or_second else "後攻"),
             "played_date": (
                 "対戦日時",
                 lambda d: d.played_date.strftime("%Y-%m-%d %H:%M:%S")
