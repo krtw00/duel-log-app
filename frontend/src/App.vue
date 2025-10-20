@@ -14,7 +14,7 @@
 import { onMounted, watch } from 'vue';
 import ToastNotification from './components/common/ToastNotification.vue';
 import LoadingOverlay from './components/common/LoadingOverlay.vue';
-import { useThemeStore } from './stores/theme';
+import { useThemeStore } from './stores/theme.ts';
 import { useAuthStore } from './stores/auth';
 
 const themeStore = useThemeStore();
