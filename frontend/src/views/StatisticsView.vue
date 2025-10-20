@@ -127,7 +127,13 @@
                       density="compact"
                     >
             <template #[`item.win_rate`]='{ item }'>
-              {{ item.wins }} / {{ item.total_duels }} ({{ item.total_duels > 0 ? (item.wins / item.total_duels * 100).toFixed(1) : 0 }}%)
+              {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
+            </template>
+            <template #[`item.win_rate_first`]='{ item }'>
+              {{ item.win_rate_first.toFixed(1) }}%
+            </template>
+            <template #[`item.win_rate_second`]='{ item }'>
+              {{ item.win_rate_second.toFixed(1) }}%
             </template>
                       <template #no-data>
                         <div class="no-data-placeholder py-8">
@@ -177,6 +183,9 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import AppBar from '@/components/layout/AppBar.vue';
+import { useThemeStore } from '@/stores/theme';
+
+const themeStore = useThemeStore();
 
 const drawer = ref(false);
 const navItems = [
@@ -221,14 +230,19 @@ const months = Array.from({ length: 12 }, (_, i) => i + 1);
 const currentMonth = computed(() => `${selectedYear.value}年${selectedMonth.value}月`);
 
 // --- Chart Base Options ---
-const baseChartOptions = {
+const baseChartOptions = computed(() => ({
   chart: { type: 'pie', background: 'transparent' },
   labels: [],
   theme: {
-    mode: 'dark',
+    mode: themeStore.isDark ? 'dark' : 'light',
   },
   colors: ['#00D9FF', '#FF4560', '#775DD0', '#FEB019', '#00E396', '#D4526E', '#3F51B5', '#26A69A', '#E91E63', '#FFC107'],
-  legend: { position: 'bottom' },
+  legend: {
+    position: 'bottom',
+    labels: {
+      colors: themeStore.isDark ? '#fff' : '#000',
+    },
+  },
   responsive: [
     {
       breakpoint: 480,
@@ -238,9 +252,9 @@ const baseChartOptions = {
       },
     },
   ],
-};
+}));
 
-const lineChartBaseOptions = {
+const lineChartBaseOptions = computed(() => ({
   chart: {
     type: 'line',
     background: 'transparent',
@@ -249,10 +263,10 @@ const lineChartBaseOptions = {
   },
   xaxis: {
     type: 'numeric',
-    title: { text: '対戦数', style: { color: '#E4E7EC' } },
-    labels: { style: { colors: '#E4E7EC' } },
+    title: { text: '対戦数', style: { color: themeStore.isDark ? '#E4E7EC' : '#333' } },
+    labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } },
   },
-  yaxis: { labels: { style: { colors: '#E4E7EC' } } },
+  yaxis: { labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } } },
   stroke: { curve: 'smooth', width: 3 },
   markers: {
     size: 4,
@@ -262,10 +276,10 @@ const lineChartBaseOptions = {
     hover: { size: 7 },
   },
   grid: { borderColor: 'rgba(0, 217, 255, 0.1)', strokeDashArray: 4 },
-  tooltip: { theme: 'dark' },
+  tooltip: { theme: themeStore.isDark ? 'dark' : 'light' },
   dataLabels: { enabled: false },
-  theme: { mode: 'dark' },
-};
+  theme: { mode: themeStore.isDark ? 'dark' : 'light' },
+}));
 
 // --- Statistics Data ---
 const createInitialStats = (): AllStatisticsData => {
@@ -273,14 +287,14 @@ const createInitialStats = (): AllStatisticsData => {
   const stats: AllStatisticsData = {};
   modes.forEach((mode) => {
     stats[mode] = {
-      monthlyDistribution: { series: [], chartOptions: { ...baseChartOptions, labels: [] } },
-      recentDistribution: { series: [], chartOptions: { ...baseChartOptions, labels: [] } },
+      monthlyDistribution: { series: [], chartOptions: { ...baseChartOptions.value, labels: [] } },
+      recentDistribution: { series: [], chartOptions: { ...baseChartOptions.value, labels: [] } },
       matchupData: [],
       timeSeries: {
         series: [{ name: mode, data: [] }],
         chartOptions: {
-          ...lineChartBaseOptions,
-          xaxis: { ...lineChartBaseOptions.xaxis, categories: [] },
+          ...lineChartBaseOptions.value,
+          xaxis: { ...lineChartBaseOptions.value.xaxis, categories: [] },
           colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
         },
       },
@@ -306,7 +320,7 @@ const fetchStatistics = async () => {
       const monthlySeries = modeData.monthly_deck_distribution?.map((d: any) => d.count) || [];
       statisticsByMode.value[mode].monthlyDistribution = {
         series: monthlySeries,
-        chartOptions: { ...baseChartOptions, labels: monthlyLabels },
+        chartOptions: { ...baseChartOptions.value, labels: monthlyLabels },
       };
 
       // Recent Distribution
@@ -314,7 +328,7 @@ const fetchStatistics = async () => {
       const recentSeries = modeData.recent_deck_distribution?.map((d: any) => d.count) || [];
       statisticsByMode.value[mode].recentDistribution = {
         series: recentSeries,
-        chartOptions: { ...baseChartOptions, labels: recentLabels },
+        chartOptions: { ...baseChartOptions.value, labels: recentLabels },
       };
 
       // Matchup Data
@@ -327,8 +341,8 @@ const fetchStatistics = async () => {
       statisticsByMode.value[mode].timeSeries = {
         series: [{ name: mode, data: seriesData }],
         chartOptions: {
-          ...lineChartBaseOptions,
-          xaxis: { ...lineChartBaseOptions.xaxis, categories },
+          ...lineChartBaseOptions.value,
+          xaxis: { ...lineChartBaseOptions.value.xaxis, categories },
           colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
         },
       };
@@ -346,6 +360,8 @@ const matchupHeaders = [
   { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
   { title: '対戦数', key: 'total_duels', sortable: true },
   { title: '勝率', key: 'win_rate', sortable: true },
+  { title: '先行勝率', key: 'win_rate_first', sortable: true },
+  { title: '後攻勝率', key: 'win_rate_second', sortable: true },
 ];
 
 onMounted(fetchStatistics);
