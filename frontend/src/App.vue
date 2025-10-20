@@ -12,10 +12,10 @@
 
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
-import ToastNotification from './components/common/ToastNotification.vue';
-import LoadingOverlay from './components/common/LoadingOverlay.vue';
-import { useThemeStore } from './stores/theme.ts';
-import { useAuthStore } from './stores/auth';
+import ToastNotification from '@/components/common/ToastNotification.vue';
+import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import { useThemeStore } from '@/stores/theme';
+import { useAuthStore } from '@/stores/auth';
 
 const themeStore = useThemeStore();
 const authStore = useAuthStore();

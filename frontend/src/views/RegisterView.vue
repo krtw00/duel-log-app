@@ -101,8 +101,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { api } from '../services/api';
-import { useNotificationStore } from '../stores/notification';
+import { api } from '@/services/api';
+import { useNotificationStore } from '@/stores/notification';
 
 const router = useRouter();
 const notificationStore = useNotificationStore();
