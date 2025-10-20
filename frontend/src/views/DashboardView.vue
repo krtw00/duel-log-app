@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <div>
     <!-- ナビゲーションバー -->
     <app-bar current-view="dashboard" @toggle-drawer="drawer = !drawer" />
 
@@ -251,7 +251,7 @@
       :initial-month="selectedMonth"
       :initial-game-mode="currentMode"
     />
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -532,21 +532,18 @@ defineExpose({
 
 <style scoped lang="scss">
 .main-content {
-  background: #0a0e27;
   min-height: 100vh;
 }
 
 .mode-tab-card {
-  background: rgba(18, 22, 46, 0.95) !important;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
 }
 
 .duel-card {
-  background: rgba(18, 22, 46, 0.95) !important;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
 }
 

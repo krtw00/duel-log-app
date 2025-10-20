@@ -22,13 +22,32 @@ const customDarkTheme = {
   },
 };
 
-export default createVuetify({
+const customLightTheme = {
+  dark: false,
+  colors: {
+    background: '#f5f5f5',
+    surface: '#ffffff',
+    'surface-variant': '#e3f2fd',
+    primary: '#0288d1',
+    secondary: '#7b1fa2',
+    accent: '#d81b60',
+    error: '#f44336',
+    info: '#2196f3',
+    success: '#4caf50',
+    warning: '#ff9800',
+    'on-background': '#1a1a1a',
+    'on-surface': '#1a1a1a',
+  },
+};
+
+const vuetify = createVuetify({
   components,
   directives,
   theme: {
     defaultTheme: 'customDarkTheme',
     themes: {
       customDarkTheme,
+      customLightTheme,
     },
   },
   defaults: {
@@ -41,3 +60,5 @@ export default createVuetify({
     },
   },
 });
+
+export default vuetify;

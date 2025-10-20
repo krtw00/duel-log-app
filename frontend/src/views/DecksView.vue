@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <div>
     <!-- ナビゲーションバー -->
     <app-bar current-view="decks" @toggle-drawer="drawer = !drawer" />
 
@@ -226,7 +226,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -417,14 +417,12 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .main-content {
-  background: #0a0e27;
   min-height: 100vh;
 }
 
 .deck-card {
-  background: rgba(18, 22, 46, 0.95) !important;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
   height: 100%;
 }
@@ -434,13 +432,13 @@ onMounted(() => {
 }
 
 .deck-list-item {
-  background: rgba(26, 31, 58, 0.5);
+  background: rgb(var(--v-theme-surface-variant));
   border-radius: 8px;
   margin-bottom: 8px;
   transition: all 0.3s ease;
 
   &:hover {
-    background: rgba(0, 217, 255, 0.05);
+    opacity: 0.8;
     transform: translateX(4px);
   }
 }
@@ -452,14 +450,12 @@ onMounted(() => {
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 217, 255, 0.3);
   }
 }
 
 .deck-form-card {
-  background: rgba(18, 22, 46, 0.98) !important;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 217, 255, 0.2);
+  border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
   position: relative;
   overflow: hidden;
