@@ -38,3 +38,4 @@ backend_log.txt
 db_log.txt
 gemini_log.txt
 venv/
+.claude/settings.local.json
