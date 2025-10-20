@@ -173,7 +173,12 @@ class StatisticsService:
 
         matchups: Dict[str, Dict[str, Dict[str, int]]] = {
             my_deck_name: {
-                opp_deck_name: {"wins": 0, "losses": 0}
+                opp_deck_name: {
+                    "wins_first": 0,
+                    "losses_first": 0,
+                    "wins_second": 0,
+                    "losses_second": 0,
+                }
                 for opp_deck_name in opponent_deck_map.values()
             }
             for my_deck_name in my_deck_map.values()
@@ -184,29 +189,53 @@ class StatisticsService:
             opp_deck_name = opponent_deck_map.get(duel.opponentDeck_id)
 
             if my_deck_name and opp_deck_name:
-                if duel.result:
-                    matchups[my_deck_name][opp_deck_name]["wins"] += 1
-                else:
-                    matchups[my_deck_name][opp_deck_name]["losses"] += 1
+                if duel.first_or_second:  # Going first
+                    if duel.result:
+                        matchups[my_deck_name][opp_deck_name]["wins_first"] += 1
+                    else:
+                        matchups[my_deck_name][opp_deck_name]["losses_first"] += 1
+                else:  # Going second
+                    if duel.result:
+                        matchups[my_deck_name][opp_deck_name]["wins_second"] += 1
+                    else:
+                        matchups[my_deck_name][opp_deck_name]["losses_second"] += 1
 
         # フロントエンドが扱いやすい形式に変換
         chart_data = []
         for my_deck_name, opponents in matchups.items():
             for opp_deck_name, results in opponents.items():
-                total = results["wins"] + results["losses"]
-                if total > 0:
+                total_first = results["wins_first"] + results["losses_first"]
+                total_second = results["wins_second"] + results["losses_second"]
+                total_duels = total_first + total_second
+
+                if total_duels > 0:
                     chart_data.append(
                         {
                             "deck_name": my_deck_name,
                             "opponent_deck_name": opp_deck_name,
-                            "total_duels": total,
-                            "wins": results["wins"],
-                            "losses": results["losses"],
+                            "total_duels": total_duels,
+                            "wins": results["wins_first"] + results["wins_second"],
+                            "losses": results["losses_first"] + results["losses_second"],
                             "win_rate": (
-                                (results["wins"] / total) * 100 if total > 0 else 0
+                                ((results["wins_first"] + results["wins_second"]) / total_duels) * 100
+                                if total_duels > 0
+                                else 0
+                            ),
+                            "win_rate_first": (
+                                (results["wins_first"] / total_first) * 100
+                                if total_first > 0
+                                else 0
+                            ),
+                            "win_rate_second": (
+                                (results["wins_second"] / total_second) * 100
+                                if total_second > 0
+                                else 0
                             ),
                         }
                     )
+        
+        # 使用率（対戦数）でソート
+        chart_data.sort(key=lambda x: x["total_duels"], reverse=True)
 
         return chart_data
 
