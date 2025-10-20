@@ -256,14 +256,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { api } from '../services/api';
-import { Duel, DuelStats, Deck, GameMode } from '../types';
-import StatCard from '../components/duel/StatCard.vue';
-import DuelTable from '../components/duel/DuelTable.vue';
-import DuelFormDialog from '../components/duel/DuelFormDialog.vue';
-import AppBar from '../components/layout/AppBar.vue';
-import ShareStatsDialog from '../components/common/ShareStatsDialog.vue'; // Import the new component
-import { useNotificationStore } from '../stores/notification';
+import { api } from '@/services/api';
+import { Duel, DuelStats, Deck, GameMode } from '@/types';
+import StatCard from '@/components/duel/StatCard.vue';
+import DuelTable from '@/components/duel/DuelTable.vue';
+import DuelFormDialog from '@/components/duel/DuelFormDialog.vue';
+import AppBar from '@/components/layout/AppBar.vue';
+import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue'; // Import the new component
+import { useNotificationStore } from '@/stores/notification';
 
 const drawer = ref(false);
 const navItems = [

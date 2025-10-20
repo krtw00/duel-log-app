@@ -218,10 +218,10 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { api } from '../../services/api';
-import { Duel, DuelCreate, Deck, GameMode } from '../../types';
-import { useNotificationStore } from '../../stores/notification';
-import { RANKS } from '../../utils/ranks';
+import { api } from '@/services/api';
+import { Duel, DuelCreate, Deck, GameMode } from '@/types';
+import { useNotificationStore } from '@/stores/notification';
+import { RANKS } from '@/utils/ranks';
 
 interface Props {
   modelValue: boolean;

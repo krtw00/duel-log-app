@@ -205,11 +205,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { useAuthStore } from '../stores/auth';
-import { useNotificationStore } from '../stores/notification';
-import { api } from '../services/api';
-import AppBar from '../components/layout/AppBar.vue';
-import { maskEmail } from '../utils/maskEmail';
+import { useAuthStore } from '@/stores/auth';
+import { useNotificationStore } from '@/stores/notification';
+import { api } from '@/services/api';
+import AppBar from '@/components/layout/AppBar.vue';
+import { maskEmail } from '@/utils/maskEmail';
 
 const drawer = ref(false);
 const navItems = [

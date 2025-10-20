@@ -90,9 +90,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useSharedStatisticsStore } from '../../stores/shared_statistics';
-import { useNotificationStore } from '../../stores/notification';
-import { GameMode } from '../../types';
+import { useSharedStatisticsStore } from '@/stores/shared_statistics';
+import { useNotificationStore } from '@/stores/notification';
+import { GameMode } from '@/types';
 
 const props = defineProps<{
   modelValue: boolean;
