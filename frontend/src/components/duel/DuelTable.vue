@@ -19,15 +19,15 @@
     </template>
 
     <!-- 使用デッキカラム -->
-    <template #[`item.deck`]="{ item }">
-      <v-chip color="primary" variant="tonal">
+    <template #[`item.deck`]='{ item }'>
+      <v-chip color='primary' variant='outlined'>
         {{ item.deck?.name || '不明' }}
       </v-chip>
     </template>
 
     <!-- 相手デッキカラム -->
-    <template #[`item.opponentdeck`]="{ item }">
-      <v-chip color="secondary" variant="tonal">
+    <template #[`item.opponentdeck`]='{ item }'>
+      <v-chip color='secondary' variant='outlined'>
         {{ item.opponentdeck?.name || '不明' }}
       </v-chip>
     </template>

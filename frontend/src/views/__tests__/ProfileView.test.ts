@@ -27,12 +27,18 @@ describe('ProfileView.vue', () => {
       email: 'test@example.com',
       username: 'testuser',
       streamer_mode: false,
+      theme_preference: 'dark',
     };
 
     const wrapper = mount(ProfileView, {
       global: {
         plugins: [vuetify, pinia],
-        stubs: ['AppBar'],
+        stubs: {
+          AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
+        },
       },
     });
 
@@ -48,12 +54,18 @@ describe('ProfileView.vue', () => {
       email: 'test@example.com',
       username: 'testuser',
       streamer_mode: false,
+      theme_preference: 'dark',
     };
 
     const wrapper = mount(ProfileView, {
       global: {
         plugins: [vuetify, pinia],
-        stubs: ['AppBar'],
+        stubs: {
+          AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
+        },
       },
     });
 
@@ -70,12 +82,18 @@ describe('ProfileView.vue', () => {
       email: 'test@example.com',
       username: 'testuser',
       streamer_mode: false,
+      theme_preference: 'dark',
     };
 
     const wrapper = mount(ProfileView, {
       global: {
         plugins: [vuetify, pinia],
-        stubs: ['AppBar'],
+        stubs: {
+          AppBar: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
+        },
       },
     });
 
