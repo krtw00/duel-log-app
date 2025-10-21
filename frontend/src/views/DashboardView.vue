@@ -939,7 +939,7 @@ const exportCSV = async () => {
 
 // --- OBS連携 ---
 const showOBSDialog = ref(false);
-const obsPeriodType = ref<'all' | 'monthly' | 'recent'>('recent');
+const obsPeriodType = ref<'monthly' | 'recent'>('recent');
 const obsYear = ref(new Date().getFullYear());
 const obsMonth = ref(new Date().getMonth() + 1);
 const obsLimit = ref(30);
@@ -949,7 +949,6 @@ const obsRefreshInterval = ref(30000);
 const urlCopied = ref(false);
 
 const periodTypeOptions = [
-  { title: '全期間', value: 'all' },
   { title: '月間集計', value: 'monthly' },
   { title: '直近N戦', value: 'recent' },
 ];
