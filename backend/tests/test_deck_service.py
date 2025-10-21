@@ -84,9 +84,16 @@ class TestDeckService:
 
         assert success is True
 
-        # 削除されたことを確認
+        # 削除されたことを確認（論理削除のため取得不可）
         deleted_deck = deck_service.get_by_id(db_session, deck.id, user_id=test_user.id)
         assert deleted_deck is None
+
+        # DB上には非アクティブとして残っていることを確認
+        stored_deck = deck_service.get_by_id(
+            db_session, deck.id, user_id=test_user.id, include_inactive=True
+        )
+        assert stored_deck is not None
+        assert stored_deck.active is False
 
     def test_get_user_decks_filtered_by_opponent(self, db_session, test_user):
         """対戦相手フラグでフィルタリングのテスト"""
@@ -147,3 +154,21 @@ class TestDeckService:
                 user_id=test_user.id,
                 deck_in=deck_update,
             )
+
+    def test_create_deck_with_same_name_after_delete(self, db_session, test_user):
+        """論理削除後に同名デッキを再作成できることを確認"""
+        deck_in = DeckCreate(name="Reusable Deck", is_opponent=False)
+        original_deck = deck_service.create_user_deck(
+            db_session, user_id=test_user.id, deck_in=deck_in
+        )
+
+        # 論理削除
+        assert deck_service.delete(db_session, original_deck.id, user_id=test_user.id)
+
+        # 同名デッキを再作成
+        recreated_deck = deck_service.create_user_deck(
+            db_session, user_id=test_user.id, deck_in=deck_in
+        )
+
+        assert recreated_deck.id != original_deck.id
+        assert recreated_deck.active is True
