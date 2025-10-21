@@ -10,7 +10,7 @@
       ]">
         <div v-for="item in displayItems" :key="item.key" class="stat-item">
           <div class="stat-label">{{ item.label }}</div>
-          <div class="stat-value">{{ item.format(stats[item.key] as any) }}</div>
+          <div class="stat-value">{{ stats && item.format(stats[item.key]) }}</div>
         </div>
       </div>
     </div>
@@ -27,12 +27,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { getRankName } from '@/utils/ranks';
+import type { OBSStatsResponse, OBSDisplayItemDefinition, OBSQueryParams } from '@/types/obs';
+import type { ApiErrorResponse } from '@/types/api';
 
 const route = useRoute();
 const loading = ref(true);
-const stats = ref<any>(null);
+const stats = ref<OBSStatsResponse | null>(null);
 const errorMessage = ref<string>('');
 
 // クエリパラメータから設定を取得
@@ -53,15 +55,15 @@ const layout = ref((route.query.layout as string) || 'grid');
 const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォルト30秒
 
 // 表示項目のリスト
-const allDisplayItems: Array<{ key: string; label: string; format: (v: any) => string }> = [
-  { key: 'current_deck', label: '使用デッキ', format: (v: any) => v || '未設定' },
-  { key: 'current_rank', label: 'ランク', format: (v: any) => v ? getRankName(v) : '-' },
-  { key: 'total_duels', label: '総試合数', format: (v: any) => v.toString() },
-  { key: 'win_rate', label: '勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
-  { key: 'first_turn_win_rate', label: '先行勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
-  { key: 'second_turn_win_rate', label: '後攻勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
-  { key: 'coin_win_rate', label: 'コイン勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
-  { key: 'go_first_rate', label: '先行率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
+const allDisplayItems: OBSDisplayItemDefinition[] = [
+  { key: 'current_deck', label: '使用デッキ', format: (v) => (v as string | undefined) || '未設定' },
+  { key: 'current_rank', label: 'ランク', format: (v) => v ? getRankName(Number(v)) : '-' },
+  { key: 'total_duels', label: '総試合数', format: (v) => (v as number | undefined)?.toString() || '0' },
+  { key: 'win_rate', label: '勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'first_turn_win_rate', label: '先行勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'second_turn_win_rate', label: '後攻勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'coin_win_rate', label: 'コイン勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'go_first_rate', label: '先行率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
 ];
 
 // 表示する項目をフィルタリング（URLパラメータの順番を保持）
@@ -74,7 +76,7 @@ const displayItems = computed(() => {
   // URLパラメータの順番通りに並べる
   return selectedKeys
     .map(key => allDisplayItems.find(item => item.key === key))
-    .filter(item => item !== undefined) as Array<{ key: string; label: string; format: (v: any) => string }>;
+    .filter((item): item is OBSDisplayItemDefinition => item !== undefined);
 });
 
 // タイトル文字列
@@ -98,8 +100,9 @@ const fetchStats = async () => {
     console.log('[OBS] Fetching stats with token:', token.value.substring(0, 20) + '...');
     console.log('[OBS] Period Type:', periodType.value, 'Game Mode:', gameMode.value);
 
-    const params: any = {
-      period_type: periodType.value,
+    const params: Partial<OBSQueryParams> = {
+      token: token.value,
+      period_type: periodType.value as 'monthly' | 'recent',
     };
 
     // 集計期間に応じたパラメータ
@@ -112,7 +115,7 @@ const fetchStats = async () => {
 
     // ゲームモード
     if (gameMode.value) {
-      params.game_mode = gameMode.value;
+      params.game_mode = gameMode.value as any;
     }
 
     // 環境変数からAPIのベースURLを取得
@@ -130,25 +133,28 @@ const fetchStats = async () => {
     });
 
     console.log('[OBS] Stats fetched successfully:', response.data);
-    stats.value = response.data;
+    stats.value = response.data as OBSStatsResponse;
     loading.value = false;
-  } catch (error: any) {
-    console.error('[OBS] Failed to fetch OBS statistics:', error);
-    console.error('[OBS] Error response:', error.response?.data);
-    console.error('[OBS] Error status:', error.response?.status);
-    console.error('[OBS] Error message:', error.message);
+  } catch (error) {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
+    console.error('[OBS] Failed to fetch OBS statistics:', axiosError);
+    console.error('[OBS] Error response:', axiosError.response?.data);
+    console.error('[OBS] Error status:', axiosError.response?.status);
+    console.error('[OBS] Error message:', axiosError.message);
 
     // エラーメッセージを設定
-    if (error.response?.status === 401) {
+    if (axiosError.response?.status === 401) {
       errorMessage.value = '認証エラー: トークンが無効です';
-    } else if (error.response?.status === 404) {
+    } else if (axiosError.response?.status === 404) {
       errorMessage.value = 'エンドポイントが見つかりません';
-    } else if (error.response) {
-      errorMessage.value = `サーバーエラー: ${error.response.status} - ${error.response.data?.detail || error.message}`;
-    } else if (error.request) {
+    } else if (axiosError.response) {
+      const detail = axiosError.response.data?.detail;
+      const detailMessage = typeof detail === 'string' ? detail : axiosError.message;
+      errorMessage.value = `サーバーエラー: ${axiosError.response.status} - ${detailMessage}`;
+    } else if (axiosError.request) {
       errorMessage.value = 'ネットワークエラー: サーバーに接続できません';
     } else {
-      errorMessage.value = `エラー: ${error.message}`;
+      errorMessage.value = `エラー: ${axiosError.message}`;
     }
 
     loading.value = false;
