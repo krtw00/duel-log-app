@@ -108,7 +108,7 @@
                   @update:model-value="applyFilters"
                 ></v-select>
               </v-col>
-              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="3">
+              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="2">
                 <v-text-field
                   v-model.number="filterRangeStart"
                   label="開始（試合目）"
@@ -120,7 +120,7 @@
                   @update:model-value="applyFilters"
                 ></v-text-field>
               </v-col>
-              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="3">
+              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="2">
                 <v-text-field
                   v-model.number="filterRangeEnd"
                   label="終了（試合目）"
@@ -132,7 +132,22 @@
                   @update:model-value="applyFilters"
                 ></v-text-field>
               </v-col>
-              <v-col cols="12" sm="6" :md="filterPeriodType === 'range' ? 2 : 8" class="d-flex align-center">
+              <v-col cols="12" sm="6" md="4">
+                <v-select
+                  v-model="filterMyDeckId"
+                  :items="availableMyDecks"
+                  item-title="name"
+                  item-value="id"
+                  label="自分のデッキ"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  clearable
+                  :disabled="availableMyDecks.length === 0"
+                  @update:model-value="handleMyDeckFilterChange"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" sm="6" md="2" class="d-flex align-center">
                 <v-btn
                   color="secondary"
                   variant="outlined"
@@ -544,7 +559,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import { Duel, DuelStats, Deck, GameMode } from '@/types';
 import StatCard from '@/components/duel/StatCard.vue';
@@ -593,11 +608,22 @@ const months = Array.from({ length: 12 }, (_, i) => i + 1);
 const filterPeriodType = ref<'all' | 'range'>('all');
 const filterRangeStart = ref(1);
 const filterRangeEnd = ref(30);
+const filterMyDeckId = ref<number | null>(null);
 
 const filterPeriodOptions = [
   { title: '全体', value: 'all' },
   { title: '範囲指定', value: 'range' },
 ];
+
+type DeckOption = { id: number; name: string };
+const availableDecksByMode = ref<Record<GameMode, DeckOption[]>>({
+  RANK: [],
+  RATE: [],
+  EVENT: [],
+  DC: [],
+});
+
+const availableMyDecks = computed(() => availableDecksByMode.value[currentMode.value] || []);
 
 // ゲームモード別にデュエルをフィルタリング
 const rankDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RANK'));
@@ -620,28 +646,34 @@ const currentDuels = computed(() => {
   }
 });
 
-// 統計用にフィルタリングされたデュエル（期間とデッキでフィルター）
+// 範囲フィルターのみを適用
+const getRangeFilteredDuels = (duelList: Duel[]): Duel[] => {
+  const sorted = [...duelList].sort(
+    (a, b) => new Date(b.played_date).getTime() - new Date(a.played_date).getTime(),
+  );
+
+  if (filterPeriodType.value === 'range') {
+    const start = Math.max(0, (filterRangeStart.value || 1) - 1);
+    const end = filterRangeEnd.value || sorted.length;
+    return sorted.slice(start, end);
+  }
+
+  return sorted;
+};
+
+// 統計用にフィルタリングされたデュエル（期間＋デッキ）
+const applyStatFilters = (duelList: Duel[]): Duel[] => {
+  const ranged = getRangeFilteredDuels(duelList);
+  if (filterMyDeckId.value !== null) {
+    return ranged.filter((duel) => duel.deck_id === filterMyDeckId.value);
+  }
+  return ranged;
+};
+
 const filteredRankDuels = computed(() => applyStatFilters(rankDuels.value));
 const filteredRateDuels = computed(() => applyStatFilters(rateDuels.value));
 const filteredEventDuels = computed(() => applyStatFilters(eventDuels.value));
 const filteredDcDuels = computed(() => applyStatFilters(dcDuels.value));
-
-// 統計フィルターを適用する関数
-const applyStatFilters = (duelList: Duel[]): Duel[] => {
-  let filtered = [...duelList];
-
-  // 新しい順にソート（期間フィルター用）
-  filtered = filtered.sort((a, b) => new Date(b.played_date).getTime() - new Date(a.played_date).getTime());
-
-  // 期間フィルター（範囲指定）
-  if (filterPeriodType.value === 'range') {
-    const start = Math.max(0, (filterRangeStart.value || 1) - 1); // 1始まりを0始まりに変換
-    const end = filterRangeEnd.value || filtered.length;
-    filtered = filtered.slice(start, end);
-  }
-
-  return filtered;
-};
 
 const emptyStats = (): DuelStats => ({
   total_duels: 0,
@@ -694,16 +726,62 @@ const fetchDuels = async () => {
       opponentdeck: decks.value.find((d) => d.id === duel.opponentDeck_id),
     }));
 
-    // 各モードの統計を計算（フィルタリングされたデータを使用）
-    rankStats.value = calculateStats(filteredRankDuels.value);
-    rateStats.value = calculateStats(filteredRateDuels.value);
-    eventStats.value = calculateStats(filteredEventDuels.value);
-    dcStats.value = calculateStats(filteredDcDuels.value);
+    applyFilters();
   } catch (error) {
     console.error('Failed to fetch duels:', error);
   } finally {
     loading.value = false;
   }
+};
+
+const updateAvailableDecks = () => {
+  const modeMap: Record<GameMode, Duel[]> = {
+    RANK: rankDuels.value,
+    RATE: rateDuels.value,
+    EVENT: eventDuels.value,
+    DC: dcDuels.value,
+  };
+
+  const updated: Record<GameMode, DeckOption[]> = {
+    RANK: [],
+    RATE: [],
+    EVENT: [],
+    DC: [],
+  };
+
+  (Object.keys(modeMap) as GameMode[]).forEach((mode) => {
+    const rangeFiltered = getRangeFilteredDuels(modeMap[mode]);
+    const deckMap = new Map<number, DeckOption>();
+    rangeFiltered.forEach((duel) => {
+      if (duel.deck_id && duel.deck?.name) {
+        deckMap.set(duel.deck_id, { id: duel.deck_id, name: duel.deck.name });
+      }
+    });
+    updated[mode] = Array.from(deckMap.values());
+  });
+
+  availableDecksByMode.value = updated;
+
+  const currentModeDecks = updated[currentMode.value] || [];
+  if (
+    filterMyDeckId.value !== null &&
+    !currentModeDecks.some((deck) => deck.id === filterMyDeckId.value)
+  ) {
+    filterMyDeckId.value = null;
+  }
+};
+
+const applyFilters = () => {
+  updateAvailableDecks();
+
+  rankStats.value = calculateStats(filteredRankDuels.value);
+  rateStats.value = calculateStats(filteredRateDuels.value);
+  eventStats.value = calculateStats(filteredEventDuels.value);
+  dcStats.value = calculateStats(filteredDcDuels.value);
+};
+
+const handleMyDeckFilterChange = () => {
+  applyFilters();
 };
 
 const calculateStats = (duelList: Duel[]): DuelStats => {
@@ -739,20 +817,12 @@ const handleModeChange = (mode: any) => {
   currentMode.value = mode as GameMode;
 };
 
-// フィルター適用
-const applyFilters = () => {
-  // フィルター変更時に統計を再計算（computed経由で自動的に更新される）
-  rankStats.value = calculateStats(filteredRankDuels.value);
-  rateStats.value = calculateStats(filteredRateDuels.value);
-  eventStats.value = calculateStats(filteredEventDuels.value);
-  dcStats.value = calculateStats(filteredDcDuels.value);
-};
-
 // フィルターをリセット
 const resetFilters = () => {
   filterPeriodType.value = 'all';
   filterRangeStart.value = 1;
   filterRangeEnd.value = 30;
+  filterMyDeckId.value = null;
   applyFilters();
 };
 
@@ -1021,6 +1091,10 @@ const copyOBSUrl = async () => {
     notificationStore.error('URLのコピーに失敗しました');
   }
 };
+
+watch(currentMode, () => {
+  applyFilters();
+});
 
 onMounted(() => {
   fetchDuels();

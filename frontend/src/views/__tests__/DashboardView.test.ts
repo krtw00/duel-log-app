@@ -172,4 +172,101 @@ describe('DashboardView.vue', () => {
       expect(wrapper.vm.shareDialogOpened).toBe(true);
     }
   });
+
+  it('filters statistics by selected deck and resets when switching modes', async () => {
+    const decksData = [
+      { id: 1, name: 'Rank Deck', is_opponent: false, active: true },
+      { id: 2, name: 'Alt Rank Deck', is_opponent: false, active: true },
+      { id: 3, name: 'Rate Deck', is_opponent: false, active: true },
+      { id: 99, name: 'Opponent', is_opponent: true, active: true },
+    ];
+    const duelsData = [
+      {
+        id: 10,
+        deck_id: 1,
+        opponentDeck_id: 99,
+        result: true,
+        game_mode: 'RANK' as const,
+        coin: true,
+        first_or_second: true,
+        played_date: '2024-01-01T00:00:00Z',
+        notes: '',
+        create_date: '2024-01-01T00:00:00Z',
+        update_date: '2024-01-01T00:00:00Z',
+        user_id: 1,
+      },
+      {
+        id: 11,
+        deck_id: 2,
+        opponentDeck_id: 99,
+        result: false,
+        game_mode: 'RANK' as const,
+        coin: false,
+        first_or_second: false,
+        played_date: '2024-01-02T00:00:00Z',
+        notes: '',
+        create_date: '2024-01-02T00:00:00Z',
+        update_date: '2024-01-02T00:00:00Z',
+        user_id: 1,
+      },
+      {
+        id: 12,
+        deck_id: 3,
+        opponentDeck_id: 99,
+        result: true,
+        game_mode: 'RATE' as const,
+        rate_value: 1500,
+        coin: true,
+        first_or_second: true,
+        played_date: '2024-01-03T00:00:00Z',
+        notes: '',
+        create_date: '2024-01-03T00:00:00Z',
+        update_date: '2024-01-03T00:00:00Z',
+        user_id: 1,
+      },
+    ];
+
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url === '/decks/') {
+        return Promise.resolve({ data: decksData });
+      }
+      if (url === '/duels/') {
+        return Promise.resolve({ data: duelsData });
+      }
+      return Promise.reject(new Error('Not mocked'));
+    });
+
+    const wrapper = mount(DashboardView, {
+      global: {
+        plugins: [vuetify, pinia],
+        stubs: {
+          AppBar: true,
+          StatCard: true,
+          DuelTable: true,
+          DuelFormDialog: true,
+          ShareStatsDialog: true,
+          VNavigationDrawer: true,
+          VMain: { template: '<div><slot /></div>' },
+          VContainer: { template: '<div><slot /></div>' },
+        },
+      },
+    });
+
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.rankStats.total_duels).toBe(2);
+    expect(wrapper.vm.availableMyDecks.length).toBe(2);
+
+    wrapper.vm.filterMyDeckId = 1;
+    await wrapper.vm.handleMyDeckFilterChange();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.rankStats.total_duels).toBe(1);
+
+    wrapper.vm.handleModeChange('RATE');
+    await flushPromises();
+
+    expect(wrapper.vm.filterMyDeckId).toBeNull();
+  });
 });
