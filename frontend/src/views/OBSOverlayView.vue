@@ -37,7 +37,13 @@ const errorMessage = ref<string>('');
 
 // クエリパラメータから設定を取得
 const token = ref(route.query.token as string);
-const periodType = ref((route.query.period_type as string) || 'recent');
+const allowedPeriodTypes = ['monthly', 'recent'] as const;
+const initialPeriodType = (route.query.period_type as string) || 'recent';
+const periodType = ref(
+  allowedPeriodTypes.includes(initialPeriodType as (typeof allowedPeriodTypes)[number])
+    ? initialPeriodType
+    : 'recent',
+);
 const year = ref(Number(route.query.year) || new Date().getFullYear());
 const month = ref(Number(route.query.month) || new Date().getMonth() + 1);
 const limit = ref(Number(route.query.limit) || 30);
@@ -73,9 +79,7 @@ const displayItems = computed(() => {
 
 // タイトル文字列
 const periodTitle = computed(() => {
-  if (periodType.value === 'all') {
-    return '全期間の成績';
-  } else if (periodType.value === 'monthly') {
+  if (periodType.value === 'monthly') {
     return `${year.value}年${month.value}月の成績`;
   } else {
     return `直近${limit.value}戦の成績`;
@@ -293,6 +297,11 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 8px;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-value {
@@ -303,6 +312,11 @@ onMounted(() => {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1.2;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .loading-container,
