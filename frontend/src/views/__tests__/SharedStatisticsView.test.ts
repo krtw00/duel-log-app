@@ -59,16 +59,17 @@ describe('SharedStatisticsView.vue', () => {
       STATISTICS: {
         year: 2023,
         month: 10,
-        monthly_deck_distribution: [{ deck_name: 'Deck A', count: 10, percentage: 50 }],
-        recent_deck_distribution: [{ deck_name: 'Deck B', count: 5, percentage: 100 }],
+        monthly_deck_distribution: [{ deck_name: 'Deck A', count: 10 }],
+        recent_deck_distribution: [{ deck_name: 'Deck B', count: 5 }],
         matchup_data: [
           {
             deck_name: 'My Deck',
             opponent_deck_name: 'Opp Deck',
             total_duels: 20,
             wins: 15,
-            losses: 5,
             win_rate: 0.75,
+            win_rate_first: 0.8,
+            win_rate_second: 0.7,
           },
         ],
         time_series_data: [],
