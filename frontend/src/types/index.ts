@@ -102,3 +102,99 @@ export interface GameModeStats {
   EVENT: DuelStats;
   DC: DuelStats;
 }
+
+/**
+ * デッキ分布データ
+ */
+export interface DeckDistribution {
+  deck_name: string;
+  count: number;
+}
+
+/**
+ * マッチアップデータ
+ */
+export interface MatchupData {
+  deck_name: string;
+  opponent_deck_name: string;
+  total_duels: number;
+  wins: number;
+  win_rate: number;
+  win_rate_first: number;
+  win_rate_second: number;
+}
+
+/**
+ * 時系列データ
+ */
+export interface TimeSeriesData {
+  date: string;
+  win_rate: number;
+  total_duels: number;
+}
+
+/**
+ * ゲームモード別の共有統計データ
+ */
+export interface GameModeStatisticsData {
+  year: number;
+  month: number;
+  monthly_deck_distribution: DeckDistribution[];
+  recent_deck_distribution: DeckDistribution[];
+  matchup_data: MatchupData[];
+  time_series_data: TimeSeriesData[];
+}
+
+/**
+ * 共有統計データ（全ゲームモード）
+ */
+export interface SharedStatisticsData {
+  [gameMode: string]: GameModeStatisticsData;
+}
+
+/**
+ * 共有統計作成ペイロード
+ */
+export interface SharedStatisticsCreatePayload {
+  year: number;
+  month: number;
+  game_mode: GameMode;
+  expires_at?: string; // ISO string
+}
+
+/**
+ * 共有統計読み取りペイロード
+ */
+export interface SharedStatisticsReadPayload {
+  id: number;
+  share_id: string;
+  user_id: number;
+  year: number;
+  month: number;
+  game_mode: GameMode;
+  created_at: string;
+  expires_at: string | null;
+}
+
+/**
+ * OBS表示アイテム
+ */
+export interface DisplayItem {
+  key: string;
+  label: string;
+  enabled: boolean;
+}
+
+/**
+ * OBSオーバーレイ統計データ
+ */
+export interface OBSOverlayStats {
+  current_deck?: string;
+  current_rank?: string;
+  total_duels: number;
+  win_rate: number;
+  first_turn_win_rate?: number;
+  second_turn_win_rate?: number;
+  coin_win_rate?: number;
+  go_first_rate?: number;
+}
