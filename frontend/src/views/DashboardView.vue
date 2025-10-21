@@ -86,6 +86,67 @@
           </v-col>
         </v-row>
 
+        <!-- 統計フィルター -->
+        <v-card class="filter-card mb-4">
+          <v-card-title class="pa-4">
+            <div class="d-flex align-center">
+              <v-icon class="mr-2" color="primary">mdi-filter</v-icon>
+              <span class="text-h6">統計フィルター</span>
+            </div>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-4">
+            <v-row>
+              <v-col cols="12" sm="6" md="4">
+                <v-select
+                  v-model="filterPeriodType"
+                  :items="filterPeriodOptions"
+                  label="期間"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  @update:model-value="applyFilters"
+                ></v-select>
+              </v-col>
+              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="3">
+                <v-text-field
+                  v-model.number="filterRangeStart"
+                  label="開始（試合目）"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  type="number"
+                  min="1"
+                  @update:model-value="applyFilters"
+                ></v-text-field>
+              </v-col>
+              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="3">
+                <v-text-field
+                  v-model.number="filterRangeEnd"
+                  label="終了（試合目）"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  type="number"
+                  min="1"
+                  @update:model-value="applyFilters"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" :md="filterPeriodType === 'range' ? 2 : 8" class="d-flex align-center">
+                <v-btn
+                  color="secondary"
+                  variant="outlined"
+                  block
+                  @click="resetFilters"
+                >
+                  <v-icon start>mdi-refresh</v-icon>
+                  リセット
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+
         <!-- 統計カード -->
         <v-row class="mb-4">
           <v-col cols="6" sm="4" md="2">
@@ -528,6 +589,16 @@ const years = computed(() => {
 });
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
+// 統計フィルター関連
+const filterPeriodType = ref<'all' | 'range'>('all');
+const filterRangeStart = ref(1);
+const filterRangeEnd = ref(30);
+
+const filterPeriodOptions = [
+  { title: '全体', value: 'all' },
+  { title: '範囲指定', value: 'range' },
+];
+
 // ゲームモード別にデュエルをフィルタリング
 const rankDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RANK'));
 const rateDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RATE'));
@@ -548,6 +619,29 @@ const currentDuels = computed(() => {
       return [];
   }
 });
+
+// 統計用にフィルタリングされたデュエル（期間とデッキでフィルター）
+const filteredRankDuels = computed(() => applyStatFilters(rankDuels.value));
+const filteredRateDuels = computed(() => applyStatFilters(rateDuels.value));
+const filteredEventDuels = computed(() => applyStatFilters(eventDuels.value));
+const filteredDcDuels = computed(() => applyStatFilters(dcDuels.value));
+
+// 統計フィルターを適用する関数
+const applyStatFilters = (duelList: Duel[]): Duel[] => {
+  let filtered = [...duelList];
+
+  // 新しい順にソート（期間フィルター用）
+  filtered = filtered.sort((a, b) => new Date(b.played_date).getTime() - new Date(a.played_date).getTime());
+
+  // 期間フィルター（範囲指定）
+  if (filterPeriodType.value === 'range') {
+    const start = Math.max(0, (filterRangeStart.value || 1) - 1); // 1始まりを0始まりに変換
+    const end = filterRangeEnd.value || filtered.length;
+    filtered = filtered.slice(start, end);
+  }
+
+  return filtered;
+};
 
 const emptyStats = (): DuelStats => ({
   total_duels: 0,
@@ -600,11 +694,11 @@ const fetchDuels = async () => {
       opponentdeck: decks.value.find((d) => d.id === duel.opponentDeck_id),
     }));
 
-    // 各モードの統計を計算
-    rankStats.value = calculateStats(rankDuels.value);
-    rateStats.value = calculateStats(rateDuels.value);
-    eventStats.value = calculateStats(eventDuels.value);
-    dcStats.value = calculateStats(dcDuels.value);
+    // 各モードの統計を計算（フィルタリングされたデータを使用）
+    rankStats.value = calculateStats(filteredRankDuels.value);
+    rateStats.value = calculateStats(filteredRateDuels.value);
+    eventStats.value = calculateStats(filteredEventDuels.value);
+    dcStats.value = calculateStats(filteredDcDuels.value);
   } catch (error) {
     console.error('Failed to fetch duels:', error);
   } finally {
@@ -643,6 +737,23 @@ const calculateStats = (duelList: Duel[]): DuelStats => {
 
 const handleModeChange = (mode: any) => {
   currentMode.value = mode as GameMode;
+};
+
+// フィルター適用
+const applyFilters = () => {
+  // フィルター変更時に統計を再計算（computed経由で自動的に更新される）
+  rankStats.value = calculateStats(filteredRankDuels.value);
+  rateStats.value = calculateStats(filteredRateDuels.value);
+  eventStats.value = calculateStats(filteredEventDuels.value);
+  dcStats.value = calculateStats(filteredDcDuels.value);
+};
+
+// フィルターをリセット
+const resetFilters = () => {
+  filterPeriodType.value = 'all';
+  filterRangeStart.value = 1;
+  filterRangeEnd.value = 30;
+  applyFilters();
 };
 
 const openDuelDialog = () => {
@@ -927,6 +1038,12 @@ defineExpose({
 }
 
 .mode-tab-card {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 12px !important;
+}
+
+.filter-card {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
