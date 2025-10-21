@@ -32,8 +32,34 @@ logger = logging.getLogger(__name__)
 jinja_env = Environment(loader=FileSystemLoader("./app/templates/email"))
 
 
+def _is_safari_browser(user_agent: str) -> bool:
+    """
+    User-AgentからSafariブラウザを判定
+
+    Safari（特にiOS/iPadOS）はSameSite=Noneのクッキーを厳しく制限するため、
+    SameSite=Laxを使用する必要がある
+    """
+    if not user_agent:
+        return False
+
+    user_agent_lower = user_agent.lower()
+
+    # Safariの判定（ChromeやEdgeではない純粋なSafari）
+    is_safari = "safari" in user_agent_lower and "chrome" not in user_agent_lower and "edg" not in user_agent_lower
+
+    # iOSデバイスの判定
+    is_ios = "iphone" in user_agent_lower or "ipad" in user_agent_lower or "ipod" in user_agent_lower
+
+    return is_safari or is_ios
+
+
 @router.post("/login")
-def login(response: Response, login_data: LoginRequest, db: Session = Depends(get_db)):
+def login(
+    response: Response,
+    login_data: LoginRequest,
+    db: Session = Depends(get_db),
+    user_agent: str | None = Header(None),
+):
     """
     ユーザーログイン
 
@@ -43,6 +69,7 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
 
     logger.info(f"Login attempt for email: {login_data.email}")
     logger.info(f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}")
+    logger.info(f"User-Agent: {user_agent}")
 
     user = db.query(User).filter(User.email == login_data.email).first()
 
@@ -63,12 +90,28 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
 
     is_production = settings.ENVIRONMENT == "production"
 
+    # Safari/iOS判定
+    is_safari = _is_safari_browser(user_agent or "")
+
+    # Safari ITP対策: SafariではSameSite=Laxを使用
+    # クロスサイトCookieはSafariでブロックされるため、同一サイトとして扱う
+    # 注意: この対策はフロントエンドとバックエンドが異なるドメインの場合は完全には機能しない
+    # 理想的にはバックエンドをサブパス（/api）に配置するか、同一ドメインに配置する
+    if is_safari:
+        samesite_value = "lax"
+        secure_value = True if is_production else False
+        logger.info("Safari/iOS detected - using SameSite=Lax")
+    else:
+        samesite_value = "none" if is_production else "lax"
+        secure_value = is_production
+        logger.info(f"Non-Safari browser - using SameSite={samesite_value}")
+
     cookie_params = {
         "key": "access_token",
         "value": access_token,
         "httponly": True,
-        "samesite": "none" if is_production else "lax",
-        "secure": is_production,
+        "samesite": samesite_value,
+        "secure": secure_value,
         "path": "/",
         "max_age": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
@@ -83,7 +126,10 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
     logger.info(f"Cookie has been set for user: {user.email}")
 
-    return {
+    # Safari ITP対策: レスポンスボディにもトークンを含める
+    # Safari/iOSではクロスサイトCookieがブロックされるため、
+    # フロントエンドでlocalStorageに保存してAuthorizationヘッダーで送信する
+    response_data = {
         "message": "Login successful",
         "user": {
             "id": user.id,
@@ -93,6 +139,13 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
             "theme_preference": user.theme_preference,
         },
     }
+
+    # Safari/iOSの場合はアクセストークンをレスポンスに含める
+    if is_safari:
+        response_data["access_token"] = access_token
+        logger.info("Including access_token in response for Safari/iOS")
+
+    return response_data
 
 
 @router.post("/logout")
