@@ -2,9 +2,10 @@
 共通の依存性注入
 """
 
+import logging
 from typing import Optional
 
-from fastapi import Cookie, Depends
+from fastapi import Cookie, Depends, Header
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import UnauthorizedException
@@ -12,15 +13,23 @@ from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
+
 
 def get_current_user(
-    access_token: Optional[str] = Cookie(None), db: Session = Depends(get_db)
+    access_token: Optional[str] = Cookie(None),
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
 ) -> User:
     """
-    JWTトークン（クッキーから取得）を検証し、現在のユーザーを返す
+    JWTトークン（クッキーまたはAuthorizationヘッダーから取得）を検証し、現在のユーザーを返す
+
+    Safari ITP対策として、Authorizationヘッダーでの認証にも対応
+    優先順位: 1. Authorizationヘッダー, 2. Cookie
 
     Args:
-        access_token: リクエストクッキー内のJWTトークン
+        access_token: リクエストクッキー内のJWTトークン（オプショナル）
+        authorization: Authorizationヘッダー（オプショナル）
         db: データベースセッション
 
     Returns:
@@ -29,17 +38,31 @@ def get_current_user(
     Raises:
         UnauthorizedException: 認証失敗時
     """
-    import logging
-    logger = logging.getLogger(__name__)
+    token = None
 
-    if access_token is None:
-        logger.warning("Access token is None - Cookie not received from client")
+    # 1. Authorizationヘッダーから取得（Safari ITP対策）
+    if authorization:
+        # "Bearer <token>" 形式から取得
+        parts = authorization.split()
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            token = parts[1]
+            logger.info("Token found in Authorization header (Safari/iOS mode)")
+        else:
+            logger.warning(f"Invalid Authorization header format: {authorization[:20]}...")
+
+    # 2. Cookieから取得（通常のブラウザ）
+    if not token and access_token:
+        token = access_token
+        logger.info("Token found in Cookie (normal browser mode)")
+
+    if not token:
+        logger.warning("No access token found - neither Cookie nor Authorization header")
         raise UnauthorizedException(detail="認証されていません")
 
-    logger.info(f"Access token received: {access_token[:20]}... (length: {len(access_token)})")
+    logger.info(f"Access token received: {token[:20]}... (length: {len(token)})")
 
     # トークンをデコード
-    payload = decode_access_token(access_token)
+    payload = decode_access_token(token)
     if payload is None:
         raise UnauthorizedException(detail="トークンが無効または期限切れです")
 
@@ -63,7 +86,9 @@ def get_current_user(
 
 
 def get_current_user_optional(
-    access_token: Optional[str] = Cookie(None), db: Session = Depends(get_db)
+    access_token: Optional[str] = Cookie(None),
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
 ) -> Optional[User]:
     """
     JWTトークンから現在のユーザーを取得（オプショナル版）
@@ -72,16 +97,17 @@ def get_current_user_optional(
 
     Args:
         access_token: リクエストクッキー内のJWTトークン（オプショナル）
+        authorization: Authorizationヘッダー（オプショナル）
         db: データベースセッション
 
     Returns:
         認証されたユーザーオブジェクト、またはNone
     """
-    if access_token is None:
+    if access_token is None and authorization is None:
         return None
 
     try:
-        return get_current_user(access_token, db)
+        return get_current_user(access_token, authorization, db)
     except UnauthorizedException:
         return None
 
