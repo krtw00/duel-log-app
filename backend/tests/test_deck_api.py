@@ -94,6 +94,21 @@ class TestDeckEndpoints:
         get_response = authenticated_client.get(f"/decks/{deck_id}")
         assert get_response.status_code == status.HTTP_404_NOT_FOUND
 
+    def test_recreate_deck_after_delete(self, authenticated_client):
+        """論理削除後に同名デッキを再作成できることを確認"""
+        deck_payload = {"name": "Recreate Deck", "is_opponent": False}
+
+        create_response = authenticated_client.post("/decks/", json=deck_payload)
+        assert create_response.status_code == status.HTTP_201_CREATED
+        deck_id = create_response.json()["id"]
+
+        delete_response = authenticated_client.delete(f"/decks/{deck_id}")
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
+
+        recreate_response = authenticated_client.post("/decks/", json=deck_payload)
+        assert recreate_response.status_code == status.HTTP_201_CREATED
+        assert recreate_response.json()["name"] == deck_payload["name"]
+
     def test_list_decks_filter_by_opponent(self, authenticated_client):
         """対戦相手フラグでフィルタリングのテスト"""
         # デッキを作成
