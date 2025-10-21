@@ -1,0 +1,362 @@
+<template>
+  <div class="obs-overlay" :class="'layout-' + layout">
+    <div v-if="!loading && stats" class="stats-container">
+      <div class="stats-header">
+        <h2 class="stats-title">{{ periodTitle }}</h2>
+      </div>
+      <div class="stats-card" :class="[
+        { 'single-column': displayItems.length === 1 },
+        'layout-' + layout
+      ]">
+        <div v-for="item in displayItems" :key="item.key" class="stat-item">
+          <div class="stat-label">{{ item.label }}</div>
+          <div class="stat-value">{{ item.format(stats[item.key] as any) }}</div>
+        </div>
+      </div>
+    </div>
+    <div v-else-if="loading" class="loading-container">
+      <div class="loading-text">読み込み中...</div>
+    </div>
+    <div v-else class="error-container">
+      <div class="error-text">{{ errorMessage || 'データの取得に失敗しました' }}</div>
+      <div v-if="!token" class="error-detail">URLにトークンが含まれていません</div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
+import { getRankName } from '@/utils/ranks';
+
+const route = useRoute();
+const loading = ref(true);
+const stats = ref<any>(null);
+const errorMessage = ref<string>('');
+
+// クエリパラメータから設定を取得
+const token = ref(route.query.token as string);
+const periodType = ref((route.query.period_type as string) || 'recent');
+const year = ref(Number(route.query.year) || new Date().getFullYear());
+const month = ref(Number(route.query.month) || new Date().getMonth() + 1);
+const limit = ref(Number(route.query.limit) || 30);
+const gameMode = ref((route.query.game_mode as string) || undefined);
+const displayItemsParam = ref((route.query.display_items as string) || '');
+const layout = ref((route.query.layout as string) || 'grid');
+const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォルト30秒
+
+// 表示項目のリスト
+const allDisplayItems: Array<{ key: string; label: string; format: (v: any) => string }> = [
+  { key: 'current_deck', label: '使用デッキ', format: (v: any) => v || '未設定' },
+  { key: 'current_rank', label: 'ランク', format: (v: any) => v ? getRankName(v) : '-' },
+  { key: 'total_duels', label: '総試合数', format: (v: any) => v.toString() },
+  { key: 'win_rate', label: '勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
+  { key: 'first_turn_win_rate', label: '先行勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
+  { key: 'second_turn_win_rate', label: '後攻勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
+  { key: 'coin_win_rate', label: 'コイン勝率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
+  { key: 'go_first_rate', label: '先行率', format: (v: any) => `${(v * 100).toFixed(1)}%` },
+];
+
+// 表示する項目をフィルタリング（URLパラメータの順番を保持）
+const displayItems = computed(() => {
+  if (!displayItemsParam.value) {
+    // パラメータがない場合は全項目（総試合数を除く）
+    return allDisplayItems.filter(item => item.key !== 'total_duels');
+  }
+  const selectedKeys = displayItemsParam.value.split(',');
+  // URLパラメータの順番通りに並べる
+  return selectedKeys
+    .map(key => allDisplayItems.find(item => item.key === key))
+    .filter(item => item !== undefined) as Array<{ key: string; label: string; format: (v: any) => string }>;
+});
+
+// タイトル文字列
+const periodTitle = computed(() => {
+  if (periodType.value === 'all') {
+    return '全期間の成績';
+  } else if (periodType.value === 'monthly') {
+    return `${year.value}年${month.value}月の成績`;
+  } else {
+    return `直近${limit.value}戦の成績`;
+  }
+});
+
+const fetchStats = async () => {
+  try {
+    // トークンがない場合はエラー
+    if (!token.value) {
+      console.error('[OBS] No token provided in URL parameters');
+      loading.value = false;
+      return;
+    }
+
+    console.log('[OBS] Fetching stats with token:', token.value.substring(0, 20) + '...');
+    console.log('[OBS] Period Type:', periodType.value, 'Game Mode:', gameMode.value);
+
+    const params: any = {
+      period_type: periodType.value,
+    };
+
+    // 集計期間に応じたパラメータ
+    if (periodType.value === 'monthly') {
+      params.year = year.value;
+      params.month = month.value;
+    } else if (periodType.value === 'recent') {
+      params.limit = limit.value;
+    }
+
+    // ゲームモード
+    if (gameMode.value) {
+      params.game_mode = gameMode.value;
+    }
+
+    // 環境変数からAPIのベースURLを取得
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
+    console.log('[OBS] API Base URL:', API_BASE_URL);
+
+    // 直接axiosを使用してAPIリクエスト（インターセプターを回避）
+    const response = await axios.get(`${API_BASE_URL}/statistics/obs`, {
+      params,
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true,
+    });
+
+    console.log('[OBS] Stats fetched successfully:', response.data);
+    stats.value = response.data;
+    loading.value = false;
+  } catch (error: any) {
+    console.error('[OBS] Failed to fetch OBS statistics:', error);
+    console.error('[OBS] Error response:', error.response?.data);
+    console.error('[OBS] Error status:', error.response?.status);
+    console.error('[OBS] Error message:', error.message);
+
+    // エラーメッセージを設定
+    if (error.response?.status === 401) {
+      errorMessage.value = '認証エラー: トークンが無効です';
+    } else if (error.response?.status === 404) {
+      errorMessage.value = 'エンドポイントが見つかりません';
+    } else if (error.response) {
+      errorMessage.value = `サーバーエラー: ${error.response.status} - ${error.response.data?.detail || error.message}`;
+    } else if (error.request) {
+      errorMessage.value = 'ネットワークエラー: サーバーに接続できません';
+    } else {
+      errorMessage.value = `エラー: ${error.message}`;
+    }
+
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStats();
+
+  // 定期的に統計情報を更新
+  setInterval(() => {
+    fetchStats();
+  }, refreshInterval.value);
+});
+</script>
+
+<style scoped lang="scss">
+.obs-overlay {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  background: transparent;
+  font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+
+  // グリッドレイアウト（デフォルト）
+  &.layout-grid {
+    align-items: center;
+    justify-content: center;
+  }
+
+  // 横1列レイアウト（下部に配置、横に伸ばす）
+  &.layout-horizontal {
+    align-items: flex-end;
+    justify-content: stretch;
+  }
+
+  // 縦1列レイアウト（右端に配置、中央に表示）
+  &.layout-vertical {
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.stats-container {
+  width: 100%;
+  max-width: 800px;
+  padding: 20px;
+
+  .layout-horizontal & {
+    max-width: none;
+    width: 100%;
+    padding: 0 20px 20px 20px;
+  }
+
+  .layout-vertical & {
+    max-width: none;
+    width: auto;
+    padding: 0;
+  }
+}
+
+.stats-header {
+  text-align: center;
+  margin-bottom: 16px;
+
+  .layout-vertical & {
+    margin-bottom: 12px;
+  }
+}
+
+.stats-title {
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00d9ff 0%, #b536ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+
+  .layout-vertical & {
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+}
+
+.stats-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 24px;
+  background: rgba(18, 18, 18, 0.92);
+  border-radius: 16px;
+  border: 2px solid rgba(0, 217, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 217, 255, 0.2);
+  backdrop-filter: blur(10px);
+
+  &.single-column {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+  }
+
+  // 横1列レイアウト（下部に配置、横に伸ばす）
+  &.layout-horizontal {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-rows: auto;
+    width: 100%;
+    max-width: none;
+    padding: 12px 24px;
+    gap: 12px;
+  }
+
+  // 縦1列レイアウト（右端に配置、下に伸ばす）
+  &.layout-vertical {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    width: 100%;
+    max-width: 450px;
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 217, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(0, 217, 255, 0.1);
+    border-color: rgba(0, 217, 255, 0.4);
+    transform: translateY(-2px);
+  }
+}
+
+.stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(228, 231, 236, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00d9ff 0%, #b536ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-text,
+.error-text {
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(228, 231, 236, 0.8);
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+.error-text {
+  color: rgba(255, 69, 96, 0.8);
+  text-shadow: 0 0 10px rgba(255, 69, 96, 0.5);
+}
+
+.error-detail {
+  font-size: 16px;
+  color: rgba(228, 231, 236, 0.6);
+  margin-top: 12px;
+}
+
+// レスポンシブ対応
+@media (max-width: 768px) {
+  .stats-card {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .stat-item {
+    padding: 12px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-card {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
