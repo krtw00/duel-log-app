@@ -113,3 +113,40 @@ def get_time_series_data(
     return statistics_service.get_time_series_data(
         db=db, user_id=current_user.id, game_mode=game_mode, year=year, month=month
     )
+
+
+@router.get("/obs", response_model=Dict[str, Any])
+def get_obs_statistics(
+    period_type: str = Query("recent", description="集計期間タイプ (all/monthly/recent)"),
+    year: Optional[int] = Query(None, description="年（monthly時のみ）"),
+    month: Optional[int] = Query(None, description="月（monthly時のみ）"),
+    limit: int = Query(30, ge=1, le=100, description="取得する対戦数（recent時のみ）"),
+    game_mode: Optional[str] = Query(None, description="ゲームモード"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    OBSオーバーレイ用の統計情報を取得
+    period_type:
+      - all: 全期間
+      - monthly: 指定された年月
+      - recent: 直近N戦
+    """
+    if period_type == "all":
+        # 全期間の統計
+        return statistics_service.get_all_time_stats(
+            db=db, user_id=current_user.id, game_mode=game_mode
+        )
+    elif period_type == "monthly":
+        # 月間統計
+        if not year or not month:
+            year = datetime.now().year
+            month = datetime.now().month
+        return statistics_service.get_overall_stats(
+            db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode
+        )
+    else:  # recent
+        # 直近N戦
+        return statistics_service.get_recent_stats(
+            db=db, user_id=current_user.id, limit=limit, game_mode=game_mode
+        )
