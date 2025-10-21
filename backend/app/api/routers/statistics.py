@@ -21,6 +21,8 @@ router = APIRouter(prefix="/statistics", tags=["statistics"])
 def get_all_statistics(
     year: int = Query(datetime.now().year, description="年"),
     month: int = Query(datetime.now().month, description="月"),
+    range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
+    range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -31,23 +33,28 @@ def get_all_statistics(
     for mode in game_modes:
         result[mode] = {
             "monthly_deck_distribution": statistics_service.get_deck_distribution_monthly(
-                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
+                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
+                range_start=range_start, range_end=range_end
             ),
             "recent_deck_distribution": statistics_service.get_deck_distribution_recent(
-                db=db, user_id=current_user.id, limit=30, game_mode=mode
+                db=db, user_id=current_user.id, limit=30, game_mode=mode,
+                range_start=range_start, range_end=range_end
             ),
             "matchup_data": statistics_service.get_matchup_chart(
-                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
+                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
+                range_start=range_start, range_end=range_end
             ),
             "my_deck_win_rates": statistics_service.get_my_deck_win_rates(
-                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode
+                db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
+                range_start=range_start, range_end=range_end
             ),
         }
 
         # レートとDCの場合は時系列データも取得
         if mode in ["RATE", "DC"]:
             result[mode]["time_series_data"] = statistics_service.get_time_series_data(
-                db=db, user_id=current_user.id, game_mode=mode, year=year, month=month
+                db=db, user_id=current_user.id, game_mode=mode, year=year, month=month,
+                range_start=range_start, range_end=range_end
             )
         else:
             result[mode]["time_series_data"] = []
