@@ -19,10 +19,27 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!user.value);
 
+  // Safari判定ユーティリティ
+  const isSafari = (): boolean => {
+    const ua = navigator.userAgent.toLowerCase();
+    const isSafariBrowser =
+      ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
+    const isIOS = /iphone|ipad|ipod/.test(ua);
+    return isSafariBrowser || isIOS;
+  };
+
   const login = async (email: string, password: string) => {
     try {
       // ログインAPIをコール（成功するとサーバーがHttpOnlyクッキーを設定）
       const loginResponse = await api.post('/auth/login', { email, password });
+
+      console.log('[Auth] Login response:', loginResponse.data);
+
+      // Safari ITP対策: レスポンスにトークンが含まれている場合はlocalStorageに保存
+      if (loginResponse.data?.access_token && isSafari()) {
+        console.log('[Auth] Safari detected - saving token to localStorage');
+        localStorage.setItem('access_token', loginResponse.data.access_token);
+      }
 
       // Safari対応: ログインレスポンスから直接ユーザー情報を取得
       // これによりCookieのタイミング問題を回避
@@ -51,6 +68,9 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
+      // Safari ITP対策: localStorageからトークンを削除
+      localStorage.removeItem('access_token');
+
       // ローカルの状態をクリア（配信者モード設定は保持）
       user.value = null;
       isInitialized.value = true; // ログアウト後も初期化済み
