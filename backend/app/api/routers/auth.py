@@ -73,13 +73,25 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
         "max_age": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
 
+    # Safari対応: productionの場合はdomainを明示的に設定しない（サブドメイン問題を回避）
+    # これによりCookieは現在のドメインに対してのみ設定される
+
+    logger.info(f"Setting cookie with params: samesite={cookie_params['samesite']}, secure={cookie_params['secure']}, httponly={cookie_params['httponly']}, path={cookie_params['path']}, max_age={cookie_params['max_age']}")
+
     response.set_cookie(**cookie_params)
 
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
+    logger.info(f"Cookie has been set for user: {user.email}")
 
     return {
         "message": "Login successful",
-        "user": {"id": user.id, "username": user.username, "email": user.email},
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "streamer_mode": user.streamer_mode,
+            "theme_preference": user.theme_preference,
+        },
     }
 
 
