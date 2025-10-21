@@ -19,7 +19,18 @@
     <!-- メインコンテンツ -->
     <v-main class="main-content">
       <v-container fluid class="pa-6">
-        <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
+        <div class="d-flex align-center justify-space-between mb-6">
+          <h1 class="statistics-title text-h4">統計情報</h1>
+          <v-btn
+            v-if="authStore.isStreamerModeEnabled"
+            color="primary"
+            variant="outlined"
+            prepend-icon="mdi-monitor-screenshot"
+            @click="showOBSDialog = true"
+          >
+            OBS連携
+          </v-btn>
+        </div>
 
         <!-- 年月選択 -->
         <v-row class="mb-4">
@@ -202,6 +213,159 @@
         </v-window>
       </v-container>
     </v-main>
+
+    <!-- OBS連携モーダル -->
+    <v-dialog v-model="showOBSDialog" max-width="700px">
+      <v-card>
+        <v-card-title class="d-flex align-center pa-4">
+          <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
+          <span class="text-h5">OBS連携設定</span>
+          <v-spacer />
+          <v-btn icon variant="text" @click="showOBSDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-6">
+          <p class="text-body-2 mb-4">
+            OBSのブラウザソースで以下のURLを使用することで、試合の統計情報をリアルタイムでオーバーレイ表示できます。
+          </p>
+
+          <!-- 集計期間選択 -->
+          <v-select
+            v-model="obsPeriodType"
+            :items="periodTypeOptions"
+            label="集計期間"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-4"
+          ></v-select>
+
+          <!-- 月間選択時の年月設定 -->
+          <v-row v-if="obsPeriodType === 'monthly'" class="mb-4">
+            <v-col cols="6">
+              <v-select
+                v-model="obsYear"
+                :items="years"
+                label="年"
+                variant="outlined"
+                density="compact"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="6">
+              <v-select
+                v-model="obsMonth"
+                :items="months"
+                label="月"
+                variant="outlined"
+                density="compact"
+                hide-details
+              ></v-select>
+            </v-col>
+          </v-row>
+
+          <!-- 直近N戦選択時の試合数設定 -->
+          <v-text-field
+            v-if="obsPeriodType === 'recent'"
+            v-model="obsLimit"
+            label="表示する試合数"
+            variant="outlined"
+            density="compact"
+            hide-details
+            type="number"
+            min="1"
+            max="100"
+            class="mb-4"
+          ></v-text-field>
+
+          <!-- 表示項目選択 -->
+          <div class="mb-4">
+            <p class="text-body-2 mb-2">表示項目</p>
+            <v-row>
+              <v-col
+                v-for="item in displayItems"
+                :key="item.value"
+                cols="6"
+                sm="4"
+              >
+                <v-checkbox
+                  v-model="item.selected"
+                  :label="item.label"
+                  density="compact"
+                  hide-details
+                ></v-checkbox>
+              </v-col>
+            </v-row>
+          </div>
+
+          <v-select
+            v-model="obsGameMode"
+            :items="gameModeOptions"
+            label="ゲームモード（任意）"
+            variant="outlined"
+            density="compact"
+            hide-details
+            clearable
+            class="mb-4"
+          ></v-select>
+
+          <v-text-field
+            v-model="obsRefreshInterval"
+            label="更新間隔（ミリ秒）"
+            variant="outlined"
+            density="compact"
+            hide-details
+            type="number"
+            class="mb-4"
+          ></v-text-field>
+
+          <v-alert type="info" variant="tonal" class="mb-4">
+            <div class="text-body-2">
+              <strong>OBSでの設定方法：</strong>
+              <ol class="ml-4 mt-2">
+                <li>OBSで「ソース」→「+」→「ブラウザ」を選択</li>
+                <li>以下のURLをコピーして「URL」欄に貼り付け</li>
+                <li>幅: 800px、高さ: 600px を推奨</li>
+                <li>「カスタムCSS」で背景を透過: <code>body { background-color: transparent; }</code></li>
+              </ol>
+            </div>
+          </v-alert>
+
+          <v-text-field
+            :model-value="obsUrl"
+            label="OBS用URL"
+            variant="outlined"
+            density="compact"
+            readonly
+            class="mb-2"
+          >
+            <template #append-inner>
+              <v-btn
+                icon
+                variant="text"
+                size="small"
+                @click="copyOBSUrl"
+              >
+                <v-icon>{{ urlCopied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
+
+          <p class="text-caption text-grey">
+            ※ このURLには認証トークンが含まれています。他人と共有しないでください。
+          </p>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions class="pa-4">
+          <v-spacer />
+          <v-btn color="primary" variant="elevated" @click="showOBSDialog = false">
+            閉じる
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -210,8 +374,12 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import AppBar from '@/components/layout/AppBar.vue';
 import { useThemeStore } from '@/stores/theme';
+import { useAuthStore } from '@/stores/auth';
+import { useNotificationStore } from '@/stores/notification';
 
 const themeStore = useThemeStore();
+const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 
 const drawer = ref(false);
 const navItems = [
@@ -400,6 +568,88 @@ const myDeckWinRatesHeaders = [
   { title: '対戦数', key: 'total_duels', sortable: true },
   { title: '勝率', key: 'win_rate', sortable: true },
 ];
+
+// --- OBS連携 ---
+const showOBSDialog = ref(false);
+const obsPeriodType = ref('recent');
+const obsYear = ref(new Date().getFullYear());
+const obsMonth = ref(new Date().getMonth() + 1);
+const obsLimit = ref(30);
+const obsGameMode = ref<string | undefined>(undefined);
+const obsRefreshInterval = ref(30000);
+const urlCopied = ref(false);
+
+const periodTypeOptions = [
+  { title: '全期間', value: 'all' },
+  { title: '月間', value: 'monthly' },
+  { title: '直近N戦', value: 'recent' },
+];
+
+const displayItems = ref([
+  { label: '使用デッキ', value: 'current_deck', selected: true },
+  { label: 'ランク', value: 'current_rank', selected: true },
+  { label: '総試合数', value: 'total_duels', selected: false },
+  { label: '勝率', value: 'win_rate', selected: true },
+  { label: '先行勝率', value: 'first_turn_win_rate', selected: true },
+  { label: '後攻勝率', value: 'second_turn_win_rate', selected: true },
+  { label: 'コイン勝率', value: 'coin_win_rate', selected: true },
+  { label: '先行率', value: 'go_first_rate', selected: true },
+]);
+
+const gameModeOptions = [
+  { title: 'ランク', value: 'RANK' },
+  { title: 'レート', value: 'RATE' },
+  { title: 'イベント', value: 'EVENT' },
+  { title: 'DC', value: 'DC' },
+];
+
+const obsUrl = computed(() => {
+  const baseUrl = window.location.origin;
+  // localStorageから直接トークンを取得
+  const accessToken = localStorage.getItem('access_token') || '';
+
+  const params = new URLSearchParams({
+    token: accessToken,
+    period_type: obsPeriodType.value,
+    refresh: obsRefreshInterval.value.toString(),
+  });
+
+  // 集計期間に応じたパラメータ
+  if (obsPeriodType.value === 'monthly') {
+    params.append('year', obsYear.value.toString());
+    params.append('month', obsMonth.value.toString());
+  } else if (obsPeriodType.value === 'recent') {
+    params.append('limit', obsLimit.value.toString());
+  }
+
+  // 表示項目
+  const selectedItems = displayItems.value
+    .filter((item) => item.selected)
+    .map((item) => item.value)
+    .join(',');
+  if (selectedItems) {
+    params.append('display_items', selectedItems);
+  }
+
+  if (obsGameMode.value) {
+    params.append('game_mode', obsGameMode.value);
+  }
+
+  return `${baseUrl}/obs-overlay?${params.toString()}`;
+});
+
+const copyOBSUrl = async () => {
+  try {
+    await navigator.clipboard.writeText(obsUrl.value);
+    urlCopied.value = true;
+    notificationStore.success('URLをコピーしました');
+    setTimeout(() => {
+      urlCopied.value = false;
+    }, 2000);
+  } catch (error) {
+    notificationStore.error('URLのコピーに失敗しました');
+  }
+};
 
 onMounted(fetchStatistics);
 
