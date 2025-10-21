@@ -4,7 +4,7 @@
  */
 
 import { ref, computed, type Ref } from 'vue';
-import type { Duel, GameMode } from '../types';
+import type { Duel, Deck, GameMode } from '../types';
 
 interface UseDashboardFiltersProps {
   currentMode: Ref<GameMode>;
@@ -12,12 +12,13 @@ interface UseDashboardFiltersProps {
   rateDuels: Ref<Duel[]>;
   eventDuels: Ref<Duel[]>;
   dcDuels: Ref<Duel[]>;
+  decks: Ref<Deck[]>;
 }
 
 type DeckOption = { id: number; name: string };
 
 export function useDashboardFilters(props: UseDashboardFiltersProps) {
-  const { currentMode, rankDuels, rateDuels, eventDuels, dcDuels } = props;
+  const { currentMode, rankDuels, rateDuels, eventDuels, dcDuels, decks } = props;
 
   // フィルター状態
   const filterPeriodType = ref<'all' | 'range'>('all');
@@ -104,8 +105,13 @@ export function useDashboardFilters(props: UseDashboardFiltersProps) {
       const rangeFiltered = getRangeFilteredDuels(modeMap[mode]);
       const deckMap = new Map<number, DeckOption>();
       rangeFiltered.forEach((duel) => {
-        if (duel.deck_id && duel.deck?.name) {
-          deckMap.set(duel.deck_id, { id: duel.deck_id, name: duel.deck.name });
+        if (duel.deck_id) {
+          // Try to get deck name from embedded deck object or from decks array
+          const deckName =
+            duel.deck?.name || decks.value.find((d) => d.id === duel.deck_id)?.name;
+          if (deckName) {
+            deckMap.set(duel.deck_id, { id: duel.deck_id, name: deckName });
+          }
         }
       });
       updated[mode] = Array.from(deckMap.values());
