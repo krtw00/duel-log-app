@@ -36,10 +36,6 @@ def get_all_statistics(
                 db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
                 range_start=range_start, range_end=range_end
             ),
-            "recent_deck_distribution": statistics_service.get_deck_distribution_recent(
-                db=db, user_id=current_user.id, limit=30, game_mode=mode,
-                range_start=range_start, range_end=range_end
-            ),
             "matchup_data": statistics_service.get_matchup_chart(
                 db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
                 range_start=range_start, range_end=range_end
