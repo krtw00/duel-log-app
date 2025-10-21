@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { useNotificationStore } from '../stores/notification';
 import { useLoadingStore } from '../stores/loading';
 import { useAuthStore } from '../stores/auth';
+import type { ApiErrorResponse, ValidationErrorDetail } from '../types/api';
 
 // 環境変数からAPIのベースURLを取得
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -97,11 +98,11 @@ api.interceptors.response.use(
     if (error.response) {
       // サーバーからのレスポンスがある場合
       const status = error.response.status;
-      const data = error.response.data as any;
+      const data = error.response.data as ApiErrorResponse;
 
       switch (status) {
         case 400:
-          message = data?.detail || 'リクエストが正しくありません';
+          message = (typeof data?.detail === 'string' ? data.detail : undefined) || 'リクエストが正しくありません';
           break;
         case 401:
           message = '認証エラーです。再度ログインしてください';
@@ -112,20 +113,20 @@ api.interceptors.response.use(
           message = 'この操作を行う権限がありません';
           break;
         case 404:
-          message = data?.detail || 'リソースが見つかりません';
+          message = (typeof data?.detail === 'string' ? data.detail : undefined) || 'リソースが見つかりません';
           break;
         case 422:
           // バリデーションエラー
-          if (data?.detail && Array.isArray(data.detail)) {
-            const errors = data.detail
-              .map((err: any) => {
+          if (Array.isArray(data?.detail)) {
+            const errors = (data.detail as ValidationErrorDetail[])
+              .map((err) => {
                 const field = err.loc?.join('.') || 'フィールド';
                 return `${field}: ${err.msg}`;
               })
               .join(', ');
             message = `入力エラー: ${errors}`;
           } else {
-            message = data?.detail || '入力内容に誤りがあります';
+            message = (typeof data?.detail === 'string' ? data.detail : undefined) || '入力内容に誤りがあります';
           }
           break;
         case 500:
@@ -135,7 +136,7 @@ api.interceptors.response.use(
           message = 'サービスが一時的に利用できません';
           break;
         default:
-          message = data?.detail || `エラーが発生しました (${status})`;
+          message = (typeof data?.detail === 'string' ? data.detail : undefined) || `エラーが発生しました (${status})`;
       }
     } else if (error.request) {
       // リクエストは送信されたがレスポンスがない
