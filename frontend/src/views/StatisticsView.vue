@@ -271,12 +271,8 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import AppBar from '@/components/layout/AppBar.vue';
 import { useThemeStore } from '@/stores/theme';
-import { useAuthStore } from '@/stores/auth';
-import { useNotificationStore } from '@/stores/notification';
 
 const themeStore = useThemeStore();
-const authStore = useAuthStore();
-const notificationStore = useNotificationStore();
 
 const drawer = ref(false);
 const navItems = [
