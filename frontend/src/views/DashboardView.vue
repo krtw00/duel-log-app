@@ -1103,6 +1103,11 @@ onMounted(() => {
 // Expose for testing
 defineExpose({
   shareDialogOpened,
+  rankStats,
+  availableMyDecks,
+  filterMyDeckId,
+  handleMyDeckFilterChange,
+  handleModeChange,
 });
 </script>
 
