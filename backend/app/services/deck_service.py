@@ -85,8 +85,28 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
 
         return query.all()
 
+    def get_by_id(
+        self,
+        db: Session,
+        id: int,
+        user_id: Optional[int] = None,
+        include_inactive: bool = False,
+    ) -> Optional[Deck]:
+        """
+        IDでデッキを取得（必要に応じて非アクティブも含む）
+        """
+        query = db.query(Deck).filter(Deck.id == id)
+
+        if user_id is not None:
+            query = query.filter(Deck.user_id == user_id)
+
+        if not include_inactive:
+            query = query.filter(Deck.active.is_(True))
+
+        return query.first()
+
     def get_by_name(
-        self, db: Session, user_id: int, name: str, is_opponent: bool
+        self, db: Session, user_id: int, name: str, is_opponent: bool, include_inactive: bool = False
     ) -> Optional[Deck]:
         """
         同じユーザー内で同じ名前とタイプのデッキを取得
@@ -100,15 +120,16 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         Returns:
             デッキ（存在しない場合はNone）
         """
-        return (
-            db.query(Deck)
-            .filter(
-                Deck.user_id == user_id,
-                Deck.name == name,
-                Deck.is_opponent == is_opponent,
-            )
-            .first()
+        query = db.query(Deck).filter(
+            Deck.user_id == user_id,
+            Deck.name == name,
+            Deck.is_opponent == is_opponent,
         )
+
+        if not include_inactive:
+            query = query.filter(Deck.active.is_(True))
+
+        return query.first()
 
     def create_user_deck(self, db: Session, user_id: int, deck_in: DeckCreate, commit: bool = True) -> Deck:
         """
@@ -180,6 +201,19 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
 
         return self.update(db=db, id=deck_id, obj_in=deck_in, user_id=user_id)
 
+    def delete(self, db: Session, id: int, user_id: Optional[int] = None) -> bool:
+        """
+        デッキを論理削除（active=False）に変更
+        """
+        deck = self.get_by_id(db=db, id=id, user_id=user_id, include_inactive=True)
+
+        if deck is None or deck.active is False:
+            return False
+
+        deck.active = False
+        db.commit()
+        return True
+
     def archive_all_decks(self, db: Session, user_id: int) -> int:
         """
         ユーザーの全デッキをアーカイブ（非アクティブ化）
@@ -205,7 +239,12 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         """
         デッキを取得、なければ作成
         """
-        deck = self.get_by_name(db, user_id=user_id, name=name, is_opponent=is_opponent)
+        deck = self.get_by_name(
+            db,
+            user_id=user_id,
+            name=name,
+            is_opponent=is_opponent,
+        )
         if deck:
             return deck
 
