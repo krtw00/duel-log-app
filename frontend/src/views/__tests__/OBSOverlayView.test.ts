@@ -14,7 +14,7 @@ const vuetify = createVuetify({ components, directives });
 describe('OBSOverlayView.vue', () => {
   let router: any;
 
-  const createRouterWithQuery = (query: Record<string, any>) => {
+  const createRouterWithQuery = () => {
     return createRouter({
       history: createWebHistory(),
       routes: [
@@ -49,12 +49,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-      period_type: 'recent',
-      limit: '30',
-      layout: 'grid',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -91,10 +86,7 @@ describe('OBSOverlayView.vue', () => {
   });
 
   it('トークンがない場合にエラーメッセージを表示する', async () => {
-    router = createRouterWithQuery({
-      period_type: 'recent',
-      limit: '30',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -125,12 +117,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-      period_type: 'monthly',
-      year: '2025',
-      month: '10',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -170,10 +157,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-      game_mode: 'RANK',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -210,10 +194,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-      display_items: 'current_deck,win_rate',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -244,10 +225,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-      layout: 'horizontal',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -277,10 +255,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-      layout: 'vertical',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -311,9 +286,7 @@ describe('OBSOverlayView.vue', () => {
       message: 'Request failed',
     });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -347,9 +320,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
@@ -380,9 +351,7 @@ describe('OBSOverlayView.vue', () => {
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
 
-    router = createRouterWithQuery({
-      token: 'test-token-123',
-    });
+    router = createRouterWithQuery();
 
     await router.push({
       path: '/obs-overlay',
