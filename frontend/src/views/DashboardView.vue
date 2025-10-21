@@ -125,7 +125,7 @@
               title="コイン勝率"
               :value="`${(currentStats.coin_win_rate * 100).toFixed(1)}%`"
               icon="mdi-poker-chip"
-              color="yellow"
+              :color="coinWinRateColor"
             />
           </v-col>
           <v-col cols="6" sm="4" md="2">
@@ -135,6 +135,54 @@
               icon="mdi-arrow-up-bold-hexagon-outline"
               color="teal"
             />
+          </v-col>
+        </v-row>
+
+        <!-- OBS連携カード（配信者モード時のみ表示） -->
+        <v-row v-if="authStore.isStreamerModeEnabled" class="mb-4">
+          <v-col cols="12">
+            <v-card class="obs-card">
+              <v-card-title class="d-flex align-center pa-4">
+                <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
+                <span class="text-h6">OBS連携</span>
+                <v-spacer />
+                <v-btn
+                  color="primary"
+                  variant="elevated"
+                  prepend-icon="mdi-open-in-new"
+                  @click="showOBSDialog = true"
+                >
+                  URLを取得
+                </v-btn>
+              </v-card-title>
+              <v-card-text class="pa-4">
+                <p class="text-body-2 mb-3">
+                  配信者モードが有効です。OBSのブラウザソースで直近の試合の統計情報をリアルタイム表示できます。
+                </p>
+                <div class="d-flex flex-wrap ga-2">
+                  <v-chip color="success" variant="outlined" size="small">
+                    <v-icon start size="small">mdi-trophy</v-icon>
+                    勝率
+                  </v-chip>
+                  <v-chip color="warning" variant="outlined" size="small">
+                    <v-icon start size="small">mdi-lightning-bolt</v-icon>
+                    先行勝率
+                  </v-chip>
+                  <v-chip color="secondary" variant="outlined" size="small">
+                    <v-icon start size="small">mdi-shield</v-icon>
+                    後攻勝率
+                  </v-chip>
+                  <v-chip :color="coinWinRateColor" variant="outlined" size="small">
+                    <v-icon start size="small">mdi-poker-chip</v-icon>
+                    コイン勝率
+                  </v-chip>
+                  <v-chip color="teal" variant="outlined" size="small">
+                    <v-icon start size="small">mdi-arrow-up-bold-hexagon-outline</v-icon>
+                    先行率
+                  </v-chip>
+                </div>
+              </v-card-text>
+            </v-card>
           </v-col>
         </v-row>
 
@@ -251,6 +299,186 @@
       :initial-month="selectedMonth"
       :initial-game-mode="currentMode"
     />
+
+    <!-- OBS連携モーダル -->
+    <v-dialog v-model="showOBSDialog" max-width="700px">
+      <v-card>
+        <v-card-title class="d-flex align-center pa-4">
+          <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
+          <span class="text-h5">OBS連携設定</span>
+          <v-spacer />
+          <v-btn icon variant="text" @click="showOBSDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-6">
+          <p class="text-body-2 mb-4">
+            OBSのブラウザソースで統計情報をリアルタイムでオーバーレイ表示できます。表示する項目と集計期間をカスタマイズできます。
+          </p>
+
+          <!-- 集計期間選択 -->
+          <v-select
+            v-model="obsPeriodType"
+            :items="periodTypeOptions"
+            label="集計期間"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-4"
+          ></v-select>
+
+          <!-- 月間集計の場合 -->
+          <v-row v-if="obsPeriodType === 'monthly'" class="mb-4">
+            <v-col cols="6">
+              <v-select
+                v-model="obsYear"
+                :items="years"
+                label="年"
+                variant="outlined"
+                density="compact"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="6">
+              <v-select
+                v-model="obsMonth"
+                :items="months"
+                label="月"
+                variant="outlined"
+                density="compact"
+                hide-details
+              ></v-select>
+            </v-col>
+          </v-row>
+
+          <!-- 直近N戦の場合 -->
+          <v-text-field
+            v-if="obsPeriodType === 'recent'"
+            v-model="obsLimit"
+            label="表示する試合数"
+            variant="outlined"
+            density="compact"
+            hide-details
+            type="number"
+            min="1"
+            max="100"
+            class="mb-4"
+          ></v-text-field>
+
+          <!-- ゲームモード選択 -->
+          <v-select
+            v-model="obsGameMode"
+            :items="gameModeOptions"
+            label="ゲームモード（任意）"
+            variant="outlined"
+            density="compact"
+            hide-details
+            clearable
+            class="mb-4"
+          ></v-select>
+
+          <!-- レイアウト選択 -->
+          <v-select
+            v-model="obsLayout"
+            :items="layoutOptions"
+            label="レイアウト"
+            variant="outlined"
+            density="compact"
+            hide-details
+            class="mb-4"
+          ></v-select>
+
+          <!-- 表示項目選択 -->
+          <v-card variant="outlined" class="mb-4">
+            <v-card-title class="text-subtitle-2 pa-3">
+              表示する項目を選択（ドラッグで並び替え可能）
+            </v-card-title>
+            <v-card-text class="pa-3">
+              <div class="d-flex flex-column ga-2">
+                <div
+                  v-for="(item, index) in displayItems"
+                  :key="item.value"
+                  class="display-item"
+                  :class="{ 'dragging': draggedIndex === index }"
+                  draggable="true"
+                  @dragstart="handleDragStart(index)"
+                  @dragover.prevent="handleDragOver(index)"
+                  @dragenter="handleDragEnter(index)"
+                  @dragleave="handleDragLeave"
+                  @drop="handleDrop(index)"
+                  @dragend="handleDragEnd"
+                >
+                  <v-icon size="small" class="drag-handle mr-2">mdi-drag-vertical</v-icon>
+                  <v-checkbox
+                    v-model="item.selected"
+                    :label="item.label"
+                    density="compact"
+                    hide-details
+                    color="primary"
+                    class="flex-grow-1"
+                  ></v-checkbox>
+                </div>
+              </div>
+            </v-card-text>
+          </v-card>
+
+          <!-- 更新間隔 -->
+          <v-text-field
+            v-model="obsRefreshInterval"
+            label="更新間隔（ミリ秒）"
+            variant="outlined"
+            density="compact"
+            hide-details
+            type="number"
+            class="mb-4"
+          ></v-text-field>
+
+          <v-alert type="info" variant="tonal" class="mb-4">
+            <div class="text-body-2">
+              <strong>OBSでの設定方法：</strong>
+              <ol class="ml-4 mt-2">
+                <li>OBSで「ソース」→「+」→「ブラウザ」を選択</li>
+                <li>以下のURLをコピーして「URL」欄に貼り付け</li>
+                <li>{{ recommendedSizeText }}</li>
+                <li>「カスタムCSS」で背景を透過: <code>body { background-color: transparent; }</code></li>
+              </ol>
+            </div>
+          </v-alert>
+
+          <v-text-field
+            :model-value="obsUrl"
+            label="OBS用URL"
+            variant="outlined"
+            density="compact"
+            readonly
+            class="mb-2"
+          >
+            <template #append-inner>
+              <v-btn
+                icon
+                variant="text"
+                size="small"
+                @click="copyOBSUrl"
+              >
+                <v-icon>{{ urlCopied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
+
+          <p class="text-caption text-grey">
+            ※ このURLには認証トークンが含まれています。他人と共有しないでください。
+          </p>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions class="pa-4">
+          <v-spacer />
+          <v-btn color="primary" variant="elevated" @click="showOBSDialog = false">
+            閉じる
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -264,6 +492,8 @@ import DuelFormDialog from '@/components/duel/DuelFormDialog.vue';
 import AppBar from '@/components/layout/AppBar.vue';
 import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue'; // Import the new component
 import { useNotificationStore } from '@/stores/notification';
+import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme';
 
 const drawer = ref(false);
 const navItems = [
@@ -273,6 +503,13 @@ const navItems = [
 ];
 
 const notificationStore = useNotificationStore();
+const authStore = useAuthStore();
+const themeStore = useThemeStore();
+
+// コイン勝率の色（ダークモード時は黄色、ライトモード時は黒）
+const coinWinRateColor = computed(() => {
+  return themeStore.isDark ? 'yellow' : 'black';
+});
 
 const duels = ref<Duel[]>([]);
 const loading = ref(false);
@@ -519,6 +756,161 @@ const exportCSV = async () => {
   }
 };
 
+// --- OBS連携 ---
+const showOBSDialog = ref(false);
+const obsPeriodType = ref<'all' | 'monthly' | 'recent'>('recent');
+const obsYear = ref(new Date().getFullYear());
+const obsMonth = ref(new Date().getMonth() + 1);
+const obsLimit = ref(30);
+const obsGameMode = ref<string | undefined>(undefined);
+const obsLayout = ref<'grid' | 'horizontal' | 'vertical'>('grid');
+const obsRefreshInterval = ref(30000);
+const urlCopied = ref(false);
+
+const periodTypeOptions = [
+  { title: '全期間', value: 'all' },
+  { title: '月間集計', value: 'monthly' },
+  { title: '直近N戦', value: 'recent' },
+];
+
+const gameModeOptions = [
+  { title: 'ランク', value: 'RANK' },
+  { title: 'レート', value: 'RATE' },
+  { title: 'イベント', value: 'EVENT' },
+  { title: 'DC', value: 'DC' },
+];
+
+const layoutOptions = [
+  { title: 'グリッド（自動）', value: 'grid' },
+  { title: '横1列（右に伸ばす）', value: 'horizontal' },
+  { title: '縦1列（下に伸ばす）', value: 'vertical' },
+];
+
+const displayItems = ref([
+  { label: '使用デッキ', value: 'current_deck', selected: true },
+  { label: 'ランク', value: 'current_rank', selected: true },
+  { label: '総試合数', value: 'total_duels', selected: false },
+  { label: '勝率', value: 'win_rate', selected: true },
+  { label: '先行勝率', value: 'first_turn_win_rate', selected: true },
+  { label: '後攻勝率', value: 'second_turn_win_rate', selected: true },
+  { label: 'コイン勝率', value: 'coin_win_rate', selected: true },
+  { label: '先行率', value: 'go_first_rate', selected: true },
+]);
+
+// ドラッグ&ドロップの状態管理
+const draggedIndex = ref<number | null>(null);
+const dragOverIndex = ref<number | null>(null);
+
+const handleDragStart = (index: number) => {
+  draggedIndex.value = index;
+};
+
+const handleDragOver = (index: number) => {
+  if (draggedIndex.value === null || draggedIndex.value === index) return;
+  dragOverIndex.value = index;
+};
+
+const handleDragEnter = (index: number) => {
+  dragOverIndex.value = index;
+};
+
+const handleDragLeave = () => {
+  dragOverIndex.value = null;
+};
+
+const handleDrop = (index: number) => {
+  if (draggedIndex.value === null || draggedIndex.value === index) return;
+
+  const items = [...displayItems.value];
+  const draggedItem = items[draggedIndex.value];
+  items.splice(draggedIndex.value, 1);
+  items.splice(index, 0, draggedItem);
+  displayItems.value = items;
+
+  draggedIndex.value = null;
+  dragOverIndex.value = null;
+};
+
+const handleDragEnd = () => {
+  draggedIndex.value = null;
+  dragOverIndex.value = null;
+};
+
+// レイアウトに応じた推奨サイズ
+const recommendedSizeText = computed(() => {
+  switch (obsLayout.value) {
+    case 'horizontal':
+      return '幅: 1920px、高さ: 200px を推奨（下部に配置）';
+    case 'vertical':
+      return '幅: 250px、高さ: 1080px を推奨（右端に配置）';
+    case 'grid':
+    default:
+      return '幅: 800px、高さ: 600px を推奨';
+  }
+});
+
+const obsUrl = computed(() => {
+  const baseUrl = window.location.origin;
+  // localStorageから直接トークンを取得
+  const accessToken = localStorage.getItem('access_token') || '';
+
+  console.log('[Dashboard] Generating OBS URL');
+  console.log('[Dashboard] Access token exists:', !!accessToken);
+  console.log('[Dashboard] Token length:', accessToken.length);
+  if (accessToken) {
+    console.log('[Dashboard] Token preview:', accessToken.substring(0, 20) + '...');
+  }
+
+  const params = new URLSearchParams({
+    token: accessToken,
+    period_type: obsPeriodType.value,
+    refresh: obsRefreshInterval.value.toString(),
+  });
+
+  // 集計期間に応じたパラメータ追加
+  if (obsPeriodType.value === 'monthly') {
+    params.append('year', obsYear.value.toString());
+    params.append('month', obsMonth.value.toString());
+  } else if (obsPeriodType.value === 'recent') {
+    params.append('limit', obsLimit.value.toString());
+  }
+
+  // ゲームモード
+  if (obsGameMode.value) {
+    params.append('game_mode', obsGameMode.value);
+  }
+
+  // 表示項目
+  const selectedItems = displayItems.value
+    .filter(item => item.selected)
+    .map(item => item.value)
+    .join(',');
+  if (selectedItems) {
+    params.append('display_items', selectedItems);
+  }
+
+  // レイアウト
+  params.append('layout', obsLayout.value);
+
+  const url = `${baseUrl}/obs-overlay?${params.toString()}`;
+  console.log('[Dashboard] Generated URL (without token):', url.replace(/token=[^&]*/, 'token=***'));
+
+  return url;
+});
+
+const copyOBSUrl = async () => {
+  try {
+    await navigator.clipboard.writeText(obsUrl.value);
+    urlCopied.value = true;
+    notificationStore.success('URLをコピーしました');
+    setTimeout(() => {
+      urlCopied.value = false;
+    }, 2000);
+  } catch (error) {
+    notificationStore.error('URLのコピーに失敗しました');
+  }
+};
+
 onMounted(() => {
   fetchDuels();
 });
@@ -544,6 +936,13 @@ defineExpose({
   backdrop-filter: blur(10px);
   border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
+}
+
+.obs-card {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.05) 0%, rgba(181, 54, 255, 0.05) 100%);
 }
 
 .add-btn {
@@ -579,6 +978,39 @@ defineExpose({
   .mode-tabs {
     :deep(.v-slide-group__content) {
       justify-content: space-between;
+    }
+  }
+}
+
+// ドラッグ&ドロップスタイル
+.display-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: move;
+  transition: all 0.2s ease;
+  background-color: rgba(128, 128, 128, 0.05);
+
+  &:hover {
+    background-color: rgba(0, 217, 255, 0.1);
+  }
+
+  &.dragging {
+    opacity: 0.5;
+  }
+
+  .drag-handle {
+    cursor: grab;
+    color: rgba(128, 128, 128, 0.5);
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: rgba(0, 217, 255, 0.8);
+    }
+
+    &:active {
+      cursor: grabbing;
     }
   }
 }

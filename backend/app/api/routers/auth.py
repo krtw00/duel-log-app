@@ -129,6 +129,7 @@ def login(
     # Safari ITP対策: レスポンスボディにもトークンを含める
     # Safari/iOSではクロスサイトCookieがブロックされるため、
     # フロントエンドでlocalStorageに保存してAuthorizationヘッダーで送信する
+    # OBS連携機能のため、すべてのブラウザでトークンを返すように変更
     response_data = {
         "message": "Login successful",
         "user": {
@@ -138,12 +139,10 @@ def login(
             "streamer_mode": user.streamer_mode,
             "theme_preference": user.theme_preference,
         },
+        "access_token": access_token,  # すべてのブラウザでトークンを含める
     }
 
-    # Safari/iOSの場合はアクセストークンをレスポンスに含める
-    if is_safari:
-        response_data["access_token"] = access_token
-        logger.info("Including access_token in response for Safari/iOS")
+    logger.info("Including access_token in response for OBS integration support")
 
     return response_data
 
