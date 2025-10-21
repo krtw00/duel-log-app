@@ -9,6 +9,7 @@ import ProfileView from '../views/ProfileView.vue';
 import ForgotPasswordView from '../views/ForgotPasswordView.vue';
 import ResetPasswordView from '../views/ResetPasswordView.vue';
 import SharedStatisticsView from '../views/SharedStatisticsView.vue';
+import OBSOverlayView from '../views/OBSOverlayView.vue';
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -63,6 +64,12 @@ export const routes: RouteRecordRaw[] = [
     path: '/shared-stats/:share_id',
     name: 'SharedStatistics',
     component: SharedStatisticsView,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/obs-overlay',
+    name: 'OBSOverlay',
+    component: OBSOverlayView,
     meta: { requiresAuth: false },
   },
   {

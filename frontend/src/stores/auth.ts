@@ -19,15 +19,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!user.value);
 
-  // Safari判定ユーティリティ
-  const isSafari = (): boolean => {
-    const ua = navigator.userAgent.toLowerCase();
-    const isSafariBrowser =
-      ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
-    const isIOS = /iphone|ipad|ipod/.test(ua);
-    return isSafariBrowser || isIOS;
-  };
-
   const login = async (email: string, password: string) => {
     try {
       // ログインAPIをコール（成功するとサーバーがHttpOnlyクッキーを設定）
@@ -35,9 +26,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       console.log('[Auth] Login response:', loginResponse.data);
 
-      // Safari ITP対策: レスポンスにトークンが含まれている場合はlocalStorageに保存
-      if (loginResponse.data?.access_token && isSafari()) {
-        console.log('[Auth] Safari detected - saving token to localStorage');
+      // OBS連携のため、すべてのブラウザでトークンをlocalStorageに保存
+      if (loginResponse.data?.access_token) {
+        console.log('[Auth] Saving token to localStorage for OBS integration');
         localStorage.setItem('access_token', loginResponse.data.access_token);
       }
 
