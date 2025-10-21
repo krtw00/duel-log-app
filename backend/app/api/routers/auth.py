@@ -39,6 +39,9 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
 
     メールアドレスとパスワードで認証し、HttpOnlyクッキーにJWTアクセストークンを設定する
     """
+    logger.info(f"Login attempt for email: {login_data.email}")
+    logger.info(f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}")
+
     user = db.query(User).filter(User.email == login_data.email).first()
 
     if not user or not verify_password(login_data.password, user.passwordhash):
@@ -70,19 +73,6 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
 
     response.set_cookie(**cookie_params)
 
-    # ライブラリが古い環境向けの強制的な対応
-    if is_production:
-        header_index_to_modify = -1
-        for i, (key, value) in enumerate(response.raw_headers):
-            if key == b"set-cookie" and value.startswith(b"access_token="):
-                header_index_to_modify = i
-                break
-
-        if header_index_to_modify != -1:
-            key, value = response.raw_headers[header_index_to_modify]
-            response.raw_headers[header_index_to_modify] = (key, value + b"; Partitioned")
-            logger.info("Manually appended 'Partitioned' to the cookie header.")
-
     logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
 
     return {
@@ -111,19 +101,6 @@ def logout(response: Response):
     }
 
     response.set_cookie(**cookie_params)
-
-    # ライブラリが古い環境向けの強制的な対応
-    if is_production:
-        header_index_to_modify = -1
-        for i, (key, value) in enumerate(response.raw_headers):
-            if key == b"set-cookie" and value.startswith(b"access_token="):
-                header_index_to_modify = i
-                break
-
-        if header_index_to_modify != -1:
-            key, value = response.raw_headers[header_index_to_modify]
-            response.raw_headers[header_index_to_modify] = (key, value + b"; Partitioned")
-            logger.info("Manually appended 'Partitioned' to the logout cookie header.")
 
     return {"message": "Logout successful"}
 
