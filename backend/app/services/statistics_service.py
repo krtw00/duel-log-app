@@ -44,6 +44,60 @@ class StatisticsService:
 
         return filtered
 
+    def get_available_decks(
+        self,
+        db: Session,
+        user_id: int,
+        year: int,
+        month: int,
+        range_start: Optional[int] = None,
+        range_end: Optional[int] = None,
+        game_mode: Optional[str] = None,
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """指定された期間・範囲に存在するデッキ一覧を取得"""
+        query = self._build_base_duels_query(db, user_id, game_mode)
+        query = query.filter(
+            extract("year", Duel.played_date) == year,
+            extract("month", Duel.played_date) == month,
+        )
+
+        # 範囲指定がある場合
+        duels = query.order_by(Duel.played_date.desc()).all()
+        if range_start is not None or range_end is not None:
+            duels = self._apply_range_filter(duels, range_start, range_end)
+
+        # 使用デッキと相手デッキを集計
+        my_deck_ids = set()
+        opponent_deck_ids = set()
+
+        for duel in duels:
+            if duel.deck_id:
+                my_deck_ids.add(duel.deck_id)
+            if duel.opponentDeck_id:
+                opponent_deck_ids.add(duel.opponentDeck_id)
+
+        # デッキ情報を取得
+        my_decks = []
+        if my_deck_ids:
+            my_decks_query = db.query(Deck).filter(
+                Deck.id.in_(my_deck_ids),
+                Deck.is_opponent.is_(False)
+            ).all()
+            my_decks = [{"id": deck.id, "name": deck.name} for deck in my_decks_query]
+
+        opponent_decks = []
+        if opponent_deck_ids:
+            opponent_decks_query = db.query(Deck).filter(
+                Deck.id.in_(opponent_deck_ids),
+                Deck.is_opponent.is_(True)
+            ).all()
+            opponent_decks = [{"id": deck.id, "name": deck.name} for deck in opponent_decks_query]
+
+        return {
+            "my_decks": my_decks,
+            "opponent_decks": opponent_decks
+        }
+
     def get_my_deck_win_rates(
         self,
         db: Session,
@@ -53,6 +107,8 @@ class StatisticsService:
         game_mode: Optional[str] = None,
         range_start: Optional[int] = None,
         range_end: Optional[int] = None,
+        my_deck_id: Optional[int] = None,
+        opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
         ユーザー自身の各デッキの勝率を計算
@@ -63,6 +119,12 @@ class StatisticsService:
             query = query.filter(extract("year", Duel.played_date) == year)
         if month is not None:
             query = query.filter(extract("month", Duel.played_date) == month)
+
+        # デッキフィルター
+        if my_deck_id is not None:
+            query = query.filter(Duel.deck_id == my_deck_id)
+        if opponent_deck_id is not None:
+            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
 
         # 範囲指定がある場合は、一旦リストで取得してフィルタリング
         if range_start is not None or range_end is not None:
@@ -159,12 +221,20 @@ class StatisticsService:
         game_mode: Optional[str] = None,
         range_start: Optional[int] = None,
         range_end: Optional[int] = None,
+        my_deck_id: Optional[int] = None,
+        opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """月間の相手デッキ分布を取得"""
         base_query = self._build_base_duels_query(db, user_id, game_mode).filter(
             extract("year", Duel.played_date) == year,
             extract("month", Duel.played_date) == month,
         )
+
+        # デッキフィルター
+        if my_deck_id is not None:
+            base_query = base_query.filter(Duel.deck_id == my_deck_id)
+        if opponent_deck_id is not None:
+            base_query = base_query.filter(Duel.opponentDeck_id == opponent_deck_id)
 
         # 範囲指定がある場合
         if range_start is not None or range_end is not None:
@@ -305,6 +375,8 @@ class StatisticsService:
         game_mode: Optional[str] = None,
         range_start: Optional[int] = None,
         range_end: Optional[int] = None,
+        my_deck_id: Optional[int] = None,
+        opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """デッキ相性表のデータを取得"""
         query = self._build_base_duels_query(db, user_id, game_mode)
@@ -313,6 +385,12 @@ class StatisticsService:
             query = query.filter(extract("year", Duel.played_date) == year)
         if month is not None:
             query = query.filter(extract("month", Duel.played_date) == month)
+
+        # デッキフィルター
+        if my_deck_id is not None:
+            query = query.filter(Duel.deck_id == my_deck_id)
+        if opponent_deck_id is not None:
+            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
 
         duels = query.order_by(Duel.played_date.desc()).all()
 
@@ -410,6 +488,8 @@ class StatisticsService:
         month: int,
         range_start: Optional[int] = None,
         range_end: Optional[int] = None,
+        my_deck_id: Optional[int] = None,
+        opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
         指定されたゲームモードの月間時系列データを取得 (レート/DC)
@@ -426,15 +506,18 @@ class StatisticsService:
             ) - timedelta(microseconds=1)
 
         # 該当月のデュエルを取得
-        duels = (
-            self._build_base_duels_query(db, user_id, game_mode)
-            .filter(
-                Duel.played_date >= start_date,
-                Duel.played_date <= end_date,
-            )
-            .order_by(Duel.played_date.desc(), Duel.id.desc())
-            .all()
+        query = self._build_base_duels_query(db, user_id, game_mode).filter(
+            Duel.played_date >= start_date,
+            Duel.played_date <= end_date,
         )
+
+        # デッキフィルター
+        if my_deck_id is not None:
+            query = query.filter(Duel.deck_id == my_deck_id)
+        if opponent_deck_id is not None:
+            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+
+        duels = query.order_by(Duel.played_date.desc(), Duel.id.desc()).all()
 
         # 範囲指定を適用
         if range_start is not None or range_end is not None:
