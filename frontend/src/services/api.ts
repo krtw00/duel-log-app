@@ -20,6 +20,15 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
+// Safari判定ユーティリティ
+function isSafari(): boolean {
+  const ua = navigator.userAgent.toLowerCase();
+  const isSafariBrowser =
+    ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
+  const isIOS = /iphone|ipad|ipod/.test(ua);
+  return isSafariBrowser || isIOS;
+}
+
 // リクエストインターセプター
 api.interceptors.request.use(
   (config) => {
@@ -29,10 +38,20 @@ api.interceptors.request.use(
     config.metadata = { requestId };
     loadingStore.start(requestId);
 
+    // Safari ITP対策: localStorageからトークンを取得してAuthorizationヘッダーに設定
+    if (isSafari()) {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('[API] Using Authorization header for Safari/iOS');
+      }
+    }
+
     // Safari対応デバッグログ
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
       withCredentials: config.withCredentials,
       headers: config.headers,
+      isSafari: isSafari(),
     });
 
     return config;
