@@ -23,6 +23,8 @@ def get_all_statistics(
     month: int = Query(datetime.now().month, description="月"),
     range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
     range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
+    my_deck_id: Optional[int] = Query(None, description="使用デッキでフィルター"),
+    opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -34,15 +36,18 @@ def get_all_statistics(
         result[mode] = {
             "monthly_deck_distribution": statistics_service.get_deck_distribution_monthly(
                 db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
-                range_start=range_start, range_end=range_end
+                range_start=range_start, range_end=range_end,
+                my_deck_id=my_deck_id, opponent_deck_id=opponent_deck_id
             ),
             "matchup_data": statistics_service.get_matchup_chart(
                 db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
-                range_start=range_start, range_end=range_end
+                range_start=range_start, range_end=range_end,
+                my_deck_id=my_deck_id, opponent_deck_id=opponent_deck_id
             ),
             "my_deck_win_rates": statistics_service.get_my_deck_win_rates(
                 db=db, user_id=current_user.id, year=year, month=month, game_mode=mode,
-                range_start=range_start, range_end=range_end
+                range_start=range_start, range_end=range_end,
+                my_deck_id=my_deck_id, opponent_deck_id=opponent_deck_id
             ),
         }
 
@@ -50,7 +55,8 @@ def get_all_statistics(
         if mode in ["RATE", "DC"]:
             result[mode]["time_series_data"] = statistics_service.get_time_series_data(
                 db=db, user_id=current_user.id, game_mode=mode, year=year, month=month,
-                range_start=range_start, range_end=range_end
+                range_start=range_start, range_end=range_end,
+                my_deck_id=my_deck_id, opponent_deck_id=opponent_deck_id
             )
         else:
             result[mode]["time_series_data"] = []
@@ -115,6 +121,23 @@ def get_time_series_data(
         )
     return statistics_service.get_time_series_data(
         db=db, user_id=current_user.id, game_mode=game_mode, year=year, month=month
+    )
+
+
+@router.get("/available-decks", response_model=Dict[str, Any])
+def get_available_decks(
+    year: int = Query(datetime.now().year, description="年"),
+    month: int = Query(datetime.now().month, description="月"),
+    range_start: Optional[int] = Query(None, description="範囲指定:開始試合数"),
+    range_end: Optional[int] = Query(None, description="範囲指定:終了試合数"),
+    game_mode: Optional[str] = Query(None, description="ゲームモード"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """指定された期間・範囲に存在するデッキ一覧を取得"""
+    return statistics_service.get_available_decks(
+        db=db, user_id=current_user.id, year=year, month=month,
+        range_start=range_start, range_end=range_end, game_mode=game_mode
     )
 
 

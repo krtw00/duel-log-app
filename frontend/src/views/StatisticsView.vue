@@ -31,7 +31,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              @update:model-value="fetchStatistics"
+              @update:model-value="refreshStatisticsWithDecks"
             ></v-select>
           </v-col>
           <v-col cols="6" sm="3">
@@ -42,7 +42,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              @update:model-value="fetchStatistics"
+              @update:model-value="refreshStatisticsWithDecks"
             ></v-select>
           </v-col>
         </v-row>
@@ -66,10 +66,10 @@
                   variant="outlined"
                   density="compact"
                   hide-details
-                  @update:model-value="fetchStatistics"
+                  @update:model-value="refreshStatisticsWithDecks"
                 ></v-select>
               </v-col>
-              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="3">
+              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="2">
                 <v-text-field
                   v-model.number="filterRangeStart"
                   label="開始（試合目）"
@@ -78,10 +78,10 @@
                   hide-details
                   type="number"
                   min="1"
-                  @update:model-value="fetchStatistics"
+                  @update:model-value="refreshStatisticsWithDecks"
                 ></v-text-field>
               </v-col>
-              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="3">
+              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="2">
                 <v-text-field
                   v-model.number="filterRangeEnd"
                   label="終了（試合目）"
@@ -90,10 +90,25 @@
                   hide-details
                   type="number"
                   min="1"
-                  @update:model-value="fetchStatistics"
+                  @update:model-value="refreshStatisticsWithDecks"
                 ></v-text-field>
               </v-col>
-              <v-col cols="12" sm="6" :md="filterPeriodType === 'range' ? 2 : 8" class="d-flex align-center">
+              <v-col cols="12" sm="6" md="4">
+                <v-select
+                  v-model="filterMyDeckId"
+                  :items="availableMyDecks"
+                  item-title="name"
+                  item-value="id"
+                  label="自分のデッキ"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  clearable
+                  :disabled="availableMyDecks.length === 0"
+                  @update:model-value="handleMyDeckFilterChange"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" sm="6" md="2" class="d-flex align-center">
                 <v-btn
                   color="secondary"
                   variant="outlined"
@@ -300,6 +315,11 @@ const currentMonth = computed(() => `${selectedYear.value}年${selectedMonth.val
 const filterPeriodType = ref<'all' | 'range'>('all');
 const filterRangeStart = ref(1);
 const filterRangeEnd = ref(30);
+const filterMyDeckId = ref<number | null>(null);
+const filterOpponentDeckId = ref<number | null>(null);
+
+const availableMyDecks = ref<{ id: number; name: string }[]>([]);
+const availableOpponentDecks = ref<{ id: number; name: string }[]>([]);
 
 const filterPeriodOptions = [
   { title: '全体', value: 'all' },
@@ -310,7 +330,9 @@ const resetFilters = () => {
   filterPeriodType.value = 'all';
   filterRangeStart.value = 1;
   filterRangeEnd.value = 30;
-  fetchStatistics();
+  filterMyDeckId.value = null;
+  filterOpponentDeckId.value = null;
+  refreshStatisticsWithDecks();
 };
 
 // --- Chart Base Options ---
@@ -389,6 +411,49 @@ const createInitialStats = (): AllStatisticsData => {
 
 const statisticsByMode = ref<AllStatisticsData>(createInitialStats());
 
+const fetchAvailableDecks = async () => {
+  try {
+    const params: any = {
+      year: selectedYear.value,
+      month: selectedMonth.value,
+      game_mode: currentTab.value,
+    };
+
+    if (filterPeriodType.value === 'range') {
+      params.range_start = filterRangeStart.value;
+      params.range_end = filterRangeEnd.value;
+    }
+
+    const response = await api.get('/statistics/available-decks', { params });
+    availableMyDecks.value = response.data.my_decks || [];
+    availableOpponentDecks.value = response.data.opponent_decks || [];
+
+    if (filterMyDeckId.value !== null) {
+      const exists = availableMyDecks.value.some((deck) => deck.id === filterMyDeckId.value);
+      if (!exists) {
+        filterMyDeckId.value = null;
+      }
+    }
+    if (filterOpponentDeckId.value !== null) {
+      const exists = availableOpponentDecks.value.some((deck) => deck.id === filterOpponentDeckId.value);
+      if (!exists) {
+        filterOpponentDeckId.value = null;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch available decks:', error);
+  }
+};
+
+const refreshStatisticsWithDecks = async () => {
+  await fetchAvailableDecks();
+  await fetchStatistics();
+};
+
+const handleMyDeckFilterChange = async () => {
+  await fetchStatistics();
+};
+
 const fetchStatistics = async () => {
   loading.value = true;
   try {
@@ -402,6 +467,14 @@ const fetchStatistics = async () => {
     if (filterPeriodType.value === 'range') {
       params.range_start = filterRangeStart.value;
       params.range_end = filterRangeEnd.value;
+    }
+
+    // デッキフィルターを追加
+    if (filterMyDeckId.value !== null) {
+      params.my_deck_id = filterMyDeckId.value;
+    }
+    if (filterOpponentDeckId.value !== null) {
+      params.opponent_deck_id = filterOpponentDeckId.value;
     }
 
     const response = await api.get('/statistics/', { params });
@@ -460,9 +533,13 @@ const myDeckWinRatesHeaders = [
   { title: '勝率', key: 'win_rate', sortable: true },
 ];
 
-onMounted(fetchStatistics);
+onMounted(() => {
+  refreshStatisticsWithDecks();
+});
 
-watch([selectedYear, selectedMonth], fetchStatistics);
+watch(currentTab, () => {
+  refreshStatisticsWithDecks();
+});
 
 // テーマ変更時にグラフを再描画
 watch(() => themeStore.isDark, () => {
