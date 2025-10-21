@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 import resend
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
