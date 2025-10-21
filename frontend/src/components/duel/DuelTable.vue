@@ -10,6 +10,11 @@
     fixed-header
     height="70vh"
   >
+    <!-- No.カラム -->
+    <template #[`item.no`]="{ index }">
+      <span class="text-grey">{{ duels.length - index }}</span>
+    </template>
+
     <!-- 勝敗カラム -->
     <template #[`item.result`]="{ item }">
       <v-chip :color="item.result ? 'success' : 'error'" variant="flat" class="font-weight-bold">
@@ -120,6 +125,7 @@ defineEmits<{
 }>();
 
 const headers = [
+  { title: 'No.', key: 'no', sortable: false, width: 60 },
   { title: '使用デッキ', key: 'deck', sortable: false },
   { title: '相手デッキ', key: 'opponentdeck', sortable: false },
   { title: '勝敗', key: 'result', sortable: true, width: 100 },
@@ -150,7 +156,7 @@ const formatDate = (dateString: string) => {
     background: rgb(var(--v-theme-surface-variant)) !important;
     color: rgb(var(--v-theme-on-surface)) !important;
     font-weight: 600 !important;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.5px;
     font-size: 10px !important;
     white-space: nowrap;
