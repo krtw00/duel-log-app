@@ -29,6 +29,12 @@ api.interceptors.request.use(
     config.metadata = { requestId };
     loadingStore.start(requestId);
 
+    // Safari対応デバッグログ
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
+      withCredentials: config.withCredentials,
+      headers: config.headers,
+    });
+
     return config;
   },
   (error) => {
@@ -47,6 +53,11 @@ api.interceptors.response.use(
     if (requestId) {
       loadingStore.stop(requestId);
     }
+
+    // Safari対応デバッグログ
+    console.log(`[API Response] ${response.status} ${response.config.url}`, {
+      setCookie: response.headers['set-cookie'],
+    });
 
     return response;
   },
