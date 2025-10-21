@@ -134,7 +134,7 @@
           <v-window-item v-for="mode in ['RANK', 'RATE', 'EVENT', 'DC']" :key="mode" :value="mode">
             <v-row>
               <!-- 月間デッキ分布 -->
-              <v-col cols="12" md="6">
+              <v-col cols="12">
                 <v-card class="stats-card">
                   <v-card-title>月間デッキ分布 ({{ currentMonth }})</v-card-title>
                   <v-card-text>
@@ -149,26 +149,6 @@
                     ></apexchart>
                     <div v-else class="no-data-placeholder">
                       <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
-                      <p class="text-body-1 text-grey mt-4">データがありません</p>
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <!-- 直近30戦デッキ分布 -->
-              <v-col cols="12" md="6">
-                <v-card class="stats-card">
-                  <v-card-title>直近30戦デッキ分布</v-card-title>
-                  <v-card-text>
-                    <apexchart
-                      v-if="!loading && statisticsByMode[mode].recentDistribution.series.length > 0"
-                      type="pie"
-                      height="350"
-                      :options="statisticsByMode[mode].recentDistribution.chartOptions"
-                      :series="statisticsByMode[mode].recentDistribution.series"
-                    ></apexchart>
-                    <div v-else class="no-data-placeholder">
-                      <v-icon size="64" color="grey">mdi-chart-donut</v-icon>
                       <p class="text-body-1 text-grey mt-4">データがありません</p>
                     </div>
                   </v-card-text>
@@ -294,7 +274,6 @@ interface TimeSeriesData {
 
 interface StatisticsModeData {
   monthlyDistribution: DistributionData;
-  recentDistribution: DistributionData;
   matchupData: any[];
   myDeckWinRates: any[];
   timeSeries: TimeSeriesData;
@@ -393,7 +372,6 @@ const createInitialStats = (): AllStatisticsData => {
   modes.forEach((mode) => {
     stats[mode] = {
       monthlyDistribution: { series: [], chartOptions: { ...baseChartOptions.value, labels: [] } },
-      recentDistribution: { series: [], chartOptions: { ...baseChartOptions.value, labels: [] } },
       matchupData: [],
       myDeckWinRates: [],
       timeSeries: {
@@ -438,14 +416,6 @@ const fetchStatistics = async () => {
       statisticsByMode.value[mode].monthlyDistribution = {
         series: monthlySeries,
         chartOptions: { ...baseChartOptions.value, labels: monthlyLabels },
-      };
-
-      // Recent Distribution
-      const recentLabels = modeData.recent_deck_distribution?.map((d: any) => d.deck_name) || [];
-      const recentSeries = modeData.recent_deck_distribution?.map((d: any) => d.count) || [];
-      statisticsByMode.value[mode].recentDistribution = {
-        series: recentSeries,
-        chartOptions: { ...baseChartOptions.value, labels: recentLabels },
       };
 
       // Matchup Data
