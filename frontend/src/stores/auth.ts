@@ -22,7 +22,17 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email: string, password: string) => {
     try {
       // ログインAPIをコール（成功するとサーバーがHttpOnlyクッキーを設定）
-      await api.post('/auth/login', { email, password });
+      const loginResponse = await api.post('/auth/login', { email, password });
+
+      // Safari対応: ログインレスポンスから直接ユーザー情報を取得
+      // これによりCookieのタイミング問題を回避
+      if (loginResponse.data?.user) {
+        user.value = loginResponse.data.user;
+      }
+
+      // 念のため、少し待ってからユーザー情報を再取得
+      // Safari/iOSではCookie設定に若干の遅延がある場合がある
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // ユーザー情報を取得してストアを更新
       await fetchUser();
@@ -60,11 +70,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   const fetchUser = async () => {
     try {
+      console.log('[Auth] Fetching user info from /me');
       // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
       const response = await api.get('/me');
+      console.log('[Auth] User info fetched successfully:', response.data);
       user.value = response.data;
-    } catch {
+    } catch (error) {
       // エラー（クッキーがない、または無効）の場合はユーザー情報をクリア
+      console.error('[Auth] Failed to fetch user info:', error);
       user.value = null;
     } finally {
       isInitialized.value = true;

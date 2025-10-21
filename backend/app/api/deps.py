@@ -29,8 +29,14 @@ def get_current_user(
     Raises:
         UnauthorizedException: 認証失敗時
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     if access_token is None:
+        logger.warning("Access token is None - Cookie not received from client")
         raise UnauthorizedException(detail="認証されていません")
+
+    logger.info(f"Access token received: {access_token[:20]}... (length: {len(access_token)})")
 
     # トークンをデコード
     payload = decode_access_token(access_token)
