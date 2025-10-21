@@ -39,6 +39,8 @@ def login(response: Response, login_data: LoginRequest, db: Session = Depends(ge
 
     メールアドレスとパスワードで認証し、HttpOnlyクッキーにJWTアクセストークンを設定する
     """
+    is_production = settings.ENVIRONMENT == "production"
+
     logger.info(f"Login attempt for email: {login_data.email}")
     logger.info(f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}")
 
