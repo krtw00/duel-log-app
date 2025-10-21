@@ -173,8 +173,8 @@
               />
             </v-col>
 
-            <!-- 対戦日時 -->
-            <v-col cols="12" :md="form.game_mode === 'EVENT' ? 12 : 6">
+            <!-- 対戦日時（編集時のみ表示） -->
+            <v-col v-if="isEdit" cols="12" :md="form.game_mode === 'EVENT' ? 12 : 6">
               <v-text-field
                 v-model="form.played_date"
                 label="対戦日時"
@@ -251,15 +251,17 @@ const latestValues = ref<{ [key: string]: { value: number; deck_id: number; oppo
 const selectedMyDeck = ref<Deck | string | null>(null);
 const selectedOpponentDeck = ref<Deck | string | null>(null);
 
-const defaultForm = (): DuelCreate => {
+const getCurrentLocalDateTime = (): string => {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
-  const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 
+const defaultForm = (): DuelCreate => {
   return {
     deck_id: null,
     opponentDeck_id: null,
@@ -270,7 +272,7 @@ const defaultForm = (): DuelCreate => {
     dc_value: undefined,
     coin: true,
     first_or_second: true,
-    played_date: localDateTime,
+    played_date: getCurrentLocalDateTime(),
     notes: '',
   };
 };
@@ -518,6 +520,11 @@ const handleSubmit = async () => {
       notificationStore.error('デッキの登録に失敗しました');
       loading.value = false;
       return;
+    }
+
+    // 新規登録時は現在時刻を自動設定
+    if (!isEdit.value) {
+      form.value.played_date = getCurrentLocalDateTime();
     }
 
     // datetime-local形式をISO文字列に変換（ローカルタイムゾーンを保持）

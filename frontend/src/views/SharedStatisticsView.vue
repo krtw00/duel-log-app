@@ -109,7 +109,7 @@
                         </v-col>
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
-                            title="先行率"
+                            title="先攻率"
                             :value="`${((processedStats['DASHBOARD'] as DuelStats).go_first_rate * 100).toFixed(1)}%`"
                             icon="mdi-arrow-up-bold-hexagon-outline"
                             color="teal"

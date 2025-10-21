@@ -391,7 +391,7 @@ const matchupHeaders = [
   { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
   { title: '対戦数', key: 'total_duels', sortable: true },
   { title: '勝率', key: 'win_rate', sortable: true },
-  { title: '先行勝率', key: 'win_rate_first', sortable: true },
+  { title: '先攻勝率', key: 'win_rate_first', sortable: true },
   { title: '後攻勝率', key: 'win_rate_second', sortable: true },
 ];
 
