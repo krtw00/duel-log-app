@@ -13,6 +13,7 @@ from app.models.user import User
 from app.schemas.duel import DuelWithDeckNames  # Import DuelWithDeckNames
 from app.schemas.shared_statistics import SharedStatisticsCreate, SharedStatisticsRead
 from app.services.duel_service import duel_service
+from app.services.general_stats_service import general_stats_service
 from app.services.shared_statistics_service import shared_statistics_service
 from app.services.statistics_service import statistics_service
 
@@ -84,7 +85,7 @@ def get_shared_statistics(
     game_mode = shared_link.game_mode  # 共有リンク作成時に指定されたゲームモード
 
     # 指定されたゲームモードの全体統計 (ダッシュボード用)
-    overall_stats = statistics_service.get_overall_stats(
+    overall_stats = general_stats_service.get_overall_stats(
         db=db,
         user_id=user_id,
         year=target_year,
