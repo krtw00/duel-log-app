@@ -6,7 +6,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import desc, extract, func, case
+from sqlalchemy import case, desc, extract, func
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
@@ -79,24 +79,58 @@ class StatisticsService:
         # デッキ情報を取得
         my_decks = []
         if my_deck_ids:
-            my_decks_query = db.query(Deck).filter(
-                Deck.id.in_(my_deck_ids),
-                Deck.is_opponent.is_(False)
-            ).all()
+            my_decks_query = (
+                db.query(Deck)
+                .filter(Deck.id.in_(my_deck_ids), Deck.is_opponent.is_(False))
+                .all()
+            )
             my_decks = [{"id": deck.id, "name": deck.name} for deck in my_decks_query]
 
         opponent_decks = []
         if opponent_deck_ids:
-            opponent_decks_query = db.query(Deck).filter(
-                Deck.id.in_(opponent_deck_ids),
-                Deck.is_opponent.is_(True)
-            ).all()
-            opponent_decks = [{"id": deck.id, "name": deck.name} for deck in opponent_decks_query]
+            opponent_decks_query = (
+                db.query(Deck)
+                .filter(Deck.id.in_(opponent_deck_ids), Deck.is_opponent.is_(True))
+                .all()
+            )
+            opponent_decks = [
+                {"id": deck.id, "name": deck.name} for deck in opponent_decks_query
+            ]
 
-        return {
-            "my_decks": my_decks,
-            "opponent_decks": opponent_decks
-        }
+        return {"my_decks": my_decks, "opponent_decks": opponent_decks}
+
+    def _calculate_win_rates_from_duels(
+        self, duels: List[Duel]
+    ) -> List[Dict[str, Any]]:
+        """デュエルのリストからデッキごとの勝率データを計算する"""
+        deck_stats_map = {}
+        for duel in duels:
+            if duel.deck and duel.deck.name:
+                deck_name = duel.deck.name
+                if deck_name not in deck_stats_map:
+                    deck_stats_map[deck_name] = {"total": 0, "wins": 0}
+                deck_stats_map[deck_name]["total"] += 1
+                if duel.result:
+                    deck_stats_map[deck_name]["wins"] += 1
+
+        win_rates_data = []
+        for deck_name, stats in sorted(
+            deck_stats_map.items(), key=lambda x: x[1]["total"], reverse=True
+        ):
+            total_duels = stats["total"]
+            wins = stats["wins"]
+            losses = total_duels - wins
+            win_rate = (wins / total_duels) * 100 if total_duels > 0 else 0
+            win_rates_data.append(
+                {
+                    "deck_name": deck_name,
+                    "total_duels": total_duels,
+                    "wins": wins,
+                    "losses": losses,
+                    "win_rate": win_rate,
+                }
+            )
+        return win_rates_data
 
     def get_my_deck_win_rates(
         self,
@@ -130,31 +164,7 @@ class StatisticsService:
         if range_start is not None or range_end is not None:
             duels = query.order_by(Duel.played_date.desc()).all()
             duels = self._apply_range_filter(duels, range_start, range_end)
-
-            # Python側で集計
-            deck_stats_map = {}
-            for duel in duels:
-                if duel.deck and duel.deck.name:
-                    deck_name = duel.deck.name
-                    if deck_name not in deck_stats_map:
-                        deck_stats_map[deck_name] = {"total": 0, "wins": 0}
-                    deck_stats_map[deck_name]["total"] += 1
-                    if duel.result:
-                        deck_stats_map[deck_name]["wins"] += 1
-
-            win_rates_data = []
-            for deck_name, stats in sorted(deck_stats_map.items(), key=lambda x: x[1]["total"], reverse=True):
-                total_duels = stats["total"]
-                wins = stats["wins"]
-                losses = total_duels - wins
-                win_rate = (wins / total_duels) * 100 if total_duels > 0 else 0
-                win_rates_data.append({
-                    "deck_name": deck_name,
-                    "total_duels": total_duels,
-                    "wins": wins,
-                    "losses": losses,
-                    "win_rate": win_rate,
-                })
+            return self._calculate_win_rates_from_duels(duels)
         else:
             # 通常のクエリベースの集計
             deck_stats = (
@@ -163,7 +173,7 @@ class StatisticsService:
                 .with_entities(
                     Deck.name,
                     func.count(Duel.id).label("total_duels"),
-                    func.sum(case((Duel.result == True, 1), else_=0)).label("wins"),
+                    func.sum(case((Duel.result, 1), else_=0)).label("wins"),
                 )
                 .order_by(desc("total_duels"))
                 .all()
@@ -258,7 +268,9 @@ class StatisticsService:
                     "count": count,
                     "percentage": (count / total_duels) * 100,
                 }
-                for name, count in sorted(deck_counts_map.items(), key=lambda x: x[1], reverse=True)
+                for name, count in sorted(
+                    deck_counts_map.items(), key=lambda x: x[1], reverse=True
+                )
             ]
             return distribution
         else:
@@ -327,7 +339,9 @@ class StatisticsService:
                     "count": count,
                     "percentage": (count / total_duels) * 100,
                 }
-                for name, count in sorted(deck_counts_map.items(), key=lambda x: x[1], reverse=True)
+                for name, count in sorted(
+                    deck_counts_map.items(), key=lambda x: x[1], reverse=True
+                )
             ]
             return distribution
         else:
@@ -455,9 +469,14 @@ class StatisticsService:
                             "opponent_deck_name": opp_deck_name,
                             "total_duels": total_duels,
                             "wins": results["wins_first"] + results["wins_second"],
-                            "losses": results["losses_first"] + results["losses_second"],
+                            "losses": results["losses_first"]
+                            + results["losses_second"],
                             "win_rate": (
-                                ((results["wins_first"] + results["wins_second"]) / total_duels) * 100
+                                (
+                                    (results["wins_first"] + results["wins_second"])
+                                    / total_duels
+                                )
+                                * 100
                                 if total_duels > 0
                                 else 0
                             ),
@@ -473,7 +492,7 @@ class StatisticsService:
                             ),
                         }
                     )
-        
+
         # 使用率（対戦数）でソート
         chart_data.sort(key=lambda x: x["total_duels"], reverse=True)
 

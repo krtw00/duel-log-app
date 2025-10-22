@@ -45,10 +45,18 @@ def _is_safari_browser(user_agent: str) -> bool:
     user_agent_lower = user_agent.lower()
 
     # Safariの判定（ChromeやEdgeではない純粋なSafari）
-    is_safari = "safari" in user_agent_lower and "chrome" not in user_agent_lower and "edg" not in user_agent_lower
+    is_safari = (
+        "safari" in user_agent_lower
+        and "chrome" not in user_agent_lower
+        and "edg" not in user_agent_lower
+    )
 
     # iOSデバイスの判定
-    is_ios = "iphone" in user_agent_lower or "ipad" in user_agent_lower or "ipod" in user_agent_lower
+    is_ios = (
+        "iphone" in user_agent_lower
+        or "ipad" in user_agent_lower
+        or "ipod" in user_agent_lower
+    )
 
     return is_safari or is_ios
 
@@ -119,7 +127,9 @@ def login(
     # Safari対応: productionの場合はdomainを明示的に設定しない（サブドメイン問題を回避）
     # これによりCookieは現在のドメインに対してのみ設定される
 
-    logger.info(f"Setting cookie with params: samesite={cookie_params['samesite']}, secure={cookie_params['secure']}, httponly={cookie_params['httponly']}, path={cookie_params['path']}, max_age={cookie_params['max_age']}")
+    logger.info(
+        f"Setting cookie with params: samesite={cookie_params['samesite']}, secure={cookie_params['secure']}, httponly={cookie_params['httponly']}, path={cookie_params['path']}, max_age={cookie_params['max_age']}"
+    )
 
     response.set_cookie(**cookie_params)
 

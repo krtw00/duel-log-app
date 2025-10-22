@@ -137,9 +137,7 @@ class TestDeckService:
         deck1 = DeckCreate(name="Deck One", is_opponent=False)
         deck2 = DeckCreate(name="Deck Two", is_opponent=False)
 
-        deck_service.create_user_deck(
-            db_session, user_id=test_user.id, deck_in=deck1
-        )
+        deck_service.create_user_deck(db_session, user_id=test_user.id, deck_in=deck1)
         created_deck2 = deck_service.create_user_deck(
             db_session, user_id=test_user.id, deck_in=deck2
         )
