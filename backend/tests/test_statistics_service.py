@@ -39,62 +39,6 @@ class TestStatisticsService:
     StatisticsServiceのテストクラス
     """
 
-    def test_get_my_deck_win_rates_no_range(self, db_session: Session, test_user: User):
-        """範囲指定なしの場合のデッキ別勝率が正しく計算されることをテスト"""
-        create_test_data(db_session, test_user)
-
-        win_rates = statistics_service.get_my_deck_win_rates(
-            db=db_session,
-            user_id=test_user.id,
-            year=2024,
-            month=7
-        )
-
-        assert len(win_rates) == 2
-        
-        # 結果は対戦数でソートされる
-        my_deck1_stats = next((item for item in win_rates if item["deck_name"] == "MyDeck1"), None)
-        my_deck2_stats = next((item for item in win_rates if item["deck_name"] == "MyDeck2"), None)
-
-        assert my_deck1_stats is not None
-        assert my_deck1_stats["total_duels"] == 4
-        assert my_deck1_stats["wins"] == 3
-        assert my_deck1_stats["win_rate"] == 75.0
-
-        assert my_deck2_stats is not None
-        assert my_deck2_stats["total_duels"] == 3
-        assert my_deck2_stats["wins"] == 1
-        assert my_deck2_stats["win_rate"] == pytest.approx(33.33, abs=0.01), "MyDeck2の勝率が正しくない"
-
-    def test_get_my_deck_win_rates_with_range(self, db_session: Session, test_user: User):
-        """Python側で集計する範囲指定ありの場合のデッキ別勝率をテスト"""
-        create_test_data(db_session, test_user)
-
-        # played_dateが新しい順にソートして、2戦目から5戦目までを取得するケース
-        # 対象デュエル: 7/6, 7/5, 7/4, 7/3 (MyDeck2: 1勝2敗, MyDeck1: 1勝1敗)
-        win_rates = statistics_service.get_my_deck_win_rates(
-            db=db_session,
-            user_id=test_user.id,
-            year=2024,
-            month=7,
-            range_start=2,
-            range_end=5
-        )
-
-        assert len(win_rates) == 2
-
-        my_deck1_stats = next((item for item in win_rates if item["deck_name"] == "MyDeck1"), None)
-        my_deck2_stats = next((item for item in win_rates if item["deck_name"] == "MyDeck2"), None)
-
-        assert my_deck1_stats is not None
-        assert my_deck1_stats["total_duels"] == 2
-        assert my_deck1_stats["wins"] == 1
-        assert my_deck1_stats["win_rate"] == 50.0
-
-        assert my_deck2_stats is not None
-        assert my_deck2_stats["total_duels"] == 2
-        assert my_deck2_stats["wins"] == 1
-        assert my_deck2_stats["win_rate"] == 50.0
 
     def test_get_deck_distribution_monthly_no_range(self, db_session: Session, test_user: User):
         """範囲指定なしの場合の相手デッキ分布が正しく計算されることをテスト"""

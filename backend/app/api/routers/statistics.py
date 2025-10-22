@@ -14,6 +14,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.services.general_stats_service import general_stats_service
 from app.services.statistics_service import statistics_service
+from app.services.win_rate_service import win_rate_service
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
@@ -64,7 +65,7 @@ def get_all_statistics(
                 my_deck_id=my_deck_id,
                 opponent_deck_id=opponent_deck_id,
             ),
-            "my_deck_win_rates": statistics_service.get_my_deck_win_rates(
+            "my_deck_win_rates": win_rate_service.get_my_deck_win_rates(
                 db=db,
                 user_id=current_user.id,
                 year=year,
