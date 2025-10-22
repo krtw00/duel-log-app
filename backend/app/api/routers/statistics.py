@@ -16,6 +16,7 @@ from app.services.general_stats_service import general_stats_service
 from app.services.statistics_service import statistics_service
 from app.services.win_rate_service import win_rate_service
 from app.services.deck_distribution_service import deck_distribution_service
+from app.services.matchup_service import matchup_service
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
@@ -55,7 +56,7 @@ def get_all_statistics(
                 range_start=range_start,
                 range_end=range_end,
             ),
-            "matchup_data": statistics_service.get_matchup_chart(
+            "matchup_data": matchup_service.get_matchup_chart(
                 db=db,
                 user_id=current_user.id,
                 year=year,
@@ -134,7 +135,7 @@ def get_matchup_chart(
     current_user: User = Depends(get_current_user),
 ):
     """デッキ相性表のデータを取得"""
-    return statistics_service.get_matchup_chart(
+    return matchup_service.get_matchup_chart(
         db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode
     )
 
