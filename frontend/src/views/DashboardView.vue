@@ -130,8 +130,17 @@ const fetchDuels = async () => {
       api.get('/decks/'),
     ]);
 
-    duels.value = duelsResponse.data;
     decks.value = decksResponse.data;
+
+    // デッキ情報をマッピング
+    const deckMap = new Map(decks.value.map(deck => [deck.id, deck]));
+
+    // duelにdeck情報を追加
+    duels.value = duelsResponse.data.map((duel: Duel) => ({
+      ...duel,
+      deck: deckMap.get(duel.deck_id),
+      opponentdeck: deckMap.get(duel.opponentDeck_id),
+    }));
   } catch (error) {
     console.error('Failed to fetch duels:', error);
   } finally {
