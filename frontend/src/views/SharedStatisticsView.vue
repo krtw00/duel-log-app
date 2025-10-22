@@ -275,6 +275,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSharedStatisticsStore } from '@/stores/shared_statistics';
 import { useThemeStore } from '@/stores/theme';
+import { useChartOptions } from '@/composables/useChartOptions';
 import StatCard from '@/components/duel/StatCard.vue';
 import DuelTable from '@/components/duel/DuelTable.vue';
 import { api } from '@/services/api';
@@ -282,6 +283,7 @@ import { useNotificationStore } from '@/stores/notification';
 
 const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
+const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 
 // --- Types ---
 interface DistributionData {
@@ -341,56 +343,8 @@ const displayModes = computed(() => {
   return modes;
 });
 // --- Chart Base Options ---
-const baseChartOptions = computed(() => ({
-  chart: { type: 'pie', background: 'transparent' },
-  labels: [],
-  theme: {
-    mode: themeStore.isDark ? 'dark' : 'light',
-  },
-  colors: ['#00D9FF', '#FF4560', '#775DD0', '#FEB019', '#00E396', '#D4526E', '#3F51B5', '#26A69A', '#E91E63', '#FFC107'],
-  legend: {
-    position: 'bottom',
-    labels: {
-      colors: themeStore.isDark ? '#fff' : '#000',
-    },
-  },
-  responsive: [
-    {
-      breakpoint: 480,
-      options: {
-        chart: { width: 200 },
-        legend: { position: 'bottom' },
-      },
-    },
-  ],
-}));
-
-const lineChartBaseOptions = computed(() => ({
-  chart: {
-    type: 'line',
-    background: 'transparent',
-    zoom: { enabled: false },
-    toolbar: { show: false },
-  },
-  xaxis: {
-    type: 'numeric',
-    title: { text: '対戦数', style: { color: themeStore.isDark ? '#E4E7EC' : '#333' } },
-    labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } },
-  },
-  yaxis: { labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } } },
-  stroke: { curve: 'smooth', width: 3 },
-  markers: {
-    size: 4,
-    colors: ['#00d9ff'],
-    strokeColors: '#fff',
-    strokeWidth: 2,
-    hover: { size: 7 },
-  },
-  grid: { borderColor: 'rgba(0, 217, 255, 0.1)', strokeDashArray: 4 },
-  tooltip: { theme: themeStore.isDark ? 'dark' : 'light' },
-  dataLabels: { enabled: false },
-  theme: { mode: themeStore.isDark ? 'dark' : 'light' },
-}));
+// baseChartOptions と lineChartBaseOptions は useChartOptions から取得
+// basePieChartOptions と baseLineChartOptions として利用可能
 
 // --- Data Table ---
 const matchupHeaders = [
@@ -506,21 +460,21 @@ const fetchSharedStatistics = async () => {
             monthlyDistribution: {
               series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions.value,
+                ...basePieChartOptions.value,
                 labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
             recentDistribution: {
               series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions.value,
+                ...basePieChartOptions.value,
                 labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
             matchupData: rawStats.matchup_data || [],
             timeSeries: {
               series: [],
-              chartOptions: lineChartBaseOptions.value,
+              chartOptions: baseLineChartOptions.value,
             },
           };
         } else {
@@ -531,14 +485,14 @@ const fetchSharedStatistics = async () => {
             monthlyDistribution: {
               series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions.value,
+                ...basePieChartOptions.value,
                 labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
             recentDistribution: {
               series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
               chartOptions: {
-                ...baseChartOptions.value,
+                ...basePieChartOptions.value,
                 labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
               },
             },
@@ -548,9 +502,9 @@ const fetchSharedStatistics = async () => {
                 { name: mode, data: rawStats.time_series_data?.map((d: any) => d.value) || [] },
               ],
               chartOptions: {
-                ...lineChartBaseOptions.value,
+                ...baseLineChartOptions.value,
                 xaxis: {
-                  ...lineChartBaseOptions.value.xaxis,
+                  ...baseLineChartOptions.value.xaxis,
                   categories: rawStats.time_series_data?.map((_: any, i: number) => i + 1) || [],
                 },
                 colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
