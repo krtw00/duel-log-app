@@ -242,6 +242,8 @@ import { api } from '@/services/api';
 import { Duel, DuelCreate, Deck, GameMode } from '@/types';
 import { useNotificationStore } from '@/stores/notification';
 import { RANKS } from '@/utils/ranks';
+import { useDuelFormValidation } from '@/composables/useDuelFormValidation';
+import { useDateTimeFormat } from '@/composables/useDateTimeFormat';
 
 interface Props {
   modelValue: boolean;
@@ -260,6 +262,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:modelValue', 'saved']);
 
 const notificationStore = useNotificationStore();
+const { rules } = useDuelFormValidation();
+const { getCurrentLocalDateTime, localDateTimeToISO, isoToLocalDateTime } = useDateTimeFormat();
 
 const formRef = ref();
 const loading = ref(false);
@@ -270,16 +274,6 @@ const latestValues = ref<{ [key: string]: { value: number; deck_id: number; oppo
 // コンボボックス用の選択値
 const selectedMyDeck = ref<Deck | string | null>(null);
 const selectedOpponentDeck = ref<Deck | string | null>(null);
-
-const getCurrentLocalDateTime = (): string => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
 
 const defaultForm = (): DuelCreate => {
   return {
@@ -301,25 +295,7 @@ const form = ref<DuelCreate>(defaultForm());
 
 const isEdit = computed(() => !!props.duel);
 
-const rules = {
-  required: (v: any) => (v !== null && v !== undefined && v !== '') || '入力必須です',
-  number: (v: any) => (!isNaN(v) && v >= 0) || '0以上の数値を入力してください',
-  maxLength: (v: string) => !v || v.length <= 1000 || '1000文字以内で入力してください',
-};
-
-// datetime-local形式の文字列をタイムゾーン情報なしのISO形式に変換
-const localDateTimeToISO = (localDateTime: string): string => {
-  // datetime-local形式: "2025-10-04T05:36"
-  // ユーザーが入力した時刻をそのまま保存するため、秒とミリ秒を追加するだけ
-  return `${localDateTime}:00`;
-};
-
-// ISO文字列をdatetime-local形式に変換
-const isoToLocalDateTime = (isoString: string): string => {
-  // タイムゾーン情報とミリ秒を削除して、datetime-local形式に変換
-  // "2025-10-04T05:36:00" または "2025-10-04T05:36:00.000Z" → "2025-10-04T05:36"
-  return isoString.replace(/\.\d{3}Z?$/, '').substring(0, 16);
-};
+// バリデーションルールと日時変換関数はcomposableから取得
 
 // デッキ一覧を取得
 const fetchDecks = async () => {
