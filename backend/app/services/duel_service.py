@@ -110,57 +110,30 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         """
         latest_values = {}
 
-        # 最新のランク値を取得
-        latest_rank_duel = (
-            db.query(Duel)
-            .filter(
-                Duel.user_id == user_id, Duel.game_mode == "RANK", Duel.rank.isnot(None)
-            )
-            .order_by(Duel.played_date.desc())
-            .first()
-        )
-        if latest_rank_duel:
-            latest_values["RANK"] = {
-                "value": latest_rank_duel.rank,
-                "deck_id": latest_rank_duel.deck_id,
-                "opponentDeck_id": latest_rank_duel.opponentDeck_id,
-            }
+        # ゲームモード別の設定
+        game_mode_configs = [
+            ("RANK", Duel.rank, "rank"),
+            ("RATE", Duel.rate_value, "rate_value"),
+            ("DC", Duel.dc_value, "dc_value"),
+        ]
 
-        # 最新のレート値を取得
-        latest_rate_duel = (
-            db.query(Duel)
-            .filter(
-                Duel.user_id == user_id,
-                Duel.game_mode == "RATE",
-                Duel.rate_value.isnot(None),
+        for mode, value_field, attr_name in game_mode_configs:
+            latest_duel = (
+                db.query(Duel)
+                .filter(
+                    Duel.user_id == user_id,
+                    Duel.game_mode == mode,
+                    value_field.isnot(None),
+                )
+                .order_by(Duel.played_date.desc())
+                .first()
             )
-            .order_by(Duel.played_date.desc())
-            .first()
-        )
-        if latest_rate_duel:
-            latest_values["RATE"] = {
-                "value": latest_rate_duel.rate_value,
-                "deck_id": latest_rate_duel.deck_id,
-                "opponentDeck_id": latest_rate_duel.opponentDeck_id,
-            }
-
-        # 最新のDC値を取得
-        latest_dc_duel = (
-            db.query(Duel)
-            .filter(
-                Duel.user_id == user_id,
-                Duel.game_mode == "DC",
-                Duel.dc_value.isnot(None),
-            )
-            .order_by(Duel.played_date.desc())
-            .first()
-        )
-        if latest_dc_duel:
-            latest_values["DC"] = {
-                "value": latest_dc_duel.dc_value,
-                "deck_id": latest_dc_duel.deck_id,
-                "opponentDeck_id": latest_dc_duel.opponentDeck_id,
-            }
+            if latest_duel:
+                latest_values[mode] = {
+                    "value": getattr(latest_duel, attr_name),
+                    "deck_id": latest_duel.deck_id,
+                    "opponentDeck_id": latest_duel.opponentDeck_id,
+                }
 
         return latest_values
 
