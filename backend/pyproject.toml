@@ -81,3 +81,14 @@ ignore = [
 [tool.ruff.lint.isort]
 known-third-party = ["fastapi", "passlib", "pydantic", "sqlalchemy", "starlette", "uvicorn"]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "duel-log-app-backend"
+version = "0.1.0"
+
+[tool.setuptools]
+packages = ["app"]
+
