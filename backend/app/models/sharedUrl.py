@@ -22,8 +22,12 @@ class SharedUrl(Base):
     url: Mapped[str] = mapped_column(
         String, unique=True, nullable=False, default=lambda: str(uuid.uuid4())
     )
-    createdat: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    createdat: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
     updatedat: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
     user: Mapped["User"] = relationship("User", back_populates="sharedurls")

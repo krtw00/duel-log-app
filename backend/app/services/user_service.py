@@ -70,27 +70,35 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
 
     def export_all_data_to_csv(self, db: Session, user_id: int) -> str:
         from app.services.duel_service import duel_service
+
         return duel_service.export_duels_to_csv(db=db, user_id=user_id)
 
-    def import_all_data_from_csv(self, db: Session, user_id: int, csv_content: str) -> dict:
-        from app.models.duel import Duel
+    def import_all_data_from_csv(
+        self, db: Session, user_id: int, csv_content: str
+    ) -> dict:
         from app.models.deck import Deck
+        from app.models.duel import Duel
         from app.services.duel_service import duel_service
 
         try:
             # Delete all existing data
-            db.query(Duel).filter(Duel.user_id == user_id).delete(synchronize_session=False)
-            db.query(Deck).filter(Deck.user_id == user_id).delete(synchronize_session=False)
+            db.query(Duel).filter(Duel.user_id == user_id).delete(
+                synchronize_session=False
+            )
+            db.query(Deck).filter(Deck.user_id == user_id).delete(
+                synchronize_session=False
+            )
             db.commit()
         except Exception as e:
             db.rollback()
             raise HTTPException(
-                status_code=500,
-                detail=f"データの削除に失敗しました: {e}"
+                status_code=500, detail=f"データの削除に失敗しました: {e}"
             ) from e
 
         # Import new data
-        return duel_service.import_duels_from_csv(db=db, user_id=user_id, csv_content=csv_content)
+        return duel_service.import_duels_from_csv(
+            db=db, user_id=user_id, csv_content=csv_content
+        )
 
 
 # シングルトンインスタンス
