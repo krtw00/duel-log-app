@@ -23,15 +23,6 @@ export function useCSVOperations(props: UseCSVOperationsProps) {
   const { selectedYear, selectedMonth, currentMode, loading, fetchDuels } = props;
   const notificationStore = useNotificationStore();
 
-  const fileInput = ref<HTMLInputElement | null>(null);
-
-  /**
-   * ファイル選択ダイアログを開く
-   */
-  const triggerFileInput = () => {
-    fileInput.value?.click();
-  };
-
   /**
    * CSVファイルをインポート
    * @param event - ファイル選択イベント
@@ -76,10 +67,7 @@ export function useCSVOperations(props: UseCSVOperationsProps) {
       // エラーはAPIインターセプターで処理される
     } finally {
       loading.value = false;
-      // 同じファイルを再度選択できるように、inputの値をクリア
-      if (fileInput.value) {
-        fileInput.value.value = '';
-      }
+      // Note: inputのクリアは呼び出し側で行う
     }
   };
 
@@ -130,11 +118,7 @@ export function useCSVOperations(props: UseCSVOperationsProps) {
   };
 
   return {
-    // State
-    fileInput,
-
     // Functions
-    triggerFileInput,
     handleFileUpload,
     exportCSV,
   };
