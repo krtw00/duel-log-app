@@ -244,17 +244,14 @@ import { useNotificationStore } from '@/stores/notification';
 import { RANKS } from '@/utils/ranks';
 import { useDuelFormValidation } from '@/composables/useDuelFormValidation';
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat';
+import { useDeckResolution } from '@/composables/useDeckResolution';
+import { useLatestDuelValues } from '@/composables/useLatestDuelValues';
 
 interface Props {
   modelValue: boolean;
   duel: Duel | null;
   defaultGameMode?: GameMode;
 }
-
-// Default values
-const DEFAULT_RANK = 18; // プラチナ5
-const DEFAULT_RATE = 1500;
-const DEFAULT_DC = 0;
 
 const props = withDefaults(defineProps<Props>(), {
   defaultGameMode: 'RANK',
@@ -264,12 +261,13 @@ const emit = defineEmits(['update:modelValue', 'saved']);
 const notificationStore = useNotificationStore();
 const { rules } = useDuelFormValidation();
 const { getCurrentLocalDateTime, localDateTimeToISO, isoToLocalDateTime } = useDateTimeFormat();
+const { resolveDeckId } = useDeckResolution();
+const { fetchLatestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
 
 const formRef = ref();
 const loading = ref(false);
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
-const latestValues = ref<{ [key: string]: { value: number; deck_id: number; opponentDeck_id: number } }>({});
 
 // コンボボックス用の選択値
 const selectedMyDeck = ref<Deck | string | null>(null);
@@ -316,74 +314,7 @@ const fetchDecks = async () => {
   }
 };
 
-const fetchLatestValues = async () => {
-  try {
-    const response = await api.get('/duels/latest-values/');
-    latestValues.value = response.data;
-  } catch (error) {
-    console.error('Failed to fetch latest values:', error);
-    latestValues.value = {};
-  }
-};
-
-// 新しいデッキを作成（登録ボタン押下時のみ）
-const createDeckIfNeeded = async (name: string, isOpponent: boolean): Promise<number | null> => {
-  try {
-    const trimmedName = name.trim();
-
-    // 既に同じ名前のデッキが存在するかチェック
-    const decks = isOpponent ? opponentDecks.value : myDecks.value;
-    const existingDeck = decks.find((d) => d.name === trimmedName);
-    if (existingDeck) {
-      return existingDeck.id;
-    }
-
-    // 新しいデッキを作成
-    const response = await api.post('/decks/', {
-      name: trimmedName,
-      is_opponent: isOpponent,
-    });
-
-    const newDeck = response.data;
-    const deckType = isOpponent ? '相手のデッキ' : '自分のデッキ';
-    notificationStore.success(`${deckType}「${trimmedName}」を登録しました`);
-
-    return newDeck.id;
-  } catch (error: any) {
-    // 重複エラーの場合は既存のデッキを検索
-    if (error.response?.status === 400) {
-      const decks = isOpponent ? opponentDecks.value : myDecks.value;
-      const existingDeck = decks.find((d) => d.name === name.trim());
-      if (existingDeck) {
-        return existingDeck.id;
-      }
-    }
-    console.error('Failed to create deck:', error);
-    throw error;
-  }
-};
-
-// デッキIDを取得（既存デッキまたは新規作成）
-const resolveDeckId = async (
-  selected: Deck | string | null,
-  isOpponent: boolean,
-): Promise<number | null> => {
-  if (!selected) {
-    return null;
-  }
-
-  // オブジェクトの場合（既存のデッキを選択）
-  if (typeof selected === 'object' && selected.id) {
-    return selected.id;
-  }
-
-  // 文字列の場合（新しいデッキ名を入力）
-  if (typeof selected === 'string' && selected.trim()) {
-    return await createDeckIfNeeded(selected, isOpponent);
-  }
-
-  return null;
-};
+// fetchLatestValues, createDeckIfNeeded, resolveDeckId はcomposableから取得
 
 // ダイアログが開いたらデッキを取得
 watch(
@@ -419,32 +350,14 @@ watch(
         await fetchLatestValues();
         form.value = defaultForm();
         form.value.game_mode = props.defaultGameMode;
-        selectedMyDeck.value = null;
-        selectedOpponentDeck.value = null;
 
-        // Set initial value based on game mode
-        const latest = latestValues.value[form.value.game_mode];
-        if (latest) {
-          if (form.value.game_mode === 'RANK') {
-            form.value.rank = latest.value ?? DEFAULT_RANK;
-          } else if (form.value.game_mode === 'RATE') {
-            form.value.rate_value = latest.value ?? DEFAULT_RATE;
-          } else if (form.value.game_mode === 'DC') {
-            form.value.dc_value = latest.value ?? DEFAULT_DC;
-          }
-          selectedMyDeck.value = myDecks.value.find((d) => d.id === latest.deck_id) || null;
-        } else {
-          // If no latest value, use defaults and clear deck selections
-          if (form.value.game_mode === 'RANK') {
-            form.value.rank = DEFAULT_RANK;
-          } else if (form.value.game_mode === 'RATE') {
-            form.value.rate_value = DEFAULT_RATE;
-          } else if (form.value.game_mode === 'DC') {
-            form.value.dc_value = DEFAULT_DC;
-          }
-          selectedMyDeck.value = null;
-          selectedOpponentDeck.value = null;
-        }
+        // ゲームモードに応じた最新値を適用
+        const applied = applyLatestValuesToGameMode(form.value.game_mode, myDecks.value);
+        form.value.rank = applied.rank;
+        form.value.rate_value = applied.rate_value;
+        form.value.dc_value = applied.dc_value;
+        selectedMyDeck.value = applied.selectedMyDeck;
+        selectedOpponentDeck.value = applied.selectedOpponentDeck;
       }
     }
   },
@@ -461,28 +374,13 @@ watch(
     form.value.rate_value = undefined;
     form.value.dc_value = undefined;
 
-    const latest = latestValues.value[newMode];
-    if (latest) {
-      if (newMode === 'RANK') {
-        form.value.rank = latest.value ?? DEFAULT_RANK;
-      } else if (newMode === 'RATE') {
-        form.value.rate_value = latest.value ?? DEFAULT_RATE;
-      } else if (newMode === 'DC') {
-        form.value.dc_value = latest.value ?? DEFAULT_DC;
-      }
-      selectedMyDeck.value = myDecks.value.find((d) => d.id === latest.deck_id) || null;
-    } else {
-      // If no latest value, use defaults and clear deck selections
-      if (newMode === 'RANK') {
-        form.value.rank = DEFAULT_RANK;
-      } else if (newMode === 'RATE') {
-        form.value.rate_value = DEFAULT_RATE;
-      } else if (newMode === 'DC') {
-        form.value.dc_value = DEFAULT_DC;
-      }
-      selectedMyDeck.value = null;
-      selectedOpponentDeck.value = null;
-    }
+    // ゲームモードに応じた最新値を適用
+    const applied = applyLatestValuesToGameMode(newMode, myDecks.value);
+    form.value.rank = applied.rank;
+    form.value.rate_value = applied.rate_value;
+    form.value.dc_value = applied.dc_value;
+    selectedMyDeck.value = applied.selectedMyDeck;
+    selectedOpponentDeck.value = applied.selectedOpponentDeck;
   },
 );
 
@@ -494,8 +392,8 @@ const handleSubmit = async () => {
 
   try {
     // デッキIDを解決（必要に応じて新規作成）
-    const myDeckId = await resolveDeckId(selectedMyDeck.value, false);
-    const opponentDeckId = await resolveDeckId(selectedOpponentDeck.value, true);
+    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecks.value);
+    const opponentDeckId = await resolveDeckId(selectedOpponentDeck.value, true, opponentDecks.value);
 
     if (!myDeckId || !opponentDeckId) {
       notificationStore.error('デッキの登録に失敗しました');
