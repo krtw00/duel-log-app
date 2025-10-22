@@ -70,7 +70,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="総試合数"
-                            :value="(processedStats['DASHBOARD'] as DuelStats).total_duels"
+                            :value="(processedStats['DASHBOARD'] as DuelStats).total_duels ?? 0"
                             icon="mdi-sword-cross"
                             color="primary"
                           />
@@ -78,7 +78,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).win_rate * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).win_rate ?? 0) * 100).toFixed(1)}%`"
                             icon="mdi-trophy"
                             color="success"
                           />
@@ -86,7 +86,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="先攻勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).first_turn_win_rate * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).first_turn_win_rate ?? 0) * 100).toFixed(1)}%`"
                             icon="mdi-lightning-bolt"
                             color="warning"
                           />
@@ -94,7 +94,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="後攻勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).second_turn_win_rate * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).second_turn_win_rate ?? 0) * 100).toFixed(1)}%`"
                             icon="mdi-shield"
                             color="secondary"
                           />
@@ -102,7 +102,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="コイン勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).coin_win_rate * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).coin_win_rate ?? 0) * 100).toFixed(1)}%`"
                             icon="mdi-poker-chip"
                             color="yellow"
                           />
@@ -110,7 +110,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="先攻率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).go_first_rate * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).go_first_rate ?? 0) * 100).toFixed(1)}%`"
                             icon="mdi-arrow-up-bold-hexagon-outline"
                             color="teal"
                           />
@@ -286,14 +286,17 @@ const themeStore = useThemeStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 
 // --- Types ---
+import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
+import type { MatchupData } from '@/types';
+
 interface DistributionData {
   series: number[];
-  chartOptions: any;
+  chartOptions: ApexPieChartOptions;
 }
 
 interface TimeSeriesData {
   series: { name: string; data: number[] }[];
-  chartOptions: any;
+  chartOptions: ApexLineChartOptions;
 }
 
 interface StatisticsModeData {
@@ -301,23 +304,50 @@ interface StatisticsModeData {
   month: number;
   monthlyDistribution: DistributionData;
   recentDistribution: DistributionData;
-  matchupData: any[];
+  matchupData: MatchupData[];
   timeSeries: TimeSeriesData;
 }
 
-interface AllStatisticsData {
-  [key: string]: StatisticsModeData | DuelStats; // Allow DuelStats for DASHBOARD
+interface DashboardRawData {
+  overall_stats?: DuelStats;
+  duels?: DuelRawData[];
+  year?: number;
+  month?: number;
+}
+
+interface DuelRawData {
+  deck_name: string;
+  opponent_deck_name: string;
+  [key: string]: unknown;
+}
+
+interface RawStatsData {
+  year?: number;
+  month?: number;
+  monthly_deck_distribution?: { deck_name: string; count: number }[];
+  recent_deck_distribution?: { deck_name: string; count: number }[];
+  matchup_data?: MatchupData[];
+  time_series_data?: Array<{ date: string; value: number }>;
+  [key: string]: unknown;
 }
 
 interface DuelStats {
-  total_duels: number;
-  win_count: number;
-  lose_count: number;
-  win_rate: number;
-  first_turn_win_rate: number;
-  second_turn_win_rate: number;
-  coin_win_rate: number;
-  go_first_rate: number;
+  total_duels?: number;
+  win_count?: number;
+  lose_count?: number;
+  win_rate?: number;
+  first_turn_win_rate?: number;
+  second_turn_win_rate?: number;
+  coin_win_rate?: number;
+  go_first_rate?: number;
+}
+
+interface DashboardData extends DuelStats {
+  duels?: unknown[];
+}
+
+interface AllStatisticsData {
+  [key: string]: StatisticsModeData | DashboardData; // Allow DashboardData for DASHBOARD
 }
 
 const route = useRoute();
@@ -442,8 +472,8 @@ const fetchSharedStatistics = async () => {
 
         if (mode === 'DASHBOARD') {
           // Process DASHBOARD data
-          const dashboardStats = rawStats as any;
-          const transformedDuels = (dashboardStats.duels || []).map((d: any) => ({
+          const dashboardStats = rawStats as DashboardRawData;
+          const transformedDuels = (dashboardStats.duels || []).map((d: DuelRawData) => ({
             ...d,
             deck: { name: d.deck_name },
             opponentdeck: { name: d.opponent_deck_name },
@@ -451,27 +481,28 @@ const fetchSharedStatistics = async () => {
           tempProcessedStats['DASHBOARD'] = {
             ...(dashboardStats.overall_stats || {}),
             duels: transformedDuels,
-          } as any;
+          };
         } else if (mode === 'STATISTICS') {
           // Process STATISTICS data (all game modes combined)
+          const statsRawData = rawStats as unknown as RawStatsData;
           tempProcessedStats['STATISTICS'] = {
-            year: (rawStats as any).year || selectedYear.value,
-            month: (rawStats as any).month || selectedMonth.value,
+            year: statsRawData.year || selectedYear.value,
+            month: statsRawData.month || selectedMonth.value,
             monthlyDistribution: {
-              series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
+              series: statsRawData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [],
               chartOptions: {
                 ...basePieChartOptions.value,
-                labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
+                labels: statsRawData.monthly_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
               },
             },
             recentDistribution: {
-              series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
+              series: statsRawData.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
               chartOptions: {
                 ...basePieChartOptions.value,
-                labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
+                labels: statsRawData.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
               },
             },
-            matchupData: rawStats.matchup_data || [],
+            matchupData: statsRawData.matchup_data || [],
             timeSeries: {
               series: [],
               chartOptions: baseLineChartOptions.value,
@@ -479,33 +510,34 @@ const fetchSharedStatistics = async () => {
           };
         } else {
           // Process other game mode specific data (RANK, RATE, EVENT, DC) - though these shouldn't exist now
+          const modeRawData = rawStats as unknown as RawStatsData;
           tempProcessedStats[mode] = {
-            year: (rawStats as any).year || selectedYear.value,
-            month: (rawStats as any).month || selectedMonth.value,
+            year: modeRawData.year || selectedYear.value,
+            month: modeRawData.month || selectedMonth.value,
             monthlyDistribution: {
-              series: rawStats.monthly_deck_distribution?.map((d: any) => d.count) || [],
+              series: modeRawData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [],
               chartOptions: {
                 ...basePieChartOptions.value,
-                labels: rawStats.monthly_deck_distribution?.map((d: any) => d.deck_name) || [],
+                labels: modeRawData.monthly_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
               },
             },
             recentDistribution: {
-              series: rawStats.recent_deck_distribution?.map((d: any) => d.count) || [],
+              series: modeRawData.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
               chartOptions: {
                 ...basePieChartOptions.value,
-                labels: rawStats.recent_deck_distribution?.map((d: any) => d.deck_name) || [],
+                labels: modeRawData.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
               },
             },
-            matchupData: rawStats.matchup_data || [],
+            matchupData: modeRawData.matchup_data || [],
             timeSeries: {
               series: [
-                { name: mode, data: rawStats.time_series_data?.map((d: any) => d.value) || [] },
+                { name: mode, data: modeRawData.time_series_data?.map((d: { value: number }) => d.value) || [] },
               ],
               chartOptions: {
                 ...baseLineChartOptions.value,
                 xaxis: {
                   ...baseLineChartOptions.value.xaxis,
-                  categories: rawStats.time_series_data?.map((_: any, i: number) => i + 1) || [],
+                  categories: modeRawData.time_series_data?.map((_item: { date: string; value: number }, i: number) => String(i + 1)) || [],
                 },
                 colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
               },
