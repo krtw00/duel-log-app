@@ -8,9 +8,9 @@
         { 'single-column': displayItems.length === 1 },
         'layout-' + layout
       ]">
-        <div v-for="item in displayItems" :key="item.key" class="stat-item">
+        <div v-for="item in displayItems" :key="item.key" class="stat-item" :class="{ 'deck-item': item.key === 'current_deck' }">
           <div class="stat-label">{{ item.label }}</div>
-          <div class="stat-value">{{ stats && item.format(stats[item.key]) }}</div>
+          <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">{{ stats && item.format(stats[item.key]) }}</div>
         </div>
       </div>
     </div>
@@ -174,6 +174,14 @@ onMounted(() => {
 });
 </script>
 
+<style lang="scss">
+// OBSオーバーレイではVuetifyの背景を透明にする
+.v-application,
+.v-main {
+  background: transparent !important;
+}
+</style>
+
 <style scoped lang="scss">
 .obs-overlay {
   width: 100vw;
@@ -220,19 +228,19 @@ onMounted(() => {
 
   // ライトモード
   &.theme-light {
-    --bg-primary: rgba(255, 255, 255, 0.95);
-    --bg-item: rgba(0, 100, 200, 0.05);
-    --bg-item-hover: rgba(0, 100, 200, 0.1);
-    --border-primary: rgba(0, 100, 200, 0.4);
-    --border-secondary: rgba(0, 100, 200, 0.3);
-    --border-item: rgba(0, 100, 200, 0.25);
-    --border-item-hover: rgba(0, 100, 200, 0.5);
-    --text-primary: rgba(30, 30, 30, 0.9);
-    --text-secondary: rgba(60, 60, 60, 0.8);
+    --bg-primary: rgba(255, 255, 255, 0.98);
+    --bg-item: rgba(240, 248, 255, 0.85);
+    --bg-item-hover: rgba(230, 240, 255, 0.95);
+    --border-primary: rgba(0, 100, 200, 0.5);
+    --border-secondary: rgba(0, 100, 200, 0.4);
+    --border-item: rgba(0, 100, 200, 0.35);
+    --border-item-hover: rgba(0, 100, 200, 0.6);
+    --text-primary: rgba(20, 20, 20, 0.95);
+    --text-secondary: rgba(50, 50, 50, 0.85);
     --gradient-start: #0066cc;
     --gradient-end: #8844ff;
-    --shadow-color: rgba(0, 100, 200, 0.15);
-    --shadow-glow: rgba(0, 100, 200, 0.4);
+    --shadow-color: rgba(0, 100, 200, 0.2);
+    --shadow-glow: rgba(0, 100, 200, 0.5);
   }
 }
 
@@ -332,6 +340,12 @@ onMounted(() => {
     border-color: var(--border-item-hover);
     transform: translateY(-2px);
   }
+
+  // デッキ名の場合は高さを自動調整
+  &.deck-item {
+    min-height: 100px;
+    height: auto;
+  }
 }
 
 .stat-label {
@@ -361,6 +375,16 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  // デッキ名の場合は改行を許可し、フォントサイズを調整
+  &.deck-value {
+    font-size: 20px;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    padding: 0 4px;
+  }
 }
 
 .loading-container,
