@@ -269,6 +269,7 @@ def import_duels_csv(
         response = {
             "message": "CSV file imported successfully",
             "created": result["created"],
+            "skipped": result.get("skipped", 0),
             "errors": result["errors"],
         }
 
