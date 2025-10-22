@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.db.session import get_db
 from app.models.user import User
+from app.services.general_stats_service import general_stats_service
 from app.services.statistics_service import statistics_service
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
@@ -198,7 +199,7 @@ def get_obs_statistics(
     """
     if period_type == "all":
         # 全期間の統計
-        return statistics_service.get_all_time_stats(
+        return general_stats_service.get_all_time_stats(
             db=db, user_id=current_user.id, game_mode=game_mode
         )
     elif period_type == "monthly":
@@ -206,11 +207,11 @@ def get_obs_statistics(
         if not year or not month:
             year = datetime.now().year
             month = datetime.now().month
-        return statistics_service.get_overall_stats(
+        return general_stats_service.get_overall_stats(
             db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode
         )
     else:  # recent
         # 直近N戦
-        return statistics_service.get_recent_stats(
+        return general_stats_service.get_recent_stats(
             db=db, user_id=current_user.id, limit=limit, game_mode=game_mode
         )
