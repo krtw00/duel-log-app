@@ -77,15 +77,30 @@ const emit = defineEmits<{
 }>();
 
 const shareDialogOpened = ref(false);
+const actionsBarRef = ref<InstanceType<typeof DuelActionsBar> | null>(null);
 
 // CSV operations composable
-const { triggerFileInput, handleFileUpload, exportCSV } = useCSVOperations({
+const { handleFileUpload: handleFileUploadBase, exportCSV } = useCSVOperations({
   selectedYear: computed(() => props.year),
   selectedMonth: computed(() => props.month),
   currentMode: computed(() => props.gameMode),
   loading: computed(() => props.loading),
   fetchDuels: async () => emit('refresh'),
 });
+
+// ファイル選択ダイアログを開く
+const triggerFileInput = () => {
+  actionsBarRef.value?.fileInputRef?.click();
+};
+
+// ファイルアップロード処理（inputのクリア処理を追加）
+const handleFileUpload = async (event: Event) => {
+  await handleFileUploadBase(event);
+  // 同じファイルを再度選択できるように、inputの値をクリア
+  if (actionsBarRef.value?.fileInputRef) {
+    actionsBarRef.value.fileInputRef.value = '';
+  }
+};
 
 // Duel management composable
 const { selectedDuel, dialogOpen, openDuelDialog, editDuel, deleteDuel, handleSaved } =
