@@ -54,4 +54,12 @@ body {
 .v-main {
   background: rgb(var(--v-theme-background)) !important;
 }
+
+// OBSオーバーレイページのみ背景を透明にする
+body.obs-overlay-page {
+  .v-application,
+  .v-main {
+    background: transparent !important;
+  }
+}
 </style>
