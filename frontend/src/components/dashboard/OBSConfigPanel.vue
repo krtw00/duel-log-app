@@ -93,6 +93,18 @@
           @update:model-value="$emit('update:layout', $event)"
         ></v-select>
 
+        <!-- テーマ選択 -->
+        <v-select
+          :model-value="theme"
+          :items="themeOptions"
+          label="テーマ"
+          variant="outlined"
+          density="compact"
+          hide-details
+          class="mb-4"
+          @update:model-value="$emit('update:theme', $event)"
+        ></v-select>
+
         <!-- 表示項目選択 -->
         <v-card variant="outlined" class="mb-4">
           <v-card-title class="text-subtitle-2 pa-3">
@@ -198,6 +210,7 @@ interface Props {
   limit: number;
   gameMode: string | undefined;
   layout: 'grid' | 'horizontal' | 'vertical';
+  theme: 'dark' | 'light';
   refreshInterval: number;
   displayItems: DisplayItem[];
   draggedIndex: number | null;
@@ -208,6 +221,7 @@ interface Props {
   periodTypeOptions: Array<{ title: string; value: string }>;
   gameModeOptions: Array<{ title: string; value: string }>;
   layoutOptions: Array<{ title: string; value: string }>;
+  themeOptions: Array<{ title: string; value: string }>;
   recommendedSizeText: string;
 }
 
@@ -221,6 +235,7 @@ defineEmits<{
   'update:limit': [value: number];
   'update:gameMode': [value: string | undefined];
   'update:layout': [value: 'grid' | 'horizontal' | 'vertical'];
+  'update:theme': [value: 'dark' | 'light'];
   'update:refreshInterval': [value: number];
   'drag-start': [index: number];
   'drag-over': [index: number];
