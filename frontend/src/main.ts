@@ -5,6 +5,7 @@ import vuetify from './plugins/vuetify';
 import VueApexCharts from 'vue3-apexcharts';
 import App from './App.vue';
 import './assets/styles/main.scss';
+import './assets/styles/auth.scss';
 
 const app = createApp(App);
 const pinia = createPinia();
