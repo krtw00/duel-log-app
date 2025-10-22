@@ -3,14 +3,15 @@
 デュエルに関するビジネスロジックを提供
 """
 
+from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import extract as sa_extract  # sa.extract を使用するためにインポート
 from sqlalchemy.orm import Session
 
 from app.models.duel import Duel
 from app.schemas.duel import DuelCreate, DuelUpdate
 from app.services.base import BaseService
+from app.utils.query_builders import apply_duel_filters
 
 
 class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
@@ -44,21 +45,16 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         Returns:
             デュエルのリスト
         """
-        query = db.query(Duel).filter(Duel.user_id == user_id)
-
-        if deck_id is not None:
-            query = query.filter(Duel.deck_id == deck_id)
+        query = db.query(Duel)
+        query = apply_duel_filters(
+            query, user_id=user_id, year=year, month=month, deck_id=deck_id
+        )
 
         if start_date is not None:
             query = query.filter(Duel.played_date >= start_date)
 
         if end_date is not None:
             query = query.filter(Duel.played_date <= end_date)
-
-        if year is not None:
-            query = query.filter(sa_extract("year", Duel.played_date) == year)
-        if month is not None:
-            query = query.filter(sa_extract("month", Duel.played_date) == month)
 
         return query.order_by(Duel.played_date.desc()).all()
 
