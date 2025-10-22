@@ -12,261 +12,119 @@ import { api } from '@/services/api';
 vi.mock('@/services/api', () => ({
   api: {
     get: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
   },
 }));
 
-const vuetify = createVuetify({
-  components,
-  directives,
-});
+const vuetify = createVuetify({ components, directives });
+
+const stubs = {
+  AppBar: true,
+  DashboardHeader: true,
+  StatisticsSection: true,
+  DuelHistorySection: true,
+  OBSSection: true,
+  ShareStatsDialog: true,
+  VNavigationDrawer: true,
+  VMain: { template: '<div><slot /></div>' },
+  VContainer: { template: '<div><slot /></div>' },
+};
 
 describe('DashboardView.vue', () => {
   let pinia: ReturnType<typeof createTestingPinia>;
+
+  const mockDecks = [{ id: 1, name: 'Test Deck' }];
+  const mockDuels = [{ id: 1, deck_id: 1, result: true, game_mode: 'RANK' as const }];
 
   beforeEach(() => {
     pinia = createTestingPinia({
       createSpy: vi.fn,
       initialState: {
-        auth: {
-          isAuthenticated: true,
-          user: {
-            id: 1,
-            email: 'test@example.com',
-            username: 'testuser',
-            streamer_mode: false,
-          },
-        },
+        auth: { isAuthenticated: true },
       },
     });
 
     vi.clearAllMocks();
 
     // Mock API calls for fetchDuels
-    vi.mocked(api.get).mockImplementation((url) => {
-      if (url === '/decks/') {
-        return Promise.resolve({ data: [] });
+    vi.mocked(api.get).mockImplementation(async (url) => {
+      if (url.includes('/duels')) {
+        return { data: mockDuels };
       }
-      if (url === '/duels/') {
-        return Promise.resolve({ data: [] });
+      if (url.includes('/decks')) {
+        return { data: mockDecks };
       }
-      return Promise.reject(new Error('Not mocked'));
+      return { data: [] };
     });
   });
 
-  it('renders the dashboard view', async () => {
+  it('renders all child section components', async () => {
     const wrapper = mount(DashboardView, {
       global: {
         plugins: [vuetify, pinia],
-        stubs: {
-          AppBar: true,
-          StatCard: true,
-          DuelTable: true,
-          DuelFormDialog: true,
-          ShareStatsDialog: true,
-          VNavigationDrawer: true,
-          VMain: { template: '<div><slot /></div>' },
-          VContainer: { template: '<div><slot /></div>' },
-        },
+        stubs,
       },
     });
 
     await flushPromises();
-    await wrapper.vm.$nextTick();
 
-    expect(wrapper.text()).toContain('対戦履歴');
+    expect(wrapper.findComponent({ name: 'DashboardHeader' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'StatisticsSection' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'DuelHistorySection' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'OBSSection' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'ShareStatsDialog' }).exists()).toBe(true);
   });
 
-  it('opens the ShareStatsDialog when the "共有リンクを生成" button is clicked (PC)', async () => {
-    const wrapper = mount(DashboardView, {
+  it('fetches duels and decks on mount', async () => {
+    mount(DashboardView, {
       global: {
         plugins: [vuetify, pinia],
-        stubs: {
-          AppBar: true,
-          StatCard: true,
-          VNavigationDrawer: true,
-          VMain: { template: '<div><slot /></div>' },
-          VContainer: { template: '<div><slot /></div>' },
-          DuelTable: true,
-          DuelFormDialog: true,
-          ShareStatsDialog: {
-            template: '<div class="share-stats-dialog-stub"></div>',
-            props: ['modelValue'],
-          },
-        },
+        stubs,
       },
     });
 
     await flushPromises();
 
-    // shareDialogOpened の初期状態を確認
-    expect(wrapper.vm.shareDialogOpened).toBe(false);
-
-    // PC版のボタンを探してクリック
-    const buttons = wrapper.findAll('button');
-    const pcShareButton = buttons.find(btn => 
-      btn.text().includes('共有リンクを生成') || 
-      btn.attributes('prepend-icon') === 'mdi-share-variant'
-    );
-    
-    if (pcShareButton) {
-      await pcShareButton.trigger('click');
-      await wrapper.vm.$nextTick();
-      await flushPromises();
-
-      // ダイアログが開いていることを確認
-      expect(wrapper.vm.shareDialogOpened).toBe(true);
-    } else {
-      // ボタンが見つからない場合は、直接プロパティを変更してテスト
-      wrapper.vm.shareDialogOpened = true;
-      await wrapper.vm.$nextTick();
-      expect(wrapper.vm.shareDialogOpened).toBe(true);
-    }
+    expect(api.get).toHaveBeenCalledWith('/duels/', expect.any(Object));
+    expect(api.get).toHaveBeenCalledWith('/decks/');
   });
 
-  it('opens the ShareStatsDialog when the "共有" button is clicked (Mobile)', async () => {
+  it('passes correct props to child components', async () => {
     const wrapper = mount(DashboardView, {
       global: {
         plugins: [vuetify, pinia],
-        stubs: {
-          AppBar: true,
-          StatCard: true,
-          VNavigationDrawer: true,
-          VMain: { template: '<div><slot /></div>' },
-          VContainer: { template: '<div><slot /></div>' },
-          DuelTable: true,
-          DuelFormDialog: true,
-          ShareStatsDialog: {
-            template: '<div class="share-stats-dialog-stub"></div>',
-            props: ['modelValue'],
-          },
-        },
+        stubs,
       },
     });
 
     await flushPromises();
 
-    // shareDialogOpened の初期状態を確認
-    expect(wrapper.vm.shareDialogOpened).toBe(false);
+    const statisticsSection = wrapper.findComponent({ name: 'StatisticsSection' });
+    expect(statisticsSection.props('duels')).toEqual(mockDuels);
+    expect(statisticsSection.props('decks')).toEqual(mockDecks);
+    expect(statisticsSection.props('currentMode')).toBe('RANK');
 
-    // モバイル版のボタンを探してクリック
-    const buttons = wrapper.findAll('button');
-    const mobileShareButton = buttons.find(btn => 
-      (btn.text().includes('共有') && !btn.text().includes('共有リンクを生成')) ||
-      btn.attributes('prepend-icon') === 'mdi-share-variant'
-    );
-
-    if (mobileShareButton) {
-      await mobileShareButton.trigger('click');
-      await wrapper.vm.$nextTick();
-      await flushPromises();
-
-      // ダイアログが開いていることを確認
-      expect(wrapper.vm.shareDialogOpened).toBe(true);
-    } else {
-      // ボタンが見つからない場合は、直接プロパティを変更してテスト
-      wrapper.vm.shareDialogOpened = true;
-      await wrapper.vm.$nextTick();
-      expect(wrapper.vm.shareDialogOpened).toBe(true);
-    }
+    const duelHistorySection = wrapper.findComponent({ name: 'DuelHistorySection' });
+    expect(duelHistorySection.props('duels')).toEqual(mockDuels); // Initially, currentDuels will be the same as duels
+    expect(duelHistorySection.props('decks')).toEqual(mockDecks);
+    expect(duelHistorySection.props('loading')).toBe(false);
   });
 
-  it('filters statistics by selected deck and resets when switching modes', async () => {
-    const decksData = [
-      { id: 1, name: 'Rank Deck', is_opponent: false, active: true },
-      { id: 2, name: 'Alt Rank Deck', is_opponent: false, active: true },
-      { id: 3, name: 'Rate Deck', is_opponent: false, active: true },
-      { id: 99, name: 'Opponent', is_opponent: true, active: true },
-    ];
-    const duelsData = [
-      {
-        id: 10,
-        deck_id: 1,
-        opponentDeck_id: 99,
-        result: true,
-        game_mode: 'RANK' as const,
-        coin: true,
-        first_or_second: true,
-        played_date: '2024-01-01T00:00:00Z',
-        notes: '',
-        create_date: '2024-01-01T00:00:00Z',
-        update_date: '2024-01-01T00:00:00Z',
-        user_id: 1,
-      },
-      {
-        id: 11,
-        deck_id: 2,
-        opponentDeck_id: 99,
-        result: false,
-        game_mode: 'RANK' as const,
-        coin: false,
-        first_or_second: false,
-        played_date: '2024-01-02T00:00:00Z',
-        notes: '',
-        create_date: '2024-01-02T00:00:00Z',
-        update_date: '2024-01-02T00:00:00Z',
-        user_id: 1,
-      },
-      {
-        id: 12,
-        deck_id: 3,
-        opponentDeck_id: 99,
-        result: true,
-        game_mode: 'RATE' as const,
-        rate_value: 1500,
-        coin: true,
-        first_or_second: true,
-        played_date: '2024-01-03T00:00:00Z',
-        notes: '',
-        create_date: '2024-01-03T00:00:00Z',
-        update_date: '2024-01-03T00:00:00Z',
-        user_id: 1,
-      },
-    ];
-
-    vi.mocked(api.get).mockImplementation((url) => {
-      if (url === '/decks/') {
-        return Promise.resolve({ data: decksData });
-      }
-      if (url === '/duels/') {
-        return Promise.resolve({ data: duelsData });
-      }
-      return Promise.reject(new Error('Not mocked'));
-    });
-
+  it('refetches duels when date is updated from DashboardHeader', async () => {
     const wrapper = mount(DashboardView, {
       global: {
         plugins: [vuetify, pinia],
-        stubs: {
-          AppBar: true,
-          StatCard: true,
-          DuelTable: true,
-          DuelFormDialog: true,
-          ShareStatsDialog: true,
-          VNavigationDrawer: true,
-          VMain: { template: '<div><slot /></div>' },
-          VContainer: { template: '<div><slot /></div>' },
-        },
+        stubs,
       },
     });
 
     await flushPromises();
-    await wrapper.vm.$nextTick();
+    vi.clearAllMocks(); // Clear initial fetch calls
 
-    expect(wrapper.vm.rankStats.total_duels).toBe(2);
-    expect(wrapper.vm.availableMyDecks.length).toBe(2);
+    const header = wrapper.findComponent({ name: 'DashboardHeader' });
+    await header.vm.$emit('update:year', 2023);
 
-    wrapper.vm.filterMyDeckId = 1;
-    await wrapper.vm.handleMyDeckFilterChange();
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.vm.rankStats.total_duels).toBe(1);
-
-    wrapper.vm.handleModeChange('RATE');
-    await flushPromises();
-
-    expect(wrapper.vm.filterMyDeckId).toBeNull();
+    expect(api.get).toHaveBeenCalledWith('/duels/', {
+      params: { year: 2023, month: new Date().getMonth() + 1 },
+    });
   });
 });

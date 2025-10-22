@@ -42,6 +42,22 @@ export function useOBSConfiguration() {
     { title: '縦1列（下に伸ばす）', value: 'vertical' },
   ];
 
+  // 年と月の選択肢
+  const years = computed(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 5 }, (_, i) => currentYear - i);
+  });
+
+  const months = computed(() => {
+    return Array.from({ length: 12 }, (_, i) => i + 1);
+  });
+
+  // コイン勝率の色
+  const coinWinRateColor = computed(() => {
+    // デフォルトで info を返す（実際の勝率に基づいて変更可能）
+    return 'info';
+  });
+
   // 表示項目
   const displayItems = ref([
     { label: '使用デッキ', value: 'current_deck', selected: true },
@@ -215,6 +231,9 @@ export function useOBSConfiguration() {
     layoutOptions,
 
     // Computed
+    years,
+    months,
+    coinWinRateColor,
     recommendedSizeText,
     obsUrl,
 
