@@ -199,3 +199,4 @@ class TestStatisticsService:
         assert opp_deck2_stats is not None
         assert opp_deck2_stats["count"] == 2
         assert opp_deck2_stats["percentage"] == 50.0
+
