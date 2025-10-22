@@ -43,19 +43,33 @@ export function useCSVOperations(props: UseCSVOperationsProps) {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('year', selectedYear.value.toString());
-    formData.append('month', selectedMonth.value.toString());
 
     loading.value = true;
 
     try {
-      await api.post('/duels/import/csv', formData, {
+      const response = await api.post('/duels/import/csv', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      notificationStore.success('CSVファイルのインポートに成功しました。');
+      // インポート結果を通知
+      const data = response.data;
+      if (data.created > 0) {
+        notificationStore.success(
+          `CSVファイルのインポートに成功しました。${data.created}件のデータを追加しました。`,
+        );
+      }
+      if (data.skipped && data.skipped > 0) {
+        notificationStore.info(`${data.skipped}件の重複データをスキップしました。`);
+      }
+      if (data.errors && data.errors.length > 0) {
+        notificationStore.warning(
+          `${data.errors.length}件のエラーがありました。詳細はコンソールを確認してください。`,
+        );
+        logger.warn('CSV import errors:', data.errors);
+      }
+
       await fetchDuels();
     } catch (error) {
       logger.error('Failed to import CSV:', error);
