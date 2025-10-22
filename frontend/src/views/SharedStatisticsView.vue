@@ -120,8 +120,8 @@
                       <!-- 対戦履歴 -->
                       <v-card
                         v-if="
-                          (processedStats['DASHBOARD'] as any).duels &&
-                          (processedStats['DASHBOARD'] as any).duels.length > 0
+                          (processedStats['DASHBOARD'] as DashboardData).duels &&
+                          (processedStats['DASHBOARD'] as DashboardData).duels!.length > 0
                         "
                         class="duel-card mt-4"
                       >
@@ -133,7 +133,7 @@
                         </v-card-title>
                         <v-divider />
                         <duel-table
-                          :duels="(processedStats['DASHBOARD'] as any).duels"
+                          :duels="(processedStats['DASHBOARD'] as DashboardData).duels! as any"
                           :loading="sharedStatisticsStore.loading"
                         />
                       </v-card>
@@ -343,7 +343,7 @@ interface DuelStats {
 }
 
 interface DashboardData extends DuelStats {
-  duels?: unknown[];
+  duels?: Array<Record<string, unknown>>;
 }
 
 interface AllStatisticsData {

@@ -287,8 +287,9 @@ const handleLogin = async () => {
 
     await authStore.login(email.value, password.value);
     notificationStore.success('ログインに成功しました');
-  } catch (error: any) {
-    notificationStore.error(error.message || '不明なエラーが発生しました');
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+    notificationStore.error(errorMessage);
   } finally {
     loading.value = false;
   }

@@ -143,7 +143,7 @@ const handleRegister = async () => {
     setTimeout(() => {
       router.push('/login');
     }, 2000);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // エラーはAPIインターセプターで処理される
     console.error('Failed to register:', error);
   } finally {
