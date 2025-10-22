@@ -7,11 +7,12 @@ sys.path.append(
 )
 
 from app.db.session import SessionLocal
-from app.models.duel import Duel
 from app.models.deck import Deck
+from app.models.duel import Duel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def clear_data(db: SessionLocal):
     try:
@@ -25,6 +26,7 @@ def clear_data(db: SessionLocal):
         db.rollback()
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     logger.info("Clearing database...")
