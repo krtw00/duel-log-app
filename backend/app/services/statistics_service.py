@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
 from app.models.duel import Duel
+from app.utils.query_builders import build_base_duels_query
 
 
 class StatisticsService:
@@ -19,10 +20,7 @@ class StatisticsService:
     def _build_base_duels_query(
         self, db: Session, user_id: int, game_mode: Optional[str] = None
     ):
-        query = db.query(Duel).filter(Duel.user_id == user_id)
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
-        return query
+        return build_base_duels_query(db, user_id, game_mode)
 
     def _apply_range_filter(
         self,
