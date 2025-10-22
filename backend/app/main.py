@@ -36,7 +36,9 @@ app = FastAPI(
 # 環境変数から許可するオリジンを取得
 # 例: "http://localhost:5173,https://your-production-domain.com"
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-allowed_origins = [origin.strip() for origin in frontend_url.split(",") if origin.strip()]
+allowed_origins = [
+    origin.strip() for origin in frontend_url.split(",") if origin.strip()
+]
 
 logger.info(f"Allowed CORS origins from FRONTEND_URL: {allowed_origins}")
 
