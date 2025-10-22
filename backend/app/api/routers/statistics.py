@@ -15,6 +15,7 @@ from app.models.user import User
 from app.services.general_stats_service import general_stats_service
 from app.services.statistics_service import statistics_service
 from app.services.win_rate_service import win_rate_service
+from app.services.deck_distribution_service import deck_distribution_service
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
@@ -36,7 +37,7 @@ def get_all_statistics(
 
     for mode in game_modes:
         result[mode] = {
-            "monthly_deck_distribution": statistics_service.get_deck_distribution_monthly(
+            "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
                 db=db,
                 user_id=current_user.id,
                 year=year,
@@ -47,7 +48,7 @@ def get_all_statistics(
                 my_deck_id=my_deck_id,
                 opponent_deck_id=opponent_deck_id,
             ),
-            "recent_deck_distribution": statistics_service.get_deck_distribution_recent(
+            "recent_deck_distribution": deck_distribution_service.get_deck_distribution_recent(
                 db=db,
                 user_id=current_user.id,
                 game_mode=mode,
@@ -106,7 +107,7 @@ def get_monthly_deck_distribution(
     current_user: User = Depends(get_current_user),
 ):
     """月間の相手デッキ分布を取得"""
-    return statistics_service.get_deck_distribution_monthly(
+    return deck_distribution_service.get_deck_distribution_monthly(
         db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode
     )
 
@@ -119,7 +120,7 @@ def get_recent_deck_distribution(
     current_user: User = Depends(get_current_user),
 ):
     """直近の相手デッキ分布を取得"""
-    return statistics_service.get_deck_distribution_recent(
+    return deck_distribution_service.get_deck_distribution_recent(
         db=db, user_id=current_user.id, limit=limit, game_mode=game_mode
     )
 
