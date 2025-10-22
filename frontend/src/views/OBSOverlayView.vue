@@ -31,6 +31,7 @@ import axios, { AxiosError } from 'axios';
 import { getRankName } from '@/utils/ranks';
 import type { OBSStatsResponse, OBSDisplayItemDefinition, OBSQueryParams } from '@/types/obs';
 import type { ApiErrorResponse } from '@/types/api';
+import type { GameMode } from '@/types';
 
 const route = useRoute();
 const loading = ref(true);
@@ -49,7 +50,7 @@ const periodType = ref(
 const year = ref(Number(route.query.year) || new Date().getFullYear());
 const month = ref(Number(route.query.month) || new Date().getMonth() + 1);
 const limit = ref(Number(route.query.limit) || 30);
-const gameMode = ref((route.query.game_mode as string) || undefined);
+const gameMode = ref<string | undefined>((route.query.game_mode as string) || undefined);
 const displayItemsParam = ref((route.query.display_items as string) || '');
 const layout = ref((route.query.layout as string) || 'grid');
 const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォルト30秒
@@ -115,7 +116,7 @@ const fetchStats = async () => {
 
     // ゲームモード
     if (gameMode.value) {
-      params.game_mode = gameMode.value as any;
+      params.game_mode = gameMode.value as GameMode;
     }
 
     // 環境変数からAPIのベースURLを取得

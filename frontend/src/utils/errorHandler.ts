@@ -45,6 +45,6 @@ export function isApiError(error: unknown): error is ApiErrorResponse {
     typeof error === 'object' &&
     error !== null &&
     'response' in error &&
-    typeof (error as any).response === 'object'
+    typeof (error as Record<string, unknown>).response === 'object'
   );
 }

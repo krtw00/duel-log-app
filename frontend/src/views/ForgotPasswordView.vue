@@ -87,7 +87,7 @@ const handleForgotPassword = async () => {
     await api.post('/auth/forgot-password', { email: email.value });
     notificationStore.success('パスワード再設定の案内をメールで送信しました。');
     router.push('/login'); // ログインページに戻る
-  } catch (error: any) {
+  } catch (error: unknown) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
     console.error('Forgot password error:', error);
   } finally {
