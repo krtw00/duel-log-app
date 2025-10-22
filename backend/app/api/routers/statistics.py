@@ -17,6 +17,7 @@ from app.services.statistics_service import statistics_service
 from app.services.win_rate_service import win_rate_service
 from app.services.deck_distribution_service import deck_distribution_service
 from app.services.matchup_service import matchup_service
+from app.services.time_series_service import time_series_service
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
@@ -82,7 +83,7 @@ def get_all_statistics(
 
         # レートとDCの場合は時系列データも取得
         if mode in ["RATE", "DC"]:
-            result[mode]["time_series_data"] = statistics_service.get_time_series_data(
+            result[mode]["time_series_data"] = time_series_service.get_time_series_data(
                 db=db,
                 user_id=current_user.id,
                 game_mode=mode,
@@ -154,7 +155,7 @@ def get_time_series_data(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="ゲームモードは 'RATE' または 'DC' である必要があります。",
         )
-    return statistics_service.get_time_series_data(
+    return time_series_service.get_time_series_data(
         db=db, user_id=current_user.id, game_mode=game_mode, year=year, month=month
     )
 
