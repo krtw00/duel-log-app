@@ -21,13 +21,15 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
-// Safari判定ユーティリティ
-function isSafari(): boolean {
+// Safari/MacOS判定ユーティリティ
+// MacOSではCookie制限が厳しいため、Authorizationヘッダーを使用
+function shouldUseAuthorizationHeader(): boolean {
   const ua = navigator.userAgent.toLowerCase();
   const isSafariBrowser =
     ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
   const isIOS = /iphone|ipad|ipod/.test(ua);
-  return isSafariBrowser || isIOS;
+  const isMacOS = /macintosh|mac os x/.test(ua);
+  return isSafariBrowser || isIOS || isMacOS;
 }
 
 // リクエストインターセプター
@@ -39,20 +41,20 @@ api.interceptors.request.use(
     config.metadata = { requestId };
     loadingStore.start(requestId);
 
-    // Safari ITP対策: localStorageからトークンを取得してAuthorizationヘッダーに設定
-    if (isSafari()) {
+    // Safari/MacOS Cookie制限対策: localStorageからトークンを取得してAuthorizationヘッダーに設定
+    if (shouldUseAuthorizationHeader()) {
       const token = localStorage.getItem('access_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('[API] Using Authorization header for Safari/iOS');
+        console.log('[API] Using Authorization header for Safari/iOS/MacOS');
       }
     }
 
-    // Safari対応デバッグログ
+    // Safari/MacOS対応デバッグログ
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
       withCredentials: config.withCredentials,
       headers: config.headers,
-      isSafari: isSafari(),
+      useAuthHeader: shouldUseAuthorizationHeader(),
     });
 
     return config;
@@ -74,7 +76,7 @@ api.interceptors.response.use(
       loadingStore.stop(requestId);
     }
 
-    // Safari対応デバッグログ
+    // Safari/MacOS対応デバッグログ
     console.log(`[API Response] ${response.status} ${response.config.url}`, {
       setCookie: response.headers['set-cookie'],
     });
