@@ -325,29 +325,7 @@ class StatisticsService:
             query = self._build_base_duels_query(db, user_id, game_mode)
             duels = query.order_by(Duel.played_date.desc()).all()
             duels = self._apply_range_filter(duels, range_start, range_end)
-
-            total_duels = len(duels)
-            if total_duels == 0:
-                return []
-
-            # Python側で集計
-            deck_counts_map = {}
-            for duel in duels:
-                if duel.opponent_deck and duel.opponent_deck.name:
-                    deck_name = duel.opponent_deck.name
-                    deck_counts_map[deck_name] = deck_counts_map.get(deck_name, 0) + 1
-
-            distribution = [
-                {
-                    "deck_name": name,
-                    "count": count,
-                    "percentage": (count / total_duels) * 100,
-                }
-                for name, count in sorted(
-                    deck_counts_map.items(), key=lambda x: x[1], reverse=True
-                )
-            ]
-            return distribution
+            return self._calculate_deck_distribution_from_duels(duels)
         else:
             # 通常の直近N戦の処理
             recent_duel_ids = (
