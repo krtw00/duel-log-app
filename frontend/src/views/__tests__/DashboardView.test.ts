@@ -99,12 +99,23 @@ describe('DashboardView.vue', () => {
     await flushPromises();
 
     const statisticsSection = wrapper.findComponent({ name: 'StatisticsSection' });
-    expect(statisticsSection.props('duels')).toEqual(mockDuels);
+    // デュエルにはdeck/opponentdeckが追加される
+    const expectedDuels = [
+      {
+        id: 1,
+        deck_id: 1,
+        result: true,
+        game_mode: 'RANK',
+        deck: mockDecks[0],
+        opponentdeck: undefined,
+      },
+    ];
+    expect(statisticsSection.props('duels')).toEqual(expectedDuels);
     expect(statisticsSection.props('decks')).toEqual(mockDecks);
     expect(statisticsSection.props('currentMode')).toBe('RANK');
 
     const duelHistorySection = wrapper.findComponent({ name: 'DuelHistorySection' });
-    expect(duelHistorySection.props('duels')).toEqual(mockDuels); // Initially, currentDuels will be the same as duels
+    expect(duelHistorySection.props('duels')).toEqual(expectedDuels); // Initially, currentDuels will be the same as duels
     expect(duelHistorySection.props('decks')).toEqual(mockDecks);
     expect(duelHistorySection.props('loading')).toBe(false);
   });
