@@ -279,20 +279,37 @@ const navItems = [
 ];
 
 // --- Types ---
+import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
+import type { MatchupData, GameMode } from '@/types';
+import type { StatisticsQueryParams } from '@/types/statistics';
+
 interface DistributionData {
   series: number[];
-  chartOptions: any;
+  chartOptions: ApexPieChartOptions;
 }
 
 interface TimeSeriesData {
   series: { name: string; data: number[] }[];
-  chartOptions: any;
+  chartOptions: ApexLineChartOptions;
+}
+
+interface MyDeckWinRate {
+  deck_name: string;
+  total_duels: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+}
+
+interface TimeSeriesDataItem {
+  date: string;
+  value: number;
 }
 
 interface StatisticsModeData {
   monthlyDistribution: DistributionData;
-  matchupData: any[];
-  myDeckWinRates: any[];
+  matchupData: MatchupData[];
+  myDeckWinRates: MyDeckWinRate[];
   timeSeries: TimeSeriesData;
 }
 
@@ -367,10 +384,10 @@ const statisticsByMode = ref<AllStatisticsData>(createInitialStats());
 
 const fetchAvailableDecks = async () => {
   try {
-    const params: any = {
+    const params: StatisticsQueryParams = {
       year: selectedYear.value,
       month: selectedMonth.value,
-      game_mode: currentTab.value,
+      game_mode: currentTab.value as GameMode,
     };
 
     if (filterPeriodType.value === 'range') {
@@ -412,7 +429,7 @@ const fetchStatistics = async () => {
   loading.value = true;
   try {
     // 統計情報のパラメータ
-    const params: any = {
+    const params: StatisticsQueryParams = {
       year: selectedYear.value,
       month: selectedMonth.value,
     };
@@ -438,8 +455,8 @@ const fetchStatistics = async () => {
     modes.forEach((mode) => {
       const modeData = data[mode] || {};
       // Monthly Distribution
-      const monthlyLabels = modeData.monthly_deck_distribution?.map((d: any) => d.deck_name) || [];
-      const monthlySeries = modeData.monthly_deck_distribution?.map((d: any) => d.count) || [];
+      const monthlyLabels = modeData.monthly_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [];
+      const monthlySeries = modeData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [];
       statisticsByMode.value[mode].monthlyDistribution = {
         series: monthlySeries,
         chartOptions: { ...basePieChartOptions.value, labels: monthlyLabels },
@@ -452,9 +469,9 @@ const fetchStatistics = async () => {
       statisticsByMode.value[mode].myDeckWinRates = modeData.my_deck_win_rates || [];
 
       // Time Series Data
-      const timeSeriesData = modeData.time_series_data || [];
-      const categories = timeSeriesData.map((_: any, i: number) => i + 1);
-      const seriesData = timeSeriesData.map((d: any) => d.value);
+      const timeSeriesData: TimeSeriesDataItem[] = modeData.time_series_data || [];
+      const categories = timeSeriesData.map((_item: TimeSeriesDataItem, i: number) => String(i + 1));
+      const seriesData = timeSeriesData.map((d: TimeSeriesDataItem) => d.value);
       statisticsByMode.value[mode].timeSeries = {
         series: [{ name: mode, data: seriesData }],
         chartOptions: {
