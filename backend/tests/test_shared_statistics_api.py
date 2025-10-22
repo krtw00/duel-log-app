@@ -30,21 +30,21 @@ class TestSharedStatisticsEndpoints:
 
 @pytest.fixture
 def mock_statistics_service(mocker):
-    """statistics_serviceのメソッドをモック"""
+    """各サービスメソッドをモック"""
     mocker.patch(
-        "app.api.routers.shared_statistics.statistics_service.get_overall_stats",
+        "app.api.routers.shared_statistics.general_stats_service.get_overall_stats",
         return_value={"total_duels": 10, "win_rate": 0.5},
     )
     mocker.patch(
-        "app.api.routers.shared_statistics.statistics_service.get_deck_distribution_monthly",
+        "app.api.routers.shared_statistics.deck_distribution_service.get_deck_distribution_monthly",
         return_value=[{"deck_name": "Test Deck", "count": 10, "percentage": 100}],
     )
     mocker.patch(
-        "app.api.routers.shared_statistics.statistics_service.get_deck_distribution_recent",
+        "app.api.routers.shared_statistics.deck_distribution_service.get_deck_distribution_recent",
         return_value=[],
     )
     mocker.patch(
-        "app.api.routers.shared_statistics.statistics_service.get_matchup_chart",
+        "app.api.routers.shared_statistics.matchup_service.get_matchup_chart",
         return_value=[],
     )
 
