@@ -311,7 +311,7 @@ const importBackup = async (event: Event) => {
 };
 
 const rules = {
-  required: (v: any) => !!v || '入力必須です',
+  required: (v: unknown) => !!v || '入力必須です',
   email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
   password: (v: string) => {
     if (!v) return true; // パスワードは任意
@@ -355,7 +355,12 @@ const handleUpdate = async () => {
   loading.value = true;
 
   try {
-    const payload: any = {
+    const payload: {
+      username: string;
+      email: string;
+      streamer_mode: boolean;
+      password?: string;
+    } = {
       username: form.value.username,
       email: actualEmail.value, // 実際のメールアドレスを送信
       streamer_mode: form.value.streamerMode,

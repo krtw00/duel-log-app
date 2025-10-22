@@ -14,6 +14,7 @@ export interface StatisticsQueryParams {
   range_start?: number;
   range_end?: number;
   my_deck_id?: number | null;
+  opponent_deck_id?: number | null;
   game_mode?: GameMode;
 }
 
