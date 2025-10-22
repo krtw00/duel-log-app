@@ -1,5 +1,5 @@
 <template>
-  <div class="obs-overlay" :class="'layout-' + layout">
+  <div class="obs-overlay" :class="['layout-' + layout, 'theme-' + theme]">
     <div v-if="!loading && stats" class="stats-container">
       <div class="stats-header">
         <h2 class="stats-title">{{ periodTitle }}</h2>
@@ -53,6 +53,7 @@ const limit = ref(Number(route.query.limit) || 30);
 const gameMode = ref<string | undefined>((route.query.game_mode as string) || undefined);
 const displayItemsParam = ref((route.query.display_items as string) || '');
 const layout = ref((route.query.layout as string) || 'grid');
+const theme = ref((route.query.theme as string) || 'dark');
 const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォルト30秒
 
 // 表示項目のリスト
@@ -198,6 +199,41 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
   }
+
+  // テーマカラー設定
+  // ダークモード（デフォルト）
+  &.theme-dark {
+    --bg-primary: rgba(18, 18, 18, 0.92);
+    --bg-item: rgba(0, 217, 255, 0.05);
+    --bg-item-hover: rgba(0, 217, 255, 0.1);
+    --border-primary: rgba(0, 217, 255, 0.3);
+    --border-secondary: rgba(0, 217, 255, 0.2);
+    --border-item: rgba(0, 217, 255, 0.2);
+    --border-item-hover: rgba(0, 217, 255, 0.4);
+    --text-primary: rgba(228, 231, 236, 0.8);
+    --text-secondary: rgba(228, 231, 236, 0.7);
+    --gradient-start: #00d9ff;
+    --gradient-end: #b536ff;
+    --shadow-color: rgba(0, 217, 255, 0.2);
+    --shadow-glow: rgba(0, 217, 255, 0.5);
+  }
+
+  // ライトモード
+  &.theme-light {
+    --bg-primary: rgba(255, 255, 255, 0.95);
+    --bg-item: rgba(0, 100, 200, 0.05);
+    --bg-item-hover: rgba(0, 100, 200, 0.1);
+    --border-primary: rgba(0, 100, 200, 0.4);
+    --border-secondary: rgba(0, 100, 200, 0.3);
+    --border-item: rgba(0, 100, 200, 0.25);
+    --border-item-hover: rgba(0, 100, 200, 0.5);
+    --text-primary: rgba(30, 30, 30, 0.9);
+    --text-secondary: rgba(60, 60, 60, 0.8);
+    --gradient-start: #0066cc;
+    --gradient-end: #8844ff;
+    --shadow-color: rgba(0, 100, 200, 0.15);
+    --shadow-glow: rgba(0, 100, 200, 0.4);
+  }
 }
 
 .stats-container {
@@ -230,7 +266,7 @@ onMounted(() => {
 .stats-title {
   font-size: 24px;
   font-weight: 700;
-  background: linear-gradient(135deg, #00d9ff 0%, #b536ff 100%);
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -248,10 +284,10 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   padding: 24px;
-  background: rgba(18, 18, 18, 0.92);
+  background: var(--bg-primary);
   border-radius: 16px;
-  border: 2px solid rgba(0, 217, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 217, 255, 0.2);
+  border: 2px solid var(--border-primary);
+  box-shadow: 0 8px 32px var(--shadow-color);
   backdrop-filter: blur(10px);
 
   &.single-column {
@@ -286,14 +322,14 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 217, 255, 0.05);
+  background: var(--bg-item);
   border-radius: 12px;
-  border: 1px solid rgba(0, 217, 255, 0.2);
+  border: 1px solid var(--border-item);
   transition: all 0.3s ease;
 
   &:hover {
-    background: rgba(0, 217, 255, 0.1);
-    border-color: rgba(0, 217, 255, 0.4);
+    background: var(--bg-item-hover);
+    border-color: var(--border-item-hover);
     transform: translateY(-2px);
   }
 }
@@ -301,7 +337,7 @@ onMounted(() => {
 .stat-label {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(228, 231, 236, 0.7);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 8px;
@@ -315,7 +351,7 @@ onMounted(() => {
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  background: linear-gradient(135deg, #00d9ff 0%, #b536ff 100%);
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -340,8 +376,8 @@ onMounted(() => {
 .error-text {
   font-size: 24px;
   font-weight: 600;
-  color: rgba(228, 231, 236, 0.8);
-  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+  color: var(--text-primary);
+  text-shadow: 0 0 10px var(--shadow-glow);
 }
 
 .error-text {
@@ -351,7 +387,7 @@ onMounted(() => {
 
 .error-detail {
   font-size: 16px;
-  color: rgba(228, 231, 236, 0.6);
+  color: var(--text-secondary);
   margin-top: 12px;
 }
 
