@@ -17,10 +17,10 @@ export function useChartOptions() {
    * 円グラフの基本オプション
    */
   const basePieChartOptions = computed(() => ({
-    chart: { type: 'pie', background: 'transparent' },
+    chart: { type: 'pie' as const, background: 'transparent' },
     labels: [],
     theme: {
-      mode: themeStore.isDark ? 'dark' : 'light',
+      mode: themeStore.isDark ? ('dark' as const) : ('light' as const),
     },
     colors: [
       '#00D9FF',
@@ -35,10 +35,14 @@ export function useChartOptions() {
       '#FFC107',
     ],
     legend: {
-      position: 'bottom',
+      show: true,
+      position: 'bottom' as const,
       labels: {
         colors: themeStore.isDark ? '#fff' : '#000',
       },
+    },
+    dataLabels: {
+      enabled: false,
     },
     responsive: [
       {
@@ -56,29 +60,27 @@ export function useChartOptions() {
    */
   const baseLineChartOptions = computed(() => ({
     chart: {
-      type: 'line',
+      type: 'line' as const,
       background: 'transparent',
       zoom: { enabled: false },
       toolbar: { show: false },
     },
     xaxis: {
-      type: 'numeric',
-      title: { text: '対戦数', style: { color: themeStore.isDark ? '#E4E7EC' : '#333' } },
+      categories: [],
       labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } },
     },
     yaxis: { labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } } },
-    stroke: { curve: 'smooth', width: 3 },
+    stroke: { curve: 'smooth' as const, width: 3 },
     markers: {
       size: 4,
       colors: ['#00d9ff'],
-      strokeColors: '#fff',
+      strokeColors: ['#fff'],
       strokeWidth: 2,
-      hover: { size: 7 },
     },
     grid: { borderColor: 'rgba(0, 217, 255, 0.1)', strokeDashArray: 4 },
-    tooltip: { theme: themeStore.isDark ? 'dark' : 'light' },
+    tooltip: { theme: themeStore.isDark ? ('dark' as const) : ('light' as const) },
     dataLabels: { enabled: false },
-    theme: { mode: themeStore.isDark ? 'dark' : 'light' },
+    theme: { mode: themeStore.isDark ? ('dark' as const) : ('light' as const) },
   }));
 
   return {
