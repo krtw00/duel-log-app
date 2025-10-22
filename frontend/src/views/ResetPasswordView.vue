@@ -113,7 +113,7 @@ const handleResetPassword = async () => {
     });
     notificationStore.success('パスワードが正常にリセットされました。');
     router.push('/login'); // ログインページに戻る
-  } catch (error: any) {
+  } catch (error: unknown) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
     console.error('Reset password error:', error);
   } finally {
