@@ -16,6 +16,7 @@ from app.services.duel_service import duel_service
 from app.services.general_stats_service import general_stats_service
 from app.services.shared_statistics_service import shared_statistics_service
 from app.services.statistics_service import statistics_service
+from app.services.deck_distribution_service import deck_distribution_service
 
 router = APIRouter(prefix="/shared-statistics", tags=["shared-statistics"])
 
@@ -32,7 +33,7 @@ def create_shared_statistics_link(
     ユーザーの統計情報への共有リンクを生成します。
     """
     # 既存の統計データが存在するか確認
-    existing_stats = statistics_service.get_deck_distribution_monthly(
+    existing_stats = deck_distribution_service.get_deck_distribution_monthly(
         db=db,
         user_id=current_user.id,
         year=shared_stats_in.year,
@@ -164,14 +165,14 @@ def get_shared_statistics(
     statistics_data = {
         "year": target_year,
         "month": target_month,
-        "monthly_deck_distribution": statistics_service.get_deck_distribution_monthly(
+        "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
             db=db,
             user_id=user_id,
             year=target_year,
             month=target_month,
             game_mode=game_mode,
         ),
-        "recent_deck_distribution": statistics_service.get_deck_distribution_recent(
+        "recent_deck_distribution": deck_distribution_service.get_deck_distribution_recent(
             db=db, user_id=user_id, limit=30, game_mode=game_mode
         ),
         "matchup_data": statistics_service.get_matchup_chart(
