@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import axios, { AxiosError } from 'axios';
 import { getRankName } from '@/utils/ranks';
@@ -165,6 +165,9 @@ const fetchStats = async () => {
 };
 
 onMounted(() => {
+  // OBSオーバーレイ用のクラスをbody要素に追加
+  document.body.classList.add('obs-overlay-page');
+
   fetchStats();
 
   // 定期的に統計情報を更新
@@ -172,23 +175,24 @@ onMounted(() => {
     fetchStats();
   }, refreshInterval.value);
 });
-</script>
 
-<style lang="scss">
-// OBSオーバーレイではVuetifyの背景を透明にする
-.v-application,
-.v-main {
-  background: transparent !important;
-}
-</style>
+onUnmounted(() => {
+  // コンポーネント破棄時にクラスを削除
+  document.body.classList.remove('obs-overlay-page');
+});
+</script>
 
 <style scoped lang="scss">
 .obs-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   display: flex;
   background: transparent;
   font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+  z-index: 9999;
 
   // グリッドレイアウト（デフォルト）
   &.layout-grid {
