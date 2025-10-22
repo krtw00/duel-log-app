@@ -16,6 +16,7 @@
       v-model:limit="obsLimit"
       v-model:game-mode="obsGameMode"
       v-model:layout="obsLayout"
+      v-model:theme="obsTheme"
       v-model:refresh-interval="obsRefreshInterval"
       :display-items="displayItems"
       :dragged-index="draggedIndex"
@@ -26,6 +27,7 @@
       :period-type-options="periodTypeOptions"
       :game-mode-options="gameModeOptions"
       :layout-options="layoutOptions"
+      :theme-options="themeOptions"
       :recommended-size-text="recommendedSizeText"
       @drag-start="handleDragStart"
       @drag-over="handleDragOver"
@@ -61,6 +63,7 @@ const {
   obsLimit,
   obsGameMode,
   obsLayout,
+  obsTheme,
   obsRefreshInterval,
   displayItems,
   draggedIndex,
@@ -70,6 +73,7 @@ const {
   periodTypeOptions,
   gameModeOptions,
   layoutOptions,
+  themeOptions,
   recommendedSizeText,
   obsUrl,
   coinWinRateColor,

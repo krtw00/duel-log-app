@@ -20,6 +20,7 @@ export function useOBSConfiguration() {
   const obsLimit = ref(30);
   const obsGameMode = ref<string | undefined>(undefined);
   const obsLayout = ref<'grid' | 'horizontal' | 'vertical'>('grid');
+  const obsTheme = ref<'dark' | 'light'>('dark');
   const obsRefreshInterval = ref(30000);
   const urlCopied = ref(false);
 
@@ -40,6 +41,11 @@ export function useOBSConfiguration() {
     { title: 'グリッド（自動）', value: 'grid' },
     { title: '横1列（右に伸ばす）', value: 'horizontal' },
     { title: '縦1列（下に伸ばす）', value: 'vertical' },
+  ];
+
+  const themeOptions = [
+    { title: 'ダークモード', value: 'dark' },
+    { title: 'ライトモード', value: 'light' },
   ];
 
   // 年と月の選択肢
@@ -188,6 +194,9 @@ export function useOBSConfiguration() {
     // レイアウト
     params.append('layout', obsLayout.value);
 
+    // テーマ
+    params.append('theme', obsTheme.value);
+
     const url = `${baseUrl}/obs-overlay?${params.toString()}`;
     logger.log('Generated URL (without token):', url.replace(/token=[^&]*/, 'token=***'));
 
@@ -219,6 +228,7 @@ export function useOBSConfiguration() {
     obsLimit,
     obsGameMode,
     obsLayout,
+    obsTheme,
     obsRefreshInterval,
     displayItems,
     draggedIndex,
@@ -229,6 +239,7 @@ export function useOBSConfiguration() {
     periodTypeOptions,
     gameModeOptions,
     layoutOptions,
+    themeOptions,
 
     // Computed
     years,
