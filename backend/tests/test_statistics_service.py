@@ -95,3 +95,56 @@ class TestStatisticsService:
         assert my_deck2_stats["total_duels"] == 2
         assert my_deck2_stats["wins"] == 1
         assert my_deck2_stats["win_rate"] == 50.0
+
+    def test_get_deck_distribution_monthly_no_range(self, db_session: Session, test_user: User):
+        """範囲指定なしの場合の相手デッキ分布が正しく計算されることをテスト"""
+        create_test_data(db_session, test_user)
+
+        distribution = statistics_service.get_deck_distribution_monthly(
+            db=db_session,
+            user_id=test_user.id,
+            year=2024,
+            month=7
+        )
+
+        assert len(distribution) == 2
+
+        opp_deck1_stats = next((item for item in distribution if item["deck_name"] == "OppDeck1"), None)
+        opp_deck2_stats = next((item for item in distribution if item["deck_name"] == "OppDeck2"), None)
+
+        assert opp_deck1_stats is not None
+        assert opp_deck1_stats["count"] == 4
+        assert opp_deck1_stats["percentage"] == pytest.approx((4/7) * 100)
+
+        assert opp_deck2_stats is not None
+        assert opp_deck2_stats["count"] == 3
+        assert opp_deck2_stats["percentage"] == pytest.approx((3/7) * 100)
+
+    def test_get_deck_distribution_monthly_with_range(self, db_session: Session, test_user: User):
+        """範囲指定ありの場合の相手デッキ分布が正しく計算されることをテスト"""
+        create_test_data(db_session, test_user)
+
+        # played_dateが新しい順にソートして、2戦目から5戦目までを取得するケース
+        # 対象デュエル: 7/6, 7/5, 7/4, 7/3
+        # この範囲での相手デッキ: OppDeck2, OppDeck2, OppDeck1, OppDeck1
+        distribution = statistics_service.get_deck_distribution_monthly(
+            db=db_session,
+            user_id=test_user.id,
+            year=2024,
+            month=7,
+            range_start=2,
+            range_end=5
+        )
+
+        assert len(distribution) == 2
+
+        opp_deck1_stats = next((item for item in distribution if item["deck_name"] == "OppDeck1"), None)
+        opp_deck2_stats = next((item for item in distribution if item["deck_name"] == "OppDeck2"), None)
+
+        assert opp_deck1_stats is not None
+        assert opp_deck1_stats["count"] == 2
+        assert opp_deck1_stats["percentage"] == 50.0
+
+        assert opp_deck2_stats is not None
+        assert opp_deck2_stats["count"] == 2
+        assert opp_deck2_stats["percentage"] == 50.0
