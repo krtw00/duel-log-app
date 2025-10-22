@@ -27,6 +27,7 @@ class TestSharedStatisticsEndpoints:
             mock_get_deck_distribution_monthly.return_value = []
             yield
 
+
 @pytest.fixture
 def mock_statistics_service(mocker):
     """statistics_serviceのメソッドをモック"""
@@ -111,7 +112,9 @@ def mock_statistics_service(mocker):
             in response.json()["detail"]
         )
 
-    def test_get_shared_statistics_success(self, authenticated_client, mock_statistics_service):
+    def test_get_shared_statistics_success(
+        self, authenticated_client, mock_statistics_service
+    ):
         """共有統計情報の取得成功テスト"""
         # まず共有リンクを作成
         response = authenticated_client.post(
@@ -129,7 +132,9 @@ def mock_statistics_service(mocker):
         assert "STATISTICS" in data
         assert data["DASHBOARD"]["overall_stats"]["total_duels"] == 10
 
-    def test_get_shared_statistics_expired(self, authenticated_client, mock_statistics_service):
+    def test_get_shared_statistics_expired(
+        self, authenticated_client, mock_statistics_service
+    ):
         """期限切れの共有統計データの取得テスト"""
         # 過去の有効期限で共有リンクを作成
         expires_date = datetime.now(timezone.utc) - timedelta(days=1)
@@ -149,7 +154,6 @@ def mock_statistics_service(mocker):
         response = authenticated_client.get(f"/shared-statistics/{share_id}")
         assert response.status_code == status.HTTP_410_GONE
         assert "この共有リンクは期限切れです" in response.json()["detail"]
-
 
     def test_get_shared_statistics_nonexistent(self, client):
         """存在しない共有統計データの取得テスト"""

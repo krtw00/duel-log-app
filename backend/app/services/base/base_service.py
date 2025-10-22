@@ -75,7 +75,11 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return query.offset(skip).limit(limit).all()
 
     def create(
-        self, db: Session, obj_in: CreateSchemaType, user_id: Optional[int] = None, commit: bool = True
+        self,
+        db: Session,
+        obj_in: CreateSchemaType,
+        user_id: Optional[int] = None,
+        commit: bool = True,
     ) -> ModelType:
         """
         エンティティを作成
@@ -96,13 +100,13 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         db_obj = self.model(**obj_data)
         db.add(db_obj)
-        
+
         if commit:
             db.commit()
             db.refresh(db_obj)
         else:
             db.flush()
-            
+
         return db_obj
 
     def update(
