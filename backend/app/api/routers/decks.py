@@ -66,7 +66,9 @@ def create_deck(
             db=db, user_id=current_user.id, deck_in=deck
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.get("/{deck_id}", response_model=DeckRead)
@@ -133,7 +135,9 @@ def update_deck(
         return updated_deck
 
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.delete("/{deck_id}", status_code=status.HTTP_204_NO_CONTENT)

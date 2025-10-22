@@ -106,7 +106,12 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         return query.first()
 
     def get_by_name(
-        self, db: Session, user_id: int, name: str, is_opponent: bool, include_inactive: bool = False
+        self,
+        db: Session,
+        user_id: int,
+        name: str,
+        is_opponent: bool,
+        include_inactive: bool = False,
     ) -> Optional[Deck]:
         """
         同じユーザー内で同じ名前とタイプのデッキを取得
@@ -131,7 +136,9 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
 
         return query.first()
 
-    def create_user_deck(self, db: Session, user_id: int, deck_in: DeckCreate, commit: bool = True) -> Deck:
+    def create_user_deck(
+        self, db: Session, user_id: int, deck_in: DeckCreate, commit: bool = True
+    ) -> Deck:
         """
         ユーザーのデッキを作成
 

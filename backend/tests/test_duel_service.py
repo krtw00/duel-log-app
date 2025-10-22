@@ -1,17 +1,21 @@
-import pytest
 from datetime import datetime
+
 from sqlalchemy.orm import Session
-from app.services.duel_service import duel_service
-from app.services.deck_service import deck_service
-from app.schemas.duel import DuelCreate
-from app.schemas.deck import DeckCreate
+
 from app.models.user import User
+from app.schemas.duel import DuelCreate
+from app.services.deck_service import deck_service
+from app.services.duel_service import duel_service
 
 
 def test_create_user_duel(db_session: Session, test_user: User):
     # Arrange
-    my_deck = deck_service.get_or_create(db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False)
-    opponent_deck = deck_service.get_or_create(db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True)
+    my_deck = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+    )
+    opponent_deck = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True
+    )
     db_session.commit()
 
     duel_in = DuelCreate(
@@ -26,7 +30,9 @@ def test_create_user_duel(db_session: Session, test_user: User):
     )
 
     # Act
-    created_duel = duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
+    created_duel = duel_service.create_user_duel(
+        db_session, user_id=test_user.id, duel_in=duel_in
+    )
 
     # Assert
     assert created_duel is not None
@@ -37,10 +43,15 @@ def test_create_user_duel(db_session: Session, test_user: User):
     assert created_duel.game_mode == "RANK"
     assert created_duel.rank == 10
 
+
 def test_get_user_duels(db_session: Session, test_user: User):
     # Arrange
-    my_deck = deck_service.get_or_create(db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False)
-    opponent_deck = deck_service.get_or_create(db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True)
+    my_deck = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+    )
+    opponent_deck = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True
+    )
     db_session.commit()
 
     duel_in_1 = DuelCreate(
@@ -67,17 +78,24 @@ def test_get_user_duels(db_session: Session, test_user: User):
 
     # Act
     all_duels = duel_service.get_user_duels(db_session, user_id=test_user.id)
-    jan_duels = duel_service.get_user_duels(db_session, user_id=test_user.id, year=2023, month=1)
+    jan_duels = duel_service.get_user_duels(
+        db_session, user_id=test_user.id, year=2023, month=1
+    )
 
     # Assert
     assert len(all_duels) == 2
     assert len(jan_duels) == 1
     assert jan_duels[0].game_mode == "RANK"
 
+
 def test_export_duels_to_csv(db_session: Session, test_user: User):
     # Arrange
-    my_deck = deck_service.get_or_create(db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False)
-    opponent_deck = deck_service.get_or_create(db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True)
+    my_deck = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+    )
+    opponent_deck = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True
+    )
     db_session.commit()
 
     duel_in = DuelCreate(
@@ -109,6 +127,7 @@ def test_export_duels_to_csv(db_session: Session, test_user: User):
     assert "2023-01-15 12:30:00" in csv_output
     assert "Test note" in csv_output
 
+
 def test_import_duels_from_csv_numeric_rank(db_session: Session, test_user: User):
     # Arrange
     csv_content = (
@@ -128,16 +147,23 @@ def test_import_duels_from_csv_numeric_rank(db_session: Session, test_user: User
     assert len(result["errors"]) == 0
 
     # Verify that the duel was created
-    duels = duel_service.get_user_duels(db_session, user_id=test_user.id, year=2023, month=3)
+    duels = duel_service.get_user_duels(
+        db_session, user_id=test_user.id, year=2023, month=3
+    )
     assert len(duels) == 1
     assert duels[0].notes == "Import test note"
     assert duels[0].rank == 12
 
     # Verify that the decks were created
-    my_deck = deck_service.get_by_name(db_session, user_id=test_user.id, name="New Deck", is_opponent=False)
-    opponent_deck = deck_service.get_by_name(db_session, user_id=test_user.id, name="New Opponent Deck", is_opponent=True)
+    my_deck = deck_service.get_by_name(
+        db_session, user_id=test_user.id, name="New Deck", is_opponent=False
+    )
+    opponent_deck = deck_service.get_by_name(
+        db_session, user_id=test_user.id, name="New Opponent Deck", is_opponent=True
+    )
     assert my_deck is not None
     assert opponent_deck is not None
+
 
 def test_import_duels_from_csv_string_rank(db_session: Session, test_user: User):
     # Arrange
@@ -156,13 +182,19 @@ def test_import_duels_from_csv_string_rank(db_session: Session, test_user: User)
     assert len(result["errors"]) == 0
 
     # Verify that the duel was created
-    duels = duel_service.get_user_duels(db_session, user_id=test_user.id, year=2023, month=4)
+    duels = duel_service.get_user_duels(
+        db_session, user_id=test_user.id, year=2023, month=4
+    )
     assert len(duels) == 1
     assert duels[0].notes == "Import test note 2"
     assert duels[0].rank == 12
 
     # Verify that the decks were created
-    my_deck = deck_service.get_by_name(db_session, user_id=test_user.id, name="New Deck 2", is_opponent=False)
-    opponent_deck = deck_service.get_by_name(db_session, user_id=test_user.id, name="New Opponent Deck 2", is_opponent=True)
+    my_deck = deck_service.get_by_name(
+        db_session, user_id=test_user.id, name="New Deck 2", is_opponent=False
+    )
+    opponent_deck = deck_service.get_by_name(
+        db_session, user_id=test_user.id, name="New Opponent Deck 2", is_opponent=True
+    )
     assert my_deck is not None
     assert opponent_deck is not None

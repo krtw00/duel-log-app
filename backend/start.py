@@ -50,7 +50,7 @@ def wait_for_db(max_attempts=60):
         ),  # URLエンコードされたパスワードをデコード
         "dbname": parsed_url.path.lstrip("/"),
     }
-    
+
     # NeonDB用のSSL設定（sslmodeパラメータがある場合）
     if "sslmode=require" in dsn_url:
         conn_params["sslmode"] = "require"
@@ -98,7 +98,7 @@ def get_current_db_state():
             "password": unquote(parsed_url.password) if parsed_url.password else None,
             "dbname": parsed_url.path.lstrip("/"),
         }
-        
+
         # NeonDB用のSSL設定
         if "sslmode=require" in database_url:
             conn_params["sslmode"] = "require"
@@ -146,7 +146,7 @@ def fix_alembic_version_if_needed():
 
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
-        
+
         # URLをパースして接続パラメータを取得
         parsed_url = urlparse(database_url)
         conn_params = {
@@ -156,7 +156,7 @@ def fix_alembic_version_if_needed():
             "password": unquote(parsed_url.password) if parsed_url.password else None,
             "dbname": parsed_url.path.lstrip("/"),
         }
-        
+
         # NeonDB用のSSL設定
         if "sslmode=require" in database_url:
             conn_params["sslmode"] = "require"
@@ -295,26 +295,24 @@ def start_server():
     """Uvicornサーバーを起動"""
     logger.info("🚀 Starting Uvicorn server...")
     sys.stdout.flush()
-    
+
     # Renderの場合、PORT環境変数からポートを取得
     port = int(os.getenv("PORT", "8000"))
     host = os.getenv("HOST", "0.0.0.0")
-    
+
     # 本番環境では--reloadを無効化
     environment = os.getenv("ENVIRONMENT", "development")
     reload = environment != "production"
-    
+
     logger.info(f"🔧 Server config: host={host}, port={port}, reload={reload}")
     sys.stdout.flush()
-    
+
     if reload:
         subprocess.run(
             ["uvicorn", "app.main:app", "--host", host, "--port", str(port), "--reload"]
         )
     else:
-        subprocess.run(
-            ["uvicorn", "app.main:app", "--host", host, "--port", str(port)]
-        )
+        subprocess.run(["uvicorn", "app.main:app", "--host", host, "--port", str(port)])
 
 
 if __name__ == "__main__":

@@ -24,7 +24,9 @@ def export_duels_csv(
     year: Optional[int] = Query(None, description="年でフィルタリング"),
     month: Optional[int] = Query(None, description="月でフィルタリング"),
     game_mode: Optional[str] = Query(None, description="ゲームモードでフィルタリング"),
-    columns: Optional[str] = Query(None, description="エクスポートするカラム（カンマ区切り）"),
+    columns: Optional[str] = Query(
+        None, description="エクスポートするカラム（カンマ区切り）"
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -32,6 +34,7 @@ def export_duels_csv(
     ログインユーザーの戦績データをCSV形式でエクスポート
     """
     import logging
+
     logger = logging.getLogger(__name__)
     logger.info(f"Exporting CSV with columns: {columns}")
 
@@ -61,7 +64,7 @@ def export_duels_csv(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"CSV export failed: {str(e)}",
-        )
+        ) from e
 
 
 @router.get("/", response_model=List[DuelRead])
@@ -251,10 +254,9 @@ def import_duels_csv(
     CSVファイルからデュエルデータをインポート
     """
     # ファイル名の拡張子をチェック（Content-Typeは不確実なため）
-    if not file.filename or not file.filename.endswith('.csv'):
+    if not file.filename or not file.filename.endswith(".csv"):
         raise HTTPException(
-            status_code=400, 
-            detail="Invalid file type. Please upload a CSV file (.csv)"
+            status_code=400, detail="Invalid file type. Please upload a CSV file (.csv)"
         )
 
     try:
@@ -262,22 +264,22 @@ def import_duels_csv(
         result = duel_service.import_duels_from_csv(
             db=db, user_id=current_user.id, csv_content=csv_content
         )
-        
+
         # インポート結果を返す
         response = {
             "message": "CSV file imported successfully",
-            "created": result['created'],
-            "errors": result['errors']
+            "created": result["created"],
+            "errors": result["errors"],
         }
-        
+
         # エラーがある場合は警告を追加
-        if result['errors']:
+        if result["errors"]:
             response["warning"] = f"{len(result['errors'])} rows had errors"
-        
+
         return response
-        
+
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail=f"Failed to import CSV file: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to import CSV file: {str(e)}",
         ) from e

@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
@@ -11,10 +12,9 @@ from app.models.duel import Duel
 from app.models.user import User
 from app.schemas.duel import DuelWithDeckNames  # Import DuelWithDeckNames
 from app.schemas.shared_statistics import SharedStatisticsCreate, SharedStatisticsRead
+from app.services.duel_service import duel_service
 from app.services.shared_statistics_service import shared_statistics_service
 from app.services.statistics_service import statistics_service
-from app.services.duel_service import duel_service
-from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/shared-statistics", tags=["shared-statistics"])
 
@@ -232,7 +232,7 @@ def export_shared_duels_csv(
         )
 
     user_id = shared_link.user_id
-    
+
     # If year, month, or game_mode are not provided in query, use the ones from the shared link
     target_year = year if year is not None else shared_link.year
     target_month = month if month is not None else shared_link.month
@@ -260,4 +260,4 @@ def export_shared_duels_csv(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"CSV export failed: {str(e)}",
-        )
+        ) from e

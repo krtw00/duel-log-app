@@ -38,7 +38,11 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # ユーザー取得（ID指定）
 @router.get("/{user_id}", response_model=UserResponse, response_model_exclude_none=True)
-def read_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def read_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """IDで指定されたユーザーを取得する"""
     db_user = user_service.get_by_id(db=db, id=user_id)
     if not db_user:
@@ -48,14 +52,24 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user: User = 
 
 # ユーザー一覧取得
 @router.get("/", response_model=list[UserResponse])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def read_users(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """ユーザーの一覧を取得する"""
     return user_service.get_all(db=db, skip=skip, limit=limit)
 
 
 # ユーザー更新 (注意: このエンドポイントは管理者向けであるべき)
 @router.put("/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, user_in: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def update_user(
+    user_id: int,
+    user_in: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """IDで指定されたユーザーを更新する (管理者向け)"""
     db_user = user_service.get_by_id(db=db, id=user_id)
     if not db_user:
@@ -69,7 +83,11 @@ def update_user(user_id: int, user_in: UserUpdate, db: Session = Depends(get_db)
 
 # ユーザー削除 (注意: このエンドポイントは管理者向けであるべき)
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """IDで指定されたユーザーを削除する (管理者向け)"""
     success = user_service.delete(db=db, id=user_id)
     if not success:
