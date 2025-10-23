@@ -63,7 +63,7 @@ const allDisplayItems: OBSDisplayItemDefinition[] = [
   { key: 'current_rank', label: 'ランク', format: (v) => v ? getRankName(Number(v)) : '-' },
   { key: 'total_duels', label: '総試合数', format: (v) => (v as number | undefined)?.toString() || '0' },
   { key: 'win_rate', label: '勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'first_turn_win_rate', label: '先行勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
+  { key: 'first_turn_win_rate', label: '先攻勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
   { key: 'second_turn_win_rate', label: '後攻勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
   { key: 'coin_win_rate', label: 'コイン勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
   { key: 'go_first_rate', label: '先攻率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
