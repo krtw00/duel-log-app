@@ -156,9 +156,10 @@ const hiddenColumnsSet = computed(() => new Set(props.hiddenColumns ?? []));
 
 const computedHeaders = computed(() => {
   return headers.filter((header) => {
-    if (!showActionButtons.value && header.key === 'actions') {
-      return false;
+    if (header.key === 'actions') {
+      return showActionButtons.value;
     }
+
     return !hiddenColumnsSet.value.has(header.key as string);
   });
 });
