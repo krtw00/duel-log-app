@@ -1,6 +1,6 @@
 <template>
   <v-data-table
-    :headers="headers"
+    :headers="computedHeaders"
     :items="duels"
     :loading="loading"
     class="duel-table"
@@ -8,11 +8,11 @@
     density="comfortable"
     mobile-breakpoint="sm"
     fixed-header
-    height="70vh"
+    :height="tableHeightValue"
   >
     <!-- No.カラム -->
-    <template #[`item.no`]="{ index }">
-      <span class="text-grey">{{ duels.length - index }}</span>
+    <template #[`item.no`]="{ item, index }">
+      <span class="text-grey">{{ item.no ?? duels.length - index }}</span>
     </template>
 
     <!-- 勝敗カラム -->
@@ -88,7 +88,7 @@
     </template>
 
     <!-- アクションカラム -->
-    <template #[`item.actions`]="{ item }">
+    <template v-if="showActionButtons" #[`item.actions`]="{ item }">
       <v-btn icon="mdi-pencil" variant="text" @click="$emit('edit', item)" />
       <v-btn icon="mdi-delete" variant="text" color="error" @click="$emit('delete', item.id)" />
     </template>
@@ -110,12 +110,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Duel } from '@/types';
 import { getRankName } from '@/utils/ranks';
 
-defineProps<{
+const props = defineProps<{
   duels: Duel[];
   loading: boolean;
+  showActions?: boolean;
+  tableHeight?: string;
 }>();
 
 defineEmits<{
@@ -146,6 +149,17 @@ const formatDate = (dateString: string) => {
   const [hour, minute] = timePart.split(':');
   return `${year}/${month}/${day} ${hour}:${minute}`;
 };
+
+const showActionButtons = computed(() => props.showActions !== false);
+
+const computedHeaders = computed(() => {
+  if (!showActionButtons.value) {
+    return headers.filter((header) => header.key !== 'actions');
+  }
+  return headers;
+});
+
+const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
 </script>
 
 <style lang="scss">
