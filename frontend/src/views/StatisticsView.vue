@@ -149,7 +149,7 @@
           <v-window-item v-for="mode in ['RANK', 'RATE', 'EVENT', 'DC']" :key="mode" :value="mode">
             <v-row>
               <!-- 月間デッキ分布 -->
-              <v-col cols="12">
+              <v-col cols="12" lg="6">
                 <v-card class="stats-card">
                   <v-card-title>月間デッキ分布 ({{ currentMonth }})</v-card-title>
                   <v-card-text>
@@ -166,6 +166,25 @@
                       <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
                       <p class="text-body-1 text-grey mt-4">データがありません</p>
                     </div>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <!-- 月間対戦リスト -->
+              <v-col cols="12" lg="6">
+                <v-card class="stats-card">
+                  <v-card-title class="d-flex align-center justify-space-between">
+                    <span>月間対戦一覧 ({{ currentMonth }})</span>
+                    <v-chip size="small" variant="outlined">
+                      全 {{ monthlyDuelsByMode[mode].length }} 件
+                    </v-chip>
+                  </v-card-title>
+                  <v-card-text>
+                    <duel-table
+                      :duels="monthlyDuelsByMode[mode]"
+                      :loading="monthlyDuelsLoading"
+                      :show-actions="false"
+                      table-height="60vh"
+                    />
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -267,6 +286,7 @@ import { api } from '@/services/api';
 import AppBar from '@/components/layout/AppBar.vue';
 import { useThemeStore } from '@/stores/theme';
 import { useChartOptions } from '@/composables/useChartOptions';
+import DuelTable from '@/components/duel/DuelTable.vue';
 
 const themeStore = useThemeStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
@@ -280,7 +300,7 @@ const navItems = [
 
 // --- Types ---
 import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
-import type { MatchupData, GameMode } from '@/types';
+import type { MatchupData, GameMode, Duel, Deck } from '@/types';
 import type { StatisticsQueryParams } from '@/types/statistics';
 
 interface DistributionData {
@@ -305,6 +325,8 @@ interface TimeSeriesDataItem {
   date: string;
   value: number;
 }
+
+type ExtendedDuel = Duel & { no: number };
 
 interface StatisticsModeData {
   monthlyDistribution: DistributionData;
@@ -381,6 +403,13 @@ const createInitialStats = (): AllStatisticsData => {
 };
 
 const statisticsByMode = ref<AllStatisticsData>(createInitialStats());
+const monthlyDuelsByMode = ref<Record<GameMode, ExtendedDuel[]>>({
+  RANK: [],
+  RATE: [],
+  EVENT: [],
+  DC: [],
+});
+const monthlyDuelsLoading = ref(false);
 
 const fetchAvailableDecks = async () => {
   try {
@@ -419,10 +448,78 @@ const fetchAvailableDecks = async () => {
 const refreshStatisticsWithDecks = async () => {
   await fetchAvailableDecks();
   await fetchStatistics();
+  await fetchMonthlyDuels(currentTab.value as GameMode);
 };
 
 const handleMyDeckFilterChange = async () => {
   await fetchStatistics();
+  await fetchMonthlyDuels(currentTab.value as GameMode);
+};
+
+const resolveDeckName = (deckId: number): string => {
+  const deck = availableMyDecks.value.find((d) => d.id === deckId);
+  return deck ? deck.name : '不明';
+};
+
+const resolveOpponentDeckName = (deckId: number): string => {
+  const deck = availableOpponentDecks.value.find((d) => d.id === deckId);
+  return deck ? deck.name : '不明';
+};
+
+const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: number): Deck => ({
+  id,
+  name,
+  is_opponent: isOpponent,
+  active: true,
+  user_id: userId,
+});
+
+const fetchMonthlyDuels = async (mode: GameMode) => {
+  monthlyDuelsLoading.value = true;
+  try {
+    monthlyDuelsByMode.value[mode] = [];
+    const params: Record<string, any> = {
+      year: selectedYear.value,
+      month: selectedMonth.value,
+      game_mode: mode,
+    };
+
+    if (filterPeriodType.value === 'range') {
+      params.range_start = filterRangeStart.value;
+      if (filterRangeEnd.value) {
+        params.range_end = filterRangeEnd.value;
+      }
+    }
+
+    if (filterMyDeckId.value !== null) {
+      params.deck_id = filterMyDeckId.value;
+    }
+    if (filterOpponentDeckId.value !== null) {
+      params.opponent_deck_id = filterOpponentDeckId.value;
+    }
+
+    const response = await api.get('/duels/', { params });
+    const duels: Duel[] = response.data;
+    const offset = filterPeriodType.value === 'range' ? Math.max(0, filterRangeStart.value - 1) : 0;
+    const total = duels.length + offset;
+
+    monthlyDuelsByMode.value[mode] = duels.map((duel, index) => {
+      const deckName = resolveDeckName(duel.deck_id);
+      const opponentName = resolveOpponentDeckName(duel.opponentDeck_id);
+
+      return {
+        ...duel,
+        deck: buildDeckStub(duel.deck_id, deckName, false, duel.user_id),
+        opponentdeck: buildDeckStub(duel.opponentDeck_id, opponentName, true, duel.user_id),
+        no: total - index,
+      };
+    });
+  } catch (error) {
+    console.error('Failed to fetch monthly duels:', error);
+    monthlyDuelsByMode.value[mode] = [];
+  } finally {
+    monthlyDuelsLoading.value = false;
+  }
 };
 
 const fetchStatistics = async () => {
@@ -515,6 +612,7 @@ watch(currentTab, () => {
 // テーマ変更時にグラフを再描画
 watch(() => themeStore.isDark, () => {
   fetchStatistics();
+  fetchMonthlyDuels(currentTab.value as GameMode);
 });
 </script>
 
