@@ -185,12 +185,13 @@ def get_available_decks(
 @router.get("/obs", response_model=Dict[str, Any])
 def get_obs_statistics(
     period_type: str = Query(
-        "recent", description="集計期間タイプ (all/monthly/recent)"
+        "from_start", description="集計期間タイプ (all/monthly/recent/from_start)"
     ),
     year: Optional[int] = Query(None, description="年（monthly時のみ）"),
     month: Optional[int] = Query(None, description="月（monthly時のみ）"),
     limit: int = Query(30, ge=1, le=100, description="取得する対戦数（recent時のみ）"),
     game_mode: Optional[str] = Query(None, description="ゲームモード"),
+    start_id: Optional[int] = Query(None, description="開始ID（このID以降のデータのみ）"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -200,11 +201,13 @@ def get_obs_statistics(
       - all: 全期間
       - monthly: 指定された年月
       - recent: 直近N戦
+      - from_start: 配信開始から（start_id必須）
+    start_id: 指定された場合、このID以降のデータのみを集計
     """
     if period_type == "all":
         # 全期間の統計
         return general_stats_service.get_all_time_stats(
-            db=db, user_id=current_user.id, game_mode=game_mode
+            db=db, user_id=current_user.id, game_mode=game_mode, start_id=start_id
         )
     elif period_type == "monthly":
         # 月間統計
@@ -212,10 +215,20 @@ def get_obs_statistics(
             year = datetime.now().year
             month = datetime.now().month
         return general_stats_service.get_overall_stats(
-            db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode
+            db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode, start_id=start_id
+        )
+    elif period_type == "from_start":
+        # 配信開始からの統計（start_id必須）
+        if start_id is None:
+            raise HTTPException(
+                status_code=400,
+                detail="start_id is required for from_start period type"
+            )
+        return general_stats_service.get_all_time_stats(
+            db=db, user_id=current_user.id, game_mode=game_mode, start_id=start_id
         )
     else:  # recent
         # 直近N戦
         return general_stats_service.get_recent_stats(
-            db=db, user_id=current_user.id, limit=limit, game_mode=game_mode
+            db=db, user_id=current_user.id, limit=limit, game_mode=game_mode, start_id=start_id
         )

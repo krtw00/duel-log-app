@@ -9,11 +9,12 @@ import type { GameMode, OBSOverlayStats } from './index';
  */
 export interface OBSQueryParams {
   token: string;
-  period_type: 'monthly' | 'recent';
+  period_type: 'monthly' | 'recent' | 'from_start';
   year?: number;
   month?: number;
   limit?: number;
   game_mode?: GameMode;
+  start_id?: number;
   display_items?: string;
   refresh?: number;
   layout?: 'grid' | 'horizontal' | 'vertical';
@@ -60,7 +61,7 @@ export interface OBSLayoutConfig {
  * OBS 設定
  */
 export interface OBSConfiguration {
-  periodType: 'monthly' | 'recent';
+  periodType: 'monthly' | 'recent' | 'from_start';
   year: number;
   month: number;
   limit: number;
@@ -79,11 +80,12 @@ export interface OBSConfiguration {
  */
 export interface OBSUrlParams {
   token: string;
-  period_type: 'monthly' | 'recent';
+  period_type: 'monthly' | 'recent' | 'from_start';
   year?: number;
   month?: number;
   limit?: number;
   game_mode?: GameMode;
+  start_id?: number;
   display_items: string;
   layout: 'grid' | 'horizontal' | 'vertical';
   refresh: number;
