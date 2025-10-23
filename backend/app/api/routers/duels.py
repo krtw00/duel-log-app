@@ -70,10 +70,20 @@ def export_duels_csv(
 @router.get("/", response_model=List[DuelRead])
 def list_duels(
     deck_id: Optional[int] = Query(None, description="デッキIDでフィルタリング"),
+    opponent_deck_id: Optional[int] = Query(
+        None, description="相手デッキIDでフィルタリング"
+    ),
+    game_mode: Optional[str] = Query(None, description="ゲームモードでフィルタリング"),
     start_date: Optional[datetime] = Query(None, description="開始日（この日以降）"),
     end_date: Optional[datetime] = Query(None, description="終了日（この日以前）"),
     year: Optional[int] = Query(None, description="年"),
     month: Optional[int] = Query(None, description="月"),
+    range_start: Optional[int] = Query(
+        None, ge=1, description="範囲指定：開始試合番号（1始まり）"
+    ),
+    range_end: Optional[int] = Query(
+        None, ge=1, description="範囲指定：終了試合番号（1始まり・含まない）"
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -94,10 +104,14 @@ def list_duels(
         db=db,
         user_id=current_user.id,
         deck_id=deck_id,
+        opponent_deck_id=opponent_deck_id,
+        game_mode=game_mode,
         start_date=start_date,
         end_date=end_date,
         year=year,
         month=month,
+        range_start=range_start,
+        range_end=range_end,
     )
 
 
