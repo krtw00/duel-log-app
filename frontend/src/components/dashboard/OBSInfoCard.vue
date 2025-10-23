@@ -38,7 +38,7 @@
             </v-chip>
             <v-chip color="teal" variant="outlined" size="small">
               <v-icon start size="small">mdi-arrow-up-bold-hexagon-outline</v-icon>
-              先行率
+              先攻率
             </v-chip>
           </div>
         </v-card-text>
