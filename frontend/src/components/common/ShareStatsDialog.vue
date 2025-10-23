@@ -158,7 +158,10 @@ const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 
 const selectDate = (date: Date | null) => {
   if (date) {
-    expiresAt.value = date.toISOString().substring(0, 10); // YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    expiresAt.value = `${year}-${month}-${day}`; // YYYY-MM-DD (local date)
     menu.value = false; // Close the date picker
   }
 };
@@ -181,8 +184,9 @@ const generateLink = async () => {
     const month = parseInt(match[2], 10);
     const day = parseInt(match[3], 10);
 
-    // Basic date validity check
-    const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Midnight UTC
+    // 入力された日付の妥当性を確認しつつ、当日0時(UTC)のISO文字列を生成
+    const date = new Date(Date.UTC(year, month - 1, day));
+
     if (
       date.getUTCFullYear() !== year ||
       date.getUTCMonth() !== month - 1 ||
@@ -192,7 +196,7 @@ const generateLink = async () => {
       return;
     }
 
-    formattedExpiresAt = date.toISOString();
+    formattedExpiresAt = `${match[1]}-${match[2]}-${match[3]}T00:00:00.000Z`;
   }
 
   const shareId = await sharedStatisticsStore.createSharedLink({
