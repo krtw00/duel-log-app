@@ -184,7 +184,7 @@
                       :loading="monthlyDuelsLoading"
                       :show-actions="false"
                       :hidden-columns="monthlyHiddenColumns"
-                      table-height="60vh"
+                      table-height="480px"
                     />
                   </v-card-text>
                 </v-card>
