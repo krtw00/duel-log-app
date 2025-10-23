@@ -73,7 +73,7 @@ export function useOBSConfiguration() {
     { label: '先行勝率', value: 'first_turn_win_rate', selected: true },
     { label: '後攻勝率', value: 'second_turn_win_rate', selected: true },
     { label: 'コイン勝率', value: 'coin_win_rate', selected: true },
-    { label: '先行率', value: 'go_first_rate', selected: true },
+    { label: '先攻率', value: 'go_first_rate', selected: true },
   ]);
 
   // ドラッグ&ドロップの状態管理
