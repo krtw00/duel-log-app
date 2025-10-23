@@ -37,17 +37,18 @@ const errorMessage = ref<string>('');
 
 // クエリパラメータから設定を取得
 const token = ref(route.query.token as string);
-const allowedPeriodTypes = ['monthly', 'recent'] as const;
-const initialPeriodType = (route.query.period_type as string) || 'recent';
+const allowedPeriodTypes = ['monthly', 'recent', 'from_start'] as const;
+const initialPeriodType = (route.query.period_type as string) || 'from_start';
 const periodType = ref(
   allowedPeriodTypes.includes(initialPeriodType as (typeof allowedPeriodTypes)[number])
     ? initialPeriodType
-    : 'recent',
+    : 'from_start',
 );
 const year = ref(Number(route.query.year) || new Date().getFullYear());
 const month = ref(Number(route.query.month) || new Date().getMonth() + 1);
 const limit = ref(Number(route.query.limit) || 30);
 const gameMode = ref<string | undefined>((route.query.game_mode as string) || undefined);
+const startId = ref<number | undefined>(route.query.start_id ? Number(route.query.start_id) : undefined);
 const displayItemsParam = ref((route.query.display_items as string) || '');
 const layout = ref((route.query.layout as string) || 'grid');
 const theme = ref((route.query.theme as string) || 'dark');
@@ -93,7 +94,7 @@ const fetchStats = async () => {
 
     const params: Partial<OBSQueryParams> = {
       token: token.value,
-      period_type: periodType.value as 'monthly' | 'recent',
+      period_type: periodType.value as 'monthly' | 'recent' | 'from_start',
     };
 
     // 集計期間に応じたパラメータ
@@ -102,6 +103,10 @@ const fetchStats = async () => {
       params.month = month.value;
     } else if (periodType.value === 'recent') {
       params.limit = limit.value;
+    } else if (periodType.value === 'from_start') {
+      if (startId.value !== undefined) {
+        params.start_id = startId.value;
+      }
     }
 
     // ゲームモード

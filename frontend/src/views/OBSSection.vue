@@ -35,7 +35,7 @@
       @drag-leave="handleDragLeave"
       @drop="handleDrop"
       @drag-end="handleDragEnd"
-      @copy-url="copyOBSUrl"
+      @copy-url="handleCopyUrl"
     />
   </div>
 </template>
@@ -84,6 +84,13 @@ const {
   handleDrop,
   handleDragEnd,
   copyOBSUrl,
+  fetchLatestDuelId,
 } = useOBSConfiguration();
+
+// URLコピー時に最新のIDを取得してからコピー
+const handleCopyUrl = async () => {
+  await fetchLatestDuelId();
+  await copyOBSUrl();
+};
 
 </script>
