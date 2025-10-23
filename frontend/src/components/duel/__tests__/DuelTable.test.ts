@@ -104,6 +104,7 @@ describe('DuelTable.vue', () => {
       props: {
         duels: mockDuels,
         loading: false,
+        showActions: true,
       },
     });
 
@@ -120,6 +121,7 @@ describe('DuelTable.vue', () => {
       props: {
         duels: mockDuels,
         loading: false,
+        showActions: true,
       },
     });
 
