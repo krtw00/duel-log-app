@@ -6,6 +6,7 @@
 import { ref, computed } from 'vue';
 import { useNotificationStore } from '../stores/notification';
 import { createLogger } from '../utils/logger';
+import { api } from '../services/api';
 
 const logger = createLogger('OBSConfiguration');
 
@@ -14,7 +15,7 @@ export function useOBSConfiguration() {
 
   // OBS設定状態
   const showOBSDialog = ref(false);
-  const obsPeriodType = ref<'monthly' | 'recent'>('recent');
+  const obsPeriodType = ref<'monthly' | 'recent' | 'from_start'>('from_start');
   const obsYear = ref(new Date().getFullYear());
   const obsMonth = ref(new Date().getMonth() + 1);
   const obsLimit = ref(30);
@@ -23,11 +24,13 @@ export function useOBSConfiguration() {
   const obsTheme = ref<'dark' | 'light'>('dark');
   const obsRefreshInterval = ref(30000);
   const urlCopied = ref(false);
+  const obsStartId = ref<number | null>(null);
 
   // 設定オプション
   const periodTypeOptions = [
     { title: '月間集計', value: 'monthly' },
     { title: '直近N戦', value: 'recent' },
+    { title: '配信開始から', value: 'from_start' },
   ];
 
   const gameModeOptions = [
@@ -149,6 +152,27 @@ export function useOBSConfiguration() {
   });
 
   /**
+   * 最新の対戦記録IDを取得
+   */
+  const fetchLatestDuelId = async () => {
+    try {
+      const response = await api.get('/duels/', {
+        params: {
+          limit: 1,
+          offset: 0,
+        },
+      });
+      if (response.data && response.data.length > 0) {
+        obsStartId.value = response.data[0].id;
+        logger.log('Latest duel ID:', obsStartId.value);
+      }
+    } catch (error) {
+      logger.error('Failed to fetch latest duel ID:', error);
+      // エラーが発生しても処理は継続
+    }
+  };
+
+  /**
    * OBSオーバーレイURL
    */
   const obsUrl = computed(() => {
@@ -175,6 +199,11 @@ export function useOBSConfiguration() {
       params.append('month', obsMonth.value.toString());
     } else if (obsPeriodType.value === 'recent') {
       params.append('limit', obsLimit.value.toString());
+    } else if (obsPeriodType.value === 'from_start') {
+      // 配信開始からの場合、start_idが必須
+      if (obsStartId.value !== null) {
+        params.append('start_id', obsStartId.value.toString());
+      }
     }
 
     // ゲームモード
@@ -234,6 +263,7 @@ export function useOBSConfiguration() {
     draggedIndex,
     dragOverIndex,
     urlCopied,
+    obsStartId,
 
     // Constants
     periodTypeOptions,
@@ -256,5 +286,6 @@ export function useOBSConfiguration() {
     handleDrop,
     handleDragEnd,
     copyOBSUrl,
+    fetchLatestDuelId,
   };
 }
