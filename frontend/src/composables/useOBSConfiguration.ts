@@ -70,7 +70,7 @@ export function useOBSConfiguration() {
     { label: 'ランク', value: 'current_rank', selected: true },
     { label: '総試合数', value: 'total_duels', selected: false },
     { label: '勝率', value: 'win_rate', selected: true },
-    { label: '先行勝率', value: 'first_turn_win_rate', selected: true },
+    { label: '先攻勝率', value: 'first_turn_win_rate', selected: true },
     { label: '後攻勝率', value: 'second_turn_win_rate', selected: true },
     { label: 'コイン勝率', value: 'coin_win_rate', selected: true },
     { label: '先攻率', value: 'go_first_rate', selected: true },
