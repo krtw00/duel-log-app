@@ -48,9 +48,7 @@ def get_current_user(
             token = parts[1]
             logger.info("Token found in Authorization header (Safari/iOS mode)")
         else:
-            logger.warning(
-                f"Invalid Authorization header format: {authorization[:20]}..."
-            )
+            logger.warning("Invalid Authorization header format")
 
     # 2. Cookieから取得（通常のブラウザ）
     if not token and access_token:
@@ -63,7 +61,7 @@ def get_current_user(
         )
         raise UnauthorizedException(detail="認証されていません")
 
-    logger.info(f"Access token received: {token[:20]}... (length: {len(token)})")
+    logger.debug("Access token received (length: %d)", len(token))
 
     # トークンをデコード
     payload = decode_access_token(token)
