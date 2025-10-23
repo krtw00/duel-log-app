@@ -29,6 +29,10 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         end_date: Optional[datetime] = None,
         year: Optional[int] = None,
         month: Optional[int] = None,
+        game_mode: Optional[str] = None,
+        opponent_deck_id: Optional[int] = None,
+        range_start: Optional[int] = None,
+        range_end: Optional[int] = None,
     ) -> List[Duel]:
         """
         ユーザーのデュエルを取得（フィルタリング可能）
@@ -41,13 +45,23 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
             end_date: 終了日（指定した場合、この日以前のデュエル）
             year: 年（指定した場合、その年のデュエル）
             month: 月（指定した場合、その月のデュエル）
+            game_mode: ゲームモード（指定した場合、このモードのデュエルのみ）
+            opponent_deck_id: 相手デッキID（指定した場合、そのデッキとの対戦のみ）
+            range_start: 範囲指定の開始位置（1始まり、最新試合を1としてカウント）
+            range_end: 範囲指定の終了位置（1始まり、endは含まない）
 
         Returns:
             デュエルのリスト
         """
         query = db.query(Duel)
         query = apply_duel_filters(
-            query, user_id=user_id, year=year, month=month, deck_id=deck_id
+            query,
+            user_id=user_id,
+            game_mode=game_mode,
+            year=year,
+            month=month,
+            deck_id=deck_id,
+            opponent_deck_id=opponent_deck_id,
         )
 
         if start_date is not None:
@@ -56,7 +70,14 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         if end_date is not None:
             query = query.filter(Duel.played_date <= end_date)
 
-        return query.order_by(Duel.played_date.desc()).all()
+        duels = query.order_by(Duel.played_date.desc()).all()
+
+        if range_start is not None or range_end is not None:
+            start_index = max(0, (range_start or 1) - 1)
+            end_index = range_end if range_end is not None else len(duels)
+            duels = duels[start_index:end_index]
+
+        return duels
 
     def create_user_duel(self, db: Session, user_id: int, duel_in: DuelCreate) -> Duel:
         """

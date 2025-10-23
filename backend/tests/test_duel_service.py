@@ -81,11 +81,21 @@ def test_get_user_duels(db_session: Session, test_user: User):
     jan_duels = duel_service.get_user_duels(
         db_session, user_id=test_user.id, year=2023, month=1
     )
+    rank_duels = duel_service.get_user_duels(
+        db_session, user_id=test_user.id, game_mode="RANK"
+    )
+    ranged_duels = duel_service.get_user_duels(
+        db_session, user_id=test_user.id, range_start=2
+    )
 
     # Assert
     assert len(all_duels) == 2
     assert len(jan_duels) == 1
     assert jan_duels[0].game_mode == "RANK"
+    assert len(rank_duels) == 1
+    assert rank_duels[0].game_mode == "RANK"
+    assert len(ranged_duels) == 1
+    assert ranged_duels[0].played_date == datetime(2023, 1, 15)
 
 
 def test_export_duels_to_csv(db_session: Session, test_user: User):
