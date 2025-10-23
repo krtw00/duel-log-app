@@ -55,6 +55,7 @@ export interface Duel {
   // フロントエンドで追加するフィールド
   deck?: Deck;
   opponentdeck?: Deck;
+  no?: number; // テーブル表示用の連番
 }
 
 export interface DuelCreate {

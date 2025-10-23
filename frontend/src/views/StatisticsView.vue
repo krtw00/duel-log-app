@@ -146,7 +146,7 @@
         </v-card>
 
         <v-window v-model="currentTab">
-          <v-window-item v-for="mode in ['RANK', 'RATE', 'EVENT', 'DC']" :key="mode" :value="mode">
+          <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
             <v-row>
               <!-- 月間デッキ分布 -->
               <v-col cols="12" lg="6">
@@ -342,6 +342,7 @@ interface AllStatisticsData {
 
 const loading = ref(true);
 const currentTab = ref('RANK');
+const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 
 // --- Date Selection ---
 const selectedYear = ref(new Date().getFullYear());
