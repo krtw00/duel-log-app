@@ -22,6 +22,7 @@
       <duel-table
         :duels="duels"
         :loading="loading"
+        :show-actions="true"
         @refresh="onRefresh"
         @edit="editDuel"
         @delete="deleteDuel"
