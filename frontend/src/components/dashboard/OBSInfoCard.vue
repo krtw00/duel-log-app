@@ -26,7 +26,7 @@
             </v-chip>
             <v-chip color="warning" variant="outlined" size="small">
               <v-icon start size="small">mdi-lightning-bolt</v-icon>
-              先行勝率
+              先攻勝率
             </v-chip>
             <v-chip color="secondary" variant="outlined" size="small">
               <v-icon start size="small">mdi-shield</v-icon>
