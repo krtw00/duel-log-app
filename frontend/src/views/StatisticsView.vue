@@ -183,6 +183,7 @@
                       :duels="monthlyDuelsByMode[mode]"
                       :loading="monthlyDuelsLoading"
                       :show-actions="false"
+                      :hidden-columns="monthlyHiddenColumns"
                       table-height="60vh"
                     />
                   </v-card-text>
@@ -410,6 +411,7 @@ const monthlyDuelsByMode = ref<Record<GameMode, ExtendedDuel[]>>({
   DC: [],
 });
 const monthlyDuelsLoading = ref(false);
+const monthlyHiddenColumns = ['opponentdeck', 'coin', 'first_or_second', 'notes'];
 
 const fetchAvailableDecks = async () => {
   try {
