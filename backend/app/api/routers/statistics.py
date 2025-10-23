@@ -185,7 +185,7 @@ def get_available_decks(
 @router.get("/obs", response_model=Dict[str, Any])
 def get_obs_statistics(
     period_type: str = Query(
-        "from_start", description="集計期間タイプ (all/monthly/recent/from_start)"
+        "recent", description="集計期間タイプ (all/monthly/recent/from_start)"
     ),
     year: Optional[int] = Query(None, description="年（monthly時のみ）"),
     month: Optional[int] = Query(None, description="月（monthly時のみ）"),
