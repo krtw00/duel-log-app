@@ -204,7 +204,7 @@ interface DisplayItem {
 
 interface Props {
   modelValue: boolean;
-  periodType: 'monthly' | 'recent';
+  periodType: 'monthly' | 'recent' | 'from_start';
   year: number;
   month: number;
   limit: number;
@@ -229,7 +229,7 @@ defineProps<Props>();
 
 defineEmits<{
   'update:modelValue': [value: boolean];
-  'update:periodType': [value: 'monthly' | 'recent'];
+  'update:periodType': [value: 'monthly' | 'recent' | 'from_start'];
   'update:year': [value: number];
   'update:month': [value: number];
   'update:limit': [value: number];
