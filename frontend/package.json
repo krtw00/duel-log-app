@@ -7,8 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:unit": "vitest run",
+    "test": "node --experimental-detect-module node_modules/vitest/vitest.mjs",
+    "test:unit": "node node_modules/vitest/vitest.mjs run",
     "lint": "eslint .",
     "format": "prettier --write src/"
   },
