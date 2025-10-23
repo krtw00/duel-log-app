@@ -1,9 +1,6 @@
 <template>
   <div class="obs-overlay" :class="['layout-' + layout, 'theme-' + theme]">
     <div v-if="!loading && stats" class="stats-container">
-      <div class="stats-header">
-        <h2 class="stats-title">{{ periodTitle }}</h2>
-      </div>
       <div class="stats-card" :class="[
         { 'single-column': displayItems.length === 1 },
         'layout-' + layout
@@ -80,15 +77,6 @@ const displayItems = computed(() => {
   return selectedKeys
     .map(key => allDisplayItems.find(item => item.key === key))
     .filter((item): item is OBSDisplayItemDefinition => item !== undefined);
-});
-
-// タイトル文字列
-const periodTitle = computed(() => {
-  if (periodType.value === 'monthly') {
-    return `${year.value}年${month.value}月の成績`;
-  } else {
-    return `直近${limit.value}戦の成績`;
-  }
 });
 
 const fetchStats = async () => {
@@ -200,13 +188,13 @@ onUnmounted(() => {
     justify-content: center;
   }
 
-  // 横1列レイアウト（下部に配置、横に伸ばす）
+  // 横1列レイアウト（上下左右中央揃え）
   &.layout-horizontal {
-    align-items: flex-end;
-    justify-content: stretch;
+    align-items: center;
+    justify-content: center;
   }
 
-  // 縦1列レイアウト（右端に配置、中央に表示）
+  // 縦1列レイアウト（上下左右中央揃え）
   &.layout-vertical {
     align-items: center;
     justify-content: center;
@@ -255,39 +243,14 @@ onUnmounted(() => {
 
   .layout-horizontal & {
     max-width: none;
-    width: 100%;
-    padding: 0 20px 20px 20px;
+    width: auto;
+    padding: 20px;
   }
 
   .layout-vertical & {
     max-width: none;
     width: auto;
-    padding: 0;
-  }
-}
-
-.stats-header {
-  text-align: center;
-  margin-bottom: 16px;
-
-  .layout-vertical & {
-    margin-bottom: 12px;
-  }
-}
-
-.stats-title {
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-
-  .layout-vertical & {
-    font-size: 20px;
-    letter-spacing: 1px;
+    padding: 20px;
   }
 }
 
@@ -296,22 +259,25 @@ onUnmounted(() => {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   padding: 24px;
-  background: var(--bg-primary);
+  background: transparent;
   border-radius: 16px;
-  border: 2px solid var(--border-primary);
-  box-shadow: 0 8px 32px var(--shadow-color);
-  backdrop-filter: blur(10px);
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 
   &.single-column {
     grid-template-columns: 1fr;
     max-width: 400px;
   }
 
-  // 横1列レイアウト（下部に配置、横に伸ばす）
+  // 横1列レイアウト（下部に配置、中央揃え）
   &.layout-horizontal {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    grid-template-rows: auto;
-    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: auto;
     max-width: none;
     padding: 12px 24px;
     gap: 12px;
@@ -349,6 +315,12 @@ onUnmounted(() => {
   &.deck-item {
     min-height: 100px;
     height: auto;
+  }
+
+  // 横レイアウトの場合
+  .layout-horizontal & {
+    min-width: 180px;
+    flex-shrink: 0;
   }
 }
 
