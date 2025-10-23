@@ -26,21 +26,21 @@
     </template>
 
     <!-- 使用デッキカラム -->
-    <template #[`item.deck`]='{ item }'>
+    <template v-if="!hiddenColumnsSet.has('deck')" #[`item.deck`]='{ item }'>
       <v-chip color='primary' variant='outlined'>
         {{ item.deck?.name || '不明' }}
       </v-chip>
     </template>
 
     <!-- 相手デッキカラム -->
-    <template #[`item.opponentdeck`]='{ item }'>
+    <template v-if="!hiddenColumnsSet.has('opponentdeck')" #[`item.opponentdeck`]='{ item }'>
       <v-chip color='secondary' variant='outlined'>
         {{ item.opponentdeck?.name || '不明' }}
       </v-chip>
     </template>
 
     <!-- コインカラム -->
-    <template #[`item.coin`]="{ item }">
+    <template v-if="!hiddenColumnsSet.has('coin')" #[`item.coin`]="{ item }">
       <v-icon :color="item.coin ? 'warning' : 'grey'">
         {{ item.coin ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
       </v-icon>
@@ -48,7 +48,7 @@
     </template>
 
     <!-- 先攻/後攻カラム -->
-    <template #[`item.first_or_second`]="{ item }">
+    <template v-if="!hiddenColumnsSet.has('first_or_second')" #[`item.first_or_second`]="{ item }">
       <v-icon :color="item.first_or_second ? 'info' : 'purple'">
         {{ item.first_or_second ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
       </v-icon>
@@ -56,7 +56,7 @@
     </template>
 
     <!-- ランク/レートカラム -->
-    <template #[`item.rank_or_rate`]="{ item }">
+    <template v-if="!hiddenColumnsSet.has('rank_or_rate')" #[`item.rank_or_rate`]="{ item }">
       <v-chip v-if="item.game_mode === 'RANK' && item.rank" color="warning" variant="outlined">
         <v-icon start size="small">mdi-crown</v-icon>
         {{ getRankName(item.rank) }}
@@ -82,7 +82,7 @@
     </template>
 
     <!-- 備考カラム -->
-    <template #[`item.notes`]="{ item }">
+    <template v-if="!hiddenColumnsSet.has('notes')" #[`item.notes`]="{ item }">
       <span v-if="item.notes">{{ item.notes }}</span>
       <span v-else class="text-grey">-</span>
     </template>
@@ -119,6 +119,7 @@ const props = defineProps<{
   loading: boolean;
   showActions?: boolean;
   tableHeight?: string;
+  hiddenColumns?: string[];
 }>();
 
 defineEmits<{
@@ -151,12 +152,15 @@ const formatDate = (dateString: string) => {
 };
 
 const showActionButtons = computed(() => props.showActions !== false);
+const hiddenColumnsSet = computed(() => new Set(props.hiddenColumns ?? []));
 
 const computedHeaders = computed(() => {
-  if (!showActionButtons.value) {
-    return headers.filter((header) => header.key !== 'actions');
-  }
-  return headers;
+  return headers.filter((header) => {
+    if (!showActionButtons.value && header.key === 'actions') {
+      return false;
+    }
+    return !hiddenColumnsSet.value.has(header.key as string);
+  });
 });
 
 const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
