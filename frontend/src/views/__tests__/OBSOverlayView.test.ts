@@ -82,7 +82,9 @@ describe('OBSOverlayView.vue', () => {
       })
     );
 
-    expect(wrapper.text()).toContain('直近30戦の成績');
+    // 統計情報が表示されていることを確認
+    expect(wrapper.text()).toContain('使用デッキ');
+    expect(wrapper.text()).toContain('ライゼル');
   });
 
   it('トークンがない場合にエラーメッセージを表示する', async () => {
