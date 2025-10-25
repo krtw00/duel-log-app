@@ -47,10 +47,10 @@ class TestGeneralStatsService:
         assert stats["total_duels"] == 7
         assert stats["win_count"] == 4
         assert stats["lose_count"] == 3
-        assert stats["win_rate"] == pytest.approx(4 / 7)
+        assert stats["win_rate"] == pytest.approx((4 / 7) * 100)
         # 全て先行
-        assert stats["first_turn_win_rate"] == pytest.approx(4 / 7)
+        assert stats["first_turn_win_rate"] == pytest.approx((4 / 7) * 100)
         assert stats["second_turn_win_rate"] == 0
         # 全てジャンケン勝ち
-        assert stats["coin_win_rate"] == pytest.approx(1.0)
-        assert stats["go_first_rate"] == pytest.approx(1.0)
+        assert stats["coin_win_rate"] == pytest.approx(1.0 * 100)
+        assert stats["go_first_rate"] == pytest.approx(1.0 * 100)
