@@ -68,6 +68,17 @@
           @update:model-value="$emit('update:limit', Number($event))"
         ></v-text-field>
 
+        <!-- 配信開始からが無効な場合 -->
+        <v-alert
+          v-if="isFromStartInvalid"
+          type="warning"
+          variant="tonal"
+          class="mb-4"
+          density="compact"
+        >
+          デュエルの記録がまだありません。「配信開始から」を使用するには、最低1回デュエルを記録してください。
+        </v-alert>
+
         <!-- ゲームモード選択 -->
         <v-select
           :model-value="gameMode"
@@ -172,9 +183,16 @@
           density="compact"
           readonly
           class="mb-2"
+          :disabled="isFromStartInvalid"
         >
           <template #append-inner>
-            <v-btn icon variant="text" size="small" @click="$emit('copy-url')">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              :disabled="isFromStartInvalid"
+              @click="$emit('copy-url')"
+            >
               <v-icon>{{ urlCopied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
             </v-btn>
           </template>
@@ -205,6 +223,7 @@ interface DisplayItem {
 interface Props {
   modelValue: boolean;
   periodType: 'monthly' | 'recent' | 'from_start';
+  isFromStartInvalid: boolean;
   year: number;
   month: number;
   limit: number;

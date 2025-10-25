@@ -175,6 +175,13 @@ export function useOBSConfiguration() {
   /**
    * OBSオーバーレイURL
    */
+  /**
+   * 「配信開始から」が無効（デュエル記録がない）かどうかを判定
+   */
+  const isFromStartInvalid = computed(() => {
+    return obsPeriodType.value === 'from_start' && obsStartId.value === null;
+  });
+
   const obsUrl = computed(() => {
     const baseUrl = window.location.origin;
     // localStorageから直接トークンを取得
@@ -236,6 +243,10 @@ export function useOBSConfiguration() {
    * OBS URLをクリップボードにコピー
    */
   const copyOBSUrl = async () => {
+    if (isFromStartInvalid.value) {
+      notificationStore.warning('デュエル記録がないため、URLをコピーできません');
+      return;
+    }
     try {
       await navigator.clipboard.writeText(obsUrl.value);
       urlCopied.value = true;
@@ -277,6 +288,7 @@ export function useOBSConfiguration() {
     coinWinRateColor,
     recommendedSizeText,
     obsUrl,
+    isFromStartInvalid,
 
     // Functions
     handleDragStart,
