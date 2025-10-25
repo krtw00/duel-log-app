@@ -21,9 +21,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (email: string, password: string) => {
     try {
-      // ログイン成功時に強制ログアウトフラグを削除
-      sessionStorage.removeItem('force_logout');
-
       // ログインAPIをコール（成功するとサーバーがHttpOnlyクッキーを設定）
       const loginResponse = await api.post('/auth/login', { email, password });
 
@@ -56,21 +53,22 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const logout = async () => {
+    // 1. 最初にクライアント側の状態を完全にクリアする
+    user.value = null;
+    isInitialized.value = true; // ログアウト状態も「初期化済み」として扱う
+    localStorage.removeItem('access_token'); // OBS連携用のトークンを削除
+    sessionStorage.clear(); // セッションストレージも念のためクリア
+
     try {
-      // サーバーにログアウトを通知し、クッキーを削除させる
+      // 2. 次にサーバーにログアウトを通知し、クッキーを削除させる
       await api.post('/auth/logout');
+      console.log('[Auth] Logout API call successful.');
     } catch (error) {
-      console.error('Logout failed:', error);
+      // サーバーとの通信エラーが発生しても、クライアント側はログアウト状態を維持する
+      console.error('Logout API call failed:', error);
     } finally {
-      // Safari ITP対策: localStorageからトークンを削除
-      localStorage.removeItem('access_token');
-
-      // ローカルの状態をクリア（配信者モード設定は保持）
-      user.value = null;
-      isInitialized.value = true; // ログアウト後も初期化状態は維持
-
-      // 強制ログアウトフラグを設定し、ページを再読み込みして状態を完全にリセット
-      sessionStorage.setItem('force_logout', 'true');
+      // 3. 最後にページをリダイレクトする
+      // router.pushではなく、ページを完全にリロードして状態をリセットする
       window.location.assign('/login');
     }
   };
@@ -86,14 +84,6 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   const fetchUser = async () => {
-    // 強制ログアウトフラグがある場合は、APIリクエストをスキップ
-    if (sessionStorage.getItem('force_logout') === 'true') {
-      console.log('[Auth] Forced logout detected, skipping user fetch.');
-      user.value = null;
-      isInitialized.value = true;
-      return;
-    }
-
     try {
       console.log('[Auth] Fetching user info from /me');
       // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
