@@ -330,9 +330,8 @@ onUnmounted(() => {
 }
 
 .stat-label {
-  font-size: 18px;
-  font-weight: 600;
-
+  font-size: 14px;
+  font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -343,39 +342,6 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-  .stat-item.highlight-stat .stat-label {
-    font-size: 18px; /* 16pxからさらに大きく */
-  }
-
-  .stat-value {
-    font-size: 32px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1.2;
-    width: 100%;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    // デッキ名の場合は改行を許可し、フォントサイズを調整
-    &.deck-value {
-      font-size: 20px;
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: break-word;
-      line-height: 1.3;
-      padding: 0 4px;
-    }
-  }
-
-  .stat-item.highlight-stat .stat-value {
-    font-size: 40px; /* 36pxからさらに大きく */
-  }
 
 .stat-value {
   font-size: 32px;
