@@ -55,16 +55,16 @@ const theme = ref((route.query.theme as string) || 'dark');
 const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォルト30秒
 
 // 表示項目のリスト
-// Note: バックエンドのOBS APIは既にパーセント値（0-100）を返すため、100倍しない
+// Note: バックエンドのOBS APIは小数（0-1）を返すため、フロントエンドで100倍してパーセント表示する
 const allDisplayItems: OBSDisplayItemDefinition[] = [
   { key: 'current_deck', label: '使用デッキ', format: (v) => (v as string | undefined) || '未設定' },
   { key: 'current_rank', label: 'ランク', format: (v) => v ? getRankName(Number(v)) : '-' },
   { key: 'total_duels', label: '総試合数', format: (v) => (v as number | undefined)?.toString() || '0' },
-  { key: 'win_rate', label: '勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'first_turn_win_rate', label: '先攻勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'second_turn_win_rate', label: '後攻勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'coin_win_rate', label: 'コイン勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'go_first_rate', label: '先攻率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
+  { key: 'win_rate', label: '勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'first_turn_win_rate', label: '先攻勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'second_turn_win_rate', label: '後攻勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'coin_win_rate', label: 'コイン勝率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
+  { key: 'go_first_rate', label: '先攻率', format: (v) => v !== undefined ? `${((v as number) * 100).toFixed(1)}%` : '-' },
 ];
 
 // 表示する項目をフィルタリング（URLパラメータの順番を保持）
@@ -330,8 +330,8 @@ onUnmounted(() => {
 }
 
 .stat-label {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
