@@ -149,10 +149,16 @@ def login(
             "streamer_mode": user.streamer_mode,
             "theme_preference": user.theme_preference,
         },
-        "access_token": access_token,  # すべてのブラウザでトークンを含める
     }
 
-    logger.info("Including access_token in response for OBS integration support")
+    # OBS連携サポートのため、レスポンスにアクセストークンを追加
+    # NOTE: Vercel/Render環境でHttpOnlyクッキーが正しく機能しないケースがあるため、
+    # localStorageフォールバックとして常に追加する
+    response_data["access_token"] = access_token
+    logger.info(
+        f"Login successful for {user.email}. "
+        f"access_token of length {len(access_token)} included in response for OBS support."
+    )
 
     return response_data
 
