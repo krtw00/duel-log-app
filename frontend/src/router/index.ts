@@ -88,16 +88,24 @@ router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
   const requiresAuth = to.meta.requiresAuth !== false;
 
-  // 認証が必要なルートの場合、またはストアが初期化されていない場合にユーザー情報を取得
-  if (requiresAuth && !authStore.isInitialized) {
+  // アプリケーションの初期化時に一度だけユーザー情報を取得する
+  if (!authStore.isInitialized) {
     await authStore.fetchUser();
   }
 
-  if (requiresAuth && !authStore.isAuthenticated) {
+  // 認証ロジック
+  const isAuthenticated = authStore.isAuthenticated;
+
+  if (requiresAuth && !isAuthenticated) {
+    // 認証が必要なページにアクセスしようとしたが、認証されていない
+    // -> ログインページにリダイレクト
     next({ name: 'Login' });
-  } else if ((to.name === 'Login' || to.name === 'Register') && authStore.isAuthenticated) {
+  } else if ((to.name === 'Login' || to.name === 'Register') && isAuthenticated) {
+    // ログイン済みユーザーがログインページや登録ページにアクセスしようとした
+    // -> ダッシュボードにリダイレクト
     next({ name: 'Dashboard' });
   } else {
+    // 上記以外の場合は、要求されたルートへのナビゲーションを許可
     next();
   }
 });

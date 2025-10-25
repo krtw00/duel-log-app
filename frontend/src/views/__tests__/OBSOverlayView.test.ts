@@ -40,11 +40,11 @@ describe('OBSOverlayView.vue', () => {
       current_deck: 'ライゼル',
       current_rank: 'MASTER_5',
       total_duels: 100,
-      win_rate: 0.55,
-      first_turn_win_rate: 0.52,
-      second_turn_win_rate: 0.58,
-      coin_win_rate: 0.5,
-      go_first_rate: 0.48,
+      win_rate: 55.0,
+      first_turn_win_rate: 52.0,
+      second_turn_win_rate: 58.0,
+      coin_win_rate: 50.0,
+      go_first_rate: 48.0,
     };
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
@@ -114,7 +114,7 @@ describe('OBSOverlayView.vue', () => {
     const mockStats = {
       current_deck: 'ライゼル',
       total_duels: 50,
-      win_rate: 0.6,
+      win_rate: 60.0,
     };
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
@@ -313,11 +313,11 @@ describe('OBSOverlayView.vue', () => {
       current_deck: 'ライゼル',
       current_rank: 'MASTER_5',
       total_duels: 100,
-      win_rate: 0.55,
-      first_turn_win_rate: 0.52,
-      second_turn_win_rate: 0.58,
-      coin_win_rate: 0.5,
-      go_first_rate: 0.48,
+      win_rate: 55.0,
+      first_turn_win_rate: 52.0,
+      second_turn_win_rate: 58.0,
+      coin_win_rate: 50.0,
+      go_first_rate: 48.0,
     };
 
     vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
@@ -346,8 +346,8 @@ describe('OBSOverlayView.vue', () => {
 
   it('パーセント値が正しくフォーマットされる', async () => {
     const mockStats = {
-      win_rate: 0.567,
-      first_turn_win_rate: 0.523,
+      win_rate: 56.7,
+      first_turn_win_rate: 52.3,
       total_duels: 100,
     };
 
