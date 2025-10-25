@@ -60,17 +60,26 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.clear(); // セッションストレージも念のためクリア
 
     try {
-      // 2. 次にサーバーにログアウトを通知し、クッキーを削除させる
+      // 1. 最初にサーバーにログアウトを通知する
       await api.post('/auth/logout');
       console.log('[Auth] Logout API call successful.');
     } catch (error) {
-      // サーバーとの通信エラーが発生しても、クライアント側はログアウト状態を維持する
-      console.error('Logout API call failed:', error);
-    } finally {
-      // 3. 最後にページをリダイレクトする
-      // router.pushではなく、ページを完全にリロードして状態をリセットする
-      window.location.assign('/login');
+      // API呼び出しが失敗した場合でも、エラーをログに記録し、
+      // クライアント側のログアウト処理を続行する
+      console.error('Logout API call failed, proceeding with client-side cleanup:', error);
     }
+
+    // 2. サーバーへの通知後、クライアント側の状態を完全にクリアする
+    user.value = null;
+    isInitialized.value = true; // ログアウトは「未初期化」ではなく「認証済みでない」状態
+    localStorage.removeItem('access_token');
+    // 他のセッション関連データもここでクリア
+    sessionStorage.clear();
+
+    // 3. 最後にログインページにリダイレクトする
+    // router.pushではVue Routerの状態が残る可能性があるため、
+    // window.location.assignでページを完全に再読み込みさせる
+    window.location.assign('/login');
   };
 
   const toggleStreamerMode = (enabled: boolean) => {
