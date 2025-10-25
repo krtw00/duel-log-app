@@ -149,29 +149,47 @@ def login(
             "streamer_mode": user.streamer_mode,
             "theme_preference": user.theme_preference,
         },
-        "access_token": access_token,  # すべてのブラウザでトークンを含める
     }
 
-    logger.info("Including access_token in response for OBS integration support")
+    # OBS連携サポートのため、レスポンスにアクセストークンを追加
+    # NOTE: Vercel/Render環境でHttpOnlyクッキーが正しく機能しないケースがあるため、
+    # localStorageフォールバックとして常に追加する
+    response_data["access_token"] = access_token
+    logger.info(
+        f"Login successful for {user.email}. "
+        f"access_token of length {len(access_token)} included in response for OBS support."
+    )
 
     return response_data
 
 
 @router.post("/logout")
-def logout(response: Response):
+def logout(response: Response, user_agent: str | None = Header(None)):
     """
     ユーザーログアウト
 
     HttpOnlyクッキーをクリアしてログアウトする
     """
     is_production = settings.ENVIRONMENT == "production"
+    is_safari = _is_safari_browser(user_agent or "")
+
+    if is_safari:
+        samesite_value = "lax"
+        secure_value = True if is_production else False
+        logger.info("Safari/iOS detected on logout - using SameSite=Lax for cookie deletion")
+    else:
+        samesite_value = "none" if is_production else "lax"
+        secure_value = is_production
+        logger.info(
+            f"Non-Safari browser on logout - using SameSite={samesite_value} for cookie deletion"
+        )
 
     cookie_params = {
         "key": "access_token",
         "value": "",
         "httponly": True,
-        "samesite": "none" if is_production else "lax",
-        "secure": is_production,
+        "samesite": samesite_value,
+        "secure": secure_value,
         "path": "/",
         "max_age": 0,
     }
