@@ -107,9 +107,15 @@ api.interceptors.response.use(
           message = (typeof data?.detail === 'string' ? data.detail : undefined) || 'リクエストが正しくありません';
           break;
         case 401:
-          message = '認証エラーです。再度ログインしてください';
-          // トークンを削除してログイン画面へ
-          authStore.logout();
+          // /meエンドポイントからの401エラーは、単に「ログインしていない」状態を示すため、
+          // 自動的なログアウト処理を引き起こさないようにする。
+          if (error.config?.url?.endsWith('/me')) {
+            // このエラーは後続の処理でハンドリングされるため、ここでは何もしない
+          } else {
+            message = '認証の有効期限が切れました。再度ログインしてください';
+            // 他のAPIからの401エラーはセッション切れとみなし、ログアウト処理を実行
+            authStore.logout();
+          }
           break;
         case 403:
           message = 'この操作を行う権限がありません';
