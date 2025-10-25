@@ -164,20 +164,32 @@ def login(
 
 
 @router.post("/logout")
-def logout(response: Response):
+def logout(response: Response, user_agent: str | None = Header(None)):
     """
     ユーザーログアウト
 
     HttpOnlyクッキーをクリアしてログアウトする
     """
     is_production = settings.ENVIRONMENT == "production"
+    is_safari = _is_safari_browser(user_agent or "")
+
+    if is_safari:
+        samesite_value = "lax"
+        secure_value = True if is_production else False
+        logger.info("Safari/iOS detected on logout - using SameSite=Lax for cookie deletion")
+    else:
+        samesite_value = "none" if is_production else "lax"
+        secure_value = is_production
+        logger.info(
+            f"Non-Safari browser on logout - using SameSite={samesite_value} for cookie deletion"
+        )
 
     cookie_params = {
         "key": "access_token",
         "value": "",
         "httponly": True,
-        "samesite": "none" if is_production else "lax",
-        "secure": is_production,
+        "samesite": samesite_value,
+        "secure": secure_value,
         "path": "/",
         "max_age": 0,
     }
