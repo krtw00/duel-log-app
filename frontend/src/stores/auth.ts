@@ -53,6 +53,12 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const logout = async () => {
+    // 1. 最初にクライアント側の状態を完全にクリアする
+    user.value = null;
+    isInitialized.value = true; // ログアウト状態も「初期化済み」として扱う
+    localStorage.removeItem('access_token'); // OBS連携用のトークンを削除
+    sessionStorage.clear(); // セッションストレージも念のためクリア
+
     try {
       // 1. 最初にサーバーにログアウトを通知する
       await api.post('/auth/logout');
@@ -61,6 +67,16 @@ export const useAuthStore = defineStore('auth', () => {
       // API呼び出しが失敗した場合でも、エラーをログに記録し、
       // クライアント側のログアウト処理を続行する
       console.error('Logout API call failed, proceeding with client-side cleanup:', error);
+      // 2. 次にサーバーにログアウトを通知し、クッキーを削除させる
+      await api.post('/auth/logout');
+      console.log('[Auth] Logout API call successful.');
+    } catch (error) {
+      // サーバーとの通信エラーが発生しても、クライアント側はログアウト状態を維持する
+      console.error('Logout API call failed:', error);
+    } finally {
+      // 3. 最後にページをリダイレクトする
+      // router.pushではなく、ページを完全にリロードして状態をリセットする
+      window.location.assign('/login');
     }
 
     // 2. サーバーへの通知後、クライアント側の状態を完全にクリアする
