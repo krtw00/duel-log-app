@@ -21,6 +21,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (email: string, password: string) => {
     try {
+      // ログイン成功時に強制ログアウトフラグを削除
+      sessionStorage.removeItem('force_logout');
+
       // ログインAPIをコール（成功するとサーバーがHttpOnlyクッキーを設定）
       const loginResponse = await api.post('/auth/login', { email, password });
 
@@ -64,8 +67,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       // ローカルの状態をクリア（配信者モード設定は保持）
       user.value = null;
-      isInitialized.value = false; // ログアウト後に未初期化状態に戻す
-      router.push('/login');
+      isInitialized.value = true; // ログアウト後も初期化状態は維持
+
+      // 強制ログアウトフラグを設定し、ページを再読み込みして状態を完全にリセット
+      sessionStorage.setItem('force_logout', 'true');
+      window.location.assign('/login');
     }
   };
 
@@ -80,6 +86,14 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   const fetchUser = async () => {
+    // 強制ログアウトフラグがある場合は、APIリクエストをスキップ
+    if (sessionStorage.getItem('force_logout') === 'true') {
+      console.log('[Auth] Forced logout detected, skipping user fetch.');
+      user.value = null;
+      isInitialized.value = true;
+      return;
+    }
+
     try {
       console.log('[Auth] Fetching user info from /me');
       // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
