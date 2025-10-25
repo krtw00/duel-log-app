@@ -7,8 +7,10 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from . import CustomBaseModel
 
-class DuelBase(BaseModel):
+
+class DuelBase(CustomBaseModel):
     """デュエル基底スキーマ"""
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
