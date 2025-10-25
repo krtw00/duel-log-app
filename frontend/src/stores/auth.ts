@@ -64,7 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // ローカルの状態をクリア（配信者モード設定は保持）
       user.value = null;
-      isInitialized.value = true; // ログアウト後も初期化済み
+      isInitialized.value = false; // ログアウト後に未初期化状態に戻す
       router.push('/login');
     }
   };
