@@ -22,16 +22,22 @@ if "sslmode=require" in database_url or settings.ENVIRONMENT == "production":
         "connect_timeout": 10,
     }
 
-engine = create_engine(
-    database_url,
-    echo=settings.DATABASE_ECHO,  # configから値を取得
-    future=True,
-    connect_args=connect_args,
-    pool_pre_ping=True,  # 接続前にpingして接続が生きているか確認
-    pool_size=20,  # 接続プールサイズ
-    max_overflow=0,  # 最大オーバーフロー
-    pool_recycle=3600,  # 1時間ごとに接続をリサイクル（NeonDBの接続タイムアウト対策）
-)
+# DBエンジンの作成
+engine_args = {
+    "echo": settings.DATABASE_ECHO,
+    "future": True,
+    "connect_args": connect_args,
+}
+
+if "sqlite" not in database_url:
+    engine_args.update({
+        "pool_pre_ping": True,
+        "pool_size": 20,
+        "max_overflow": 0,
+        "pool_recycle": 3600,
+    })
+
+engine = create_engine(database_url, **engine_args)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
