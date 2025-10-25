@@ -53,6 +53,12 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const logout = async () => {
+    // 1. 最初にクライアント側の状態を完全にクリアする
+    user.value = null;
+    isInitialized.value = true; // ログアウト状態も「初期化済み」として扱う
+    localStorage.removeItem('access_token'); // OBS連携用のトークンを削除
+    sessionStorage.clear(); // セッションストレージも念のためクリア
+
     try {
       // 1. 最初にサーバーにログアウトを通知する
       await api.post('/auth/logout');
