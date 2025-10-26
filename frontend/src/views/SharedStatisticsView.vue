@@ -149,7 +149,7 @@
                       <v-row>
                         <!-- 月間デッキ分布 -->
                         <v-col cols="12" md="6">
-                          <v-card class="stats-card">
+                          <v-card :class="statsCardClass">
                             <v-card-title>相手デッキ分布 (月間)</v-card-title>
                             <v-card-text>
                               <apexchart
@@ -173,7 +173,7 @@
 
                         <!-- 直近30戦デッキ分布 -->
                         <v-col cols="12" md="6">
-                          <v-card class="stats-card">
+                          <v-card :class="statsCardClass">
                             <v-card-title>直近30戦デッキ分布</v-card-title>
                             <v-card-text>
                               <apexchart
@@ -197,7 +197,7 @@
 
                         <!-- 相性表 -->
                         <v-col cols="12">
-                          <v-card class="stats-card">
+                          <v-card :class="statsCardClass">
                             <v-card-title>デッキ相性表</v-card-title>
                             <v-card-text>
                               <div
@@ -227,7 +227,7 @@
 
                         <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
                         <v-col v-if="mode === 'STATISTICS'" cols="12" style="display: none;">
-                          <v-card class="stats-card">
+                          <v-card :class="statsCardClass">
                             <v-card-title>変動グラフ</v-card-title>
                             <v-card-text>
                               <apexchart
@@ -372,6 +372,11 @@ const displayModes = computed(() => {
   if (availableGameModes.value.includes('STATISTICS')) modes.push('STATISTICS');
   return modes;
 });
+
+const statsCardClass = computed(() => [
+  'stats-card',
+  themeStore.isDark ? 'stats-card--dark' : 'stats-card--light',
+]);
 // --- Chart Base Options ---
 // baseChartOptions と lineChartBaseOptions は useChartOptions から取得
 // basePieChartOptions と baseLineChartOptions として利用可能
@@ -631,11 +636,31 @@ defineExpose({
 }
 
 .stats-card {
-  background: rgba(18, 22, 46, 0.95) !important;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 217, 255, 0.1);
   border-radius: 12px !important;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.1);
+  color: rgb(var(--v-theme-on-surface));
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.stats-card--dark {
+  background: rgba(18, 22, 46, 0.95) !important;
+  border-color: rgba(0, 217, 255, 0.1);
   color: #fff;
+}
+
+.stats-card--dark .v-card-title {
+  color: #fff;
+}
+
+.stats-card--light {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.08);
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.stats-card--light .v-card-title {
+  color: rgb(var(--v-theme-primary));
 }
 
 .no-data-placeholder {
