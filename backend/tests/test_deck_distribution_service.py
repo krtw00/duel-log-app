@@ -140,3 +140,42 @@ class TestDeckDistributionService:
         assert opp_deck2_stats is not None
         assert opp_deck2_stats["count"] == 2
         assert opp_deck2_stats["percentage"] == 50.0
+
+    def test_get_deck_distribution_monthly_with_my_deck_filter(self, db_session: Session, test_user: User):
+        """自分のデッキで絞り込んだ場合にパーセンテージが正しく計算されることをテスト"""
+        create_test_data(db_session, test_user)
+        my_deck1 = deck_service.get_by_name(db_session, user_id=test_user.id, name="MyDeck1", is_opponent=False)
+        assert my_deck1 is not None
+
+        distribution = deck_distribution_service.get_deck_distribution_monthly(
+            db=db_session,
+            user_id=test_user.id,
+            year=2024,
+            month=7,
+            my_deck_id=my_deck1.id,
+        )
+
+        assert len(distribution) == 1
+        opp_deck_stats = distribution[0]
+        assert opp_deck_stats["deck_name"] == "OppDeck1"
+        assert opp_deck_stats["count"] == 4
+        assert opp_deck_stats["percentage"] == pytest.approx(100.0)
+
+    def test_get_deck_distribution_recent_with_my_deck_filter(self, db_session: Session, test_user: User):
+        """直近分布でも自分のデッキ絞り込みが反映されることをテスト"""
+        create_test_data(db_session, test_user)
+        my_deck2 = deck_service.get_by_name(db_session, user_id=test_user.id, name="MyDeck2", is_opponent=False)
+        assert my_deck2 is not None
+
+        distribution = deck_distribution_service.get_deck_distribution_recent(
+            db=db_session,
+            user_id=test_user.id,
+            limit=30,
+            my_deck_id=my_deck2.id,
+        )
+
+        assert len(distribution) == 1
+        opp_deck_stats = distribution[0]
+        assert opp_deck_stats["deck_name"] == "OppDeck2"
+        assert opp_deck_stats["count"] == 3
+        assert opp_deck_stats["percentage"] == pytest.approx(100.0)
