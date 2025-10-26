@@ -56,6 +56,8 @@ def get_all_statistics(
                 game_mode=mode,
                 range_start=range_start,
                 range_end=range_end,
+                my_deck_id=my_deck_id,
+                opponent_deck_id=opponent_deck_id,
             ),
             "matchup_data": matchup_service.get_matchup_chart(
                 db=db,
@@ -118,12 +120,23 @@ def get_monthly_deck_distribution(
 def get_recent_deck_distribution(
     limit: int = Query(30, ge=1, le=100, description="取得するデュエル数"),
     game_mode: Optional[str] = Query(None, description="ゲームモード"),
+    range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
+    range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
+    my_deck_id: Optional[int] = Query(None, description="使用デッキでフィルター"),
+    opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """直近の相手デッキ分布を取得"""
     return deck_distribution_service.get_deck_distribution_recent(
-        db=db, user_id=current_user.id, limit=limit, game_mode=game_mode
+        db=db,
+        user_id=current_user.id,
+        limit=limit,
+        game_mode=game_mode,
+        range_start=range_start,
+        range_end=range_end,
+        my_deck_id=my_deck_id,
+        opponent_deck_id=opponent_deck_id,
     )
 
 
