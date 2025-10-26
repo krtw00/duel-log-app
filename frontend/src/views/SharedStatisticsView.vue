@@ -78,7 +78,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).win_rate ?? 0) * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).win_rate ?? 0)).toFixed(1)}%`"
                             icon="mdi-trophy"
                             color="success"
                           />
@@ -86,7 +86,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="先攻勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).first_turn_win_rate ?? 0) * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).first_turn_win_rate ?? 0)).toFixed(1)}%`"
                             icon="mdi-lightning-bolt"
                             color="warning"
                           />
@@ -94,7 +94,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="後攻勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).second_turn_win_rate ?? 0) * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).second_turn_win_rate ?? 0)).toFixed(1)}%`"
                             icon="mdi-shield"
                             color="secondary"
                           />
@@ -102,7 +102,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="コイン勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).coin_win_rate ?? 0) * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).coin_win_rate ?? 0)).toFixed(1)}%`"
                             icon="mdi-poker-chip"
                             color="yellow"
                           />
@@ -110,7 +110,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="先攻率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).go_first_rate ?? 0) * 100).toFixed(1)}%`"
+                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).go_first_rate ?? 0)).toFixed(1)}%`"
                             icon="mdi-arrow-up-bold-hexagon-outline"
                             color="teal"
                           />
