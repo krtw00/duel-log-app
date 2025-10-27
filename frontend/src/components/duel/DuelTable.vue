@@ -34,7 +34,7 @@
 
     <!-- 相手デッキカラム -->
     <template v-if="!hiddenColumnsSet.has('opponentdeck')" #[`item.opponentdeck`]='{ item }'>
-      <v-chip :color="isDarkMode ? 'warning' : 'secondary'" variant='outlined'>
+      <v-chip :color="isDarkMode ? 'warning' : 'purple'" variant='outlined'>
         {{ item.opponentdeck?.name || '不明' }}
       </v-chip>
     </template>
@@ -111,12 +111,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useTheme } from 'vuetify';
+import { useThemeStore } from '@/stores/theme';
 import { Duel } from '@/types';
 import { getRankName } from '@/utils/ranks';
 
-const theme = useTheme();
-const isDarkMode = computed(() => theme.global.current.value.dark);
+const themeStore = useThemeStore();
+const isDarkMode = computed(() => themeStore.isDark);
 
 const props = defineProps<{
   duels: Duel[];
