@@ -6,15 +6,61 @@ Duel Log Appは、トレーディングカードゲーム（TCG）の対戦履�
 
 ## 機能
 
+- **ユーザー認証**: 安全なログイン、新規登録、パスワードリセット機能を提供します。
 - **対戦履歴の記録**: 使用デッキ、相手デッキ、勝敗、先攻/後攻、コイントス結果、ゲームモード（ランク、レート、イベント、DC）、ランク/レート/DC値、対戦日時、メモなどを詳細に記録。
 - **デッキ管理**: 自分のデッキと相手のデッキを登録・管理。
 - **統計情報の可視化**:
+    - 総合勝率、先攻/後攻勝率、ゲームモード別勝率など
     - 月間・直近の相手デッキ分布
     - デッキ相性表
     - 時系列でのレート/DC値の推移
 - **CSVインポート/エクスポート**: 対戦履歴のCSV形式での一括インポートおよびエクスポート。
+- **プロフィール管理**: メールアドレス、パスワードの変更、アカウントの削除が可能です。
+- **テーマ切り替え**: ライトモードとダークモードのテーマ切り替えに対応しています。
 - **配信者モード**: ライブ配信時にメールアドレスなどの個人情報を自動的にマスクする機能。
 - **統計情報の共有**: 特定の期間の統計情報を共有可能なURLを生成。
+
+## OBS オーバーレイ機能
+
+本アプリケーションは、ライブ配信ソフトウェア（OBS Studioなど）にデュエルの統計情報をリアルタイムで表示するためのオーバーレイ機能を提供します。
+
+### 主な機能
+
+- **リアルタイム統計表示**: 現在使用中のデッキ、勝率、先攻/後攻勝率などを配信画面に表示。
+- **柔軟なカスタマイズ**: URLのクエリパラメータを変更することで、表示する情報の種類、集計期間、レイアウト、テーマを自由にカスタマイズ可能。
+- **プライバシー保護**: 認証には専用のトークンを使用するため、メールアドレスなどの個人情報が漏洩する心配がありません。
+
+### 設定方法
+
+1. **プロファイルページからトークンを取得**: アプリケーションのプロファイルページにアクセスし、OBS連携用のトークンをコピーします。
+2. **OBSでブラウザソースを追加**: OBSの「ソース」パネルで「ブラウザ」を追加し、以下のURLをベースに設定します。
+
+```
+https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]
+```
+
+### カスタマイズ可能な項目（クエリパラメータ）
+
+| パラメータ | 説明 | 例 |
+| --- | --- | --- |
+| `token` | **（必須）** プロファイルページで取得した認証トークン。 | `?token=obs_token_xxxx` |
+| `period_type` | 集計期間の種類を指定します。<br> `monthly`: 月間<br> `recent`: 直近<br> `from_start`: 全期間（デフォルト） | `&period_type=recent` |
+| `year`, `month` | `period_type=monthly` の場合に、対象の年月を指定します。 | `&year=2023&month=10` |
+| `limit` | `period_type=recent` の場合に、直近何件のデュエルを対象とするかを指定します。（デフォルト: 30） | `&limit=50` |
+| `start_id` | `period_type=from_start` の場合に、集計を開始するデュエルIDを指定します。指定しない場合は最新のデュエルから集計します。 | `&start_id=123` |
+| `game_mode` | `ranked`, `event`, `free` など、特定のゲームモードの統計のみを表示します。 | `&game_mode=ranked` |
+| `display_items` | 表示したい統計項目をカンマ区切りで指定します。<br> **指定可能な項目**: `current_deck_name`, `current_rank`, `total_duels`, `win_rate`, `first_turn_win_rate`, `second_turn_win_rate`, `coin_win_rate`, `go_first_rate` | `&display_items=current_deck_name,win_rate` |
+| `layout` | オーバーレイのレイアウト。<br> `grid`: グリッド（デフォルト）<br> `horizontal`: 横一列<br> `vertical`: 縦一列 | `&layout=horizontal` |
+| `theme` | `dark`: ダークテーマ（デフォルト）<br> `light`: ライトテーマ | `&theme=light` |
+| `refresh` | 統計情報を自動更新する間隔（ミリ秒）。（デフォルト: 30000ms） | `&refresh=15000` |
+
+### URL設定例
+
+直近50戦のランクマッチについて、使用デッキ、勝率、先攻勝率を横一列のライトテーマで表示し、15秒ごとに更新する場合：
+
+```
+https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&period_type=recent&limit=50&game_mode=ranked&display_items=current_deck_name,win_rate,first_turn_win_rate&layout=horizontal&theme=light&refresh=15000
+```
 
 ## 技術スタック
 
@@ -190,51 +236,6 @@ docker-compose down -v
 ## エラーハンドリング
 
 エラーハンドリングの設計方針については、[エラーハンドリング設計](docs/error-handling.md) を参照してください。
-
-## フロントエンドアーキテクチャ
-
-フロントエンドのアーキテクチャについては、[フロントエンドアーキテクチャ](docs/frontend-architecture.md) を参照してください。
-
-## OBS オーバーレイ機能
-
-本アプリケーションは、ライブ配信ソフトウェア（OBSなど）にデュエルの統計情報をリアルタイムで表示するためのオーバーレイ機能を提供します。
-
-### 主な機能
-
-- **リアルタイム統計表示**: 現在使用中のデッキ、勝率、先攻/後攻勝率などを配信画面に表示。
-- **柔軟なカスタマイズ**: URLのクエリパラメータを変更することで、表示する情報の種類、集計期間、レイアウト、テーマを自由にカスタマイズ可能。
-- **プライバシー保護**: 認証には専用のトークンを使用するため、メールアドレスなどの個人情報が漏洩する心配がありません。
-
-### 設定方法
-
-1. **プロファイルページからトークンを取得**: アプリケーションのプロファイルページにアクセスし、OBS連携用のトークンをコピーします。
-2. **OBSでブラウザソースを追加**: OBSの「ソース」パネルで「ブラウザ」を追加し、以下のURLをベースに設定します。
-
-```
-https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]
-```
-
-### カスタマイズ可能な項目（クエリパラメータ）
-
-| パラメータ        | 説明                                                                                                                                                                                                 | 例                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| `token`             | **（必須）** プロファイルページで取得した認証トークン。                                                                                                                                                     | `?token=obs_token_xxxx`                                            |
-| `period_type`     | 集計期間の種類を指定します。<br> `monthly`: 月間<br> `recent`: 直近<br> `from_start`: 全期間（デフォルト）                                                                                                     | `&period_type=recent`                                              |
-| `year`, `month`     | `period_type=monthly` の場合に、対象の年月を指定します。                                                                                                                                               | `&year=2023&month=10`                                              |
-| `limit`             | `period_type=recent` の場合に、直近何件のデュエルを対象とするかを指定します。（デフォルト: 30）                                                                                                          | `&limit=50`                                                        |
-| `game_mode`         | `ranked`, `event`, `free` など、特定のゲームモードの統計のみを表示します。                                                                                                                                | `&game_mode=ranked`                                                |
-| `display_items`     | 表示したい統計項目をカンマ区切りで指定します。<br> **指定可能な項目**: `current_deck`, `current_rank`, `win_rate`, `first_turn_win_rate`, `second_turn_win_rate`, `coin_win_rate`, `go_first_rate` | `&display_items=current_deck,win_rate`                             |
-| `layout`            | オーバーレイのレイアウト。<br> `grid`: グリッド（デフォルト）<br> `horizontal`: 横一列<br> `vertical`: 縦一列                                                                                              | `&layout=horizontal`                                               |
-| `theme`             | `dark`: ダークテーマ（デフォルト）<br> `light`: ライトテーマ                                                                                                                                             | `&theme=light`                                                     |
-| `refresh`           | 統計情報を自動更新する間隔（ミリ秒）。（デフォルト: 30000ms）                                                                                                                                              | `&refresh=15000`                                                   |
-
-### URL設定例
-
-直近50戦のランクマッチについて、使用デッキ、勝率、先攻勝率を横一列のライトテーマで表示し、15秒ごとに更新する場合：
-
-```
-https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&period_type=recent&limit=50&game_mode=ranked&display_items=current_deck,win_rate,first_turn_win_rate&layout=horizontal&theme=light&refresh=15000
-```
 
 ## ライセンス
 
