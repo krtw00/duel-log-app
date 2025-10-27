@@ -26,9 +26,10 @@
 | `username` | `String` | **Unique**, **Not Null** | ユーザー名 |
 | `email` | `String` | **Unique**, **Not Null** | メールアドレス |
 | `passwordhash` | `String` | **Not Null** | ハッシュ化されたパスワード |
+| `streamer_mode` | `Boolean` | **Not Null**, Default: `False` | 配信者モードの有効/無効 |
+| `theme_preference` | `String` | **Not Null**, Default: `'dark'` | テーマ設定（'dark' または 'light'） |
 | `createdat` | `DateTime(timezone=True)` | **Not Null**, Default: `now()` | 作成日時 (UTC) |
 | `updatedat` | `DateTime(timezone=True)` | **Not Null**, Default: `now()`, On Update: `now()` | 更新日時 (UTC) |
-| `streamer_mode` | `Boolean` | **Not Null**, Default: `False` | 配信者モードの有効/無効 |
 
 ### `decks` テーブル
 
