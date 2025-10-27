@@ -38,61 +38,97 @@ Duel Log Appは、トレーディングカードゲーム（TCG）の対戦履�
 - **ビルドツール**: Vite
 - **チャート**: ApexCharts
 
-## 開発環境のセットアップ
+## 開発環境のセットアップ (Docker)
+
+Dockerを利用して、数コマンドで開発環境を構築できます。
 
 ### 前提条件
 
-- Docker および Docker Compose
-- Node.js (v18以上) および npm
-- Python (v3.9以上) および pip
+- Git
+- Docker
+- Docker Compose
 
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/your-username/duel-log-app.git
+git clone https://github.com/krtw00/duel-log-app.git
 cd duel-log-app
 ```
 
 ### 2. 環境変数の設定
 
-`.env.example` を参考に、`.env` ファイルをプロジェクトルートに作成し、必要な環境変数を設定してください。
-
-```
-# .env (例)
-DATABASE_URL="postgresql://user:password@db:5432/duel_log_db"
-SECRET_KEY="your_secret_key_for_jwt"
-ENVIRONMENT="development"
-FRONTEND_URL="http://localhost:5173" # フロントエンドのURL
-```
-
-### 3. Docker Compose でサービスを起動
+プロジェクトルートにある `.env.example` をコピーして `.env` ファイルを作成します。
 
 ```bash
-docker-compose up --build
+cp .env.example .env
 ```
 
-これにより、PostgreSQLデータベース、バックエンドAPI、およびフロントエンド開発サーバーが起動します。
+次に、`.env` ファイルをエディタで開き、SECRET_KEYなど必要な値を設定してください。`SECRET_KEY` は以下のコマンドで生成できます。
 
-### 4. データベースの初期化とマイグレーション
+```bash
+# 32バイトのランダムな16進数文字列を生成
+openssl rand -hex 32
+```
 
-バックエンドサービスが起動したら、データベースの初期化とマイグレーションを実行します。
+`.env` ファイルの例：
+```
+# .env
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+POSTGRES_DB=duel_log_db
+
+# 生成したSECRET_KEYを設定
+SECRET_KEY="your_super_secret_key_generated_by_openssl"
+
+# 開発環境ではデフォルトでOK
+ENVIRONMENT="development"
+FRONTEND_URL="http://localhost:5173"
+DATABASE_URL="postgresql://user:password@db:5432/duel_log_db"
+```
+
+### 3. アプリケーションのビルドと起動
+
+以下のコマンドを実行して、Dockerコンテナをビルドし、バックグラウンドで起動します。
+
+```bash
+docker-compose up --build -d
+```
+
+### 4. データベースマイグレーションの実行
+
+コンテナが起動したら、以下のコマンドでデータベースのテーブルを作成します。
 
 ```bash
 docker-compose exec backend alembic upgrade head
-docker-compose exec backend python -c "from app.db.seed import seed_db; seed_db()" # 必要であればシードデータ投入
 ```
 
-### 5. フロントエンドの依存関係のインストール
+### 5. 動作確認
+
+これでセットアップは完了です。以下のURLにアクセスして動作を確認してください。
+
+- **フロントエンド**: [http://localhost:5173](http://localhost:5173)
+- **バックエンドAPIドキュメント (Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### (オプション) シードデータの投入
+
+初期データとしてサンプルを投入したい場合は、以下のコマンドを実行します。
 
 ```bash
-cd frontend
-npm install
-cd ..
+docker-compose exec backend python -c "from app.db.seed import seed_db; seed_db()"
 ```
 
-### 6. アプリケーションの実行
+### 開発環境の停止
 
-`docker-compose up` で既に起動していますが、フロントエンド開発サーバーは `http://localhost:5173` でアクセス可能です。
+アプリケーションを停止する際は、以下のコマンドを実行します。
+
+```bash
+docker-compose down
+```
+
+ボリューム（データベースのデータなど）も完全に削除したい場合は、以下のコマンドを実行してください。
+```bash
+docker-compose down -v
+```
 
 ## Git運用ルール
 
