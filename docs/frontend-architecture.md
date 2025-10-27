@@ -33,6 +33,7 @@ frontend/
     │   ├── common/    # アプリケーション全体で使われる共通コンポーネント
     │   ├── duel/      # 対戦履歴関連のコンポーネント
     │   └── layout/    # AppBarなど、レイアウトを構成するコンポーネント
+    ├── composables/   # Composition API用の再利用可能なロジック
     ├── plugins/       # Vuetifyなどのプラグイン設定
     ├── router/        # Vue Routerによるルーティング設定
     ├── services/      # APIクライアントと通信ロジック
@@ -67,7 +68,24 @@ frontend/
 
 各コンポーネントは、これらのストアから状態をリアクティブに取得し、必要に応じてアクションを呼び出すことで状態を変更します。
 
-### 3. ルーティング (Vue Router)
+### 3. Composables (Composition API)
+
+`src/composables/`には、Composition APIを活用した再利用可能なロジックが配置されています。
+
+- **`useCSVOperations.ts`**: CSV インポート/エクスポート機能を提供
+- **`useChartOptions.ts`**: ApexChartsの共通設定を管理
+- **`useDashboardFilters.ts`**: ダッシュボードのフィルター状態とロジック
+- **`useDateTimeFormat.ts`**: 日時フォーマットのユーティリティ
+- **`useDeckResolution.ts`**: デッキIDから名前を解決する機能
+- **`useDuelFormValidation.ts`**: デュエル入力フォームのバリデーション
+- **`useDuelManagement.ts`**: デュエルの作成・更新・削除ロジック
+- **`useLatestDuelValues.ts`**: 最新のデュエル値を取得
+- **`useOBSConfiguration.ts`**: OBSオーバーレイの設定管理
+- **`useStatsCalculation.ts`**: 統計計算のロジック
+
+これらのComposablesは、複数のコンポーネント間でロジックを共有し、コードの重複を避けるために使用されています。
+
+### 4. ルーティング (Vue Router)
 
 `src/router/index.ts`で、アプリケーションのルーティングを定義しています。
 
@@ -75,7 +93,7 @@ frontend/
   - `meta: { requiresAuth: true }` が設定されたルートに未認証のユーザーがアクセスしようとすると、ログインページにリダイレクトします。
   - アプリケーションの初回読み込み時には、`authStore.fetchUser()`を呼び出して、クッキーを元にユーザーのログイン状態を復元しようと試みます。
 
-### 4. API通信 (Axios)
+### 5. API通信 (Axios)
 
 `src/services/api.ts`で、Axiosのインスタンスを生成し、バックエンドAPIとの通信設定を一元管理しています。
 
@@ -83,6 +101,6 @@ frontend/
 - **認証**: `withCredentials: true` を設定し、リクエスト時に自動的にHttpOnlyクッキー（認証トークン）が送信されるようにしています。
 - **エラーハンドリング**: Axiosのインターセプターを使用して、APIからのエラーレスポンス（401 Unauthorizedなど）をグローバルにハンドリングし、必要に応じてログインページへのリダイレクトや、エラーメッセージの通知を行います。
 
-### 5. 型定義 (TypeScript)
+### 6. 型定義 (TypeScript)
 
 `src/types/index.ts`に、アプリケーション全体で使用されるデータ構造の型定義（`User`, `Deck`, `Duel`など）を集約しています。これにより、コンポーネントやストア、サービス間で安全なデータの受け渡しを実現しています。
