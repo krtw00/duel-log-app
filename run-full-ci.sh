@@ -99,12 +99,11 @@ echo ""
 print_section_header "[3/4] Running frontend setup and tests..."
 
 pushd frontend > /dev/null
-# Install node_modules if they don't exist
-if [ ! -d "node_modules" ]; then
-  echo -e "\033[0;33mnode_modules not found. Installing dependencies...\033[0m"
-  npm install
-  echo -e "\033[0;32m✅ Frontend dependencies installed.\033[0m"
-fi
+# Force clean install of frontend dependencies
+echo -e "\033[0;33mCleaning and installing frontend dependencies... (This may take a moment)\033[0m"
+rm -rf node_modules
+npm install
+echo -e "\033[0;32m✅ Frontend dependencies installed.\033[0m"
 
 # Run frontend tests
 echo -e "\033[0;33mRunning frontend tests...\033[0m"

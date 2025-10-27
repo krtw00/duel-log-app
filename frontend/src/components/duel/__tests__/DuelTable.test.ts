@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { createTestingPinia } from '@pinia/testing';
 import { mount } from '@vue/test-utils';
 import DuelTable from '../DuelTable.vue';
 import { createVuetify } from 'vuetify';
@@ -52,7 +53,7 @@ describe('DuelTable.vue', () => {
   it('renders duel data correctly', () => {
     const wrapper = mount(DuelTable, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, createTestingPinia()],
       },
       props: {
         duels: mockDuels,
@@ -71,7 +72,7 @@ describe('DuelTable.vue', () => {
   it('displays loading skeleton when loading is true', () => {
     const wrapper = mount(DuelTable, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, createTestingPinia()],
       },
       props: {
         duels: [],
@@ -85,7 +86,7 @@ describe('DuelTable.vue', () => {
   it('displays no data message when duels array is empty and not loading', () => {
     const wrapper = mount(DuelTable, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, createTestingPinia()],
       },
       props: {
         duels: [],
@@ -99,7 +100,7 @@ describe('DuelTable.vue', () => {
   it('emits edit event with duel object when edit button is clicked', async () => {
     const wrapper = mount(DuelTable, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, createTestingPinia()],
       },
       props: {
         duels: mockDuels,
@@ -116,7 +117,7 @@ describe('DuelTable.vue', () => {
   it('emits delete event with duel id when delete button is clicked', async () => {
     const wrapper = mount(DuelTable, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, createTestingPinia()],
       },
       props: {
         duels: mockDuels,
@@ -133,7 +134,7 @@ describe('DuelTable.vue', () => {
   it('has mobile-breakpoint attribute for responsive design', () => {
     const wrapper = mount(DuelTable, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, createTestingPinia()],
       },
       props: {
         duels: mockDuels,
@@ -150,7 +151,7 @@ describe('DuelTable.vue', () => {
   it('renders table with responsive styling', () => {
     const wrapper = mount(DuelTable, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, createTestingPinia()],
       },
       props: {
         duels: mockDuels,
