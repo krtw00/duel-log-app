@@ -29,8 +29,10 @@
       "id": 1,
       "username": "string",
       "email": "user@example.com",
-      "streamer_mode": false
-    }
+      "streamer_mode": false,
+      "theme_preference": "dark"
+    },
+    "access_token": "string"
   }
   ```
 
@@ -47,7 +49,7 @@
 
 ### `POST /forgot-password`
 
-パスワードリセットを要求し、再設定用のメールを送信します（メール送信機能は未実装）。
+パスワードリセットを要求し、再設定用のメールを送信します。
 
 - **リクエストボディ:**
   ```json
@@ -85,7 +87,7 @@
 
 ## ユーザー (Users)
 
-`prefix: /users`
+`prefix: /users` (主に管理者向け)
 
 ### `POST /`
 
@@ -96,15 +98,28 @@
 
 ### `GET /`
 
-ユーザーの一覧を取得します（管理者向け）。
+ユーザーの一覧を取得します。
 
 - **レスポンス (200 OK):** `List[UserResponse]`
 
 ### `GET /{user_id}`
 
-指定されたIDのユーザー情報を取得します（管理者向け）。
+指定されたIDのユーザー情報を取得します。
 
 - **レスポンス (200 OK):** `UserResponse`
+
+### `PUT /{user_id}`
+
+指定されたIDのユーザー情報を更新します。
+
+- **リクエストボディ:** `UserUpdate` スキーマ
+- **レスポンス (200 OK):** `UserResponse`
+
+### `DELETE /{user_id}`
+
+指定されたIDのユーザーを削除します。
+
+- **レスポンス (204 No Content):**
 
 ---
 
@@ -131,6 +146,19 @@
 
 - **レスポンス (200 OK):** `{"message": "アカウントが正常に削除されました"}`
 
+### `GET /export`
+
+現在のユーザーの全データをCSVとしてエクスポートします。
+
+- **レスポンス (200 OK):** CSVファイル
+
+### `POST /import`
+
+CSVファイルからデータをインポートして復元します（既存データは削除されます）。
+
+- **リクエストボディ:** `UploadFile` (CSVファイル)
+- **レスポンス (201 Created):** `{"message": "Import successful", "created": count, "skipped": count, "errors": []}`
+
 ---
 
 ## デッキ (Decks)
@@ -143,7 +171,7 @@
 
 - **クエリパラメータ:**
   - `is_opponent` (bool, optional): 対戦相手のデッキのみ取得するか
-  - `active_only` (bool, optional): アクティブなデッキのみ取得するか
+  - `active_only` (bool, optional): アクティブなデッキのみ取得するか (デフォルト: `true`)
 - **レスポンス (200 OK):** `List[DeckRead]`
 
 ### `POST /`
@@ -189,8 +217,15 @@
 ユーザーの対戦履歴一覧を取得します。
 
 - **クエリパラメータ:**
-  - `year` (int, optional): 年でフィルタリング
-  - `month` (int, optional): 月でフィルタリング
+  - `deck_id` (int, optional)
+  - `opponent_deck_id` (int, optional)
+  - `game_mode` (str, optional)
+  - `start_date` (datetime, optional)
+  - `end_date` (datetime, optional)
+  - `year` (int, optional)
+  - `month` (int, optional)
+  - `range_start` (int, optional)
+  - `range_end` (int, optional)
 - **レスポンス (200 OK):** `List[DuelRead]`
 
 ### `POST /`
@@ -205,12 +240,17 @@
 CSVファイルから対戦履歴を一括でインポートします。
 
 - **リクエストボディ:** `UploadFile` (CSVファイル)
-- **レスポンス (201 Created):** `{"message": "CSV file imported successfully"}`
+- **レスポンス (201 Created):** `{"message": "CSV file imported successfully", "created": count, "skipped": count, "errors": []}`
 
 ### `GET /export/csv`
 
 対戦履歴をCSV形式でエクスポートします。
 
+- **クエリパラメータ:**
+  - `year` (int, optional)
+  - `month` (int, optional)
+  - `game_mode` (str, optional)
+  - `columns` (str, optional): カンマ区切りのカラム名
 - **レスポンス (200 OK):** CSVファイル
 
 ### `GET /{duel_id}`
@@ -232,11 +272,19 @@ CSVファイルから対戦履歴を一括でインポートします。
 
 - **レスポンス (204 No Content):**
 
-### `GET /latest-values/`
+### `GET /latest-values`
 
 各ゲームモードの最新のランク、レート、DC値を取得します。
 
 - **レスポンス (200 OK):** `{"RANK": value, "RATE": value, "DC": value}`
+
+### `GET /stats/win-rate`
+
+勝率を取得します。
+
+- **クエリパラメータ:**
+  - `deck_id` (int, optional): デッキID（省略時は全体）
+- **レスポンス (200 OK):** `{"win_rate": float, "percentage": float}`
 
 ---
 
@@ -249,52 +297,59 @@ CSVファイルから対戦履歴を一括でインポートします。
 ユーザーの統計情報への共有リンクを生成します。
 
 - **リクエストボディ:** `SharedStatisticsCreate` スキーマ
-  ```json
-  {
-    "year": 2023,
-    "month": 10,
-    "game_mode": "RANK",
-    "expires_at": "2023-12-31T23:59:59Z"
-  }
-  ```
 - **レスポンス (201 Created):** `SharedStatisticsRead` スキーマ
-  ```json
-  {
-    "id": 1,
-    "share_id": "unique_share_id_string",
-    "user_id": 1,
-    "year": 2023,
-    "month": 10,
-    "game_mode": "RANK",
-    "created_at": "2023-10-26T10:00:00Z",
-    "expires_at": "2023-12-31T23:59:59Z"
-  }
-  ```
 
 ### `GET /{share_id}`
 
 共有IDを使用して統計情報を取得します。
 
-- **パスパラメータ:**
-  - `share_id` (string): 共有ID
-- **クエリパラメータ:**
-  - `year` (int, optional): 統計データを取得する年 (デフォルトは共有リンク作成時の年)
-  - `month` (int, optional): 統計データを取得する月 (デフォルトは共有リンク作成時の月)
-- **レスポンス (200 OK):** `Dict[str, Any]` (統計データを含むJSONオブジェクト)
+- **レスポンス (200 OK):**
+  ```json
+  {
+    "DASHBOARD": {
+      "overall_stats": {},
+      "duels": []
+    },
+    "STATISTICS": {
+      "year": int,
+      "month": int,
+      "monthly_deck_distribution": [],
+      "recent_deck_distribution": [],
+      "matchup_data": []
+    }
+  }
+  ```
 
 ### `DELETE /{share_id}`
 
 共有リンクを削除します。
 
-- **パスパラメータ:**
-  - `share_id` (string): 共有ID
 - **レスポンス (204 No Content):**
+
+### `GET /{share_id}/export/csv`
+
+共有されたデュエルデータをCSV形式でエクスポートします。
+
+- **レスポンス (200 OK):** CSVファイル
 
 ---
 
 ## 統計 (Statistics)
 
 `prefix: /statistics`
+
+### `GET /`
+
+全ゲームモードの統計情報を一括で取得します。
+
+- **クエリパラメータ:**
+  - `year` (int, optional)
+  - `month` (int, optional)
+  - `range_start` (int, optional)
+  - `range_end` (int, optional)
+  - `my_deck_id` (int, optional)
+  - `opponent_deck_id` (int, optional)
+- **レスポンス (200 OK):** `Dict[str, Any]`
 
 ### `GET /deck-distribution/monthly`
 
@@ -313,6 +368,10 @@ CSVファイルから対戦履歴を一括でインポートします。
 - **クエリパラメータ:**
   - `limit` (int, optional): デフォルト30
   - `game_mode` (str, optional)
+  - `range_start` (int, optional)
+  - `range_end` (int, optional)
+  - `my_deck_id` (int, optional)
+  - `opponent_deck_id` (int, optional)
 - **レスポンス (200 OK):** `List[Dict[str, Any]]`
 
 ### `GET /matchup-chart`
@@ -333,3 +392,29 @@ CSVファイルから対戦履歴を一括でインポートします。
   - `year` (int, optional)
   - `month` (int, optional)
 - **レスポンス (200 OK):** `List[Dict[str, Any]]`
+
+### `GET /available-decks`
+
+指定された期間・範囲に存在するデッキ一覧を取得します。
+
+- **クエリパラメータ:**
+  - `year` (int, optional)
+  - `month` (int, optional)
+  - `range_start` (int, optional)
+  - `range_end` (int, optional)
+  - `game_mode` (str, optional)
+- **レスポンス (200 OK):** `Dict[str, Any]`
+
+### `GET /obs`
+
+OBSオーバーレイ用の統計情報を取得します。
+
+- **クエリパラメータ:**
+  - `period_type` (str, optional): `all`, `monthly`, `recent`, `from_start`
+  - `year` (int, optional)
+  - `month` (int, optional)
+  - `limit` (int, optional)
+  - `game_mode` (str, optional)
+  - `start_id` (int, optional)
+- **レスポンス (200 OK):** `Dict[str, Any]`
+

@@ -60,7 +60,7 @@ CI/CDはGitHub Actionsを利用しており、`main`ブランチへのプッシ�
 - **Environment**: `Docker`
 - **Region**: 任意のリージョン（例: `Tokyo`）
 - **Branch**: `main`
-- **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port 8000` （`start.py`で実行されるコマンド）
+- **Start Command**: Dockerfileで定義されたコマンドが実行されます。`start.py`スクリプトがデータベース接続の待機、マイグレーション実行、Uvicornサーバー起動を自動的に処理します。
 
 ### 3. 環境変数の設定
 
