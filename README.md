@@ -66,23 +66,30 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
 
 ### バックエンド
 
-- **言語**: Python
+- **言語**: Python 3.11+
 - **フレームワーク**: FastAPI
-- **データベース**: PostgreSQL (Neon)
-- **ORM**: SQLAlchemy
+- **ASGIサーバー**: Uvicorn
+- **データベース**: PostgreSQL
+- **ORM**: SQLAlchemy 2.0
+- **データバリデーション**: Pydantic v2
 - **マイグレーション**: Alembic
-- **認証**: JWT (HttpOnly Cookie)
+- **認証**: JWT (HttpOnly Cookie), bcrypt, passlib
+- **テスト**: Pytest
+- **リンター/フォーマッター**: Ruff, Black
 
 ### フロントエンド
 
 - **言語**: TypeScript
 - **フレームワーク**: Vue.js 3 (Composition API)
+- **ビルドツール**: Vite
 - **UIフレームワーク**: Vuetify 3
 - **状態管理**: Pinia
 - **ルーティング**: Vue Router
 - **HTTP通信**: Axios
-- **ビルドツール**: Vite
 - **チャート**: ApexCharts
+- **テスト**: Vitest
+- **リンター/フォーマッター**: ESLint, Prettier
+- **CSSプリプロセッサ**: Sass
 
 ## 開発環境のセットアップ (Docker)
 
