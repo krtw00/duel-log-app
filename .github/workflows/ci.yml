@@ -40,16 +40,15 @@ jobs:
           RESEND_API_KEY: "testing"
           DEBUG: "true"
 
-      - name: Setup frontend environment variables
-        run: |
-          cp frontend/.env.example frontend/.env.production
-          echo "VITE_API_URL=http://localhost:8000" >> frontend/.env.production
-
       - name: Install frontend dependencies
         run: npm install --prefix frontend
 
       - name: Run frontend tests
         run: npm run test:unit --prefix frontend
+        env:
+          VITE_API_URL: "http://localhost:8000"
 
       - name: Run frontend build check
         run: npm run build --prefix frontend
+        env:
+          VITE_API_URL: "http://localhost:8000"
