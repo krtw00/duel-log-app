@@ -25,7 +25,7 @@ class Duel(Base):
     )  # 相手のデッキ
 
     # 対戦結果フィールド
-    is_win = Column(Boolean, nullable=False)  # 勝敗: True = 勝ち, False = 負け
+    is_win = Column("result", Boolean, nullable=False)  # 勝敗: True = 勝ち, False = 負け
 
     # ゲームモード関連フィールド
     game_mode = Column(
@@ -36,8 +36,8 @@ class Duel(Base):
     dc_value = Column(Integer, nullable=True)  # DCモード時のDC数値
 
     # ターン順・コイントス関連フィールド
-    won_coin_toss = Column(Boolean, nullable=False)  # コイントス結果: True = 勝ち, False = 負け
-    is_going_first = Column(Boolean, nullable=False)  # ターン順: True = 先攻, False = 後攻
+    won_coin_toss = Column("coin", Boolean, nullable=False)  # コイントス結果: True = 勝ち, False = 負け
+    is_going_first = Column("first_or_second", Boolean, nullable=False)  # ターン順: True = 先攻, False = 後攻
 
     # その他のフィールド
     played_date = Column(DateTime(timezone=True), nullable=False)  # 対戦日時
