@@ -1,29 +1,3 @@
-<!--
-/**
- * DashboardView.vue
- *
- * ダッシュボードビューコンポーネント
- *
- * 機能:
- * - ゲームモード別（RANK/RATE/EVENT/DC）の対戦履歴表示
- * - 年月による期間フィルタリング
- * - 統計情報の概要表示（勝率、先攻/後攻勝率など）
- * - OBSオーバーレイ機能へのアクセス
- * - 対戦履歴の一覧表示と管理（追加・編集・削除）
- *
- * データフロー:
- * 1. マウント時: 現在の年月で対戦記録とデッキ一覧を取得
- * 2. 年月変更時: 対戦記録を再取得
- * 3. ゲームモード切り替え時: 表示する対戦記録をフィルタリング
- * 4. 対戦追加/編集/削除後: 対戦記録を再取得して表示を更新
- *
- * 状態管理:
- * - currentMode: 現在選択中のゲームモード
- * - selectedYear/Month: 現在選択中の年月
- * - duels: 取得した全対戦記録（ゲームモード別に分類）
- * - decks: デッキ一覧（対戦記録の表示用）
- */
--->
 <template>
   <div>
     <!-- ナビゲーションバー -->
@@ -120,18 +94,11 @@ const selectedMonth = ref(new Date().getMonth() + 1);
 
 
 // ゲームモード別にデュエルをフィルタリング
-// 各ゲームモードのバッジに表示する対戦数を計算するために使用
 const rankDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RANK'));
 const rateDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RATE'));
 const eventDuels = computed(() => duels.value.filter((d) => d.game_mode === 'EVENT'));
 const dcDuels = computed(() => duels.value.filter((d) => d.game_mode === 'DC'));
 
-/**
- * 現在選択中のゲームモードに対応する対戦記録を取得
- *
- * DuelHistorySectionとStatisticsSectionに渡す対戦記録をフィルタリングします。
- * ゲームモードが切り替わると自動的に表示する対戦記録も更新されます。
- */
 const currentDuels = computed(() => {
   switch (currentMode.value) {
     case 'RANK':
@@ -149,21 +116,10 @@ const currentDuels = computed(() => {
 
 
 
-/**
- * 対戦記録とデッキ一覧を取得
- *
- * 選択中の年月に対応する対戦記録と、全デッキ一覧を並列で取得します。
- * 取得後、各対戦記録にデッキ情報をJOINして表示用のデータを構築します。
- *
- * 呼び出しタイミング:
- * - コンポーネントマウント時
- * - 年月フィルタが変更された時
- * - 対戦記録の追加/編集/削除後（DuelHistorySectionから@refreshイベント経由）
- */
+// Data fetching - declare before using in composables
 const fetchDuels = async () => {
   loading.value = true;
   try {
-    // 対戦記録とデッキ一覧を並列で取得（パフォーマンス向上）
     const [duelsResponse, decksResponse] = await Promise.all([
       api.get('/duels/', {
         params: {
@@ -176,16 +132,14 @@ const fetchDuels = async () => {
 
     decks.value = decksResponse.data;
 
-    // デッキIDをキーとしたMapを作成（O(1)でデッキ情報を検索可能）
+    // デッキ情報をマッピング
     const deckMap = new Map(decks.value.map(deck => [deck.id, deck]));
 
-    // 各対戦記録にデッキ情報をJOIN
-    // deck: プレイヤーが使用したデッキ情報
-    // opponentdeck: 相手が使用したデッキ情報
+    // duelにdeck情報を追加
     duels.value = duelsResponse.data.map((duel: Duel) => ({
       ...duel,
       deck: deckMap.get(duel.deck_id),
-      opponentdeck: deckMap.get(duel.opponentDeckId),
+      opponentdeck: deckMap.get(duel.opponentDeck_id),
     }));
   } catch (error) {
     console.error('Failed to fetch duels:', error);
