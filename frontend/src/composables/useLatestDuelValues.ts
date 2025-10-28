@@ -10,7 +10,7 @@ import type { Deck, GameMode } from '@/types';
 interface LatestValue {
   value: number;
   deck_id: number;
-  opponentDeckId: number;
+  opponentDeck_id: number;
 }
 
 interface LatestValues {
