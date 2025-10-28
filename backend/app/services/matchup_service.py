@@ -102,7 +102,7 @@ class MatchupService:
         if my_deck_id is not None:
             query = query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+            query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
         duels = query.order_by(Duel.played_date.desc()).all()
 
@@ -142,17 +142,17 @@ class MatchupService:
         # 各対戦記録を集計
         for duel in duels:
             my_deck_name = my_deck_map.get(duel.deck_id)
-            opp_deck_name = opponent_deck_map.get(duel.opponentDeck_id)
+            opp_deck_name = opponent_deck_map.get(duel.opponent_deck_id)
 
             # デッキ名が見つかった場合のみ集計（削除されたデッキの対戦記録はスキップ）
             if my_deck_name and opp_deck_name:
-                if duel.first_or_second:  # 先攻（first_or_second=True）の場合
-                    if duel.result:  # 勝利（result=True）
+                if duel.is_going_first:  # 先攻（is_going_first=True）の場合
+                    if duel.is_win:  # 勝利（is_win=True）
                         matchups[my_deck_name][opp_deck_name]["wins_first"] += 1
-                    else:  # 敗北（result=False）
+                    else:  # 敗北（is_win=False）
                         matchups[my_deck_name][opp_deck_name]["losses_first"] += 1
-                else:  # 後攻（first_or_second=False）の場合
-                    if duel.result:  # 勝利
+                else:  # 後攻（is_going_first=False）の場合
+                    if duel.is_win:  # 勝利
                         matchups[my_deck_name][opp_deck_name]["wins_second"] += 1
                     else:  # 敗北
                         matchups[my_deck_name][opp_deck_name]["losses_second"] += 1
