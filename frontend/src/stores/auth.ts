@@ -1,3 +1,31 @@
+/**
+ * authStore - 認証状態管理ストア
+ *
+ * 状態遷移:
+ * ┌──────────────┐
+ * │ 未認証       │
+ * │ (初期状態)   │
+ * └──────┬───────┘
+ *        │ login()
+ *        ↓
+ * ┌──────────────┐
+ * │ 認証済み     │ ←──┐
+ * │ (user != null)│   │ checkAuth() / fetchUser()
+ * └──────┬───────┘    │ (トークン有効)
+ *        │             │
+ *        │ logout()    │
+ *        ↓             │
+ * ┌──────────────┐    │
+ * │ 未認証       │ ───┘
+ * │ (user = null)│   fetchUser()
+ * └──────────────┘   (トークン無効/エラー)
+ *
+ * セキュリティ:
+ * - JWTトークンをHttpOnly Cookieに保存（XSS対策）
+ * - Safari ITP対応: Authorization headerにもトークンを設定（localStorage経由）
+ * - ログアウト時はクライアントとサーバー両方の状態をクリア
+ */
+
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '../services/api';
