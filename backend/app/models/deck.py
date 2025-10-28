@@ -13,45 +13,23 @@ if TYPE_CHECKING:
 
 
 class Deck(Base):
-    """
-    デッキモデル
-
-    プレイヤーが使用するデッキと、対戦相手のデッキを管理します。
-    is_opponentフラグで、プレイヤーのデッキか相手のデッキかを区別します。
-    """
-
     __tablename__ = "decks"
 
-    # 基本フィールド
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)  # デッキの所有者
-    name: Mapped[str] = mapped_column(String, nullable=False)  # デッキ名（例: 'ライゼル', 'バジリス'）
-
-    # デッキ分類フィールド
-    is_opponent: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )  # False = プレイヤーのデッキ, True = 相手のデッキ
-
-    # ステータスフィールド
-    active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )  # True = 有効, False = 無効（削除済み）
-
-    # メタデータフィールド
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    is_opponent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     createdat: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
-    )  # 作成日時
+    )
     updatedat: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
-    )  # 更新日時
-
-    # リレーションシップ
-    user: Mapped["User"] = relationship("User", back_populates="decks")  # デッキの所有者
-    duels = relationship(
-        "Duel", foreign_keys="[Duel.deck_id]", back_populates="deck"
-    )  # このデッキを使用した対戦記録
+    )
+    user: Mapped["User"] = relationship("User", back_populates="decks")
+    duels = relationship("Duel", foreign_keys="[Duel.deck_id]", back_populates="deck")
     opponent_duels = relationship(
-        "Duel", foreign_keys="[Duel.opponent_deck_id]", back_populates="opponent_deck"
-    )  # 相手がこのデッキを使用した対戦記録
+        "Duel", foreign_keys="[Duel.opponentDeck_id]", back_populates="opponent_deck"
+    )

@@ -40,10 +40,6 @@ __pycache__/
 *.sqlite
 *.sqlite3
 
-# Test coverage
-.coverage
-htmlcov/
-
 # その他個人
 frontend_log.txt
 backend_log.txt

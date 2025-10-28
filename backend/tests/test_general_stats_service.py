@@ -18,14 +18,14 @@ def create_test_data(db: Session, user: User):
 
     duels_data = [
         # MyDeck1 vs OppDeck1 (3勝1敗)
-        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "won_coin_toss": True, "is_going_first": True, "played_date": datetime(2024, 7, 1)},
-        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "won_coin_toss": True, "is_going_first": True, "played_date": datetime(2024, 7, 2)},
-        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "won_coin_toss": True, "is_going_first": True, "played_date": datetime(2024, 7, 3)},
-        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": False, "won_coin_toss": True, "is_going_first": True, "played_date": datetime(2024, 7, 4)},
+        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "coin": True, "first_or_second": True, "played_date": datetime(2024, 7, 1)},
+        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "coin": True, "first_or_second": True, "played_date": datetime(2024, 7, 2)},
+        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "coin": True, "first_or_second": True, "played_date": datetime(2024, 7, 3)},
+        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": False, "coin": True, "first_or_second": True, "played_date": datetime(2024, 7, 4)},
         # MyDeck2 vs OppDeck2 (1勝2敗)
-        {"deck_id": deck2.id, "opponent_deck_id": opp_deck2.id, "is_win": True, "won_coin_toss": True, "is_going_first": True, "played_date": datetime(2024, 7, 5)},
-        {"deck_id": deck2.id, "opponent_deck_id": opp_deck2.id, "is_win": False, "won_coin_toss": True, "is_going_first": True, "played_date": datetime(2024, 7, 6)},
-        {"deck_id": deck2.id, "opponent_deck_id": opp_deck2.id, "is_win": False, "won_coin_toss": True, "is_going_first": True, "played_date": datetime(2024, 7, 7)},
+        {"deck_id": deck2.id, "opponentDeck_id": opp_deck2.id, "result": True, "coin": True, "first_or_second": True, "played_date": datetime(2024, 7, 5)},
+        {"deck_id": deck2.id, "opponentDeck_id": opp_deck2.id, "result": False, "coin": True, "first_or_second": True, "played_date": datetime(2024, 7, 6)},
+        {"deck_id": deck2.id, "opponentDeck_id": opp_deck2.id, "result": False, "coin": True, "first_or_second": True, "played_date": datetime(2024, 7, 7)},
     ]
 
     for duel_data in duels_data:
@@ -48,9 +48,9 @@ class TestGeneralStatsService:
         assert stats["win_count"] == 4
         assert stats["lose_count"] == 3
         assert stats["win_rate"] == pytest.approx((4 / 7) * 100)
-        # 全て先攻
+        # 全て先行
         assert stats["first_turn_win_rate"] == pytest.approx((4 / 7) * 100)
         assert stats["second_turn_win_rate"] == 0
-        # 全てコイントス勝利
+        # 全てジャンケン勝ち
         assert stats["coin_win_rate"] == pytest.approx(1.0 * 100)
         assert stats["go_first_rate"] == pytest.approx(1.0 * 100)

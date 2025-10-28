@@ -35,10 +35,10 @@
 | ファイル | 行数 | 複雑度 | 工数 | 優先度 |
 |---------|------|--------|------|--------|
 | `matchup_service.py` | 167 | 高 | ✅ 完了 | P0 |
-| `general_stats_service.py` | 110 | 高 | ✅ 完了 | P0 |
-| `deck_distribution_service.py` | 95 | 中 | ✅ 完了 | P1 |
-| `time_series_service.py` | 88 | 中 | ✅ 完了 | P1 |
-| `deck_service.py` | 220 | 中 | ✅ 完了 | P1 |
+| `general_stats_service.py` | 110 | 高 | 2h | P0 |
+| `deck_distribution_service.py` | 95 | 中 | 1.5h | P1 |
+| `time_series_service.py` | 88 | 中 | 1.5h | P1 |
+| `deck_service.py` | 220 | 中 | 2h | P1 |
 
 **成果物:**
 - 各関数に詳細なdocstring（Args, Returns, 処理フロー）
@@ -53,8 +53,8 @@
 | ファイル | 行数 | 複雑度 | 工数 | 優先度 |
 |---------|------|--------|------|--------|
 | `StatisticsView.vue` | 520 | 高 | ✅ 完了 | P0 |
-| `DashboardView.vue` | 380 | 中 | ✅ 完了 | P0 |
-| `DuelFormDialog.vue` | 210 | 中 | ✅ 完了 | P1 |
+| `DashboardView.vue` | 380 | 中 | 1.5h | P0 |
+| `DuelFormDialog.vue` | 210 | 中 | 1h | P1 |
 | `ProfileView.vue` | 150 | 低 | 0.5h | P2 |
 
 **成果物:**
@@ -68,45 +68,24 @@
 
 | ファイル | タスク | 工数 |
 |---------|--------|------|
-| `backend/app/models/duel.py` | フィールドの説明コメント追加 | ✅ 完了 |
-| `backend/app/models/deck.py` | リレーションシップの説明追加 | ✅ 完了 |
-| `frontend/src/types/index.ts` | 型定義にコメント追加 | ✅ 完了 |
+| `backend/app/models/duel.py` | フィールドの説明コメント追加 | 1h |
+| `backend/app/models/deck.py` | リレーションシップの説明追加 | 0.5h |
+| `frontend/src/types/index.ts` | 型定義にコメント追加 | 0.5h |
 
 **成果物:**
-- ✅ 各フィールドの意味を明記（特に `first_or_second`, `coin`, `result`）
-- ✅ リレーションシップの説明
-- ✅ TypeScript型定義にJSDocコメント追加
+- 各フィールドの意味を明記（特に `first_or_second`, `coin`, `result`）
+- リレーションシップの説明
 
 ---
 
 ### Phase 1 完了基準
 
-- [x] 5つ以上の複雑なサービス関数に詳細docstring追加（✅ 5/5完了）
-- [x] 3つ以上の主要Vueコンポーネントにドキュメント追加（✅ 3/3完了）
-- [x] モデル定義に全フィールドの説明追加（✅ 完了）
+- [ ] 5つ以上の複雑なサービス関数に詳細docstring追加
+- [ ] 3つ以上の主要Vueコンポーネントにドキュメント追加
+- [ ] モデル定義に全フィールドの説明追加
 - [ ] コードレビュー通過（別メンバーによる）
 
 **期待効果:** 可読性スコア 7/10 → 8/10
-
-**Phase 1 完了!** （2025-10-28更新）
-- ✅ バックエンドサービス: 5/5ファイル完了
-  - matchup_service.py
-  - general_stats_service.py
-  - deck_distribution_service.py
-  - time_series_service.py
-  - deck_service.py
-- ✅ モデル定義: 3/3ファイル完了
-  - backend/app/models/duel.py
-  - backend/app/models/deck.py
-  - frontend/src/types/index.ts
-- ✅ フロントエンドビュー: 3/3ファイル完了
-  - StatisticsView.vue
-  - DashboardView.vue
-  - DuelFormDialog.vue
-
-**次のステップ:**
-- コードレビュー（PRレビュー待ち）
-- Phase 2への移行準備
 
 ---
 
@@ -201,22 +180,13 @@
 
 ### Phase 2 完了基準
 
-- [x] クエリビルダーユーティリティ実装・テスト完了
-- [x] 4つ以上のComposablesに詳細JSDoc追加
-- [x] 命名規則統一計画書完成
+- [ ] クエリビルダーユーティリティ実装・テスト完了
+- [ ] 4つ以上のComposablesに詳細JSDoc追加
+- [ ] 命名規則統一計画書完成
 - [ ] コードレビュー通過
 - [ ] リグレッションテスト通過
 
 **期待効果:** 可読性スコア 8/10 → 8.5/10
-
-**Phase 2 完了!** （2025-10-28更新）
-- ✅ クエリビルダーユーティリティ実装・テスト完了
-- ✅ Composablesへの詳細JSDoc追加
-- ✅ 命名規則統一計画書完成
-
-**次のステップ:**
-- コードレビュー（PRレビュー待ち）
-- Phase 3への移行準備
 
 ---
 
@@ -350,22 +320,13 @@ def test_get_statistics(...):
 
 ### Phase 3 完了基準
 
-- [x] 全テストファイルにドキュメント追加
-- [x] API契約ドキュメント完成
-- [x] 全Piniaストアに状態遷移図追加
+- [ ] 全テストファイルにドキュメント追加
+- [ ] API契約ドキュメント完成
+- [ ] 全Piniaストアに状態遷移図追加
 - [ ] リンター設定強化
 - [ ] チーム全体でのコードレビュー会実施
 
 **期待効果:** 可読性スコア 8.5/10 → 9/10
-
-**Phase 3 完了!** （2025-10-28更新）
-- ✅ 全テストファイルにドキュメント追加
-- ✅ API契約ドキュメント完成
-- ✅ 全Piniaストアに状態遷移図追加
-
-**次のステップ:**
-- コードレビュー（PRレビュー待ち）
-- Phase 4への移行準備
 
 ---
 
@@ -551,27 +512,5 @@ def test_get_statistics(...):
 ---
 
 **更新履歴:**
-- 2025-10-28 (初版): 現状分析とPhase 1-3計画を作成
-- 2025-10-28 (更新1): Phase 1の進捗を反映（約60%完了）
-  - ✅ `general_stats_service.py` のドキュメント化完了
-  - ✅ `deck_distribution_service.py` のドキュメント化完了
-  - ✅ `backend/app/models/duel.py` のドキュメント化完了
-  - ✅ `backend/app/models/deck.py` のドキュメント化完了
-  - ✅ `frontend/src/types/index.ts` のドキュメント化完了
-  - 📝 作業ブランチ: `feature/code-readability-phase1`
-- 2025-10-28 (更新2): **Phase 1 完了!**
-  - ✅ `time_series_service.py` のドキュメント化完了
-  - ✅ `deck_service.py` のドキュメント化完了
-  - ✅ `DashboardView.vue` のドキュメント化完了
-  - ✅ `DuelFormDialog.vue` のドキュメント化完了
-  - 📝 作業ブランチ: `feature/code-readability-phase1`（PRレビュー待ち）
-  - 🎯 可読性スコア目標 7/10 → 8/10 達成見込み
-- 2025-10-28 (更新3): **Phase 2 完了!**
-  - ✅ クエリビルダーユーティリティ実装・テスト完了
-  - ✅ Composablesへの詳細JSDoc追加
-  - ✅ 命名規則統一計画書完成
-- 2025-10-28 (更新4): **Phase 3 完了!**
-  - ✅ 全テストファイルにドキュメント追加
-  - ✅ API契約ドキュメント完成
-  - ✅ 全Piniaストアに状態遷移図追加
-- 次回更新予定: Phase 4 開始時
+- 2025-10-28: 初版作成（現状分析とPhase 1-3計画）
+- 次回更新予定: Phase 1 完了時（1週間後）
