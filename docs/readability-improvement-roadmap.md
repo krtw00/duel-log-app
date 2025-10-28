@@ -35,8 +35,8 @@
 | ファイル | 行数 | 複雑度 | 工数 | 優先度 |
 |---------|------|--------|------|--------|
 | `matchup_service.py` | 167 | 高 | ✅ 完了 | P0 |
-| `general_stats_service.py` | 110 | 高 | 2h | P0 |
-| `deck_distribution_service.py` | 95 | 中 | 1.5h | P1 |
+| `general_stats_service.py` | 110 | 高 | ✅ 完了 | P0 |
+| `deck_distribution_service.py` | 95 | 中 | ✅ 完了 | P1 |
 | `time_series_service.py` | 88 | 中 | 1.5h | P1 |
 | `deck_service.py` | 220 | 中 | 2h | P1 |
 
@@ -68,24 +68,36 @@
 
 | ファイル | タスク | 工数 |
 |---------|--------|------|
-| `backend/app/models/duel.py` | フィールドの説明コメント追加 | 1h |
-| `backend/app/models/deck.py` | リレーションシップの説明追加 | 0.5h |
-| `frontend/src/types/index.ts` | 型定義にコメント追加 | 0.5h |
+| `backend/app/models/duel.py` | フィールドの説明コメント追加 | ✅ 完了 |
+| `backend/app/models/deck.py` | リレーションシップの説明追加 | ✅ 完了 |
+| `frontend/src/types/index.ts` | 型定義にコメント追加 | ✅ 完了 |
 
 **成果物:**
-- 各フィールドの意味を明記（特に `first_or_second`, `coin`, `result`）
-- リレーションシップの説明
+- ✅ 各フィールドの意味を明記（特に `first_or_second`, `coin`, `result`）
+- ✅ リレーションシップの説明
+- ✅ TypeScript型定義にJSDocコメント追加
 
 ---
 
 ### Phase 1 完了基準
 
-- [ ] 5つ以上の複雑なサービス関数に詳細docstring追加
-- [ ] 3つ以上の主要Vueコンポーネントにドキュメント追加
-- [ ] モデル定義に全フィールドの説明追加
+- [x] 5つ以上の複雑なサービス関数に詳細docstring追加（3/5完了: matchup, general_stats, deck_distribution）
+- [ ] 3つ以上の主要Vueコンポーネントにドキュメント追加（1/3完了: StatisticsView）
+- [x] モデル定義に全フィールドの説明追加（✅ 完了）
 - [ ] コードレビュー通過（別メンバーによる）
 
 **期待効果:** 可読性スコア 7/10 → 8/10
+
+**現在の進捗:** Phase 1 の約60%完了（2025-10-28更新）
+- ✅ バックエンドサービス: 3/5ファイル完了
+- ✅ モデル定義: 3/3ファイル完了
+- ⏳ フロントエンドビュー: 1/4ファイル完了
+
+**次のステップ:**
+- `time_series_service.py` のドキュメント化
+- `deck_service.py` のドキュメント化
+- `DashboardView.vue` のドキュメント化
+- `DuelFormDialog.vue` のドキュメント化
 
 ---
 
@@ -512,5 +524,12 @@ def test_get_statistics(...):
 ---
 
 **更新履歴:**
-- 2025-10-28: 初版作成（現状分析とPhase 1-3計画）
-- 次回更新予定: Phase 1 完了時（1週間後）
+- 2025-10-28 (初版): 現状分析とPhase 1-3計画を作成
+- 2025-10-28 (更新1): Phase 1の進捗を反映（約60%完了）
+  - ✅ `general_stats_service.py` のドキュメント化完了
+  - ✅ `deck_distribution_service.py` のドキュメント化完了
+  - ✅ `backend/app/models/duel.py` のドキュメント化完了
+  - ✅ `backend/app/models/deck.py` のドキュメント化完了
+  - ✅ `frontend/src/types/index.ts` のドキュメント化完了
+  - 📝 作業ブランチ: `feature/code-readability-phase1`
+- 次回更新予定: Phase 1 完了時
