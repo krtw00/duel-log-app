@@ -58,38 +58,38 @@ class GeneralStatsService:
             }
 
         # 総合勝敗数と勝率を計算
-        win_count = sum(1 for d in duels if d.result is True)
+        win_count = sum(1 for d in duels if d.is_win is True)
         lose_count = total_duels - win_count
         win_rate = (win_count / total_duels) * 100 if total_duels > 0 else 0
 
         # 先攻・後攻の対戦をそれぞれ抽出
-        # first_or_second: True = 先攻, False = 後攻
-        first_turn_duels = [d for d in duels if d.first_or_second is True]
-        second_turn_duels = [d for d in duels if d.first_or_second is False]
+        # is_going_first: True = 先攻, False = 後攻
+        first_turn_duels = [d for d in duels if d.is_going_first is True]
+        second_turn_duels = [d for d in duels if d.is_going_first is False]
 
         # 先攻時の勝率を計算
         first_turn_total = len(first_turn_duels)
-        first_turn_wins = sum(1 for d in first_turn_duels if d.result is True)
+        first_turn_wins = sum(1 for d in first_turn_duels if d.is_win is True)
         first_turn_win_rate = (
             (first_turn_wins / first_turn_total) * 100 if first_turn_total > 0 else 0
         )
 
         # 後攻時の勝率を計算
         second_turn_total = len(second_turn_duels)
-        second_turn_wins = sum(1 for d in second_turn_duels if d.result is True)
+        second_turn_wins = sum(1 for d in second_turn_duels if d.is_win is True)
         second_turn_win_rate = (
             (second_turn_wins / second_turn_total) * 100
             if second_turn_total > 0
             else 0
         )
 
-        # コイントス勝率を計算（coin: True = 勝ち）
+        # コイントス勝率を計算（won_coin_toss: True = 勝ち）
         coin_total = total_duels
-        coin_wins = sum(1 for d in duels if d.coin is True)
+        coin_wins = sum(1 for d in duels if d.won_coin_toss is True)
         coin_win_rate = (coin_wins / coin_total) * 100 if coin_total > 0 else 0
 
         # 先攻になった確率を計算
-        go_first_total = sum(1 for d in duels if d.first_or_second is True)
+        go_first_total = sum(1 for d in duels if d.is_going_first is True)
         go_first_rate = (go_first_total / total_duels) * 100 if total_duels > 0 else 0
 
         return {
