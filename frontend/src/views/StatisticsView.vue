@@ -282,6 +282,33 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * StatisticsView.vue
+ *
+ * 統計情報を表示するメインビューコンポーネント
+ *
+ * 機能:
+ * - ゲームモード別（RANK/RATE/EVENT/DC）の統計表示
+ * - 年月による期間フィルタリング
+ * - デッキペアによるフィルタリング（自分のデッキ vs 相手のデッキ）
+ * - 範囲指定フィルタリング（例: 1-50戦目の統計）
+ * - 月ごとの相手デッキ分布（円グラフ）
+ * - デッキ相性表（先攻/後攻別の勝率）
+ * - レート/DC値の推移グラフ
+ *
+ * 主要な状態:
+ * - selectedYear/selectedMonth: 年月フィルター
+ * - filterPeriodType: 期間タイプ（'all' = 全期間, 'range' = 範囲指定）
+ * - filterMyDeckId: プレイヤーデッキでフィルタリング（null = 全デッキ）
+ * - filterOpponentDeckId: 相手デッキでフィルタリング（null = 全デッキ）
+ * - filterRangeStart/End: 範囲指定の開始/終了（1始まり）
+ * - statisticsByMode: ゲームモード別の統計データ（RANK/RATE/EVENT/DC）
+ *
+ * データフロー:
+ * 1. マウント時 → fetchStatistics() で全モードの統計を取得
+ * 2. フィルター変更 → refreshStatisticsWithDecks() で再取得
+ * 3. APIレスポンス → 各モードの統計データを構築してビューに反映
+ */
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import AppBar from '@/components/layout/AppBar.vue';
