@@ -1,34 +1,3 @@
-/**
- * api.ts - バックエンドAPIクライアント
- *
- * @description
- * Axiosインスタンスを生成し、バックエンドAPIとの通信設定を一元管理します。
- * 認証、エラーハンドリング、ローディング表示などの共通処理をインターセプターで実装しています。
- *
- * 認証方式:
- * - プライマリ: HttpOnly Cookie (CSRF保護あり)
- * - フォールバック: Authorization Bearer header (Safari ITP対応、localStorage経由)
- * - OBSオーバーレイ: 専用トークン（クエリパラメータ、このクライアントでは直接扱わない）
- *
- * エラーレスポンス構造:
- * { detail: string | { msg: string, type?: string }[] }
- *
- * リクエストインターセプター:
- * 1. ローディング状態の開始
- * 2. Safari/MacOS環境の場合、localStorageから取得したトークンをAuthorizationヘッダーに自動付与
- * 3. デバッグログの出力
- *
- * レスポンスインターセプター:
- * 1. ローディング状態の終了
- * 2. デバッグログの出力
- * 3. エラーハンドリング:
- *    - 401 Unauthorized: /meエンドポイント以外からの場合はログアウト処理を実行し、ログインページへリダイレクト。
- *    - 403 Forbidden: 権限エラーメッセージを表示。
- *    - 422 Unprocessable Entity: バリデーションエラーメッセージを表示（フォーム側で詳細処理）。
- *    - その他エラー: 汎用エラーメッセージを表示。
- *    - ネットワークエラー: 接続エラーメッセージを表示。
- */
-
 import axios, { AxiosError } from 'axios';
 import { useNotificationStore } from '../stores/notification';
 import { useLoadingStore } from '../stores/loading';
