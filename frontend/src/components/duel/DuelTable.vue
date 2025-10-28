@@ -17,11 +17,11 @@
 
     <!-- 勝敗カラム -->
     <template #[`item.result`]="{ item }">
-      <v-chip :color="item.result ? 'success' : 'error'" variant="flat" class="font-weight-bold">
+      <v-chip :color="item.isWin ? 'success' : 'error'" variant="flat" class="font-weight-bold">
         <v-icon start>
-          {{ item.result ? 'mdi-check-circle' : 'mdi-close-circle' }}
+          {{ item.isWin ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
-        {{ item.result ? '勝利' : '敗北' }}
+        {{ item.isWin ? '勝利' : '敗北' }}
       </v-chip>
     </template>
 
@@ -41,18 +41,18 @@
 
     <!-- コインカラム -->
     <template v-if="!hiddenColumnsSet.has('coin')" #[`item.coin`]="{ item }">
-      <v-icon :color="item.coin ? 'warning' : 'grey'">
-        {{ item.coin ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
+      <v-icon :color="item.wonCoinToss ? 'warning' : 'grey'">
+        {{ item.wonCoinToss ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
       </v-icon>
-      {{ item.coin ? '表' : '裏' }}
+      {{ item.wonCoinToss ? '表' : '裏' }}
     </template>
 
     <!-- 先攻/後攻カラム -->
     <template v-if="!hiddenColumnsSet.has('first_or_second')" #[`item.first_or_second`]="{ item }">
-      <v-icon :color="item.first_or_second ? 'info' : 'purple'">
-        {{ item.first_or_second ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
+      <v-icon :color="item.isGoingFirst ? 'info' : 'purple'">
+        {{ item.isGoingFirst ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
       </v-icon>
-      {{ item.first_or_second ? '先攻' : '後攻' }}
+      {{ item.isGoingFirst ? '先攻' : '後攻' }}
     </template>
 
     <!-- ランク/レートカラム -->

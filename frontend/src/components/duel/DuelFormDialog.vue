@@ -139,7 +139,7 @@
                   コイン
                 </label>
                 <v-radio-group
-                  v-model="form.coin"
+                  v-model="form.wonCoinToss"
                   inline
                   color="primary"
                   :rules="[rules.required]"
@@ -159,7 +159,7 @@
                   先攻/後攻
                 </label>
                 <v-radio-group
-                  v-model="form.first_or_second"
+                  v-model="form.isGoingFirst"
                   inline
                   color="primary"
                   :rules="[rules.required]"
@@ -179,7 +179,7 @@
                   勝敗
                 </label>
                 <v-radio-group
-                  v-model="form.result"
+                  v-model="form.isWin"
                   inline
                   :rules="[rules.required]"
                   hide-details="auto"
@@ -327,14 +327,14 @@ const selectedOpponentDeck = ref<Deck | string | null>(null);
 const defaultForm = (): DuelCreate => {
   return {
     deck_id: null,
-    opponentDeck_id: null,
-    result: true,
+    opponentDeckId: null,
+    isWin: true,
     game_mode: 'RANK',
     rank: undefined,
     rate_value: undefined,
     dc_value: undefined,
-    coin: true,
-    first_or_second: true,
+    wonCoinToss: true,
+    isGoingFirst: true,
     played_date: getCurrentLocalDateTime(),
     notes: '',
   };
@@ -398,14 +398,14 @@ watch(
 
         form.value = {
           deck_id: props.duel.deck_id,
-          opponentDeck_id: props.duel.opponentDeck_id,
-          result: props.duel.result,
+          opponentDeckId: props.duel.opponentDeckId,
+          isWin: props.duel.isWin,
           game_mode: props.duel.game_mode,
           rank: props.duel.rank,
           rate_value: props.duel.rate_value,
           dc_value: props.duel.dc_value,
-          coin: props.duel.coin,
-          first_or_second: props.duel.first_or_second,
+          wonCoinToss: props.duel.wonCoinToss,
+          isGoingFirst: props.duel.isGoingFirst,
           played_date: localDateTime,
           notes: props.duel.notes || '',
         };
@@ -413,7 +413,7 @@ watch(
         // 選択されたデッキを設定
         selectedMyDeck.value = myDecks.value.find((d) => d.id === props.duel?.deck_id) || null;
         selectedOpponentDeck.value =
-          opponentDecks.value.find((d) => d.id === props.duel?.opponentDeck_id) || null;
+          opponentDecks.value.find((d) => d.id === props.duel?.opponentDeckId) || null;
       } else {
         // 新規作成モード
         await fetchLatestValues();
@@ -515,7 +515,7 @@ const handleSubmit = async () => {
     const submitData = {
       ...form.value,
       deck_id: myDeckId,
-      opponentDeck_id: opponentDeckId,
+      opponentDeckId: opponentDeckId,
       played_date: localDateTimeToISO(form.value.played_date),
     };
 
