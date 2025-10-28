@@ -149,8 +149,8 @@ export function useStatsCalculation(props: UseStatsCalculationProps) {
    * @example
    * ```typescript
    * const duels: Duel[] = [
-   *   { result: true, coin: true, first_or_second: true, ... },
-   *   { result: false, coin: false, first_or_second: false, ... }
+   *   { isWin: true, wonCoinToss: true, isGoingFirst: true, ... },
+   *   { isWin: false, wonCoinToss: false, isGoingFirst: false, ... }
    * ];
    * const stats = calculateStats(duels);
    * console.log(stats.win_rate); // 0.5 (50%)
@@ -162,15 +162,15 @@ export function useStatsCalculation(props: UseStatsCalculationProps) {
       return emptyStats();
     }
 
-    const wins = duelList.filter((d) => d.result === true).length;
-    const coinWins = duelList.filter((d) => d.coin === true).length;
-    const firstTurnTotal = duelList.filter((d) => d.first_or_second === true).length;
+    const wins = duelList.filter((d) => d.isWin === true).length;
+    const coinWins = duelList.filter((d) => d.wonCoinToss === true).length;
+    const firstTurnTotal = duelList.filter((d) => d.isGoingFirst === true).length;
     const firstTurnWins = duelList.filter(
-      (d) => d.result === true && d.first_or_second === true,
+      (d) => d.isWin === true && d.isGoingFirst === true,
     ).length;
-    const secondTurnTotal = duelList.filter((d) => d.first_or_second === false).length;
+    const secondTurnTotal = duelList.filter((d) => d.isGoingFirst === false).length;
     const secondTurnWins = duelList.filter(
-      (d) => d.result === true && d.first_or_second === false,
+      (d) => d.isWin === true && d.isGoingFirst === false,
     ).length;
 
     return {
