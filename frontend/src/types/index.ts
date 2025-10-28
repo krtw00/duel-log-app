@@ -1,60 +1,90 @@
+/**
+ * ユーザー情報
+ */
 export interface User {
   id: number;
-  username: string;
-  email: string;
-  streamer_mode: boolean;
-  theme_preference: string;
+  username: string; // ユーザー名
+  email: string; // メールアドレス
+  streamer_mode: boolean; // 配信者モード（個人情報をマスクする）
+  theme_preference: string; // テーマ設定（'light' | 'dark' | 'system'）
 }
 
+/**
+ * ユーザー作成リクエスト
+ */
 export interface UserCreate {
   username: string;
   email: string;
   password: string;
 }
 
+/**
+ * デッキ情報
+ *
+ * プレイヤーが使用するデッキと相手のデッキを管理します。
+ * is_opponentフラグで区別します。
+ */
 export interface Deck {
   id: number;
-  name: string;
-  is_opponent: boolean;
-  active: boolean;
-  user_id?: number;
-  createdat?: string;
-  updatedat?: string;
+  name: string; // デッキ名（例: 'ライゼル', 'バジリス'）
+  is_opponent: boolean; // false = プレイヤーのデッキ, true = 相手のデッキ
+  active: boolean; // true = 有効, false = 無効（削除済み）
+  user_id?: number; // デッキの所有者ID
+  createdat?: string; // 作成日時
+  updatedat?: string; // 更新日時
 }
 
+/**
+ * デッキ作成リクエスト
+ */
 export interface DeckCreate {
   name: string;
   is_opponent: boolean;
   active?: boolean;
 }
 
+/**
+ * デッキ更新リクエスト
+ */
 export interface DeckUpdate {
   name?: string;
   is_opponent?: boolean;
   active?: boolean;
 }
 
+/**
+ * ゲームモード
+ * - RANK: ランクマッチ
+ * - RATE: レートマッチ
+ * - EVENT: イベント戦
+ * - DC: DCマッチ
+ */
 export type GameMode = 'RANK' | 'RATE' | 'EVENT' | 'DC';
 
+/**
+ * 対戦記録
+ *
+ * 1回の対戦（デュエル）に関する情報を記録します。
+ */
 export interface Duel {
   id: number;
-  deck_id: number;
-  opponentDeck_id: number;
-  result: boolean; // true = win, false = lose
-  game_mode: GameMode; // RANK, RATE, EVENT, DC
-  rank?: number; // ランクモード時のランク（1-15）
+  deck_id: number; // 使用したプレイヤーのデッキID
+  opponentDeck_id: number; // 相手のデッキID
+  result: boolean; // 勝敗: true = 勝ち, false = 負け
+  game_mode: GameMode; // ゲームモード
+  rank?: number; // ランクモード時のランク（1-15: B2～M1）
   rate_value?: number; // レートモード時のレート数値
   dc_value?: number; // DCモード時のDC数値
-  coin: boolean; // true = heads, false = tails
-  first_or_second: boolean; // true = first, false = second
-  played_date: string;
-  notes?: string;
-  create_date: string;
-  update_date: string;
-  user_id: number;
+  coin: boolean; // コイントス結果: true = 勝ち, false = 負け
+  first_or_second: boolean; // ターン順: true = 先攻, false = 後攻
+  played_date: string; // 対戦日時（ISO 8601形式）
+  notes?: string; // メモ（任意）
+  create_date: string; // 作成日時
+  update_date: string; // 更新日時
+  user_id: number; // 対戦したユーザーID
   // フロントエンドで追加するフィールド
-  deck?: Deck;
-  opponentdeck?: Deck;
+  deck?: Deck; // プレイヤーのデッキ情報（JOIN結果）
+  opponentdeck?: Deck; // 相手のデッキ情報（JOIN結果）
   no?: number; // テーブル表示用の連番
 }
 

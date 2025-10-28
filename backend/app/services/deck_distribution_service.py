@@ -18,6 +18,17 @@ class DeckDistributionService:
     def _build_base_duels_query(
         self, db: Session, user_id: int, game_mode: Optional[str] = None
     ):
+        """
+        ユーザーの対戦記録を取得するためのベースクエリを構築
+
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            game_mode: ゲームモード（'RANK', 'RATE', 'EVENT', 'DC'など）でフィルタリング（任意）
+
+        Returns:
+            フィルタリング済みのSQLAlchemyクエリオブジェクト
+        """
         query = db.query(Duel).filter(Duel.user_id == user_id)
         if game_mode:
             query = query.filter(Duel.game_mode == game_mode)
@@ -30,8 +41,22 @@ class DeckDistributionService:
         range_end: Optional[int] = None,
     ) -> List[Duel]:
         """
-        デュエルリストに範囲指定を適用
-        duelsは新しい順にソートされている必要がある
+        対戦記録リストに範囲指定フィルタを適用
+
+        指定された範囲（例: 1-50戦目）の対戦記録のみを抽出します。
+        リストは新しい順（日付降順）にソートされている必要があります。
+
+        Args:
+            duels: 対戦記録のリスト（日付降順にソート済み）
+            range_start: 範囲の開始位置（1始まり、任意）
+            range_end: 範囲の終了位置（1始まり、任意）
+
+        Returns:
+            範囲フィルタ適用後の対戦記録リスト
+
+        Note:
+            - range_startとrange_endは1始まりの番号（例: 1-50）
+            - 内部では0始まりのインデックスに変換して処理
         """
         filtered = duels
 
@@ -46,17 +71,39 @@ class DeckDistributionService:
     def _calculate_deck_distribution_from_duels(
         self, duels: List[Duel]
     ) -> List[Dict[str, Any]]:
-        """デュエルのリストから相手デッキの分布を計算する"""
+        """
+        対戦記録リストから相手デッキの分布を計算
+
+        相手デッキごとの対戦数とその割合を算出し、出現頻度順にソートします。
+
+        Args:
+            duels: 対戦記録のリスト
+
+        Returns:
+            相手デッキの分布データのリスト。各要素は以下の構造:
+            - deck_name (str): 相手デッキ名
+            - count (int): 対戦数
+            - percentage (float): 出現率（%）
+            出現数の多い順にソート済み
+
+        処理フロー:
+            1. 対戦数が0の場合は空リストを返す
+            2. 各対戦記録から相手デッキ名を取得してカウント
+            3. カウント結果から割合を計算
+            4. 出現数の多い順にソート
+        """
         total_duels = len(duels)
         if total_duels == 0:
             return []
 
+        # 相手デッキごとの対戦数をカウント
         deck_counts_map = {}
         for duel in duels:
             if duel.opponent_deck and duel.opponent_deck.name:
                 deck_name = duel.opponent_deck.name
                 deck_counts_map[deck_name] = deck_counts_map.get(deck_name, 0) + 1
 
+        # 分布データを作成（出現数の多い順にソート）
         distribution = [
             {
                 "deck_name": name,
@@ -81,7 +128,35 @@ class DeckDistributionService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """月間の相手デッキ分布を取得"""
+        """
+        指定された年月の相手デッキ分布を取得
+
+        特定の年月における相手デッキの出現頻度を集計します。
+        範囲指定がある場合はメモリ上で処理し、ない場合はデータベースで集計します。
+
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            year: 年（例: 2025）
+            month: 月（1-12）
+            game_mode: ゲームモード（'RANK', 'RATE', 'EVENT', 'DC'など）でフィルタリング（任意）
+            range_start: 範囲の開始位置（1始まり、任意）
+            range_end: 範囲の終了位置（1始まり、任意）
+            my_deck_id: プレイヤーデッキIDでフィルタリング（任意）
+            opponent_deck_id: 相手デッキIDでフィルタリング（任意）
+
+        Returns:
+            相手デッキの分布データのリスト。各要素は以下の構造:
+            - deck_name (str): 相手デッキ名
+            - count (int): 対戦数
+            - percentage (float): 出現率（%）
+            出現数の多い順にソート済み
+
+        処理フロー:
+            1. 年月でフィルタリングしたベースクエリを構築
+            2. デッキフィルタを適用
+            3. 範囲指定がある場合はメモリ上で処理、ない場合はDB集計
+        """
         base_query = self._build_base_duels_query(db, user_id, game_mode).filter(
             extract("year", Duel.played_date) == year,
             extract("month", Duel.played_date) == month,
@@ -135,7 +210,34 @@ class DeckDistributionService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """直近の相手デッキ分布を取得"""
+        """
+        直近N戦の相手デッキ分布を取得
+
+        最新の対戦記録から指定された件数分の相手デッキ分布を集計します。
+
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            limit: 取得する対戦数（デフォルト: 30）
+            game_mode: ゲームモード（'RANK', 'RATE', 'EVENT', 'DC'など）でフィルタリング（任意）
+            range_start: 範囲の開始位置（1始まり、任意）
+            range_end: 範囲の終了位置（1始まり、任意）
+            my_deck_id: プレイヤーデッキIDでフィルタリング（任意）
+            opponent_deck_id: 相手デッキIDでフィルタリング（任意）
+
+        Returns:
+            相手デッキの分布データのリスト。各要素は以下の構造:
+            - deck_name (str): 相手デッキ名
+            - count (int): 対戦数
+            - percentage (float): 出現率（%）
+            出現数の多い順にソート済み
+
+        処理フロー:
+            1. ベースクエリを構築してデッキフィルタを適用
+            2. 日付降順でソート
+            3. 範囲指定がある場合は範囲フィルタを適用、ない場合はlimit件取得
+            4. 相手デッキの分布を計算
+        """
         query = self._build_base_duels_query(db, user_id, game_mode)
 
         if my_deck_id is not None:
