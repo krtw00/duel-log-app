@@ -114,7 +114,7 @@ def get_shared_statistics(
     deck_ids = list(
         set(
             [d.deck_id for d in dashboard_duels_query if d.deck_id]
-            + [d.opponentDeck_id for d in dashboard_duels_query if d.opponentDeck_id]
+            + [d.opponent_deck_id for d in dashboard_duels_query if d.opponent_deck_id]
         )
     )
     if deck_ids:
@@ -126,7 +126,7 @@ def get_shared_statistics(
     for duel in dashboard_duels_query:
         duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
         duel.opponent_deck = (
-            deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+            deck_map.get(duel.opponent_deck_id) if duel.opponent_deck_id else None
         )
         duel.deck_name = duel.deck.name if duel.deck else "不明"
         duel.opponent_deck_name = (
@@ -141,10 +141,10 @@ def get_shared_statistics(
             "id": d.id,
             "user_id": d.user_id,
             "deck_id": d.deck_id,
-            "opponentDeck_id": d.opponentDeck_id,
-            "coin": d.coin,
-            "first_or_second": d.first_or_second,
-            "result": d.result,
+            "opponent_deck_id": d.opponent_deck_id,
+            "won_coin_toss": d.won_coin_toss,
+            "is_going_first": d.is_going_first,
+            "is_win": d.is_win,
             "game_mode": d.game_mode,
             "rank": d.rank,
             "rate_value": d.rate_value,

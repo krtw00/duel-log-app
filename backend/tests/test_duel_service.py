@@ -38,8 +38,8 @@ def test_create_user_duel(db_session: Session, test_user: User):
     assert created_duel is not None
     assert created_duel.user_id == test_user.id
     assert created_duel.deck_id == my_deck.id
-    assert created_duel.opponentDeck_id == opponent_deck.id
-    assert created_duel.result is True
+    assert created_duel.opponent_deck_id == opponent_deck.id
+    assert created_duel.is_win is True
     assert created_duel.game_mode == "RANK"
     assert created_duel.rank == 10
 
