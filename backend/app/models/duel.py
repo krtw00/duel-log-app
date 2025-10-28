@@ -20,7 +20,9 @@ class Duel(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # 対戦したユーザー
     deck_id = Column(Integer, ForeignKey("decks.id"), nullable=False)  # 使用したプレイヤーのデッキ
-    opponent_deck_id = Column(Integer, ForeignKey("decks.id"), nullable=False)  # 相手のデッキ
+    opponent_deck_id = Column(
+        "opponentDeck_id", Integer, ForeignKey("decks.id"), nullable=False
+    )  # 相手のデッキ
 
     # 対戦結果フィールド
     is_win = Column(Boolean, nullable=False)  # 勝敗: True = 勝ち, False = 負け
