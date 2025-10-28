@@ -53,5 +53,5 @@ class Deck(Base):
         "Duel", foreign_keys="[Duel.deck_id]", back_populates="deck"
     )  # このデッキを使用した対戦記録
     opponent_duels = relationship(
-        "Duel", foreign_keys="[Duel.opponentDeck_id]", back_populates="opponent_deck"
+        "Duel", foreign_keys="[Duel.opponent_deck_id]", back_populates="opponent_deck"
     )  # 相手がこのデッキを使用した対戦記録

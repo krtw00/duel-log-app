@@ -117,7 +117,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         if total_duels == 0:
             return 0.0
 
-        wins = query.filter(Duel.result).count()
+        wins = query.filter(Duel.is_win).count()
 
         return wins / total_duels
 
@@ -149,7 +149,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                 latest_values[mode] = {
                     "value": getattr(latest_duel, attr_name),
                     "deck_id": latest_duel.deck_id,
-                    "opponentDeck_id": latest_duel.opponentDeck_id,
+                    "opponent_deck_id": latest_duel.opponent_deck_id,
                 }
 
         return latest_values

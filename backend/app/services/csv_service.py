@@ -68,11 +68,11 @@ class CSVService:
                 "相手デッキ",
                 lambda d: d.opponent_deck.name if d.opponent_deck else "",
             ),
-            "result": ("結果", lambda d: "勝利" if d.result else "敗北"),
-            "coin": ("コイン", lambda d: "表" if d.coin else "裏"),
-            "first_or_second": (
+            "is_win": ("結果", lambda d: "勝利" if d.is_win else "敗北"),
+            "won_coin_toss": ("コイン", lambda d: "表" if d.won_coin_toss else "裏"),
+            "is_going_first": (
                 "先攻/後攻",
-                lambda d: "先攻" if d.first_or_second else "後攻",
+                lambda d: "先攻" if d.is_going_first else "後攻",
             ),
             "game_mode": ("ゲームモード", lambda d: d.game_mode or ""),
             "rank": ("ランク", lambda d: get_rank_name(d.rank)),
@@ -195,7 +195,7 @@ class CSVService:
                         .filter_by(
                             user_id=user_id,
                             deck_id=my_deck.id,
-                            opponentDeck_id=opponent_deck.id,
+                            opponent_deck_id=opponent_deck.id,
                             played_date=played_date,
                         )
                         .first()
@@ -217,8 +217,8 @@ class CSVService:
                     duel_data = {
                         "user_id": user_id,
                         "deck_id": my_deck.id,
-                        "opponentDeck_id": opponent_deck.id,
-                        "result": row.get("結果") == "勝利",
+                        "opponent_deck_id": opponent_deck.id,
+                        "is_win": row.get("結果") == "勝利",
                         "game_mode": row.get("ゲームモード", "RANK"),
                         "rank": rank_value,
                         "rate_value": (
@@ -231,8 +231,8 @@ class CSVService:
                             if row.get("DC値") and row["DC値"].isdigit()
                             else None
                         ),
-                        "coin": row.get("コイン", "") == "表",
-                        "first_or_second": row.get("先攻/後攻", "") in ["先攻", "先行"],
+                        "won_coin_toss": row.get("コイン", "") == "表",
+                        "is_going_first": row.get("先攻/後攻", "") in ["先攻", "先行"],
                         "played_date": played_date,
                         "notes": row.get("メモ", ""),
                     }
