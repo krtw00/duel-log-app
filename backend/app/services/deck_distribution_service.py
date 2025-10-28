@@ -133,7 +133,7 @@ class DeckDistributionService:
                 return []
 
             deck_counts = (
-                filtered_query.join(Deck, Duel.opponentDeck_id == Deck.id)
+                filtered_query.join(Deck, Duel.opponent_deck_id == Deck.id)
                 .group_by(Deck.name)
                 .with_entities(Deck.name, func.count(Duel.id).label("count"))
                 .order_by(desc("count"))
