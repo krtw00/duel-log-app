@@ -15,12 +15,12 @@ def create_time_series_test_data(db: Session, user: User):
 
     duels_data = [
         # RATEモードのデータ
-        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "coin": True, "first_or_second": True, "game_mode": "RATE", "rate_value": 1500, "played_date": datetime(2024, 7, 1, 10, 0, 0)},
-        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": False, "coin": True, "first_or_second": True, "game_mode": "RATE", "rate_value": 1480, "played_date": datetime(2024, 7, 1, 11, 0, 0)},
-        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "coin": False, "first_or_second": False, "game_mode": "RATE", "rate_value": 1520, "played_date": datetime(2024, 7, 3, 9, 0, 0)},
+        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "won_coin_toss": True, "is_going_first": True, "game_mode": "RATE", "rate_value": 1500, "played_date": datetime(2024, 7, 1, 10, 0, 0)},
+        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": False, "won_coin_toss": True, "is_going_first": True, "game_mode": "RATE", "rate_value": 1480, "played_date": datetime(2024, 7, 1, 11, 0, 0)},
+        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "won_coin_toss": False, "is_going_first": False, "game_mode": "RATE", "rate_value": 1520, "played_date": datetime(2024, 7, 3, 9, 0, 0)},
         # DCモードのデータ
-        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "coin": True, "first_or_second": True, "game_mode": "DC", "dc_value": 1000, "played_date": datetime(2024, 7, 5, 14, 0, 0)},
-        {"deck_id": deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "coin": False, "first_or_second": False, "game_mode": "DC", "dc_value": 2000, "played_date": datetime(2024, 7, 5, 15, 0, 0)},
+        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "won_coin_toss": True, "is_going_first": True, "game_mode": "DC", "dc_value": 1000, "played_date": datetime(2024, 7, 5, 14, 0, 0)},
+        {"deck_id": deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "won_coin_toss": False, "is_going_first": False, "game_mode": "DC", "dc_value": 2000, "played_date": datetime(2024, 7, 5, 15, 0, 0)},
     ]
 
     for duel_data in duels_data:

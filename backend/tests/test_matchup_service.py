@@ -16,13 +16,13 @@ def create_matchup_test_data(db: Session, user: User):
     opp_deck2 = deck_service.get_or_create(db, user_id=user.id, name="OppDeck2", is_opponent=True)
 
     duels_data = [
-        # MyDeck1 vs OppDeck1: 1勝1敗 (先行1勝, 後攻1敗)
-        {"deck_id": my_deck1.id, "opponentDeck_id": opp_deck1.id, "result": True, "first_or_second": True, "coin": True, "played_date": datetime(2024, 7, 1)},
-        {"deck_id": my_deck1.id, "opponentDeck_id": opp_deck1.id, "result": False, "first_or_second": False, "coin": True, "played_date": datetime(2024, 7, 2)},
-        # MyDeck1 vs OppDeck2: 1勝0敗 (先行1勝)
-        {"deck_id": my_deck1.id, "opponentDeck_id": opp_deck2.id, "result": True, "first_or_second": True, "coin": True, "played_date": datetime(2024, 7, 3)},
+        # MyDeck1 vs OppDeck1: 1勝1敗 (先攻1勝, 後攻1敗)
+        {"deck_id": my_deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": True, "is_going_first": True, "won_coin_toss": True, "played_date": datetime(2024, 7, 1)},
+        {"deck_id": my_deck1.id, "opponent_deck_id": opp_deck1.id, "is_win": False, "is_going_first": False, "won_coin_toss": True, "played_date": datetime(2024, 7, 2)},
+        # MyDeck1 vs OppDeck2: 1勝0敗 (先攻1勝)
+        {"deck_id": my_deck1.id, "opponent_deck_id": opp_deck2.id, "is_win": True, "is_going_first": True, "won_coin_toss": True, "played_date": datetime(2024, 7, 3)},
         # MyDeck2 vs OppDeck1: 0勝1敗 (後攻1敗)
-        {"deck_id": my_deck2.id, "opponentDeck_id": opp_deck1.id, "result": False, "first_or_second": False, "coin": True, "played_date": datetime(2024, 7, 4)},
+        {"deck_id": my_deck2.id, "opponent_deck_id": opp_deck1.id, "is_win": False, "is_going_first": False, "won_coin_toss": True, "played_date": datetime(2024, 7, 4)},
     ]
 
     for duel_data in duels_data:
