@@ -51,7 +51,7 @@ def build_base_duels_query(
 
     # ゲームモードが指定されている場合は追加フィルタリング
     if game_mode:
-        query = query.filter(Duel.game_mode == game_mode)
+        query = query.filter(Duel.game_mode == game_mode.upper())
 
     return query
 
@@ -204,7 +204,7 @@ def apply_duel_filters(
 
     # ゲームモードでフィルタ
     if game_mode:
-        query = query.filter(Duel.game_mode == game_mode)
+        query = query.filter(Duel.game_mode == game_mode.upper())
 
     # 年でフィルタ
     if year is not None:
@@ -220,6 +220,6 @@ def apply_duel_filters(
 
     # 相手デッキIDでフィルタ
     if opponent_deck_id is not None:
-        query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+        query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
     return query
