@@ -80,9 +80,9 @@ export function useCSVOperations(props: UseCSVOperationsProps) {
     const columns = [
       'deck_name',
       'opponent_deck_name',
-      'result',
-      'coin',
-      'first_or_second',
+      'isWin',
+      'wonCoinToss',
+      'isGoingFirst',
       'rank',
       'rate_value',
       'dc_value',
