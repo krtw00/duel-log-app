@@ -54,7 +54,7 @@ class WinRateService:
                 if deck_name not in deck_stats_map:
                     deck_stats_map[deck_name] = {"total": 0, "wins": 0}
                 deck_stats_map[deck_name]["total"] += 1
-                if duel.is_win:
+                if duel.result:
                     deck_stats_map[deck_name]["wins"] += 1
 
         win_rates_data = []
@@ -102,7 +102,7 @@ class WinRateService:
         if my_deck_id is not None:
             query = query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
+            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
 
         # 範囲指定がある場合は、一旦リストで取得してフィルタリング
         if range_start is not None or range_end is not None:
@@ -117,7 +117,7 @@ class WinRateService:
                 .with_entities(
                     Deck.name,
                     func.count(Duel.id).label("total_duels"),
-                    func.sum(case((Duel.is_win, 1), else_=0)).label("wins"),
+                    func.sum(case((Duel.result, 1), else_=0)).label("wins"),
                 )
                 .order_by(desc("total_duels"))
                 .all()
