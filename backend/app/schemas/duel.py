@@ -14,12 +14,12 @@ class DuelBase(CustomBaseModel):
     """デュエル基底スキーマ"""
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
-    opponentDeck_id: int = Field(..., gt=0, description="対戦相手デッキID")
-    coin: bool = Field(..., description="コイントスの結果（True: 表, False: 裏）")
-    first_or_second: bool = Field(
+    opponent_deck_id: int = Field(..., gt=0, description="対戦相手デッキID")
+    won_coin_toss: bool = Field(..., description="コイントスの結果（True: 表, False: 裏）")
+    is_going_first: bool = Field(
         ..., description="先攻後政（True: 先攻, False: 後攻）"
     )
-    result: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
+    is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
     game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
         default="RANK", description="ゲームモード（RANK/RATE/EVENT/DC）"
     )
@@ -83,10 +83,10 @@ class DuelUpdate(BaseModel):
     """デュエル更新スキーマ"""
 
     deck_id: Optional[int] = Field(None, gt=0, description="使用デッキID")
-    opponentDeck_id: Optional[int] = Field(None, gt=0, description="対戦相手デッキID")
-    coin: Optional[bool] = Field(None, description="コイントスの結果")
-    first_or_second: Optional[bool] = Field(None, description="先攻後攻")
-    result: Optional[bool] = Field(None, description="対戦結果")
+    opponent_deck_id: Optional[int] = Field(None, gt=0, description="対戦相手デッキID")
+    won_coin_toss: Optional[bool] = Field(None, description="コイントスの結果")
+    is_going_first: Optional[bool] = Field(None, description="先攻後攻")
+    is_win: Optional[bool] = Field(None, description="対戦結果")
     game_mode: Optional[Literal["RANK", "RATE", "EVENT", "DC"]] = Field(
         None, description="ゲームモード"
     )

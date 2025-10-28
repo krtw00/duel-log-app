@@ -57,7 +57,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
             # よく対戦する相手デッキを優先表示するため
             duel_counts = (
                 db.query(
-                    Duel.opponentDeck_id.label("deck_id"),
+                    Duel.opponent_deck_id.label("deck_id"),
                     func.count(Duel.id).label("duel_count"),
                 )
                 .filter(
@@ -65,7 +65,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
                     extract("month", Duel.played_date) == now.month,
                     extract("year", Duel.played_date) == now.year,
                 )
-                .group_by(Duel.opponentDeck_id)
+                .group_by(Duel.opponent_deck_id)
                 .subquery("duel_counts")
             )
 
