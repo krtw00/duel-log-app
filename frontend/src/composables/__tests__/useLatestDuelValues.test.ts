@@ -16,8 +16,8 @@ describe('useLatestDuelValues', () => {
     it('最新値をAPIから取得する', async () => {
       const { fetchLatestValues, latestValues } = useLatestDuelValues();
       const mockData = {
-        RANK: { value: 20, deck_id: 1, opponentDeck_id: 2 },
-        RATE: { value: 1600, deck_id: 3, opponentDeck_id: 4 },
+        RANK: { value: 20, deck_id: 1, opponentDeckId: 2 },
+        RATE: { value: 1600, deck_id: 3, opponentDeckId: 4 },
       };
 
       vi.mocked(api.get).mockResolvedValue({ data: mockData });
@@ -43,7 +43,7 @@ describe('useLatestDuelValues', () => {
     it('RANKモードで最新値を適用', () => {
       const { latestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
       latestValues.value = {
-        RANK: { value: 15, deck_id: 1, opponentDeck_id: 2 },
+        RANK: { value: 15, deck_id: 1, opponentDeckId: 2 },
       };
       const myDecks: Deck[] = [
         { id: 1, name: 'デッキA', is_opponent: false, active: true },
@@ -61,7 +61,7 @@ describe('useLatestDuelValues', () => {
     it('RATEモードで最新値を適用', () => {
       const { latestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
       latestValues.value = {
-        RATE: { value: 1700, deck_id: 2, opponentDeck_id: 3 },
+        RATE: { value: 1700, deck_id: 2, opponentDeckId: 3 },
       };
       const myDecks: Deck[] = [
         { id: 2, name: 'デッキC', is_opponent: false, active: true },
@@ -77,7 +77,7 @@ describe('useLatestDuelValues', () => {
     it('DCモードで最新値を適用', () => {
       const { latestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
       latestValues.value = {
-        DC: { value: 5, deck_id: 4, opponentDeck_id: 5 },
+        DC: { value: 5, deck_id: 4, opponentDeckId: 5 },
       };
       const myDecks: Deck[] = [
         { id: 4, name: 'デッキD', is_opponent: false, active: true },
@@ -125,7 +125,7 @@ describe('useLatestDuelValues', () => {
     it('デッキが見つからない場合はnull', () => {
       const { latestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
       latestValues.value = {
-        RANK: { value: 15, deck_id: 999, opponentDeck_id: 2 },
+        RANK: { value: 15, deck_id: 999, opponentDeckId: 2 },
       };
       const myDecks: Deck[] = [
         { id: 1, name: 'デッキA', is_opponent: false, active: true },
