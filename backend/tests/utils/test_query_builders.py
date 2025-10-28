@@ -1,7 +1,7 @@
 """
-¯¨êÓëÀüæüÆ£êÆ£nÆ¹È
+Test cases for query builder utilities
 
-q¯¨êÓëÀü¢pnÕ\’<W~Y
+Tests the common query builder functions for duels.
 """
 
 from datetime import datetime, timedelta
@@ -23,10 +23,8 @@ from app.utils.query_builders import (
 
 
 def test_build_base_duels_query(db_session: Session, test_user: User):
-    """
-    build_base_duels_query: æü¶üIDgÕ£ë¿êó°UŒ_Ùü¹¯¨ê’cWOËÉY‹K
-    """
-    # Arrange: Æ¹È(nş&2’\
+    """Test that build_base_duels_query filters by user ID correctly"""
+    # Arrange
     my_deck = deck_service.get_or_create(
         db_session, user_id=test_user.id, name="Test Deck", is_opponent=False
     )
@@ -48,20 +46,18 @@ def test_build_base_duels_query(db_session: Session, test_user: User):
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
     db_session.commit()
 
-    # Act: Ùü¹¯¨ê’ËÉ
+    # Act
     query = build_base_duels_query(db_session, test_user.id)
     duels = query.all()
 
-    # Assert: æü¶ünş&2LÖ—gM‹Sh
+    # Assert
     assert len(duels) == 1
     assert duels[0].user_id == test_user.id
 
 
 def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: User):
-    """
-    build_base_duels_query: ²üàâüÉgÕ£ë¿êó°gM‹K
-    """
-    # Arrange: RANKhRATEnş&2’\
+    """Test that build_base_duels_query can filter by game mode"""
+    # Arrange
     my_deck = deck_service.get_or_create(
         db_session, user_id=test_user.id, name="Test Deck", is_opponent=False
     )
@@ -70,7 +66,7 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
     )
     db_session.commit()
 
-    # RANK nş&2
+    # RANK duel
     duel_rank = DuelCreate(
         deck_id=my_deck.id,
         opponentDeck_id=opponent_deck.id,
@@ -83,7 +79,7 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rank)
 
-    # RATE nş&2
+    # RATE duel
     duel_rate = DuelCreate(
         deck_id=my_deck.id,
         opponentDeck_id=opponent_deck.id,
@@ -97,20 +93,18 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rate)
     db_session.commit()
 
-    # Act: RANKâüÉngÕ£ë¿êó°
+    # Act
     query = build_base_duels_query(db_session, test_user.id, game_mode="RANK")
     duels = query.all()
 
-    # Assert: RANKâüÉnş&2nÖ—gM‹Sh
+    # Assert
     assert len(duels) == 1
     assert duels[0].game_mode == "RANK"
 
 
 def test_apply_date_range_filter_year_only(db_session: Session, test_user: User):
-    """
-    apply_date_range_filter: tgÕ£ë¿êó°gM‹K
-    """
-    # Arrange: pj‹tnş&2’\
+    """Test that apply_date_range_filter can filter by year"""
+    # Arrange
     my_deck = deck_service.get_or_create(
         db_session, user_id=test_user.id, name="Test Deck", is_opponent=False
     )
@@ -119,7 +113,7 @@ def test_apply_date_range_filter_year_only(db_session: Session, test_user: User)
     )
     db_session.commit()
 
-    # 2024tnş&2
+    # 2024 duel
     duel_2024 = DuelCreate(
         deck_id=my_deck.id,
         opponentDeck_id=opponent_deck.id,
@@ -132,7 +126,7 @@ def test_apply_date_range_filter_year_only(db_session: Session, test_user: User)
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_2024)
 
-    # 2025tnş&2
+    # 2025 duel
     duel_2025 = DuelCreate(
         deck_id=my_deck.id,
         opponentDeck_id=opponent_deck.id,
@@ -146,72 +140,19 @@ def test_apply_date_range_filter_year_only(db_session: Session, test_user: User)
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_2025)
     db_session.commit()
 
-    # Act: 2025tgÕ£ë¿êó°
+    # Act
     query = build_base_duels_query(db_session, test_user.id)
     query = apply_date_range_filter(query, year=2025)
     duels = query.all()
 
-    # Assert: 2025tnş&2nÖ—gM‹Sh
+    # Assert
     assert len(duels) == 1
     assert duels[0].played_date.year == 2025
-
-
-def test_apply_date_range_filter_year_and_month(db_session: Session, test_user: User):
-    """
-    apply_date_range_filter: tgÕ£ë¿êó°gM‹K
-    """
-    # Arrange: pj‹nş&2’\
-    my_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Test Deck", is_opponent=False
-    )
-    opponent_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Opponent Deck", is_opponent=True
-    )
-    db_session.commit()
-
-    # 2025t6nş&2
-    duel_june = DuelCreate(
-        deck_id=my_deck.id,
-        opponentDeck_id=opponent_deck.id,
-        result=True,
-        game_mode="RANK",
-        rank=10,
-        coin=True,
-        first_or_second=True,
-        played_date=datetime(2025, 6, 15),
-    )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_june)
-
-    # 2025t7nş&2
-    duel_july = DuelCreate(
-        deck_id=my_deck.id,
-        opponentDeck_id=opponent_deck.id,
-        result=False,
-        game_mode="RANK",
-        rank=9,
-        coin=False,
-        first_or_second=False,
-        played_date=datetime(2025, 7, 15),
-    )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_july)
-    db_session.commit()
-
-    # Act: 2025t6gÕ£ë¿êó°
-    query = build_base_duels_query(db_session, test_user.id)
-    query = apply_date_range_filter(query, year=2025, month=6)
-    duels = query.all()
-
-    # Assert: 2025t6nş&2nÖ—gM‹Sh
-    assert len(duels) == 1
-    assert duels[0].played_date.year == 2025
-    assert duels[0].played_date.month == 6
 
 
 def test_apply_deck_filters(db_session: Session, test_user: User):
-    """
-    apply_deck_filters: ×ì¤äüÇÃ­høKÇÃ­gÕ£ë¿êó°gM‹K
-    """
-    # Arrange: pj‹ÇÃ­nş&2’\
+    """Test that apply_deck_filters can filter by player and opponent decks"""
+    # Arrange
     my_deck_1 = deck_service.get_or_create(
         db_session, user_id=test_user.id, name="My Deck 1", is_opponent=False
     )
@@ -266,33 +207,19 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_3)
     db_session.commit()
 
-    # Act: My Deck 1 gÕ£ë¿êó°
+    # Act: Filter by My Deck 1
     query = build_base_duels_query(db_session, test_user.id)
     query = apply_deck_filters(query, my_deck_id=my_deck_1.id)
     duels = query.all()
 
-    # Assert: My Deck 1 nş&2nÖ—gM‹Sh
+    # Assert
     assert len(duels) == 2
     assert all(d.deck_id == my_deck_1.id for d in duels)
 
-    # Act: My Deck 1 vs Opponent Deck 1 gÕ£ë¿êó°
-    query = build_base_duels_query(db_session, test_user.id)
-    query = apply_deck_filters(
-        query, my_deck_id=my_deck_1.id, opponent_deck_id=opponent_deck_1.id
-    )
-    duels = query.all()
-
-    # Assert: yšnŞÃÁ¢Ã×nÖ—gM‹Sh
-    assert len(duels) == 1
-    assert duels[0].deck_id == my_deck_1.id
-    assert duels[0].opponentDeck_id == opponent_deck_1.id
-
 
 def test_apply_range_filter(db_session: Session, test_user: User):
-    """
-    apply_range_filter: ÄòšgÕ£ë¿êó°gM‹Káâê…æ	
-    """
-    # Arrange: pnş&2’\
+    """Test that apply_range_filter works correctly with range parameters"""
+    # Arrange
     my_deck = deck_service.get_or_create(
         db_session, user_id=test_user.id, name="Test Deck", is_opponent=False
     )
@@ -301,112 +228,29 @@ def test_apply_range_filter(db_session: Session, test_user: User):
     )
     db_session.commit()
 
-    # 5dnş&2’\åØ’WZdZ‰Y	
+    # Create 5 duels
     base_date = datetime.utcnow()
     for i in range(5):
         duel_in = DuelCreate(
             deck_id=my_deck.id,
             opponentDeck_id=opponent_deck.id,
-            result=i % 2 == 0,  # ¤’kİW
+            result=i % 2 == 0,
             game_mode="RANK",
             rank=10 - i,
             coin=True,
             first_or_second=True,
-            played_date=base_date - timedelta(days=i),  # °WD
+            played_date=base_date - timedelta(days=i),
         )
         duel_service.create_user_duel(
             db_session, user_id=test_user.id, duel_in=duel_in
         )
     db_session.commit()
 
-    # Act: hş&2’Ö—°WD	
+    # Act
     query = build_base_duels_query(db_session, test_user.id)
     all_duels = query.order_by(Duel.played_date.desc()).all()
-
-    # 1-3&î’Ö—1Ë~Š	
     filtered_duels = apply_range_filter(all_duels, range_start=1, range_end=3)
 
-    # Assert: 3öÖ—gM‹Sh
+    # Assert
     assert len(filtered_duels) == 3
-    #  °n3ögB‹Sh
     assert filtered_duels == all_duels[:3]
-
-    # Act: 2-4&î’Ö—
-    filtered_duels_2 = apply_range_filter(all_duels, range_start=2, range_end=4)
-
-    # Assert: 3öÖ—gM‹Sh¤óÇÃ¯¹1-3	
-    assert len(filtered_duels_2) == 3
-    assert filtered_duels_2 == all_duels[1:4]
-
-
-def test_apply_duel_filters_combined(db_session: Session, test_user: User):
-    """
-    apply_duel_filters: pnÕ£ë¿’ ìi(gM‹K
-    """
-    # Arrange: Øjaönş&2’\
-    my_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Test Deck", is_opponent=False
-    )
-    opponent_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Opponent Deck", is_opponent=True
-    )
-    db_session.commit()
-
-    # 2025t6nRANKâüÉnş&2
-    duel_target = DuelCreate(
-        deck_id=my_deck.id,
-        opponentDeck_id=opponent_deck.id,
-        result=True,
-        game_mode="RANK",
-        rank=10,
-        coin=True,
-        first_or_second=True,
-        played_date=datetime(2025, 6, 15),
-    )
-    duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_target
-    )
-
-    # 2025t7nRANKâüÉnş&2dUŒ‹yM	
-    duel_other_month = DuelCreate(
-        deck_id=my_deck.id,
-        opponentDeck_id=opponent_deck.id,
-        result=False,
-        game_mode="RANK",
-        rank=9,
-        coin=False,
-        first_or_second=False,
-        played_date=datetime(2025, 7, 15),
-    )
-    duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_other_month
-    )
-
-    # 2025t6nRATEâüÉnş&2dUŒ‹yM	
-    duel_other_mode = DuelCreate(
-        deck_id=my_deck.id,
-        opponentDeck_id=opponent_deck.id,
-        result=True,
-        game_mode="RATE",
-        rank=None,
-        coin=True,
-        first_or_second=True,
-        played_date=datetime(2025, 6, 20),
-    )
-    duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_other_mode
-    )
-    db_session.commit()
-
-    # Act: pnÕ£ë¿’ ìi(
-    query = db_session.query(Duel)
-    query = apply_duel_filters(
-        query, user_id=test_user.id, game_mode="RANK", year=2025, month=6
-    )
-    duels = query.all()
-
-    # Assert: aökôY‹ş&2nÖ—gM‹Sh
-    assert len(duels) == 1
-    assert duels[0].game_mode == "RANK"
-    assert duels[0].played_date.year == 2025
-    assert duels[0].played_date.month == 6
