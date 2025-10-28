@@ -91,7 +91,7 @@ class DeckDistributionService:
         if my_deck_id is not None:
             base_query = base_query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            base_query = base_query.filter(Duel.opponent_deck_id == opponent_deck_id)
+            base_query = base_query.filter(Duel.opponentDeck_id == opponent_deck_id)
 
         # 範囲指定がある場合
         if range_start is not None or range_end is not None:
@@ -107,7 +107,7 @@ class DeckDistributionService:
                 return []
 
             deck_counts = (
-                filtered_query.join(Deck, Duel.opponent_deck_id == Deck.id)
+                filtered_query.join(Deck, Duel.opponentDeck_id == Deck.id)
                 .group_by(Deck.name)
                 .with_entities(Deck.name, func.count(Duel.id).label("count"))
                 .order_by(desc("count"))
@@ -141,7 +141,7 @@ class DeckDistributionService:
         if my_deck_id is not None:
             query = query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
+            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
 
         # 範囲指定がある場合
         if range_start is not None or range_end is not None:

@@ -130,7 +130,7 @@ class StatisticsService:
             deck_map = {}
 
         for duel in duels:
-            # deck と opponent_deck オブジェクトを設定
+            # deck と opponentDeck オブジェクトを設定
             duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
             duel.opponent_deck = (
                 deck_map.get(duel.opponent_deck_id) if duel.opponent_deck_id else None
