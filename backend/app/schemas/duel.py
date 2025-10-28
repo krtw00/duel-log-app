@@ -10,8 +10,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from . import CustomBaseModel
 
 
-class DuelBase(CustomBaseModel):
-    """デュエル基底スキーマ"""
+class DuelFields(CustomBaseModel):
+    """デュエルの基本フィールド定義（バリデーションなし）"""
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
     opponent_deck_id: int = Field(..., gt=0, description="対戦相手デッキID")
@@ -30,6 +30,10 @@ class DuelBase(CustomBaseModel):
     dc_value: Optional[int] = Field(None, ge=0, description="DC数値（DCモード時のみ）")
     played_date: datetime = Field(..., description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
+
+
+class DuelValidationBase(DuelFields):
+    """作成・更新時のバリデーションを含むスキーマ"""
 
     @field_validator("played_date")
     @classmethod
@@ -73,7 +77,7 @@ class DuelBase(CustomBaseModel):
         return v
 
 
-class DuelCreate(DuelBase):
+class DuelCreate(DuelValidationBase):
     """デュエル作成スキーマ"""
 
     model_config = ConfigDict(extra="forbid")
@@ -107,7 +111,7 @@ class DuelUpdate(BaseModel):
         return v
 
 
-class DuelRead(DuelBase):
+class DuelRead(DuelFields):
     """デュエル読み取りスキーマ"""
 
     id: int
