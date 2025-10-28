@@ -71,8 +71,8 @@ class StatisticsService:
         for duel in duels:
             if duel.deck_id:
                 my_deck_ids.add(duel.deck_id)
-            if duel.opponentDeck_id:
-                opponent_deck_ids.add(duel.opponentDeck_id)
+            if duel.opponent_deck_id:
+                opponent_deck_ids.add(duel.opponent_deck_id)
 
         # デッキ情報を取得
         my_decks = []
@@ -120,7 +120,7 @@ class StatisticsService:
         deck_ids = list(
             set(
                 [d.deck_id for d in duels if d.deck_id]
-                + [d.opponentDeck_id for d in duels if d.opponentDeck_id]
+                + [d.opponent_deck_id for d in duels if d.opponent_deck_id]
             )
         )
         if deck_ids:  # deck_ids が空でない場合のみクエリを実行
@@ -133,7 +133,7 @@ class StatisticsService:
             # deck と opponent_deck オブジェクトを設定
             duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
             duel.opponent_deck = (
-                deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+                deck_map.get(duel.opponent_deck_id) if duel.opponent_deck_id else None
             )
 
             # deck_name と opponent_deck_name 属性を必ず追加
