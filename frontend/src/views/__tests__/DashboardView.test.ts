@@ -33,7 +33,7 @@ describe('DashboardView.vue', () => {
   let pinia: ReturnType<typeof createTestingPinia>;
 
   const mockDecks = [{ id: 1, name: 'Test Deck' }];
-  const mockDuels = [{ id: 1, deck_id: 1, isWin: true, game_mode: 'RANK' as const }];
+  const mockDuels = [{ id: 1, deck_id: 1, result: true, game_mode: 'RANK' as const }];
 
   beforeEach(() => {
     pinia = createTestingPinia({
@@ -104,7 +104,7 @@ describe('DashboardView.vue', () => {
       {
         id: 1,
         deck_id: 1,
-        isWin: true,
+        result: true,
         game_mode: 'RANK',
         deck: mockDecks[0],
         opponentdeck: undefined,
