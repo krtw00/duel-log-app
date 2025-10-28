@@ -31,5 +31,5 @@ class Deck(Base):
     user: Mapped["User"] = relationship("User", back_populates="decks")
     duels = relationship("Duel", foreign_keys="[Duel.deck_id]", back_populates="deck")
     opponent_duels = relationship(
-        "Duel", foreign_keys="[Duel.opponent_deck_id]", back_populates="opponent_deck"
+        "Duel", foreign_keys="[Duel.opponentDeck_id]", back_populates="opponent_deck"
     )
