@@ -5,43 +5,20 @@
 
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
 from app.models.duel import Duel
+from app.utils.query_builders import (
+    apply_date_range_filter,
+    apply_deck_filters,
+    apply_range_filter,
+    build_base_duels_query,
+)
 
 
 class MatchupService:
     """デッキ相性計算サービスクラス"""
-
-    def _build_base_duels_query(
-        self, db: Session, user_id: int, game_mode: Optional[str] = None
-    ):
-        query = db.query(Duel).filter(Duel.user_id == user_id)
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
-        return query
-
-    def _apply_range_filter(
-        self,
-        duels: List[Duel],
-        range_start: Optional[int] = None,
-        range_end: Optional[int] = None,
-    ) -> List[Duel]:
-        """
-        デュエルリストに範囲指定を適用
-        duelsは新しい順にソートされている必要がある
-        """
-        filtered = duels
-
-        # 範囲フィルター
-        if range_start is not None or range_end is not None:
-            start = max(0, (range_start or 1) - 1)  # 1始まりを0始まりに変換
-            end = range_end if range_end is not None else len(filtered)
-            filtered = filtered[start:end]
-
-        return filtered
 
     def get_matchup_chart(
         self,
@@ -91,24 +68,19 @@ class MatchupService:
             3. デッキペアごとに先攻/後攻別の勝敗を集計
             4. 勝率を計算してフロントエンド向けの形式に変換
         """
-        query = self._build_base_duels_query(db, user_id, game_mode)
+        # 共通クエリビルダーを使用してベースクエリを構築
+        query = build_base_duels_query(db, user_id, game_mode)
 
-        if year is not None:
-            query = query.filter(extract("year", Duel.played_date) == year)
-        if month is not None:
-            query = query.filter(extract("month", Duel.played_date) == month)
+        # 年月フィルタを適用
+        query = apply_date_range_filter(query, year, month)
 
-        # デッキフィルター
-        if my_deck_id is not None:
-            query = query.filter(Duel.deck_id == my_deck_id)
-        if opponent_deck_id is not None:
-            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+        # デッキフィルタを適用
+        query = apply_deck_filters(query, my_deck_id, opponent_deck_id)
 
         duels = query.order_by(Duel.played_date.desc()).all()
 
-        # 範囲指定を適用
-        if range_start is not None or range_end is not None:
-            duels = self._apply_range_filter(duels, range_start, range_end)
+        # 範囲指定を適用（共通ユーティリティを使用）
+        duels = apply_range_filter(duels, range_start, range_end)
         my_decks = (
             db.query(Deck)
             .filter(Deck.user_id == user_id, Deck.is_opponent.is_(False))
