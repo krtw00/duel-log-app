@@ -6,36 +6,14 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.models.duel import Duel
+from app.utils.query_builders import apply_date_range_filter, build_base_duels_query
 
 
 class GeneralStatsService:
     """総合統計サービスクラス"""
-
-    def _build_base_duels_query(
-        self, db: Session, user_id: int, game_mode: Optional[str] = None
-    ):
-        """
-        ユーザーの対戦記録を取得するためのベースクエリを構築
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            game_mode: ゲームモード（'RANK', 'RATE', 'EVENT', 'DC'など）でフィルタリング（任意）
-
-        Returns:
-            フィルタリング済みのSQLAlchemyクエリオブジェクト
-        """
-        # ユーザーIDでフィルタリング
-        query = db.query(Duel).filter(Duel.user_id == user_id)
-
-        # ゲームモードが指定されている場合は追加フィルタリング
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
-        return query
 
     def _calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:
         """
@@ -160,16 +138,13 @@ class GeneralStatsService:
             3. 統計情報を計算
             4. 最新の対戦記録から使用デッキとランクを取得
         """
-        # 年月でフィルタリング
-        query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            extract("year", Duel.played_date) == year,
-            extract("month", Duel.played_date) == month,
-        )
+        # 共通クエリビルダーを使用してベースクエリを構築
+        query = build_base_duels_query(db, user_id, game_mode)
 
-        # オプションのフィルタを適用
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
+        # 年月フィルタを適用
+        query = apply_date_range_filter(query, year, month)
+
+        # 範囲フィルタを適用
         if start_id is not None:
             query = query.filter(Duel.id > start_id)
 
@@ -223,12 +198,10 @@ class GeneralStatsService:
             3. 統計情報を計算
             4. 最新の対戦記録から使用デッキとランクを取得
         """
-        # ユーザーの全対戦記録を取得
-        query = db.query(Duel).filter(Duel.user_id == user_id)
+        # 共通クエリビルダーを使用してベースクエリを構築
+        query = build_base_duels_query(db, user_id, game_mode)
 
-        # オプションのフィルタを適用
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
+        # 範囲フィルタを適用
         if start_id is not None:
             query = query.filter(Duel.id > start_id)
 
@@ -289,12 +262,10 @@ class GeneralStatsService:
         Note:
             日付降順でソート済みのため、duels[0]が最新の対戦記録となります。
         """
-        # ユーザーの対戦記録を取得
-        query = db.query(Duel).filter(Duel.user_id == user_id)
+        # 共通クエリビルダーを使用してベースクエリを構築
+        query = build_base_duels_query(db, user_id, game_mode)
 
-        # オプションのフィルタを適用
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
+        # 範囲フィルタを適用
         if start_id is not None:
             query = query.filter(Duel.id > start_id)
 
