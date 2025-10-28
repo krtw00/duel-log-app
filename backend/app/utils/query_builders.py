@@ -113,7 +113,7 @@ def apply_deck_filters(
     if my_deck_id is not None:
         query = query.filter(Duel.deck_id == my_deck_id)
     if opponent_deck_id is not None:
-        query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+        query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
     return query
 
