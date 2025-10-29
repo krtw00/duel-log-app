@@ -214,6 +214,61 @@ docker-compose down -v
 
 より詳細なガイドラインについては、[開発ガイドライン](docs/development-guide.md)を参照してください。
 
+## Pre-commit Hooks のセットアップ
+
+本プロジェクトでは、コミット前に自動的にコード品質チェックを実行するため、pre-commit hooksを導入しています。開発を開始する前に、以下の手順でセットアップしてください。
+
+### Docker環境での設定（推奨）
+
+```bash
+# バックエンドコンテナにpre-commitツールをインストール
+docker compose exec backend pip install pre-commit
+
+# pre-commit hooksを有効化（プロジェクトルートで実行）
+pre-commit install
+```
+
+### ローカル環境での設定（オプション）
+
+Dockerを使用せずにローカル環境で開発する場合:
+
+```bash
+# pre-commitツールをインストール
+pip install pre-commit
+
+# pre-commit hooksを有効化
+pre-commit install
+```
+
+### 動作確認
+
+セットアップ後、以下のコマンドで全ファイルに対してチェックを実行できます。
+
+```bash
+pre-commit run --all-files
+```
+
+### 自動実行される品質チェック
+
+コミット時に以下のチェックが自動的に実行されます:
+
+- **バックエンド (Python)**
+  - Black: コードフォーマット
+  - Ruff: リンティング（自動修正あり）
+  - Ruff Format: フォーマット
+
+- **フロントエンド (TypeScript/Vue)**
+  - Prettier: コードフォーマット
+
+- **共通**
+  - 末尾の空白削除
+  - ファイル末尾の改行チェック
+  - YAML/JSON/TOML構文チェック
+  - マージコンフリクトマーカーのチェック
+  - 大きなファイルの追加チェック（1MB以上）
+
+チェックに失敗した場合、自動修正可能なものは修正され、再度 `git add` してコミットし直してください。
+
 ## 開発ガイドライン
 
 詳細な開発ガイドラインについては、[開発ガイドライン](docs/development-guide.md) を参照してください。
