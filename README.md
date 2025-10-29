@@ -218,27 +218,19 @@ docker-compose down -v
 
 本プロジェクトでは、コミット前に自動的にコード品質チェックを実行するため、pre-commit hooksを導入しています。開発を開始する前に、以下の手順でセットアップしてください。
 
-### Docker環境での設定（推奨）
+### セットアップ手順
 
-```bash
-# バックエンドコンテナにpre-commitツールをインストール
-docker compose exec backend pip install pre-commit
-
-# pre-commit hooksを有効化（プロジェクトルートで実行）
-pre-commit install
-```
-
-### ローカル環境での設定（オプション）
-
-Dockerを使用せずにローカル環境で開発する場合:
+pre-commit hooksはホストマシン上のgitリポジトリで動作するため、ホスト側にインストールします。
 
 ```bash
 # pre-commitツールをインストール
 pip install pre-commit
 
-# pre-commit hooksを有効化
+# pre-commit hooksを有効化（プロジェクトルートで実行）
 pre-commit install
 ```
+
+**注意**: Dockerコンテナ内部ではgitコミット操作を行わないため、コンテナ内にpre-commitをインストールする必要はありません
 
 ### 動作確認
 
