@@ -24,7 +24,29 @@ class GeneralStatsService:
         return query
 
     def _calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:
-        """デュエルのリストから基本的な統計情報を計算する"""
+        """
+        デュエルのリストから基本的な統計情報を計算する
+
+        Args:
+            duels: 対戦記録のリスト
+
+        Returns:
+            統計情報の辞書。以下のキーを含む:
+            - total_duels: 総対戦数
+            - win_count: 勝利数
+            - lose_count: 敗北数
+            - win_rate: 勝率（%）
+            - first_turn_win_rate: 先攻時の勝率（%）
+            - second_turn_win_rate: 後攻時の勝率（%）
+            - coin_win_rate: コイントス勝利時の勝率（%）
+            - go_first_rate: 先攻を引く割合（%）
+
+        処理フロー:
+            1. 総対戦数を計算
+            2. 勝敗をresultフラグで分類（True=勝利、False=敗北）
+            3. 先攻/後攻をfirst_or_secondフラグで分類（True=先攻、False=後攻）
+            4. 各カテゴリーの勝率を計算
+        """
         total_duels = len(duels)
         if total_duels == 0:
             return {
