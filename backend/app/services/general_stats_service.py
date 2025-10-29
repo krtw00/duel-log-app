@@ -10,18 +10,11 @@ from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.models.duel import Duel
+from app.utils.query_builders import build_base_duels_query
 
 
 class GeneralStatsService:
     """総合統計サービスクラス"""
-
-    def _build_base_duels_query(
-        self, db: Session, user_id: int, game_mode: Optional[str] = None
-    ):
-        query = db.query(Duel).filter(Duel.user_id == user_id)
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
-        return query
 
     def _calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:
         """
