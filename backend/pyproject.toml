@@ -65,11 +65,16 @@ select = [
     "I",  # isort
     "C",  # flake8-comprehensions
     "B",  # flake8-bugbear
+    "D",  # pydocstyle (docstring conventions)
 ]
 ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    "D100",  # Missing docstring in public module (optional, can enable later)
+    "D104",  # Missing docstring in public package
+    "D203",  # 1 blank line required before class docstring (incompatible with D211)
+    "D213",  # Multi-line docstring summary should start at the second line (incompatible with D212)
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -80,6 +85,9 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-third-party = ["fastapi", "passlib", "pydantic", "sqlalchemy", "starlette", "uvicorn"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"  # Use Google-style docstrings
 
 [build-system]
 requires = ["setuptools"]
