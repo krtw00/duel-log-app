@@ -9,38 +9,11 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
 from app.models.duel import Duel
+from app.utils.query_builders import apply_range_filter, build_base_duels_query
 
 
 class TimeSeriesService:
     """時系列データサービスクラス"""
-
-    def _build_base_duels_query(
-        self, db: Session, user_id: int, game_mode: Optional[str] = None
-    ):
-        query = db.query(Duel).filter(Duel.user_id == user_id)
-        if game_mode:
-            query = query.filter(Duel.game_mode == game_mode)
-        return query
-
-    def _apply_range_filter(
-        self,
-        duels: List[Duel],
-        range_start: Optional[int] = None,
-        range_end: Optional[int] = None,
-    ) -> List[Duel]:
-        """
-        デュエルリストに範囲指定を適用
-        duelsは新しい順にソートされている必要がある
-        """
-        filtered = duels
-
-        # 範囲フィルター
-        if range_start is not None or range_end is not None:
-            start = max(0, (range_start or 1) - 1)  # 1始まりを0始まりに変換
-            end = range_end if range_end is not None else len(filtered)
-            filtered = filtered[start:end]
-
-        return filtered
 
     def get_time_series_data(
         self,
@@ -69,7 +42,7 @@ class TimeSeriesService:
             ) - timedelta(microseconds=1)
 
         # 該当月のデュエルを取得
-        query = self._build_base_duels_query(db, user_id, game_mode).filter(
+        query = build_base_duels_query(db, user_id, game_mode).filter(
             Duel.played_date >= start_date,
             Duel.played_date <= end_date,
         )
@@ -84,7 +57,7 @@ class TimeSeriesService:
 
         # 範囲指定を適用
         if range_start is not None or range_end is not None:
-            duels = self._apply_range_filter(duels, range_start, range_end)
+            duels = apply_range_filter(duels, range_start, range_end)
 
         # 時系列データとして再度日付順にソート
         duels = sorted(duels, key=lambda d: (d.played_date, d.id))
