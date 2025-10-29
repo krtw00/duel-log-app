@@ -36,25 +36,31 @@ export interface DeckUpdate {
 
 export type GameMode = 'RANK' | 'RATE' | 'EVENT' | 'DC';
 
+/**
+ * 対戦履歴インターフェース
+ *
+ * トレーディングカードゲームの対戦結果を表現します。
+ * バックエンドのDuelモデルに対応しています。
+ */
 export interface Duel {
   id: number;
-  deck_id: number;
-  opponentDeck_id: number;
-  result: boolean; // true = win, false = lose
+  deck_id: number; // 使用したデッキのID
+  opponentDeck_id: number; // 相手のデッキのID（注: 本番DB仕様でcamelCase）
+  result: boolean; // true=勝利, false=敗北
   game_mode: GameMode; // RANK, RATE, EVENT, DC
-  rank?: number; // ランクモード時のランク（1-15）
+  rank?: number; // ランクモード時のランク（1-15: B2～M1）
   rate_value?: number; // レートモード時のレート数値
   dc_value?: number; // DCモード時のDC数値
-  coin: boolean; // true = heads, false = tails
-  first_or_second: boolean; // true = first, false = second
-  played_date: string;
-  notes?: string;
-  create_date: string;
-  update_date: string;
-  user_id: number;
+  coin: boolean; // true=コイントス勝利, false=敗北
+  first_or_second: boolean; // true=先攻, false=後攻
+  played_date: string; // 対戦日時（ISO8601形式）
+  notes?: string; // メモ（任意）
+  create_date: string; // 作成日時
+  update_date: string; // 更新日時
+  user_id: number; // ユーザーID
   // フロントエンドで追加するフィールド
-  deck?: Deck;
-  opponentdeck?: Deck;
+  deck?: Deck; // 使用したデッキの詳細情報（結合データ）
+  opponentdeck?: Deck; // 相手のデッキの詳細情報（結合データ）
   no?: number; // テーブル表示用の連番
 }
 
