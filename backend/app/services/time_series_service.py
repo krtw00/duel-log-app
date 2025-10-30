@@ -1,6 +1,6 @@
-"""
-時系列データサービス
-レートやDCポイントの時系列データ生成に特化したビジネスロジックを提供
+"""時系列データサービス。
+
+レートやDCポイントの時系列データ生成に特化したビジネスロジックを提供。
 """
 
 from datetime import datetime, timedelta, timezone
@@ -13,7 +13,7 @@ from app.utils.query_builders import apply_range_filter, build_base_duels_query
 
 
 class TimeSeriesService:
-    """時系列データサービスクラス"""
+    """時系列データサービスクラス。"""
 
     def get_time_series_data(
         self,
@@ -27,9 +27,7 @@ class TimeSeriesService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        指定されたゲームモードの月間時系列データを取得 (レート/DC)
-        """
+        """指定されたゲームモードの月間時系列データを取得 (レート/DC)。"""
         # 月の最初の日と最後の日を計算
         start_date = datetime(year, month, 1, 0, 0, 0, tzinfo=timezone.utc)
         if month == 12:
@@ -85,7 +83,9 @@ class TimeSeriesService:
             processed_data[item["date"]] = item["value"]
 
         # 辞書をリストに変換して返す
-        return [{"date": date, "value": value} for date, value in processed_data.items()]
+        return [
+            {"date": date, "value": value} for date, value in processed_data.items()
+        ]
 
 
 # シングルトンインスタンス
