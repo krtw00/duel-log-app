@@ -90,7 +90,7 @@ describe('DuelFormDialog.vue', () => {
     const mockDuel = {
       id: 1,
       deck_id: 1,
-      opponentDeck_id: 2,
+      opponent_deck_id: 2,
       result: true,
       game_mode: 'RANK' as const,
       rank: 18,

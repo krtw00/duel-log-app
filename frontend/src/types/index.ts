@@ -66,7 +66,7 @@ export interface Duel {
 
 export interface DuelCreate {
   deck_id: number | null;
-  opponentDeck_id: number | null;
+  opponent_deck_id: number | null;
   result: boolean;
   game_mode: GameMode;
   rank?: number;
@@ -80,7 +80,7 @@ export interface DuelCreate {
 
 export interface DuelUpdate {
   deck_id?: number;
-  opponentDeck_id?: number;
+  opponent_deck_id?: number;
   result?: boolean;
   game_mode?: GameMode;
   rank?: number;
