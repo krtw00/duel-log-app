@@ -60,7 +60,7 @@ export interface Duel {
   user_id: number; // ユーザーID
   // フロントエンドで追加するフィールド
   deck?: Deck; // 使用したデッキの詳細情報（結合データ）
-  opponentDeck?: Deck; // 相手のデッキの詳細情報（結合データ）
+  opponent_deck?: Deck; // 相手のデッキの詳細情報（結合データ）
   no?: number; // テーブル表示用の連番
 }
 
@@ -181,6 +181,10 @@ export interface SharedStatisticsReadPayload {
   game_mode: GameMode;
   created_at: string;
   expires_at: string | null;
+}
+
+export interface SharedStatisticsResponse extends SharedStatisticsReadPayload {
+  statistics_data: SharedStatisticsData;
 }
 
 /**
