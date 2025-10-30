@@ -17,7 +17,7 @@ describe('DuelTable.vue', () => {
     {
       id: 1,
       deck_id: 1,
-      opponentDeck_id: 2,
+      opponent_deck_id: 2,
       result: true,
       game_mode: 'RANK',
       rank: 18,
@@ -34,7 +34,7 @@ describe('DuelTable.vue', () => {
     {
       id: 2,
       deck_id: 1,
-      opponentDeck_id: 3,
+      opponent_deck_id: 3,
       result: false,
       game_mode: 'RATE',
       rate_value: 1500,

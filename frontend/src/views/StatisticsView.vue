@@ -488,12 +488,12 @@ const fetchMonthlyDuels = async (mode: GameMode) => {
 
     monthlyDuelsByMode.value[mode] = duels.map((duel, index) => {
       const deckName = resolveDeckName(duel.deck_id);
-      const opponentName = resolveOpponentDeckName(duel.opponentDeck_id);
+      const opponentName = resolveOpponentDeckName(duel.opponent_deck_id);
 
       return {
         ...duel,
         deck: buildDeckStub(duel.deck_id, deckName, false, duel.user_id),
-        opponentdeck: buildDeckStub(duel.opponentDeck_id, opponentName, true, duel.user_id),
+        opponentDeck: buildDeckStub(duel.opponent_deck_id, opponentName, true, duel.user_id),
         no: total - index,
       };
     });
