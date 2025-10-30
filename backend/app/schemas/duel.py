@@ -12,18 +12,10 @@ class DuelBase(CustomBaseModel):
     """デュエル基底スキーマ"""
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
-    # TODO: 本番DBの歴史的経緯により、フロントエンドはcamelCaseを期待しているためエイリアスを設定。
-    # 本来はDBカラム名をsnake_caseに統一すべきだが、影響範囲を考慮し暫定対応とする。
-    opponent_deck_id: int = Field(
-        ..., gt=0, description="対戦相手デッキID", alias="opponentDeck_id"
-    )
-    won_coin_toss: bool = Field(
-        ..., description="コイントスの結果（True: 表, False: 裏）", alias="coin"
-    )
-    is_going_first: bool = Field(
-        ..., description="先攻後政（True: 先攻, False: 後攻）", alias="first_or_second"
-    )
-    is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）", alias="result")
+    opponent_deck_id: int = Field(..., gt=0, description="対戦相手デッキID")
+    coin: bool = Field(..., description="コイントスの結果（True: 表, False: 裏）")
+    first_or_second: bool = Field(..., description="先攻後政（True: 先攻, False: 後攻）")
+    result: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
     game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
         default="RANK", description="ゲームモード（RANK/RATE/EVENT/DC）"
     )
