@@ -45,7 +45,7 @@ export type GameMode = 'RANK' | 'RATE' | 'EVENT' | 'DC';
 export interface Duel {
   id: number;
   deck_id: number; // 使用したデッキのID
-  opponentDeck_id: number; // 相手のデッキのID（注: 本番DB仕様でcamelCase）
+  opponent_deck_id: number; // 相手のデッキのID
   result: boolean; // true=勝利, false=敗北
   game_mode: GameMode; // RANK, RATE, EVENT, DC
   rank?: number; // ランクモード時のランク（1-15: B2～M1）
