@@ -7,6 +7,7 @@ import type {
   SharedStatisticsData,
   SharedStatisticsCreatePayload,
   SharedStatisticsReadPayload,
+  SharedStatisticsResponse,
 } from '../types';
 
 export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
@@ -63,10 +64,10 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
         params.my_deck_id = filters.myDeckId;
       }
 
-      const response = await api.get<SharedStatisticsData>(`/shared-statistics/${shareId}`, {
+      const response = await api.get<SharedStatisticsResponse>(`/shared-statistics/${shareId}`, {
         params,
       });
-      sharedStatsData.value = response.data;
+      sharedStatsData.value = response.data.statistics_data;
       return true;
     } catch (error: unknown) {
       notificationStore.error(getErrorMessage(error, '共有統計データの取得に失敗しました。'));

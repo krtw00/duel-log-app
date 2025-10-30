@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -24,3 +24,7 @@ class SharedStatisticsRead(SharedStatisticsBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SharedStatisticsResponse(SharedStatisticsRead):
+    statistics_data: Dict[str, Any]

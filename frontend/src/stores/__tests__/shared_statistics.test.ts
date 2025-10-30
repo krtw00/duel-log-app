@@ -98,7 +98,7 @@ describe('sharedStatisticsStore', () => {
     const fetchStatsErrorMessage = 'Failed to fetch stats';
     
     it('fetches shared statistics successfully', async () => {
-      vi.mocked(api.get).mockResolvedValue({ data: mockStatsData });
+      vi.mocked(api.get).mockResolvedValue({ data: { statistics_data: mockStatsData } });
 
       const success = await sharedStatisticsStore.getSharedStatistics(mockShareId, 2023, 10);
 
