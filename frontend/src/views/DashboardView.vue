@@ -37,7 +37,6 @@
 
         <DuelHistorySection
           :duels="currentDuels"
-          :decks="decks"
           :loading="loading"
           :year="selectedYear"
           :month="selectedMonth"
@@ -120,27 +119,14 @@ const currentDuels = computed(() => {
 const fetchDuels = async () => {
   loading.value = true;
   try {
-    const [duelsResponse, decksResponse] = await Promise.all([
-      api.get('/duels/', {
-        params: {
-          year: selectedYear.value,
-          month: selectedMonth.value,
-        },
-      }),
-      api.get('/decks/'),
-    ]);
+    const duelsResponse = await api.get('/duels/', {
+      params: {
+        year: selectedYear.value,
+        month: selectedMonth.value,
+      },
+    });
 
-    decks.value = decksResponse.data;
-
-    // デッキ情報をマッピング
-    const deckMap = new Map(decks.value.map(deck => [deck.id, deck]));
-
-    // duelにdeck情報を追加
-    duels.value = duelsResponse.data.map((duel: Duel) => ({
-      ...duel,
-      deck: deckMap.get(duel.deck_id),
-      opponentDeck: deckMap.get(duel.opponent_deck_id),
-    }));
+    duels.value = duelsResponse.data;
   } catch (error) {
     console.error('Failed to fetch duels:', error);
   } finally {
