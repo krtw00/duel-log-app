@@ -39,7 +39,7 @@ class SharedStatisticsService(
         db.refresh(db_obj)
         return db_obj
 
-    def get_by_share_id(self, db: Session, share_id: str) -> Optional[SharedStatistics>:
+    def get_by_share_id(self, db: Session, share_id: str) -> Optional[SharedStatistics]:
         """共有IDで共有リンクを取得。"""
         return (
             db.query(SharedStatistics)
