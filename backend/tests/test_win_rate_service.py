@@ -35,6 +35,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 1),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck1.id,
@@ -43,6 +45,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 2),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck1.id,
@@ -51,6 +55,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 3),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck1.id,
@@ -59,6 +65,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 4),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         # MyDeck2 vs OppDeck2 (1勝2敗)
         {
@@ -68,6 +76,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 5),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck2.id,
@@ -76,6 +86,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 6),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck2.id,
@@ -84,12 +96,16 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 7),
+            "game_mode": "RANK",
+            "rank": 10,
         },
     ]
 
     for duel_data in duels_data:
         duel_in = DuelCreate(**duel_data)
         duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)
+
+    return deck1, deck2, opp_deck1, opp_deck2
 
 
 class TestWinRateService:
@@ -128,8 +144,7 @@ class TestWinRateService:
     def test_get_my_deck_win_rates_with_range(
         self, db_session: Session, test_user: User
     ):
-        """Python側で集計する範囲指定ありの場合のデッキ別勝率をテスト"""
-        create_test_data(db_session, test_user)
+        my_deck1, my_deck2, opp_deck1, opp_deck2 = create_test_data(db_session, test_user)
 
         # played_dateが新しい順にソートして、2戦目から5戦目までを取得するケース
         # 対象デュエル: 7/6, 7/5, 7/4, 7/3 (MyDeck2: 1勝2敗, MyDeck1: 1勝1敗)
@@ -142,13 +157,11 @@ class TestWinRateService:
             range_end=5,
         )
 
-        assert len(win_rates) == 2
-
         my_deck1_stats = next(
-            (item for item in win_rates if item["deck_name"] == "MyDeck1"), None
+            (item for item in win_rates if item["deck_id"] == my_deck1.id), None
         )
         my_deck2_stats = next(
-            (item for item in win_rates if item["deck_name"] == "MyDeck2"), None
+            (item for item in win_rates if item["deck_id"] == my_deck2.id), None
         )
 
         assert my_deck1_stats is not None

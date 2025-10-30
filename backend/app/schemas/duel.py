@@ -13,9 +13,9 @@ class DuelBase(CustomBaseModel):
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
     opponent_deck_id: int = Field(..., gt=0, description="対戦相手デッキID")
-    coin: bool = Field(..., description="コイントスの結果（True: 表, False: 裏）")
-    first_or_second: bool = Field(..., description="先攻後政（True: 先攻, False: 後攻）")
-    result: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
+    won_coin_toss: bool = Field(..., description="コイントスの結果（True: 勝利, False: 敗北）")
+    is_going_first: bool = Field(..., description="先攻後攻（True: 先攻, False: 後攻）")
+    is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
     game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
         default="RANK", description="ゲームモード（RANK/RATE/EVENT/DC）"
     )
