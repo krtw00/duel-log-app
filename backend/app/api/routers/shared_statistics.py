@@ -65,6 +65,8 @@ def get_shared_statistics(
     share_id: str,
     my_deck_id: Optional[int] = Query(None, description="使用デッキでフィルター"),
     opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
+    range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
+    range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
     db: Session = Depends(get_db),
 ):
     """共有IDを使用して統計データを取得"""
@@ -87,6 +89,8 @@ def get_shared_statistics(
         month=shared_link.month,
         my_deck_id=my_deck_id,
         opponent_deck_id=opponent_deck_id,
+        range_start=range_start,
+        range_end=range_end,
     )
 
     return SharedStatisticsResponse(
