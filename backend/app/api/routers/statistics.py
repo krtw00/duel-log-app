@@ -16,6 +16,7 @@ from app.services.general_stats_service import general_stats_service
 from app.services.general_stats_service import general_stats_service
 from app.services.duel_service import duel_service
 from app.schemas.duel import DuelWithDeckNames
+from app.services.statistics_service import statistics_service
 from app.services.win_rate_service import win_rate_service
 from app.services.deck_distribution_service import deck_distribution_service
 from app.services.matchup_service import matchup_service
