@@ -83,13 +83,13 @@ class MatchupService:
 
             # デッキ名が見つかった場合のみ集計（削除されたデッキの対戦記録はスキップ）
             if my_deck_name and opp_deck_name:
-                if duel.is_going_first:  # 先攻（is_going_first=True）の場合
-                    if duel.is_win:  # 勝利（is_win=True）
+                if duel.first_or_second:  # 先攻（first_or_second=True）の場合
+                    if duel.result:  # 勝利（result=True）
                         matchups[my_deck_name][opp_deck_name]["wins_first"] += 1
                     else:  # 敗北（result=False）
                         matchups[my_deck_name][opp_deck_name]["losses_first"] += 1
                 else:  # 後攻（first_or_second=False）の場合
-                    if duel.is_win:  # 勝利
+                    if duel.result:  # 勝利
                         matchups[my_deck_name][opp_deck_name]["wins_second"] += 1
                     else:  # 敗北
                         matchups[my_deck_name][opp_deck_name]["losses_second"] += 1
