@@ -12,12 +12,11 @@ from app.models.duel import Duel
 from app.models.user import User
 from app.schemas.duel import DuelWithDeckNames  # Import DuelWithDeckNames
 from app.schemas.shared_statistics import SharedStatisticsCreate, SharedStatisticsRead
+from app.services.deck_distribution_service import deck_distribution_service
 from app.services.duel_service import duel_service
 from app.services.general_stats_service import general_stats_service
-from app.services.shared_statistics_service import shared_statistics_service
-from app.services.statistics_service import statistics_service
-from app.services.deck_distribution_service import deck_distribution_service
 from app.services.matchup_service import matchup_service
+from app.services.shared_statistics_service import shared_statistics_service
 
 router = APIRouter(prefix="/shared-statistics", tags=["shared-statistics"])
 
@@ -114,7 +113,7 @@ def get_shared_statistics(
     deck_ids = list(
         set(
             [d.deck_id for d in dashboard_duels_query if d.deck_id]
-            + [d.opponentDeck_id for d in dashboard_duels_query if d.opponentDeck_id]
+            + [d.opponent_deck_id for d in dashboard_duels_query if d.opponent_deck_id]
         )
     )
     if deck_ids:
@@ -125,8 +124,8 @@ def get_shared_statistics(
 
     for duel in dashboard_duels_query:
         duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
-        duel.opponentDeck = (
-            deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+        duel.opponent_deck = (
+            deck_map.get(duel.opponent_deck_id) if duel.opponent_deck_id else None
         )
         duel.deck_name = duel.deck.name if duel.deck else "不明"
         duel.opponent_deck_name = (
@@ -141,7 +140,7 @@ def get_shared_statistics(
             "id": d.id,
             "user_id": d.user_id,
             "deck_id": d.deck_id,
-            "opponentDeck_id": d.opponentDeck_id,
+            "opponent_deck_id": d.opponent_deck_id,
             "coin": d.coin,
             "first_or_second": d.first_or_second,
             "result": d.result,
