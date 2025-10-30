@@ -126,7 +126,11 @@ const fetchDuels = async () => {
       },
     });
 
-    duels.value = duelsResponse.data;
+    // バックエンドからのsnake_caseをフロントエンドのcamelCaseに変換
+    duels.value = duelsResponse.data.map((duel: any) => ({
+      ...duel,
+      opponentDeck: duel.opponent_deck,
+    }));
   } catch (error) {
     console.error('Failed to fetch duels:', error);
   } finally {
