@@ -387,7 +387,7 @@ const fetchSharedStatistics = async () => {
         const transformedDuels = (rawStats.duels || []).map((d: DuelRawData) => ({
           ...d,
           deck: { name: d.deck_name },
-          opponentdeck: { name: d.opponent_deck_name },
+          opponent_deck: { name: d.opponent_deck_name },
         }));
 
         tempProcessedStats[mode] = {
