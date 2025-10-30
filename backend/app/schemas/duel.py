@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator, computed_field
 
 from . import CustomBaseModel
+from .deck import DeckRead
 
 
 class DuelBase(CustomBaseModel):
@@ -128,6 +129,9 @@ class DuelRead(DuelBase):
 
 class DuelWithDeckNames(DuelRead):
     """デッキ名付きデュエルスキーマ"""
+
+    deck: DeckRead
+    opponent_deck: DeckRead
 
     @computed_field
     @property
