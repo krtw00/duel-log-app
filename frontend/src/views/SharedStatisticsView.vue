@@ -172,8 +172,6 @@ interface StatisticsModeData {
   timeSeries: TimeSeriesData;
 }
 
-        const transformedDuels = (rawStats.duels || []).map((d: any) => ({
-
 interface DuelStats {
   total_duels?: number;
   win_count?: number;
