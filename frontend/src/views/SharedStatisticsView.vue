@@ -384,15 +384,9 @@ const fetchSharedStatistics = async () => {
         const rawStats = statsData[mode] as any;
         if (!rawStats) return;
 
-        const transformedDuels = (rawStats.duels || []).map((d: DuelRawData) => ({
-          ...d,
-          deck: { name: d.deck_name },
-          opponent_deck: { name: d.opponent_deck_name },
-        }));
-
         tempProcessedStats[mode] = {
           overall_stats: rawStats.overall_stats || {},
-          duels: transformedDuels,
+          duels: rawStats.duels || [],
           year: rawStats.year || selectedYear.value,
           month: rawStats.month || selectedMonth.value,
           monthlyDistribution: {
