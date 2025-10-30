@@ -172,12 +172,6 @@ interface StatisticsModeData {
   timeSeries: TimeSeriesData;
 }
 
-interface DuelRawData {
-  deck_name: string;
-  opponent_deck_name: string;
-  [key: string]: unknown;
-}
-
 interface DuelStats {
   total_duels?: number;
   win_count?: number;
@@ -384,15 +378,9 @@ const fetchSharedStatistics = async () => {
         const rawStats = statsData[mode] as any;
         if (!rawStats) return;
 
-        const transformedDuels = (rawStats.duels || []).map((d: DuelRawData) => ({
-          ...d,
-          deck: { name: d.deck_name },
-          opponentdeck: { name: d.opponent_deck_name },
-        }));
-
         tempProcessedStats[mode] = {
           overall_stats: rawStats.overall_stats || {},
-          duels: transformedDuels,
+          duels: rawStats.duels || [],
           year: rawStats.year || selectedYear.value,
           month: rawStats.month || selectedMonth.value,
           monthlyDistribution: {
