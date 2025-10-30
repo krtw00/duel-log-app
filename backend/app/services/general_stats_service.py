@@ -115,19 +115,25 @@ class GeneralStatsService:
         duels = query.all()
         stats = self._calculate_general_stats(duels)
 
-        # 最新のデュエル情報から使用デッキとランクを取得
+        # 最新のデュエル情報から使用デッキとランク/レート/DCを取得
         latest_duel = query.order_by(Duel.played_date.desc()).first()
 
         current_deck = None
         current_rank = None
+        current_rate = None
+        current_dc = None
         if latest_duel:
             current_deck = latest_duel.deck.name if latest_duel.deck else None
             current_rank = latest_duel.rank
+            current_rate = latest_duel.rate_value
+            current_dc = latest_duel.dc_value
 
         return {
             **stats,
             "current_deck": current_deck,
             "current_rank": current_rank,
+            "current_rate": current_rate,
+            "current_dc": current_dc,
         }
 
     def get_all_time_stats(
@@ -148,19 +154,25 @@ class GeneralStatsService:
         duels = query.all()
         stats = self._calculate_general_stats(duels)
 
-        # 最新のデュエル情報から使用デッキとランクを取得
+        # 最新のデュエル情報から使用デッキとランク/レート/DCを取得
         latest_duel = query.order_by(Duel.played_date.desc()).first()
 
         current_deck = None
         current_rank = None
+        current_rate = None
+        current_dc = None
         if latest_duel:
             current_deck = latest_duel.deck.name if latest_duel.deck else None
             current_rank = latest_duel.rank
+            current_rate = latest_duel.rate_value
+            current_dc = latest_duel.dc_value
 
         return {
             **stats,
             "current_deck": current_deck,
             "current_rank": current_rank,
+            "current_rate": current_rate,
+            "current_dc": current_dc,
         }
 
     def get_recent_stats(
@@ -183,18 +195,24 @@ class GeneralStatsService:
         duels = query.order_by(Duel.played_date.desc()).limit(limit).all()
         stats = self._calculate_general_stats(duels)
 
-        # 最新のデュエル情報から使用デッキとランクを取得（duelsは既に日付降順）
+        # 最新のデュエル情報から使用デッキとランク/レート/DCを取得（duelsは既に日付降順）
         current_deck = None
         current_rank = None
+        current_rate = None
+        current_dc = None
         if duels:
             latest_duel = duels[0]  # 既に日付降順なので最初の要素が最新
             current_deck = latest_duel.deck.name if latest_duel.deck else None
             current_rank = latest_duel.rank
+            current_rate = latest_duel.rate_value
+            current_dc = latest_duel.dc_value
 
         return {
             **stats,
             "current_deck": current_deck,
             "current_rank": current_rank,
+            "current_rate": current_rate,
+            "current_dc": current_dc,
         }
 
 
