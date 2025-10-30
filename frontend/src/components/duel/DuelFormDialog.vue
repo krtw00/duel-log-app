@@ -278,7 +278,7 @@ const selectedOpponentDeck = ref<Deck | string | null>(null);
 const defaultForm = (): DuelCreate => {
   return {
     deck_id: null,
-    opponentDeck_id: null,
+    opponent_deck_id: null,
     result: true,
     game_mode: 'RANK',
     rank: undefined,
@@ -331,7 +331,7 @@ watch(
 
         form.value = {
           deck_id: props.duel.deck_id,
-          opponentDeck_id: props.duel.opponentDeck_id,
+          opponent_deck_id: props.duel.opponent_deck_id,
           result: props.duel.result,
           game_mode: props.duel.game_mode,
           rank: props.duel.rank,
@@ -346,7 +346,7 @@ watch(
         // 選択されたデッキを設定
         selectedMyDeck.value = myDecks.value.find((d) => d.id === props.duel?.deck_id) || null;
         selectedOpponentDeck.value =
-          opponentDecks.value.find((d) => d.id === props.duel?.opponentDeck_id) || null;
+          opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) || null;
       } else {
         // 新規作成モード
         await fetchLatestValues();
@@ -412,7 +412,7 @@ const handleSubmit = async () => {
     const submitData = {
       ...form.value,
       deck_id: myDeckId,
-      opponentDeck_id: opponentDeckId,
+      opponent_deck_id: opponentDeckId,
       played_date: localDateTimeToISO(form.value.played_date),
     };
 
