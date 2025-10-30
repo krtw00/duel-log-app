@@ -13,12 +13,11 @@ const logger = createLogger('DuelManagement');
 
 interface UseDuelManagementProps {
   duels: Ref<Duel[]>;
-  decks: Ref<Deck[]>;
   fetchDuels: () => Promise<void>;
 }
 
 export function useDuelManagement(props: UseDuelManagementProps) {
-  const { duels, decks, fetchDuels } = props;
+  const { duels, fetchDuels } = props;
   const notificationStore = useNotificationStore();
 
   const selectedDuel = ref<Duel | null>(null);
@@ -68,7 +67,6 @@ export function useDuelManagement(props: UseDuelManagementProps) {
   return {
     // State
     duels,
-    decks,
     selectedDuel,
     dialogOpen,
 
