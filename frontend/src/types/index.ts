@@ -183,6 +183,10 @@ export interface SharedStatisticsReadPayload {
   expires_at: string | null;
 }
 
+export interface SharedStatisticsResponse extends SharedStatisticsReadPayload {
+  statistics_data: SharedStatisticsData;
+}
+
 /**
  * OBS表示アイテム
  */
