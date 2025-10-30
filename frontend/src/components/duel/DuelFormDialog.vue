@@ -97,14 +97,14 @@
                   コイン
                 </label>
                 <v-radio-group
-                  v-model="form.coin"
+                  v-model.number="form.coin"
                   inline
                   color="primary"
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
-                  <v-radio label="表" :value="true"></v-radio>
-                  <v-radio label="裏" :value="false"></v-radio>
+                  <v-radio label="表" :value="1"></v-radio>
+                  <v-radio label="裏" :value="0"></v-radio>
                 </v-radio-group>
               </div>
             </v-col>
@@ -117,14 +117,14 @@
                   先攻/後攻
                 </label>
                 <v-radio-group
-                  v-model="form.first_or_second"
+                  v-model.number="form.first_or_second"
                   inline
                   color="primary"
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
-                  <v-radio label="先攻" :value="true"></v-radio>
-                  <v-radio label="後攻" :value="false"></v-radio>
+                  <v-radio label="先攻" :value="1"></v-radio>
+                  <v-radio label="後攻" :value="0"></v-radio>
                 </v-radio-group>
               </div>
             </v-col>
@@ -137,13 +137,13 @@
                   勝敗
                 </label>
                 <v-radio-group
-                  v-model="form.result"
+                  v-model.number="form.result"
                   inline
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
-                  <v-radio label="勝ち" :value="true" color="success"></v-radio>
-                  <v-radio label="負け" :value="false" color="error"></v-radio>
+                  <v-radio label="勝ち" :value="1" color="success"></v-radio>
+                  <v-radio label="負け" :value="0" color="error"></v-radio>
                 </v-radio-group>
               </div>
             </v-col>
@@ -279,13 +279,13 @@ const defaultForm = (): DuelCreate => {
   return {
     deck_id: null,
     opponent_deck_id: null,
-    result: true,
+    result: 1,
     game_mode: 'RANK',
     rank: undefined,
     rate_value: undefined,
     dc_value: undefined,
-    coin: true,
-    first_or_second: true,
+    coin: 1,
+    first_or_second: 1,
     played_date: getCurrentLocalDateTime(),
     notes: '',
   };
@@ -332,13 +332,13 @@ watch(
         form.value = {
           deck_id: props.duel.deck_id,
           opponent_deck_id: props.duel.opponent_deck_id,
-          result: props.duel.result,
+          result: props.duel.is_win ? 1 : 0,
           game_mode: props.duel.game_mode,
           rank: props.duel.rank,
           rate_value: props.duel.rate_value,
           dc_value: props.duel.dc_value,
-          coin: props.duel.coin,
-          first_or_second: props.duel.first_or_second,
+          coin: props.duel.won_coin_toss ? 1 : 0,
+          first_or_second: props.duel.is_going_first ? 1 : 0,
           played_date: localDateTime,
           notes: props.duel.notes || '',
         };
@@ -410,10 +410,17 @@ const handleSubmit = async () => {
 
     // datetime-local形式をISO文字列に変換（ローカルタイムゾーンを保持）
     const submitData = {
-      ...form.value,
       deck_id: myDeckId,
       opponent_deck_id: opponentDeckId,
       played_date: localDateTimeToISO(form.value.played_date),
+      is_win: form.value.result === 1,
+      won_coin_toss: form.value.coin === 1,
+      is_going_first: form.value.first_or_second === 1,
+      game_mode: form.value.game_mode,
+      rank: form.value.rank,
+      rate_value: form.value.rate_value,
+      dc_value: form.value.dc_value,
+      notes: form.value.notes,
     };
 
     if (isEdit.value && props.duel) {
