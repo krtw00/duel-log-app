@@ -172,11 +172,7 @@ interface StatisticsModeData {
   timeSeries: TimeSeriesData;
 }
 
-interface DuelRawData {
-  deck_name: string;
-  opponent_deck_name: string;
-  [key: string]: unknown;
-}
+        const transformedDuels = (rawStats.duels || []).map((d: any) => ({
 
 interface DuelStats {
   total_duels?: number;
