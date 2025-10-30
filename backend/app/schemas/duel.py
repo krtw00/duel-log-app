@@ -1,6 +1,4 @@
-"""
-デュエルスキーマ
-"""
+"""デュエルスキーマ"""
 
 from datetime import datetime
 from typing import Literal, Optional
@@ -14,12 +12,12 @@ class DuelBase(CustomBaseModel):
     """デュエル基底スキーマ"""
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
-    opponentDeck_id: int = Field(..., gt=0, description="対戦相手デッキID")
-    coin: bool = Field(..., description="コイントスの結果（True: 表, False: 裏）")
-    first_or_second: bool = Field(
-        ..., description="先攻後政（True: 先攻, False: 後攻）"
+    opponent_deck_id: int = Field(..., gt=0, description="対戦相手デッキID")
+    won_coin_toss: bool = Field(
+        ..., description="コイントスの結果（True: 表, False: 裏）"
     )
-    result: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
+    is_going_first: bool = Field(..., description="先攻後政（True: 先攻, False: 後攻）")
+    is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
     game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
         default="RANK", description="ゲームモード（RANK/RATE/EVENT/DC）"
     )
@@ -27,7 +25,9 @@ class DuelBase(CustomBaseModel):
     rate_value: Optional[float] = Field(
         None, ge=0, description="レート数値（RATEモード時のみ、小数点2桁まで）"
     )
-    dc_value: Optional[float] = Field(None, ge=0, description="DC数値（DCモード時のみ、小数点2桁まで）")
+    dc_value: Optional[float] = Field(
+        None, ge=0, description="DC数値（DCモード時のみ、小数点2桁まで）"
+    )
     played_date: datetime = Field(..., description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
 
@@ -83,15 +83,17 @@ class DuelUpdate(BaseModel):
     """デュエル更新スキーマ"""
 
     deck_id: Optional[int] = Field(None, gt=0, description="使用デッキID")
-    opponentDeck_id: Optional[int] = Field(None, gt=0, description="対戦相手デッキID")
-    coin: Optional[bool] = Field(None, description="コイントスの結果")
-    first_or_second: Optional[bool] = Field(None, description="先攻後攻")
-    result: Optional[bool] = Field(None, description="対戦結果")
+    opponent_deck_id: Optional[int] = Field(None, gt=0, description="対戦相手デッキID")
+    won_coin_toss: Optional[bool] = Field(None, description="コイントスの結果")
+    is_going_first: Optional[bool] = Field(None, description="先攻後攻")
+    is_win: Optional[bool] = Field(None, description="対戦結果")
     game_mode: Optional[Literal["RANK", "RATE", "EVENT", "DC"]] = Field(
         None, description="ゲームモード"
     )
     rank: Optional[int] = Field(None, ge=1, le=32, description="ランク")
-    rate_value: Optional[float] = Field(None, ge=0, description="レート数値（小数点2桁まで）")
+    rate_value: Optional[float] = Field(
+        None, ge=0, description="レート数値（小数点2桁まで）"
+    )
     dc_value: Optional[float] = Field(None, ge=0, description="DC数値（小数点2桁まで）")
     played_date: Optional[datetime] = Field(None, description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
