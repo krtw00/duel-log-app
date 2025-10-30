@@ -33,6 +33,8 @@ def create_matchup_test_data(db: Session, user: User):
             "is_going_first": True,
             "won_coin_toss": True,
             "played_date": datetime(2024, 7, 1),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": my_deck1.id,
@@ -41,6 +43,8 @@ def create_matchup_test_data(db: Session, user: User):
             "is_going_first": False,
             "won_coin_toss": True,
             "played_date": datetime(2024, 7, 2),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         # MyDeck1 vs OppDeck2: 1勝0敗 (先行1勝)
         {
@@ -50,6 +54,8 @@ def create_matchup_test_data(db: Session, user: User):
             "is_going_first": True,
             "won_coin_toss": True,
             "played_date": datetime(2024, 7, 3),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         # MyDeck2 vs OppDeck1: 0勝1敗 (後攻1敗)
         {
@@ -59,6 +65,8 @@ def create_matchup_test_data(db: Session, user: User):
             "is_going_first": False,
             "won_coin_toss": True,
             "played_date": datetime(2024, 7, 4),
+            "game_mode": "RANK",
+            "rank": 10,
         },
     ]
 

@@ -83,16 +83,17 @@ class MatchupService:
 
             # デッキ名が見つかった場合のみ集計（削除されたデッキの対戦記録はスキップ）
             if my_deck_name and opp_deck_name:
-                if duel.first_or_second:  # 先攻（first_or_second=True）の場合
-                    if duel.result:  # 勝利（result=True）
-                        matchups[my_deck_name][opp_deck_name]["wins_first"] += 1
-                    else:  # 敗北（result=False）
-                        matchups[my_deck_name][opp_deck_name]["losses_first"] += 1
-                else:  # 後攻（first_or_second=False）の場合
-                    if duel.result:  # 勝利
-                        matchups[my_deck_name][opp_deck_name]["wins_second"] += 1
-                    else:  # 敗北
-                        matchups[my_deck_name][opp_deck_name]["losses_second"] += 1
+                current_matchup = matchups[my_deck_name][opp_deck_name]
+                if duel.is_going_first:  # 先攻の場合
+                    if duel.is_win:
+                        current_matchup["wins_first"] += 1
+                    else:
+                        current_matchup["losses_first"] += 1
+                else:  # 後攻の場合
+                    if duel.is_win:
+                        current_matchup["wins_second"] += 1
+                    else:
+                        current_matchup["losses_second"] += 1
 
         # フロントエンドが扱いやすいフラットな配列形式に変換
         chart_data = []
@@ -121,16 +122,12 @@ class MatchupService:
                                 if total_duels > 0
                                 else 0
                             ),
-                            "win_rate_first": (
-                                (results["wins_first"] / total_first) * 100
-                                if total_first > 0
-                                else 0
-                            ),
-                            "win_rate_second": (
-                                (results["wins_second"] / total_second) * 100
-                                if total_second > 0
-                                else 0
-                            ),
+                            "win_rate_first": (results["wins_first"] / total_first) * 100
+                            if total_first > 0
+                            else 0,
+                            "win_rate_second": (results["wins_second"] / total_second) * 100
+                            if total_second > 0
+                            else 0,
                         }
                     )
 

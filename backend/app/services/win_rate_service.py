@@ -22,25 +22,24 @@ class WinRateService:
         """デュエルのリストからデッキごとの勝率データを計算する。"""
         deck_stats_map = {}
         for duel in duels:
-            if duel.deck and duel.deck.name:
-                deck_name = duel.deck.name
-                if deck_name not in deck_stats_map:
-                    deck_stats_map[deck_name] = {"total": 0, "wins": 0}
-                deck_stats_map[deck_name]["total"] += 1
-                if duel.result:
-                    deck_stats_map[deck_name]["wins"] += 1
+            deck_id = duel.deck_id
+            if deck_id not in deck_stats_map:
+                deck_stats_map[deck_id] = {"total_duels": 0, "wins": 0}
+            deck_stats_map[deck_id]["total_duels"] += 1
+            if duel.is_win:
+                deck_stats_map[deck_id]["wins"] += 1
 
         win_rates_data = []
-        for deck_name, stats in sorted(
-            deck_stats_map.items(), key=lambda x: x[1]["total"], reverse=True
+        for deck_id, stats in sorted(
+            deck_stats_map.items(), key=lambda x: x[1]["total_duels"], reverse=True
         ):
-            total_duels = stats["total"]
+            total_duels = stats["total_duels"]
             wins = stats["wins"]
             losses = total_duels - wins
             win_rate = (wins / total_duels) * 100 if total_duels > 0 else 0
             win_rates_data.append(
                 {
-                    "deck_name": deck_name,
+                    "deck_id": deck_id,
                     "total_duels": total_duels,
                     "wins": wins,
                     "losses": losses,
@@ -88,7 +87,7 @@ class WinRateService:
                 .with_entities(
                     Deck.name,
                     func.count(Duel.id).label("total_duels"),
-                    func.sum(case((Duel.result, 1), else_=0)).label("wins"),
+                    func.sum(case((Duel.is_win, 1), else_=0)).label("wins"),
                 )
                 .order_by(desc("total_duels"))
                 .all()
