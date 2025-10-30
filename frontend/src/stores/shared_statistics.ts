@@ -7,6 +7,7 @@ import type {
   SharedStatisticsData,
   SharedStatisticsCreatePayload,
   SharedStatisticsReadPayload,
+  SharedStatisticsResponse,
 } from '../types';
 
 export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
