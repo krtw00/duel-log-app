@@ -32,8 +32,21 @@ const stubs = {
 describe('DashboardView.vue', () => {
   let pinia: ReturnType<typeof createTestingPinia>;
 
-  const mockDecks = [{ id: 1, name: 'Test Deck' }];
-  const mockDuels = [{ id: 1, deck_id: 1, result: true, game_mode: 'RANK' as const }];
+  const mockDecks = [
+    { id: 1, name: 'Test Deck', is_opponent: false, active: true },
+    { id: 2, name: 'Opponent Deck', is_opponent: true, active: true },
+  ];
+  const mockDuels = [
+    {
+      id: 1,
+      deck_id: 1,
+      opponent_deck_id: 2,
+      result: true,
+      game_mode: 'RANK' as const,
+      deck: mockDecks[0],
+      opponent_deck: mockDecks[1],
+    },
+  ];
 
   beforeEach(() => {
     pinia = createTestingPinia({
@@ -99,15 +112,15 @@ describe('DashboardView.vue', () => {
     await flushPromises();
 
     const statisticsSection = wrapper.findComponent({ name: 'StatisticsSection' });
-    // デュエルにはdeck/opponentdeckが追加される
     const expectedDuels = [
       {
         id: 1,
         deck_id: 1,
+        opponent_deck_id: 2,
         result: true,
         game_mode: 'RANK',
         deck: mockDecks[0],
-        opponentdeck: undefined,
+        opponent_deck: mockDecks[1],
       },
     ];
     expect(statisticsSection.props('duels')).toEqual(expectedDuels);
