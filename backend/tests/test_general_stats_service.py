@@ -35,6 +35,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 1),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck1.id,
@@ -43,6 +45,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 2),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck1.id,
@@ -51,6 +55,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 3),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck1.id,
@@ -59,6 +65,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 4),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         # MyDeck2 vs OppDeck2 (1勝2敗)
         {
@@ -68,6 +76,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 5),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck2.id,
@@ -76,6 +86,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 6),
+            "game_mode": "RANK",
+            "rank": 10,
         },
         {
             "deck_id": deck2.id,
@@ -84,6 +96,8 @@ def create_test_data(db: Session, user: User):
             "won_coin_toss": True,
             "is_going_first": True,
             "played_date": datetime(2024, 7, 7),
+            "game_mode": "RANK",
+            "rank": 10,
         },
     ]
 
