@@ -48,7 +48,7 @@ def get_all_statistics(
             game_mode=mode,
             range_start=range_start,
             range_end=range_end,
-            my_deck_id=my_deck_id,
+            deck_id=my_deck_id,
             opponent_deck_id=opponent_deck_id,
         )
         overall_stats = general_stats_service._calculate_general_stats(duels)
