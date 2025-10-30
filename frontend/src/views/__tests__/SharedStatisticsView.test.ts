@@ -136,7 +136,7 @@ describe('SharedStatisticsView.vue', () => {
 
     // displayYearとdisplayMonthが設定されているか確認
     expect(wrapper.vm.displayYear).toBe(currentYear);
-    expect(wrapper.vm.displayMonth).toBe(currentMonth);
+    expect(wrapper.vm.displayMonth).toBe(`${currentYear}年${currentMonth}月`);
   });
 
   it('displays error message if shared statistics fetch fails', async () => {
