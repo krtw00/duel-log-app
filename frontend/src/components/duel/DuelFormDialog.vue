@@ -173,7 +173,8 @@
                 color="info"
                 type="number"
                 min="0"
-                placeholder="例: 2500"
+                step="0.01"
+                placeholder="例: 2500.50"
                 :rules="form.game_mode === 'RATE' ? [rules.required, rules.number] : []"
               />
             </v-col>
@@ -188,7 +189,8 @@
                 color="warning"
                 type="number"
                 min="0"
-                placeholder="例: 18500"
+                step="0.01"
+                placeholder="例: 18500.75"
                 :rules="form.game_mode === 'DC' ? [rules.required, rules.number] : []"
               />
             </v-col>
