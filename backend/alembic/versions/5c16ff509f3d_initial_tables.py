@@ -4,6 +4,17 @@ Revision ID: 5c16ff509f3d
 Revises:
 Create Date: 2025-09-26 15:55:10.692114
 
+✅ まとめ
+
+この初期マイグレーションはアプリの根幹：
+
+認証ユーザー
+デッキ管理
+対戦ログ
+月次共有URL
+
+を扱うための土台。
+
 """
 
 import sqlalchemy as sa
