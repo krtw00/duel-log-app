@@ -38,6 +38,8 @@ def test_build_base_duels_query(db_session: Session, test_user: User):
         won_coin_toss=True,
         is_going_first=True,
         played_date=datetime.utcnow(),
+        game_mode="RANK",
+        rank=10,
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
     db_session.commit()
@@ -70,6 +72,8 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
         won_coin_toss=True,
         is_going_first=True,
         played_date=datetime.utcnow(),
+        game_mode="RANK",
+        rank=10,
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rank)
 
@@ -193,6 +197,7 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
         opponent_deck_id=opponent_deck_1.id,
         is_win=True,
         game_mode="RANK",
+        rank=10,
         won_coin_toss=True,
         is_going_first=True,
         played_date=datetime.utcnow(),
