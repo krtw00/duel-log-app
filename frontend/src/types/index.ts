@@ -60,7 +60,7 @@ export interface Duel {
   user_id: number; // ユーザーID
   // フロントエンドで追加するフィールド
   deck?: Deck; // 使用したデッキの詳細情報（結合データ）
-  opponentdeck?: Deck; // 相手のデッキの詳細情報（結合データ）
+  opponentDeck?: Deck; // 相手のデッキの詳細情報（結合データ）
   no?: number; // テーブル表示用の連番
 }
 

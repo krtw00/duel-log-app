@@ -12,11 +12,17 @@ class DuelBase(CustomBaseModel):
     """デュエル基底スキーマ"""
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
-    opponent_deck_id: int = Field(..., gt=0, description="対戦相手デッキID")
-    won_coin_toss: bool = Field(
-        ..., description="コイントスの結果（True: 表, False: 裏）"
+    # TODO: 本番DBの歴史的経緯により、フロントエンドはcamelCaseを期待しているためエイリアスを設定。
+    # 本来はDBカラム名をsnake_caseに統一すべきだが、影響範囲を考慮し暫定対応とする。
+    opponent_deck_id: int = Field(
+        ..., gt=0, description="対戦相手デッキID", alias="opponentDeck_id"
     )
-    is_going_first: bool = Field(..., description="先攻後政（True: 先攻, False: 後攻）")
+    won_coin_toss: bool = Field(
+        ..., description="コイントスの結果（True: 表, False: 裏）", alias="coin"
+    )
+    is_going_first: bool = Field(
+        ..., description="先攻後政（True: 先攻, False: 後攻）", alias="first_or_second"
+    )
     is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
     game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
         default="RANK", description="ゲームモード（RANK/RATE/EVENT/DC）"
@@ -76,7 +82,10 @@ class DuelBase(CustomBaseModel):
 class DuelCreate(DuelBase):
     """デュエル作成スキーマ"""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
 
 
 class DuelUpdate(BaseModel):
@@ -117,7 +126,12 @@ class DuelRead(DuelBase):
     create_date: datetime
     update_date: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+    )
+
+
 
 
 class DuelWithDeckNames(DuelRead):
