@@ -325,8 +325,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if not run_migrations():
-        logger.error("Migration failed, but continuing to start server...")
-        sys.stdout.flush()
-        # 本番環境では続行（手動で修正済みの場合）
+        logger.error("Migration failed. Exiting.")
+        sys.exit(1)
 
     start_server()
