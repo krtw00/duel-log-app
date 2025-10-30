@@ -21,7 +21,7 @@ from app.services.duel_service import duel_service
 from app.services.general_stats_service import general_stats_service
 from app.services.matchup_service import matchup_service
 from app.services.shared_statistics_service import shared_statistics_service
-from app.services.statistics_service import statistics_service
+from app.api.routers.statistics import get_all_statistics
 from app.services.time_series_service import time_series_service
 from app.services.win_rate_service import win_rate_service
 
@@ -78,12 +78,11 @@ def get_shared_statistics(
             status_code=status.HTTP_410_GONE, detail="共有リンクの有効期限が切れています"
         )
 
-    statistics_data = statistics_service.get_all_statistics(
+    statistics_data = get_all_statistics(
         db=db,
-        user_id=shared_link.user_id,
+        current_user=shared_link.user,
         year=shared_link.year,
         month=shared_link.month,
-        game_mode=shared_link.game_mode,
     )
 
     return SharedStatisticsResponse(
