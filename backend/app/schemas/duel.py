@@ -132,13 +132,3 @@ class DuelWithDeckNames(DuelRead):
 
     deck: DeckRead
     opponent_deck: DeckRead
-
-    @computed_field
-    @property
-    def deck_name(self) -> str:
-        return self.deck.name
-
-    @computed_field
-    @property
-    def opponent_deck_name(self) -> str:
-        return self.opponent_deck.name
