@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.duel import DuelCreate, DuelRead, DuelUpdate
+from app.schemas.duel import DuelCreate, DuelRead, DuelUpdate, DuelWithDeckNames
 from app.services.duel_service import duel_service
 
 router = APIRouter(prefix="/duels", tags=["duels"])
@@ -67,7 +67,7 @@ def export_duels_csv(
         ) from e
 
 
-@router.get("/", response_model=List[DuelRead], response_model_by_alias=True)
+@router.get("/", response_model=List[DuelWithDeckNames], response_model_by_alias=True)
 def list_duels(
     deck_id: Optional[int] = Query(None, description="デッキIDでフィルタリング"),
     opponent_deck_id: Optional[int] = Query(
