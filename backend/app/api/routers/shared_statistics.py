@@ -17,6 +17,7 @@ from app.services.duel_service import duel_service
 from app.services.general_stats_service import general_stats_service
 from app.services.matchup_service import matchup_service
 from app.services.shared_statistics_service import shared_statistics_service
+from app.services.statistics_service import statistics_service
 
 router = APIRouter(prefix="/shared-statistics", tags=["shared-statistics"])
 
@@ -161,30 +162,39 @@ def get_shared_statistics(
         "DASHBOARD": {"overall_stats": overall_stats, "duels": serialized_duels}
     }
 
-    # STATISTICS タブ用：指定されたゲームモードの統計データを返す
-    statistics_data = {
-        "year": target_year,
-        "month": target_month,
-        "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
-            db=db,
-            user_id=user_id,
-            year=target_year,
-            month=target_month,
-            game_mode=game_mode,
-        ),
-        "recent_deck_distribution": deck_distribution_service.get_deck_distribution_recent(
-            db=db, user_id=user_id, limit=30, game_mode=game_mode
-        ),
-        "matchup_data": matchup_service.get_matchup_chart(
-            db=db,
-            user_id=user_id,
-            year=target_year,
-            month=target_month,
-            game_mode=game_mode,
-        ),
-    }
-
-    response_data["STATISTICS"] = statistics_data
+    # すべてのゲームモードの統計データを取得
+    all_game_modes = ["RANK", "RATE", "EVENT", "DC"]
+    for mode in all_game_modes:
+        # 各ゲームモードの統計データを取得
+        mode_statistics_data = {
+            "year": target_year,
+            "month": target_month,
+            "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
+                db=db,
+                user_id=user_id,
+                year=target_year,
+                month=target_month,
+                game_mode=mode,
+            ),
+            "recent_deck_distribution": deck_distribution_service.get_deck_distribution_recent(
+                db=db, user_id=user_id, limit=30, game_mode=mode
+            ),
+            "matchup_data": matchup_service.get_matchup_chart(
+                db=db,
+                user_id=user_id,
+                year=target_year,
+                month=target_month,
+                game_mode=mode,
+            ),
+            "time_series_data": statistics_service.get_time_series_data(
+                db=db,
+                user_id=user_id,
+                year=target_year,
+                month=target_month,
+                game_mode=mode,
+            ),
+        }
+        response_data[mode] = mode_statistics_data
 
     return response_data
 
