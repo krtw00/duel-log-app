@@ -1,18 +1,17 @@
 <template>
   <div>
     <!-- 統計フィルターパネル -->
-    <filter-panel
+    <statistics-filter
       v-model:period-type="filterPeriodType"
       v-model:range-start="filterRangeStart"
       v-model:range-end="filterRangeEnd"
       v-model:my-deck-id="filterMyDeckId"
-      :available-decks="availableMyDecks"
-      :period-options="filterPeriodOptions"
+      :available-my-decks="availableMyDecks"
       @update:period-type="applyFilters"
       @update:range-start="applyFilters"
       @update:range-end="applyFilters"
       @update:my-deck-id="handleMyDeckFilterChange"
-      @reset-filters="resetFilters"
+      @reset="resetFilters"
     />
 
     <!-- 統計カード -->
@@ -25,7 +24,7 @@ import { computed, watch } from 'vue';
 import type { Duel, Deck, GameMode } from '@/types';
 
 // Components
-import FilterPanel from '@/components/dashboard/FilterPanel.vue';
+import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 import StatsDisplayCards from '@/components/dashboard/StatsDisplayCards.vue';
 
 // Stores
@@ -63,7 +62,6 @@ const {
   filteredRateDuels,
   filteredEventDuels,
   filteredDcDuels,
-  filterPeriodOptions,
   updateAvailableDecks,
   resetFilters,
 } = useDashboardFilters({
@@ -100,13 +98,20 @@ const handleMyDeckFilterChange = () => {
 };
 
 // Watchers
-watch(() => props.duels, () => {
-  applyFilters();
-}, { deep: true, immediate: true });
+watch(
+  () => props.duels,
+  () => {
+    applyFilters();
+  },
+  { deep: true, immediate: true },
+);
 
-watch(() => props.currentMode, () => {
-  applyFilters();
-});
+watch(
+  () => props.currentMode,
+  () => {
+    applyFilters();
+  },
+);
 
 // Expose for testing
 defineExpose({

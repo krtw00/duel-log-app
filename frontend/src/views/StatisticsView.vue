@@ -48,80 +48,18 @@
         </v-row>
 
         <!-- 統計フィルター -->
-        <v-card class="filter-card mb-4">
-          <v-card-title class="pa-4">
-            <div class="d-flex align-center">
-              <v-icon class="mr-2" color="primary">mdi-filter</v-icon>
-              <span class="text-h6">統計フィルター</span>
-            </div>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <v-row>
-              <v-col cols="12" sm="6" md="4">
-                <v-select
-                  v-model="filterPeriodType"
-                  :items="filterPeriodOptions"
-                  label="期間"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  @update:model-value="refreshStatisticsWithDecks"
-                ></v-select>
-              </v-col>
-              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="2">
-                <v-text-field
-                  v-model.number="filterRangeStart"
-                  label="開始（試合目）"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  type="number"
-                  min="1"
-                  @update:model-value="refreshStatisticsWithDecks"
-                ></v-text-field>
-              </v-col>
-              <v-col v-if="filterPeriodType === 'range'" cols="6" sm="3" md="2">
-                <v-text-field
-                  v-model.number="filterRangeEnd"
-                  label="終了（試合目）"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  type="number"
-                  min="1"
-                  @update:model-value="refreshStatisticsWithDecks"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6" md="4">
-                <v-select
-                  v-model="filterMyDeckId"
-                  :items="availableMyDecks"
-                  item-title="name"
-                  item-value="id"
-                  label="自分のデッキ"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  clearable
-                  :disabled="availableMyDecks.length === 0"
-                  @update:model-value="handleMyDeckFilterChange"
-                ></v-select>
-              </v-col>
-              <v-col cols="12" sm="6" md="2" class="d-flex align-center">
-                <v-btn
-                  color="secondary"
-                  variant="outlined"
-                  block
-                  @click="resetFilters"
-                >
-                  <v-icon start>mdi-refresh</v-icon>
-                  リセット
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
+        <statistics-filter
+          v-model:period-type="filterPeriodType"
+          v-model:range-start="filterRangeStart"
+          v-model:range-end="filterRangeEnd"
+          v-model:my-deck-id="filterMyDeckId"
+          :available-my-decks="availableMyDecks"
+          @update:period-type="refreshStatisticsWithDecks"
+          @update:range-start="refreshStatisticsWithDecks"
+          @update:range-end="refreshStatisticsWithDecks"
+          @update:my-deck-id="handleMyDeckFilterChange"
+          @reset="resetFilters"
+        />
 
         <!-- ゲームモード切り替えタブ -->
         <v-card class="mode-tab-card mb-4">
@@ -147,7 +85,20 @@
 
         <v-window v-model="currentTab">
           <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
-            <v-row>
+            <statistics-content
+              :statistics="{
+                monthlyDistribution: statisticsByMode[mode].monthlyDistribution,
+                duels: monthlyDuelsByMode[mode],
+                myDeckWinRates: statisticsByMode[mode].myDeckWinRates,
+                matchupData: statisticsByMode[mode].matchupData,
+                timeSeries: statisticsByMode[mode].timeSeries,
+              }"
+              :game-mode="mode"
+              :display-month="Number(currentMonth)"
+              :loading="loading"
+            />
+            <!-- Keeping old code below for reference, can be removed later -->
+            <v-row v-if="false">
               <!-- 月間デッキ分布 -->
               <v-col cols="12" lg="6">
                 <v-card class="stats-card">
@@ -202,7 +153,7 @@
                       class="matchup-table"
                       density="compact"
                     >
-                      <template #[`item.win_rate`]='{ item }'>
+                      <template #[`item.win_rate`]="{ item }">
                         {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
                       </template>
                       <template #no-data>
@@ -228,15 +179,15 @@
                       class="matchup-table"
                       density="compact"
                     >
-            <template #[`item.win_rate`]='{ item }'>
-              {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
-            </template>
-            <template #[`item.win_rate_first`]='{ item }'>
-              {{ item.win_rate_first.toFixed(1) }}%
-            </template>
-            <template #[`item.win_rate_second`]='{ item }'>
-              {{ item.win_rate_second.toFixed(1) }}%
-            </template>
+                      <template #[`item.win_rate`]="{ item }">
+                        {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
+                      </template>
+                      <template #[`item.win_rate_first`]="{ item }">
+                        {{ item.win_rate_first.toFixed(1) }}%
+                      </template>
+                      <template #[`item.win_rate_second`]="{ item }">
+                        {{ item.win_rate_second.toFixed(1) }}%
+                      </template>
                       <template #no-data>
                         <div class="no-data-placeholder py-8">
                           <v-icon size="64" color="grey">mdi-table-off</v-icon>
@@ -315,6 +266,8 @@ import AppBar from '@/components/layout/AppBar.vue';
 import { useThemeStore } from '@/stores/theme';
 import { useChartOptions } from '@/composables/useChartOptions';
 import DuelTable from '@/components/duel/DuelTable.vue';
+import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
+import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 
 const themeStore = useThemeStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
@@ -391,11 +344,6 @@ const filterOpponentDeckId = ref<number | null>(null);
 const availableMyDecks = ref<{ id: number; name: string }[]>([]);
 const availableOpponentDecks = ref<{ id: number; name: string }[]>([]);
 
-const filterPeriodOptions = [
-  { title: '全体', value: 'all' },
-  { title: '範囲指定', value: 'range' },
-];
-
 const resetFilters = () => {
   filterPeriodType.value = 'all';
   filterRangeStart.value = 1;
@@ -415,7 +363,10 @@ const createInitialStats = (): AllStatisticsData => {
   const stats: AllStatisticsData = {};
   modes.forEach((mode) => {
     stats[mode] = {
-      monthlyDistribution: { series: [], chartOptions: { ...basePieChartOptions.value, labels: [] } },
+      monthlyDistribution: {
+        series: [],
+        chartOptions: { ...basePieChartOptions.value, labels: [] },
+      },
       matchupData: [],
       myDeckWinRates: [],
       timeSeries: {
@@ -465,7 +416,9 @@ const fetchAvailableDecks = async () => {
       }
     }
     if (filterOpponentDeckId.value !== null) {
-      const exists = availableOpponentDecks.value.some((deck) => deck.id === filterOpponentDeckId.value);
+      const exists = availableOpponentDecks.value.some(
+        (deck) => deck.id === filterOpponentDeckId.value,
+      );
       if (!exists) {
         filterOpponentDeckId.value = null;
       }
@@ -582,8 +535,10 @@ const fetchStatistics = async () => {
     modes.forEach((mode) => {
       const modeData = data[mode] || {};
       // Monthly Distribution
-      const monthlyLabels = modeData.monthly_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [];
-      const monthlySeries = modeData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [];
+      const monthlyLabels =
+        modeData.monthly_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [];
+      const monthlySeries =
+        modeData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [];
       statisticsByMode.value[mode].monthlyDistribution = {
         series: monthlySeries,
         chartOptions: { ...basePieChartOptions.value, labels: monthlyLabels },
@@ -597,7 +552,9 @@ const fetchStatistics = async () => {
 
       // Time Series Data
       const timeSeriesData: TimeSeriesDataItem[] = modeData.time_series_data || [];
-      const categories = timeSeriesData.map((_item: TimeSeriesDataItem, i: number) => String(i + 1));
+      const categories = timeSeriesData.map((_item: TimeSeriesDataItem, i: number) =>
+        String(i + 1),
+      );
       const seriesData = timeSeriesData.map((d: TimeSeriesDataItem) => d.value);
       statisticsByMode.value[mode].timeSeries = {
         series: [{ name: mode, data: seriesData }],
@@ -640,10 +597,13 @@ watch(currentTab, () => {
 });
 
 // テーマ変更時にグラフを再描画
-watch(() => themeStore.isDark, () => {
-  fetchStatistics();
-  fetchMonthlyDuels(currentTab.value as GameMode);
-});
+watch(
+  () => themeStore.isDark,
+  () => {
+    fetchStatistics();
+    fetchMonthlyDuels(currentTab.value as GameMode);
+  },
+);
 </script>
 
 <style scoped lang="scss">
