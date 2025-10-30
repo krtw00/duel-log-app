@@ -34,10 +34,12 @@ def test_build_base_duels_query(db_session: Session, test_user: User):
     duel_in = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=True,
-        won_coin_toss=True,
-        is_going_first=True,
+        result=True,
+        coin=True,
+        first_or_second=True,
         played_date=datetime.utcnow(),
+        game_mode="RANK",
+        rank=10,
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
     db_session.commit()
@@ -66,10 +68,12 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
     duel_rank = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=True,
-        won_coin_toss=True,
-        is_going_first=True,
+        result=True,
+        coin=True,
+        first_or_second=True,
         played_date=datetime.utcnow(),
+        game_mode="RANK",
+        rank=10,
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rank)
 
@@ -77,11 +81,11 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
     duel_rate = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=False,
+        result=False,
         game_mode="RATE",
         rate_value=1500,
-        won_coin_toss=False,
-        is_going_first=False,
+        coin=False,
+        first_or_second=False,
         played_date=datetime.utcnow(),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rate)
@@ -111,11 +115,11 @@ def test_apply_date_range_filter_year_only(db_session: Session, test_user: User)
     duel_2024 = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=True,
+        result=True,
         game_mode="RANK",
         rank=10,
-        won_coin_toss=True,
-        is_going_first=True,
+        coin=True,
+        first_or_second=True,
         played_date=datetime(2024, 6, 15),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_2024)
@@ -124,11 +128,11 @@ def test_apply_date_range_filter_year_only(db_session: Session, test_user: User)
     duel_2025 = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=False,
+        result=False,
         game_mode="RANK",
         rank=9,
-        won_coin_toss=False,
-        is_going_first=False,
+        coin=False,
+        first_or_second=False,
         played_date=datetime(2025, 6, 15),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_2025)
@@ -165,11 +169,11 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
     duel_1 = DuelCreate(
         deck_id=my_deck_1.id,
         opponent_deck_id=opponent_deck_1.id,
-        is_win=True,
+        result=True,
         game_mode="RANK",
         rank=10,
-        won_coin_toss=True,
-        is_going_first=True,
+        coin=True,
+        first_or_second=True,
         played_date=datetime.utcnow(),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_1)
@@ -178,11 +182,11 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
     duel_2 = DuelCreate(
         deck_id=my_deck_1.id,
         opponent_deck_id=opponent_deck_2.id,
-        is_win=False,
+        result=False,
         game_mode="RANK",
         rank=9,
-        won_coin_toss=False,
-        is_going_first=False,
+        coin=False,
+        first_or_second=False,
         played_date=datetime.utcnow(),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_2)
@@ -191,10 +195,11 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
     duel_3 = DuelCreate(
         deck_id=my_deck_2.id,
         opponent_deck_id=opponent_deck_1.id,
-        is_win=True,
+        result=True,
         game_mode="RANK",
-        won_coin_toss=True,
-        is_going_first=True,
+        rank=10,
+        coin=True,
+        first_or_second=True,
         played_date=datetime.utcnow(),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_3)
@@ -227,11 +232,11 @@ def test_apply_range_filter(db_session: Session, test_user: User):
         duel_in = DuelCreate(
             deck_id=my_deck.id,
             opponent_deck_id=opponent_deck.id,
-            is_win=i % 2 == 0,
+            result=i % 2 == 0,
             game_mode="RANK",
             rank=10 - i,
-            won_coin_toss=True,
-            is_going_first=True,
+            coin=True,
+            first_or_second=True,
             played_date=base_date - timedelta(days=i),
         )
         duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
