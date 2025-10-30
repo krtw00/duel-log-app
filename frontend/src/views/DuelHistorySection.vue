@@ -64,7 +64,6 @@ import { useDuelManagement } from '@/composables/useDuelManagement';
 // Props
 interface Props {
   duels: Duel[];
-  decks: Deck[];
   loading: boolean;
   year: number;
   month: number;
@@ -107,7 +106,6 @@ const handleFileUpload = async (event: Event) => {
 const { selectedDuel, dialogOpen, openDuelDialog, editDuel, deleteDuel, handleSaved } =
   useDuelManagement({
     duels: computed(() => props.duels),
-    decks: computed(() => props.decks),
     fetchDuels: async () => emit('refresh'),
   });
 
