@@ -4,6 +4,16 @@ Revision ID: 9f8a2d3e4b5c
 Revises: f853e5404fb3
 Create Date: 2025-10-02 12:00:00.000000
 
+✅ 設計の文脈（推測）
+
+以前の JSON スキーマでもよくある話ですが：
+
+最初：ランク戦しかない前提で rank を必須にした
+仕様追加：レート戦が登場
+rank が不要なデータが出てきた
+カラムnullable化
+レート戦固有値を追加
+
 """
 
 import sqlalchemy as sa
