@@ -46,14 +46,14 @@ export interface Duel {
   id: number;
   deck_id: number; // 使用したデッキのID
   opponent_deck_id: number; // 相手のデッキのID
-  result: boolean; // true=勝利, false=敗北
+  is_win: boolean; // true=勝利, false=敗北
   game_mode: GameMode; // RANK, RATE, EVENT, DC
   rank?: number; // ランクモード時のランク（1-15: B2～M1）
   rate_value?: number; // レートモード時のレート数値
   dc_value?: number; // DCモード時のDC数値
-  coin: boolean; // true=コイントス勝利, false=敗北
-  first_or_second: boolean; // true=先攻, false=後攻
-  played_date: string; // 対戦日時（ISO8601形式）
+  won_coin_toss: boolean; // true=コイントス勝利, false=敗北
+  is_going_first: boolean; // true=先攻, false=後攻
+  played_date: string; // 対戦日時（ISO8101形式）
   notes?: string; // メモ（任意）
   create_date: string; // 作成日時
   update_date: string; // 更新日時
@@ -67,13 +67,13 @@ export interface Duel {
 export interface DuelCreate {
   deck_id: number | null;
   opponent_deck_id: number | null;
-  result: boolean;
+  result: number;
   game_mode: GameMode;
   rank?: number;
   rate_value?: number;
   dc_value?: number;
-  coin: boolean;
-  first_or_second: boolean;
+  coin: number;
+  first_or_second: number;
   played_date: string;
   notes?: string;
 }
@@ -81,13 +81,13 @@ export interface DuelCreate {
 export interface DuelUpdate {
   deck_id?: number;
   opponent_deck_id?: number;
-  result?: boolean;
+  is_win?: boolean;
   game_mode?: GameMode;
   rank?: number;
   rate_value?: number;
   dc_value?: number;
-  coin?: boolean;
-  first_or_second?: boolean;
+  won_coin_toss?: boolean;
+  is_going_first?: boolean;
   played_date?: string;
   notes?: string;
 }

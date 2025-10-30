@@ -16,12 +16,12 @@
     </template>
 
     <!-- 勝敗カラム -->
-    <template #[`item.result`]="{ item }">
-      <v-chip :color="item.result ? 'success' : 'error'" variant="flat" class="font-weight-bold">
+    <template #[`item.is_win`]="{ item }">
+      <v-chip :color="item.is_win ? 'success' : 'error'" variant="flat" class="font-weight-bold">
         <v-icon start>
-          {{ item.result ? 'mdi-check-circle' : 'mdi-close-circle' }}
+          {{ item.is_win ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
-        {{ item.result ? '勝利' : '敗北' }}
+        {{ item.is_win ? '勝利' : '敗北' }}
       </v-chip>
     </template>
 
@@ -40,19 +40,19 @@
     </template>
 
     <!-- コインカラム -->
-    <template v-if="!hiddenColumnsSet.has('coin')" #[`item.coin`]="{ item }">
-      <v-icon :color="item.coin ? 'warning' : 'grey'">
-        {{ item.coin ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
+    <template v-if="!hiddenColumnsSet.has('won_coin_toss')" #[`item.won_coin_toss`]="{ item }">
+      <v-icon :color="item.won_coin_toss ? 'warning' : 'grey'">
+        {{ item.won_coin_toss ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
       </v-icon>
-      {{ item.coin ? '表' : '裏' }}
+      {{ item.won_coin_toss ? '表' : '裏' }}
     </template>
 
     <!-- 先攻/後攻カラム -->
-    <template v-if="!hiddenColumnsSet.has('first_or_second')" #[`item.first_or_second`]="{ item }">
-      <v-icon :color="item.first_or_second ? 'info' : 'purple'">
-        {{ item.first_or_second ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
+    <template v-if="!hiddenColumnsSet.has('is_going_first')" #[`item.is_going_first`]="{ item }">
+      <v-icon :color="item.is_going_first ? 'info' : 'purple'">
+        {{ item.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
       </v-icon>
-      {{ item.first_or_second ? '先攻' : '後攻' }}
+      {{ item.is_going_first ? '先攻' : '後攻' }}
     </template>
 
     <!-- ランク/レートカラム -->
@@ -136,9 +136,9 @@ const headers = [
   { title: 'No.', key: 'no', sortable: false, width: 60 },
   { title: '使用デッキ', key: 'deck', sortable: false },
   { title: '相手デッキ', key: 'opponent_deck', sortable: false },
-  { title: '勝敗', key: 'result', sortable: true, width: 100 },
-  { title: 'コイン', key: 'coin', sortable: false, width: 100, class: 'hidden-xs' },
-  { title: '先攻/後攻', key: 'first_or_second', sortable: false, width: 120, class: 'hidden-xs' },
+  { title: '勝敗', key: 'is_win', sortable: true, width: 100 },
+  { title: 'コイン', key: 'won_coin_toss', sortable: false, width: 100, class: 'hidden-xs' },
+  { title: '先攻/後攻', key: 'is_going_first', sortable: false, width: 120, class: 'hidden-xs' },
   { title: 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120, class: 'hidden-xs' },
   { title: '備考', key: 'notes', sortable: false, width: 200, class: 'hidden-sm-and-down' },
   { title: 'プレイ日時', key: 'played_date', sortable: true, class: 'hidden-sm-and-down' },
