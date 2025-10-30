@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, computed_field
 
 from . import CustomBaseModel
 
@@ -129,5 +129,12 @@ class DuelRead(DuelBase):
 class DuelWithDeckNames(DuelRead):
     """デッキ名付きデュエルスキーマ"""
 
-    deck_name: str = Field(..., description="使用デッキ名")
-    opponent_deck_name: str = Field(..., description="対戦相手デッキ名")
+    @computed_field
+    @property
+    def deck_name(self) -> str:
+        return self.deck.name
+
+    @computed_field
+    @property
+    def opponent_deck_name(self) -> str:
+        return self.opponent_deck.name
