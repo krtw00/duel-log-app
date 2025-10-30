@@ -94,7 +94,7 @@
                 timeSeries: statisticsByMode[mode].timeSeries,
               }"
               :game-mode="mode"
-              :display-month="Number(currentMonth)"
+              :display-month="currentMonth"
               :loading="loading"
             />
             <!-- Keeping old code below for reference, can be removed later -->
