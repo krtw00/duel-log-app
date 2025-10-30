@@ -23,7 +23,7 @@ class DuelBase(CustomBaseModel):
     is_going_first: bool = Field(
         ..., description="先攻後政（True: 先攻, False: 後攻）", alias="first_or_second"
     )
-    is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
+    is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）", alias="result")
     game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
         default="RANK", description="ゲームモード（RANK/RATE/EVENT/DC）"
     )
