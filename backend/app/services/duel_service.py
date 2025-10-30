@@ -1,6 +1,6 @@
-"""
-デュエルサービス
-デュエルに関するビジネスロジックを提供
+"""デュエルサービス。
+
+デュエルに関するビジネスロジックを提供。
 """
 
 from datetime import datetime
@@ -15,9 +15,10 @@ from app.utils.query_builders import apply_duel_filters
 
 
 class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
-    """デュエルサービスクラス"""
+    """デュエルサービスクラス。"""
 
     def __init__(self):
+        """DuelServiceのコンストラクタ。"""
         super().__init__(Duel)
 
     def get_user_duels(
@@ -34,25 +35,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         range_start: Optional[int] = None,
         range_end: Optional[int] = None,
     ) -> List[Duel]:
-        """
-        ユーザーのデュエルを取得（フィルタリング可能）
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            deck_id: デッキID（指定した場合、そのデッキのデュエルのみ）
-            start_date: 開始日（指定した場合、この日以降のデュエル）
-            end_date: 終了日（指定した場合、この日以前のデュエル）
-            year: 年（指定した場合、その年のデュエル）
-            month: 月（指定した場合、その月のデュエル）
-            game_mode: ゲームモード（指定した場合、このモードのデュエルのみ）
-            opponent_deck_id: 相手デッキID（指定した場合、そのデッキとの対戦のみ）
-            range_start: 範囲指定の開始位置（1始まり、最新試合を1としてカウント）
-            range_end: 範囲指定の終了位置（1始まり、endは含まない）
-
-        Returns:
-            デュエルのリスト
-        """
+        """ユーザーのデュエルを取得（フィルタリング可能）。"""
         query = db.query(Duel)
         query = apply_duel_filters(
             query,
@@ -80,33 +63,13 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         return duels
 
     def create_user_duel(self, db: Session, user_id: int, duel_in: DuelCreate) -> Duel:
-        """
-        ユーザーのデュエルを作成
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            duel_in: デュエル作成スキーマ
-
-        Returns:
-            作成されたデュエル
-        """
+        """ユーザーのデュエルを作成。"""
         return self.create(db, duel_in, user_id=user_id)
 
     def get_win_rate(
         self, db: Session, user_id: int, deck_id: Optional[int] = None
     ) -> float:
-        """
-        勝率を計算
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            deck_id: デッキID（指定した場合、そのデッキの勝率）
-
-        Returns:
-            勝率（0.0〜1.0）、デュエルがない場合は0.0
-        """
+        """勝率を計算。"""
         query = db.query(Duel).filter(Duel.user_id == user_id)
 
         if deck_id is not None:
@@ -117,14 +80,12 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         if total_duels == 0:
             return 0.0
 
-        wins = query.filter(Duel.result).count()
+        wins = query.filter(Duel.is_win).count()
 
         return wins / total_duels
 
     def get_latest_duel_values(self, db: Session, user_id: int) -> dict:
-        """
-        ユーザーの各ゲームモードにおける最新のランク、レート、DC値を取得
-        """
+        """ユーザーの各ゲームモードにおける最新のランク、レート、DC値を取得。"""
         latest_values = {}
 
         # ゲームモード別の設定
@@ -149,7 +110,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                 latest_values[mode] = {
                     "value": getattr(latest_duel, attr_name),
                     "deck_id": latest_duel.deck_id,
-                    "opponentDeck_id": latest_duel.opponentDeck_id,
+                    "opponent_deck_id": latest_duel.opponent_deck_id,
                 }
 
         return latest_values
@@ -163,38 +124,17 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         game_mode: Optional[str] = None,
         columns: Optional[List[str]] = None,
     ) -> str:
-        """
-        ユーザーのDuelデータをCSV形式でエクスポート
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            year: 年
-            month: 月
-            game_mode: ゲームモード
-            columns: エクスポートするカラムのリスト
-
-        Returns:
-            CSV形式の文字列（UTF-8 BOM付き）
-        """
+        """ユーザーのDuelデータをCSV形式でエクスポート。"""
         from app.services.csv_service import csv_service
 
-        return csv_service.export_duels_to_csv(db, user_id, year, month, game_mode, columns)
+        return csv_service.export_duels_to_csv(
+            db, user_id, year, month, game_mode, columns
+        )
 
     def import_duels_from_csv(
         self, db: Session, user_id: int, csv_content: str
     ) -> dict:
-        """
-        CSV形式のデータからDuelをインポート
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            csv_content: CSV形式の文字列
-
-        Returns:
-            インポート結果の辞書 {'created': 作成数, 'skipped': スキップ数, 'errors': エラーリスト}
-        """
+        """CSV形式のデータからDuelをインポート。"""
         from app.services.csv_service import csv_service
 
         return csv_service.import_duels_from_csv(db, user_id, csv_content)

@@ -1,6 +1,6 @@
-"""
-勝率計算サービス
-デッキごとの勝率計算に特化したビジネスロジックを提供
+"""勝率計算サービス。
+
+デッキごとの勝率計算に特化したビジネスロジックを提供。
 """
 
 from typing import Any, Dict, List, Optional
@@ -14,12 +14,12 @@ from app.utils.query_builders import apply_range_filter, build_base_duels_query
 
 
 class WinRateService:
-    """勝率計算サービスクラス"""
+    """勝率計算サービスクラス。"""
 
     def _calculate_win_rates_from_duels(
         self, duels: List[Duel]
     ) -> List[Dict[str, Any]]:
-        """デュエルのリストからデッキごとの勝率データを計算する"""
+        """デュエルのリストからデッキごとの勝率データを計算する。"""
         deck_stats_map = {}
         for duel in duels:
             if duel.deck and duel.deck.name:
@@ -27,7 +27,7 @@ class WinRateService:
                 if deck_name not in deck_stats_map:
                     deck_stats_map[deck_name] = {"total": 0, "wins": 0}
                 deck_stats_map[deck_name]["total"] += 1
-                if duel.result:
+                if duel.is_win:
                     deck_stats_map[deck_name]["wins"] += 1
 
         win_rates_data = []
@@ -61,9 +61,7 @@ class WinRateService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        ユーザー自身の各デッキの勝率を計算
-        """
+        """ユーザー自身の各デッキの勝率を計算。"""
         query = build_base_duels_query(db, user_id, game_mode)
 
         if year is not None:
@@ -75,7 +73,7 @@ class WinRateService:
         if my_deck_id is not None:
             query = query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+            query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
         # 範囲指定がある場合は、一旦リストで取得してフィルタリング
         if range_start is not None or range_end is not None:
@@ -90,7 +88,7 @@ class WinRateService:
                 .with_entities(
                     Deck.name,
                     func.count(Duel.id).label("total_duels"),
-                    func.sum(case((Duel.result, 1), else_=0)).label("wins"),
+                    func.sum(case((Duel.is_win, 1), else_=0)).label("wins"),
                 )
                 .order_by(desc("total_duels"))
                 .all()
