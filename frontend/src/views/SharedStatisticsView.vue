@@ -7,6 +7,24 @@
         <span class="text-h6">Duel Log Shared Statistics</span>
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <!-- View Toggle (Dashboard / Statistics) -->
+      <v-btn-toggle
+        v-model="currentView"
+        mandatory
+        color="primary"
+        variant="outlined"
+        divided
+        class="mr-4"
+      >
+        <v-btn value="dashboard">
+          <v-icon start>mdi-view-dashboard</v-icon>
+          ダッシュボード
+        </v-btn>
+        <v-btn value="statistics">
+          <v-icon start>mdi-chart-bar</v-icon>
+          統計
+        </v-btn>
+      </v-btn-toggle>
       <v-btn
         :icon="themeStore.isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
         variant="text"
@@ -18,24 +36,14 @@
     <v-main class="main-content">
       <v-container fluid class="pa-6 pa-sm-6 pa-xs-3">
         <v-row justify="center">
-          <v-col cols="12" md="11" lg="10" xl="9">
+          <v-col cols="12">
             <v-card class="shared-stats-card" :loading="sharedStatisticsStore.loading">
               <v-card-title class="d-flex align-center justify-space-between pa-4">
                 <div class="d-flex align-center">
                   <v-icon class="mr-2" color="primary">mdi-share-variant</v-icon>
-                  <span class="text-h6">共有統計データ</span>
+                  <span class="text-h6">{{ displayYear }}年 {{ displayMonth }}月の統計データ</span>
                 </div>
                 <div>
-                  <v-chip
-                    v-if="processedStats && currentTab"
-                    color="info"
-                    variant="outlined"
-                    class="mr-2"
-                  >
-                    {{ getGameModeDisplayName(currentTab) }}
-                    -
-                    {{ displayYear }}年 {{ displayMonth }}月
-                  </v-chip>
                   <v-btn color="secondary" @click="exportCSV">
                     <v-icon start>mdi-download</v-icon>
                     CSVエクスポート
@@ -43,263 +51,74 @@
                 </div>
               </v-card-title>
               <v-divider></v-divider>
-              <v-card-text v-if="processedStats && currentTab">
+              <v-card-text v-if="processedStats">
+                <!-- 統計フィルター -->
+                <statistics-filter
+                  v-model:period-type="filterPeriodType"
+                  v-model:range-start="filterRangeStart"
+                  v-model:range-end="filterRangeEnd"
+                  v-model:my-deck-id="filterMyDeckId"
+                  :available-my-decks="availableMyDecks"
+                  @update:period-type="refreshStatistics"
+                  @update:range-start="refreshStatistics"
+                  @update:range-end="refreshStatistics"
+                  @update:my-deck-id="refreshStatistics"
+                  @reset="resetFilters"
+                />
+
                 <!-- ゲームモード切り替えタブ -->
                 <v-card class="mode-tab-card mb-4">
-                  <v-tabs
-                    v-model="currentTab"
-                    color="primary"
-                    align-tabs="center"
-                    height="64"
-                    @update:model-value="fetchSharedStatistics"
-                  >
-                    <v-tab value="DASHBOARD" class="custom-tab">
-                      <v-icon start>mdi-view-dashboard</v-icon>
-                      ダッシュボード
-                    </v-tab>
-                    <v-tab v-for="mode in gameModes" :key="mode" :value="mode" class="custom-tab">
+                  <v-tabs v-model="currentGameMode" color="primary" align-tabs="center" height="64">
+                    <v-tab
+                      v-for="mode in availableGameModes"
+                      :key="mode"
+                      :value="mode"
+                      class="custom-tab"
+                    >
                       <v-icon start>{{ getGameModeIcon(mode) }}</v-icon>
                       {{ getGameModeDisplayName(mode) }}
+                      <v-chip
+                        v-if="getDuelCount(mode) > 0"
+                        size="small"
+                        class="ml-2"
+                        :color="currentGameMode === mode ? 'primary' : 'default'"
+                      >
+                        {{ getDuelCount(mode) }}
+                      </v-chip>
                     </v-tab>
                   </v-tabs>
                 </v-card>
 
-                <v-window v-model="currentTab">
-                  <v-window-item value="DASHBOARD">
-                    <div v-if="processedStats && processedStats['DASHBOARD']">
-                      <h3 class="text-h5 mb-4 mt-4">ダッシュボード</h3>
+                <!-- Dashboard View -->
+                <div v-if="currentView === 'dashboard'">
+                  <v-window v-model="currentGameMode">
+                    <v-window-item v-for="mode in availableGameModes" :key="mode" :value="mode">
+                      <dashboard-content
+                        v-if="processedStats && processedStats[mode]"
+                        :overall-stats="(processedStats[mode] as DashboardModeData).overall_stats"
+                        :duels="(processedStats[mode] as DashboardModeData).duels"
+                        :loading="sharedStatisticsStore.loading"
+                        :is-shared="true"
+                      />
+                    </v-window-item>
+                  </v-window>
+                </div>
 
-                      <v-row class="mb-4">
-                        <v-col cols="6" sm="4" md="2" lg="2">
-                          <stat-card
-                            title="総試合数"
-                            :value="(processedStats['DASHBOARD'] as DuelStats).total_duels ?? 0"
-                            icon="mdi-sword-cross"
-                            color="primary"
-                          />
-                        </v-col>
-                        <v-col cols="6" sm="4" md="2" lg="2">
-                          <stat-card
-                            title="勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).win_rate ?? 0).toFixed(1)}%`"
-                            icon="mdi-trophy"
-                            color="success"
-                          />
-                        </v-col>
-                        <v-col cols="6" sm="4" md="2" lg="2">
-                          <stat-card
-                            title="先攻勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).first_turn_win_rate ?? 0).toFixed(1)}%`"
-                            icon="mdi-lightning-bolt"
-                            color="warning"
-                          />
-                        </v-col>
-                        <v-col cols="6" sm="4" md="2" lg="2">
-                          <stat-card
-                            title="後攻勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).second_turn_win_rate ?? 0).toFixed(1)}%`"
-                            icon="mdi-shield"
-                            color="secondary"
-                          />
-                        </v-col>
-                        <v-col cols="6" sm="4" md="2" lg="2">
-                          <stat-card
-                            title="コイン勝率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).coin_win_rate ?? 0).toFixed(1)}%`"
-                            icon="mdi-poker-chip"
-                            color="yellow"
-                          />
-                        </v-col>
-                        <v-col cols="6" sm="4" md="2" lg="2">
-                          <stat-card
-                            title="先攻率"
-                            :value="`${((processedStats['DASHBOARD'] as DuelStats).go_first_rate ?? 0).toFixed(1)}%`"
-                            icon="mdi-arrow-up-bold-hexagon-outline"
-                            color="teal"
-                          />
-                        </v-col>
-                      </v-row>
-
-                      <!-- 対戦履歴 -->
-                      <v-card
-                        v-if="
-                          (processedStats['DASHBOARD'] as DashboardData).duels &&
-                          (processedStats['DASHBOARD'] as DashboardData).duels!.length > 0
-                        "
-                        class="duel-card mt-4"
-                      >
-                        <v-card-title class="pa-4">
-                          <div class="d-flex align-center mb-3">
-                            <v-icon class="mr-2" color="primary">mdi-table</v-icon>
-                            <span class="text-h6">対戦履歴</span>
-                          </div>
-                        </v-card-title>
-                        <v-divider />
-                        <duel-table
-                          :duels="(processedStats['DASHBOARD'] as DashboardData).duels! as any"
-                          :loading="sharedStatisticsStore.loading"
-                        />
-                      </v-card>
-                      <div v-else class="no-data-placeholder py-8">
-                        <v-icon size="64" color="grey">mdi-file-document-outline</v-icon>
-                        <p class="text-body-1 text-grey mt-4">対戦履歴がありません</p>
-                      </div>
-                    </div>
-                  </v-window-item>
-
-                  <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
-                    <div v-if="processedStats && processedStats[mode]">
-                      <h3 class="text-h5 mb-4 mt-4">{{ getGameModeDisplayName(mode) }} 統計</h3>
-                      <v-row>
-                        <!-- 月間デッキ分布 -->
-                        <v-col cols="12" md="6">
-                          <v-card :class="statsCardClass">
-                            <v-card-title>相手デッキ分布 (月間)</v-card-title>
-                            <v-card-text>
-                              <apexchart
-                                v-if="
-                                  (processedStats[mode] as StatisticsModeData)
-                                    .monthlyDistribution &&
-                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
-                                    .series &&
-                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
-                                    .series.length > 0
-                                "
-                                type="pie"
-                                height="350"
-                                :options="
-                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
-                                    .chartOptions
-                                "
-                                :series="
-                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
-                                    .series
-                                "
-                              ></apexchart>
-                              <div v-else class="no-data-placeholder">
-                                <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
-                                <p class="text-body-1 text-grey mt-4">データがありません</p>
-                              </div>
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-
-                        <!-- 直近30戦デッキ分布 -->
-                        <v-col cols="12" md="6">
-                          <v-card :class="statsCardClass">
-                            <v-card-title>直近30戦デッキ分布</v-card-title>
-                            <v-card-text>
-                              <apexchart
-                                v-if="
-                                  (processedStats[mode] as StatisticsModeData).recentDistribution &&
-                                  (processedStats[mode] as StatisticsModeData).recentDistribution
-                                    .series &&
-                                  (processedStats[mode] as StatisticsModeData).recentDistribution
-                                    .series.length > 0
-                                "
-                                type="pie"
-                                height="350"
-                                :options="
-                                  (processedStats[mode] as StatisticsModeData).recentDistribution
-                                    .chartOptions
-                                "
-                                :series="
-                                  (processedStats[mode] as StatisticsModeData).recentDistribution
-                                    .series
-                                "
-                              ></apexchart>
-                              <div v-else class="no-data-placeholder">
-                                <v-icon size="64" color="grey">mdi-chart-donut</v-icon>
-                                <p class="text-body-1 text-grey mt-4">データがありません</p>
-                              </div>
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-
-                        <!-- 相性表 -->
-                        <v-col cols="12">
-                          <v-card :class="statsCardClass">
-                            <v-card-title>デッキ相性表</v-card-title>
-                            <v-card-text>
-                              <div
-                                v-if="
-                                  (processedStats[mode] as StatisticsModeData).matchupData &&
-                                  (processedStats[mode] as StatisticsModeData).matchupData.length >
-                                    0
-                                "
-                              >
-                                <v-data-table
-                                  :headers="matchupHeaders"
-                                  :items="(processedStats[mode] as StatisticsModeData).matchupData"
-                                  class="matchup-table"
-                                  density="compact"
-                                >
-                                  <template #[item.win_rate]="{ item }">
-                                    {{ item.wins }} / {{ item.total_duels }} ({{
-                                      item.total_duels > 0
-                                        ? ((item.wins / item.total_duels) * 100).toFixed(1)
-                                        : 0
-                                    }}%)
-                                  </template>
-                                  <template #[item.win_rate_first]="{ item }">
-                                    {{ item.win_rate_first.toFixed(1) }}%
-                                  </template>
-                                  <template #[item.win_rate_second]="{ item }">
-                                    {{ item.win_rate_second.toFixed(1) }}%
-                                  </template>
-                                </v-data-table>
-                              </div>
-                              <div v-else class="no-data-placeholder py-8">
-                                <v-icon size="64" color="grey">mdi-table-off</v-icon>
-                                <p class="text-body-1 text-grey mt-4">相性データがありません</p>
-                              </div>
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-
-                        <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
-                        <v-col v-if="mode === 'RATE' || mode === 'DC'" cols="12">
-                          <v-card :class="statsCardClass">
-                            <v-card-title
-                              >{{ mode === 'RATE' ? 'レート変動' : 'DC変動' }} ({{
-                                displayMonth
-                              }})</v-card-title
-                            >
-                            <v-card-text>
-                              <apexchart
-                                v-if="
-                                  (processedStats[mode] as StatisticsModeData).timeSeries &&
-                                  (processedStats[mode] as StatisticsModeData).timeSeries.series &&
-                                  (processedStats[mode] as StatisticsModeData).timeSeries
-                                    .series[0] &&
-                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0]
-                                    .data &&
-                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0]
-                                    .data.length > 0
-                                "
-                                type="line"
-                                height="350"
-                                :options="
-                                  (processedStats[mode] as StatisticsModeData).timeSeries
-                                    .chartOptions
-                                "
-                                :series="
-                                  (processedStats[mode] as StatisticsModeData).timeSeries.series
-                                "
-                              ></apexchart>
-                              <div v-else class="no-data-placeholder">
-                                <v-icon size="64" color="grey">{{
-                                  mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
-                                }}</v-icon>
-                                <p class="text-body-1 text-grey mt-4">データがありません</p>
-                              </div>
-                            </v-card-text>
-                          </v-card>
-                        </v-col>
-                      </v-row>
-                    </div>
-                  </v-window-item>
-                </v-window>
+                <!-- Statistics View -->
+                <div v-if="currentView === 'statistics'">
+                  <v-window v-model="currentGameMode">
+                    <v-window-item v-for="mode in availableGameModes" :key="mode" :value="mode">
+                      <statistics-content
+                        v-if="processedStats && processedStats[mode]"
+                        :statistics="processedStats[mode] as DashboardModeData"
+                        :game-mode="mode"
+                        :display-month="displayMonth"
+                        :loading="sharedStatisticsStore.loading"
+                        :is-shared="true"
+                      />
+                    </v-window-item>
+                  </v-window>
+                </div>
               </v-card-text>
               <v-card-text v-else-if="!sharedStatisticsStore.loading">
                 <v-alert type="error" variant="tonal">
@@ -315,13 +134,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useSharedStatisticsStore } from '@/stores/shared_statistics';
 import { useThemeStore } from '@/stores/theme';
 import { useChartOptions } from '@/composables/useChartOptions';
-import StatCard from '@/components/duel/StatCard.vue';
-import DuelTable from '@/components/duel/DuelTable.vue';
+import DashboardContent from '@/components/dashboard/DashboardContent.vue';
+import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
+import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 import { api } from '@/services/api';
 import { useNotificationStore } from '@/stores/notification';
 
@@ -352,26 +172,9 @@ interface StatisticsModeData {
   timeSeries: TimeSeriesData;
 }
 
-interface DashboardRawData {
-  overall_stats?: DuelStats;
-  duels?: DuelRawData[];
-  year?: number;
-  month?: number;
-}
-
 interface DuelRawData {
   deck_name: string;
   opponent_deck_name: string;
-  [key: string]: unknown;
-}
-
-interface RawStatsData {
-  year?: number;
-  month?: number;
-  monthly_deck_distribution?: { deck_name: string; count: number }[];
-  recent_deck_distribution?: { deck_name: string; count: number }[];
-  matchup_data?: MatchupData[];
-  time_series_data?: Array<{ date: string; value: number }>;
   [key: string]: unknown;
 }
 
@@ -386,58 +189,87 @@ interface DuelStats {
   go_first_rate?: number;
 }
 
-interface DashboardData extends DuelStats {
-  duels?: Array<Record<string, unknown>>;
+interface MyDeckWinRate {
+  deck_name: string;
+  total_duels: number;
+  wins: number;
+  win_rate: number;
 }
 
+interface DashboardModeData {
+  overall_stats?: DuelStats;
+  duels?: Array<Record<string, unknown>>;
+  year?: number;
+  month?: number;
+  monthlyDistribution?: DistributionData;
+  recentDistribution?: DistributionData;
+  myDeckWinRates?: MyDeckWinRate[];
+  matchupData?: MatchupData[];
+  timeSeries?: TimeSeriesData;
+}
+
+type GameMode = 'RANK' | 'RATE' | 'EVENT' | 'DC';
+
 interface AllStatisticsData {
-  [key: string]: StatisticsModeData | DashboardData; // Allow DashboardData for DASHBOARD
+  [key: string]: DashboardModeData | StatisticsModeData;
 }
 
 const route = useRoute();
 const sharedStatisticsStore = useSharedStatisticsStore();
 
 const processedStats = ref<AllStatisticsData | null>(null);
-const currentTab = ref('DASHBOARD'); // Default to DASHBOARD tab
+const currentView = ref<'dashboard' | 'statistics'>('dashboard'); // Default to dashboard view
+const currentGameMode = ref<GameMode>('RANK'); // Default to RANK mode
 const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 const displayYear = ref<number>(new Date().getFullYear()); // 表示用の年
 const displayMonth = ref<number>(new Date().getMonth() + 1); // 表示用の月
+
+// 利用可能なゲームモード（データがあるもののみ）
+const availableGameModes = computed(() => {
+  if (!processedStats.value) return [];
+  return gameModes.filter((mode) => {
+    const modeData = processedStats.value![mode] as DashboardModeData;
+    return modeData && modeData.overall_stats && modeData.overall_stats.total_duels! > 0;
+  });
+});
+
+// ゲームモードの対戦数を取得
+const getDuelCount = (mode: GameMode): number => {
+  if (!processedStats.value || !processedStats.value[mode]) return 0;
+  const modeData = processedStats.value[mode] as DashboardModeData;
+  return modeData.overall_stats?.total_duels ?? 0;
+};
 
 // --- Date Selection ---
 const selectedYear = ref(new Date().getFullYear());
 const selectedMonth = ref(new Date().getMonth() + 1);
 
-const availableGameModes = computed(() => {
+// --- Filter Settings ---
+const filterPeriodType = ref<'all' | 'range'>('all');
+const filterRangeStart = ref(1);
+const filterRangeEnd = ref(30);
+const filterMyDeckId = ref<number | null>(null);
+
+// 利用可能なデッキリスト
+const availableMyDecks = computed(() => {
   if (!processedStats.value) return [];
-  return Object.keys(processedStats.value);
+  const decks = new Map<number, string>();
+
+  // すべてのゲームモードから自分のデッキを収集
+  gameModes.forEach((mode) => {
+    const modeData = processedStats.value![mode] as DashboardModeData;
+    if (modeData && modeData.duels) {
+      modeData.duels.forEach((duel: any) => {
+        if (duel.deck_id && duel.deck_name) {
+          decks.set(duel.deck_id, duel.deck_name);
+        }
+      });
+    }
+  });
+
+  return Array.from(decks, ([id, name]) => ({ id, name }));
 });
 
-const displayModes = computed(() => {
-  const modes = ['DASHBOARD']; // Always include DASHBOARD
-  // Add other game modes if they exist in processedStats
-  if (processedStats.value) {
-    if (processedStats.value['RANK']) modes.push('RANK');
-    if (processedStats.value['RATE']) modes.push('RATE');
-    if (processedStats.value['EVENT']) modes.push('EVENT');
-    if (processedStats.value['DC']) modes.push('DC');
-  }
-  return modes;
-});
-
-// --- Data Table ---
-const matchupHeaders = [
-  { title: '使用デッキ', key: 'deck_name', sortable: false },
-  { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
-  { title: '対戦数', key: 'total_duels', sortable: true },
-  { title: '勝率', key: 'win_rate', sortable: true },
-  { title: '先攻勝率', key: 'win_rate_first', sortable: true },
-  { title: '後攻勝率', key: 'win_rate_second', sortable: true },
-];
-
-const statsCardClass = computed(() => [
-  'stats-card',
-  themeStore.isDark ? 'stats-card--dark' : 'stats-card--light',
-]);
 // --- Chart Base Options ---
 // baseChartOptions と lineChartBaseOptions は useChartOptions から取得
 // basePieChartOptions と baseLineChartOptions として利用可能
@@ -480,6 +312,20 @@ const getGameModeIcon = (modeName: string) => {
   }
 };
 
+// フィルター適用後の統計データ再取得
+const refreshStatistics = () => {
+  fetchSharedStatistics();
+};
+
+// フィルターをリセット
+const resetFilters = () => {
+  filterPeriodType.value = 'all';
+  filterRangeStart.value = 1;
+  filterRangeEnd.value = 30;
+  filterMyDeckId.value = null;
+  refreshStatistics();
+};
+
 const exportCSV = async () => {
   const shareId = route.params.share_id as string;
   notificationStore.info('CSVファイルを生成しています...');
@@ -515,114 +361,105 @@ const fetchSharedStatistics = async () => {
 
   sharedStatisticsStore.loading = true;
   try {
-    // 共有リンクから取得する際は、選択された年月を使用
+    // 共有リンクから取得する際は、選択された年月とフィルター設定を使用
     const success = await sharedStatisticsStore.getSharedStatistics(
       shareId,
       selectedYear.value,
       selectedMonth.value,
+      {
+        periodType: filterPeriodType.value,
+        rangeStart: filterRangeStart.value,
+        rangeEnd: filterRangeEnd.value,
+        myDeckId: filterMyDeckId.value,
+      },
     );
     if (success && sharedStatisticsStore.sharedStatsData) {
       const tempProcessedStats: AllStatisticsData = {};
       const statsData = sharedStatisticsStore.sharedStatsData;
-      // Process game mode specific statistics
-      Object.keys(statsData).forEach((mode) => {
-        const rawStats = statsData[mode];
+      // Process all game modes (RANK, RATE, EVENT, DC)
+      gameModes.forEach((mode) => {
+        const rawStats = statsData[mode] as any;
+        if (!rawStats) return;
 
-        if (mode === 'DASHBOARD') {
-          // Process DASHBOARD data
-          const dashboardStats = rawStats as DashboardRawData;
-          const transformedDuels = (dashboardStats.duels || []).map((d: DuelRawData) => ({
-            ...d,
-            deck: { name: d.deck_name },
-            opponentdeck: { name: d.opponent_deck_name },
-          }));
-          tempProcessedStats['DASHBOARD'] = {
-            ...(dashboardStats.overall_stats || {}),
-            duels: transformedDuels,
-          };
-        } else {
-          // Process game mode specific data (RANK, RATE, EVENT, DC)
-          const modeRawData = rawStats as unknown as RawStatsData;
-          tempProcessedStats[mode] = {
-            year: modeRawData.year || selectedYear.value,
-            month: modeRawData.month || selectedMonth.value,
-            monthlyDistribution: {
-              series:
-                modeRawData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [],
-              chartOptions: {
-                ...basePieChartOptions.value,
-                labels:
-                  modeRawData.monthly_deck_distribution?.map(
-                    (d: { deck_name: string }) => d.deck_name,
+        const transformedDuels = (rawStats.duels || []).map((d: DuelRawData) => ({
+          ...d,
+          deck: { name: d.deck_name },
+          opponentdeck: { name: d.opponent_deck_name },
+        }));
+
+        tempProcessedStats[mode] = {
+          overall_stats: rawStats.overall_stats || {},
+          duels: transformedDuels,
+          year: rawStats.year || selectedYear.value,
+          month: rawStats.month || selectedMonth.value,
+          monthlyDistribution: {
+            series:
+              rawStats.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [],
+            chartOptions: {
+              ...basePieChartOptions.value,
+              labels:
+                rawStats.monthly_deck_distribution?.map(
+                  (d: { deck_name: string }) => d.deck_name,
+                ) || [],
+            },
+          },
+          recentDistribution: {
+            series: rawStats.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
+            chartOptions: {
+              ...basePieChartOptions.value,
+              labels:
+                rawStats.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) ||
+                [],
+            },
+          },
+          myDeckWinRates: rawStats.my_deck_win_rates || [],
+          matchupData: rawStats.matchup_data || [],
+          timeSeries: {
+            series: [
+              {
+                name: mode,
+                data: rawStats.time_series_data?.map((d: { value: number }) => d.value) || [],
+              },
+            ],
+            chartOptions: {
+              ...baseLineChartOptions.value,
+              xaxis: {
+                ...baseLineChartOptions.value.xaxis,
+                categories:
+                  rawStats.time_series_data?.map(
+                    (_item: { date: string; value: number }, i: number) => String(i + 1),
                   ) || [],
               },
+              colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
             },
-            recentDistribution: {
-              series:
-                modeRawData.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
-              chartOptions: {
-                ...basePieChartOptions.value,
-                labels:
-                  modeRawData.recent_deck_distribution?.map(
-                    (d: { deck_name: string }) => d.deck_name,
-                  ) || [],
-              },
-            },
-            matchupData: modeRawData.matchup_data || [],
-            timeSeries: {
-              series: [
-                {
-                  name: mode,
-                  data: modeRawData.time_series_data?.map((d: { value: number }) => d.value) || [],
-                },
-              ],
-              chartOptions: {
-                ...baseLineChartOptions.value,
-                xaxis: {
-                  ...baseLineChartOptions.value.xaxis,
-                  categories:
-                    modeRawData.time_series_data?.map(
-                      (_item: { date: string; value: number }, i: number) => String(i + 1),
-                    ) || [],
-                },
-                colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
-              },
-            },
-          };
-        }
+          },
+        };
       });
 
       processedStats.value = tempProcessedStats;
 
-      // 共有リンクの年月を表示用に設定（DASHBOARDから取得）
-      if (tempProcessedStats['DASHBOARD']) {
-        const dashboardData = tempProcessedStats['DASHBOARD'] as DashboardData;
-        displayYear.value = dashboardData.year || selectedYear.value;
-        displayMonth.value = dashboardData.month || selectedMonth.value;
-      } else if (Object.keys(tempProcessedStats).length > 1) {
-        // If DASHBOARD is not present, try to get from first available game mode
-        const firstGameModeKey = Object.keys(tempProcessedStats).find((key) => key !== 'DASHBOARD');
-        if (firstGameModeKey) {
-          const statsData = tempProcessedStats[firstGameModeKey] as StatisticsModeData;
-          displayYear.value = statsData.year;
-          displayMonth.value = statsData.month;
-        }
+      // 共有リンクの年月を表示用に設定（最初のゲームモードから取得）
+      const firstMode = gameModes.find((mode) => tempProcessedStats[mode]);
+      if (firstMode) {
+        const modeData = tempProcessedStats[firstMode] as DashboardModeData;
+        displayYear.value = modeData.year || selectedYear.value;
+        displayMonth.value = modeData.month || selectedMonth.value;
       }
 
-      // Initialize currentTab if it's not set or not in available modes
-      if (!currentTab.value || !displayModes.value.includes(currentTab.value)) {
-        if (displayModes.value.length > 0) {
-          currentTab.value = displayModes.value[0];
-        }
+      // 最初の利用可能なゲームモードを選択
+      const firstAvailableMode = gameModes.find((mode) => {
+        const modeData = tempProcessedStats[mode] as DashboardModeData;
+        return modeData && modeData.overall_stats && modeData.overall_stats.total_duels! > 0;
+      });
+      if (firstAvailableMode) {
+        currentGameMode.value = firstAvailableMode;
       }
     } else {
       processedStats.value = null; // Clear stats if fetch failed
-      currentTab.value = ''; // Clear current tab
     }
   } catch (error) {
     console.error('Failed to fetch shared statistics:', error);
     processedStats.value = null;
-    currentTab.value = ''; // Clear current tab
   } finally {
     sharedStatisticsStore.loading = false;
   }
@@ -631,8 +468,6 @@ const fetchSharedStatistics = async () => {
 onMounted(() => {
   fetchSharedStatistics();
 });
-
-watch([currentTab], fetchSharedStatistics);
 
 // テーマ変更時にグラフを再描画
 watch(
@@ -724,5 +559,22 @@ defineExpose({
   align-items: center;
   justify-content: center;
   height: 350px;
+}
+
+.mode-tab-card {
+  background: rgba(var(--v-theme-surface), 0.8) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 12px !important;
+}
+
+.custom-tab {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  min-width: 120px;
+
+  .v-chip {
+    font-weight: 600;
+  }
 }
 </style>

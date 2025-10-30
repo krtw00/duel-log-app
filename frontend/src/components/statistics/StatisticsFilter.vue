@@ -47,7 +47,7 @@
         <v-col cols="12" sm="6" md="4">
           <v-select
             :model-value="myDeckId"
-            :items="availableDecks"
+            :items="availableMyDecks"
             item-title="name"
             item-value="id"
             label="自分のデッキ"
@@ -55,12 +55,12 @@
             density="compact"
             hide-details
             clearable
-            :disabled="availableDecks.length === 0"
+            :disabled="availableMyDecks.length === 0"
             @update:model-value="$emit('update:myDeckId', $event)"
           ></v-select>
         </v-col>
         <v-col cols="12" sm="6" md="2" class="d-flex align-center">
-          <v-btn color="secondary" variant="outlined" block @click="$emit('reset-filters')">
+          <v-btn color="secondary" variant="outlined" block @click="$emit('reset')">
             <v-icon start>mdi-refresh</v-icon>
             リセット
           </v-btn>
@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-interface DeckOption {
+interface Deck {
   id: number;
   name: string;
 }
@@ -81,8 +81,7 @@ interface Props {
   rangeStart: number;
   rangeEnd: number;
   myDeckId: number | null;
-  availableDecks: DeckOption[];
-  periodOptions: Array<{ title: string; value: string }>;
+  availableMyDecks: Deck[];
 }
 
 defineProps<Props>();
@@ -92,14 +91,17 @@ defineEmits<{
   'update:rangeStart': [value: number];
   'update:rangeEnd': [value: number];
   'update:myDeckId': [value: number | null];
-  'reset-filters': [];
+  reset: [];
 }>();
+
+const periodOptions = [
+  { title: '全体', value: 'all' },
+  { title: '範囲指定', value: 'range' },
+];
 </script>
 
 <style scoped>
 .filter-card {
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 12px !important;
+  width: 100%;
 }
 </style>
