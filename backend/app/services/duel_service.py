@@ -36,7 +36,9 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         range_end: Optional[int] = None,
     ) -> List[Duel]:
         """ユーザーのデュエルを取得（フィルタリング可能）。"""
-        query = db.query(Duel)
+        query = db.query(Duel).options(
+            joinedload(Duel.deck), joinedload(Duel.opponent_deck)
+        )
         query = apply_duel_filters(
             query,
             user_id=user_id,
