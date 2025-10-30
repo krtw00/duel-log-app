@@ -8,6 +8,16 @@ import SharedStatisticsView from '../SharedStatisticsView.vue';
 import { useSharedStatisticsStore } from '../../stores/shared_statistics';
 import { useRoute } from 'vue-router';
 
+// Mock environment variables before any imports that use them
+vi.mock('../../services/api', () => ({
+  api: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
 // Mock vue-router
 vi.mock('vue-router', async (importOriginal) => {
   const actual: any = await importOriginal();
@@ -45,7 +55,10 @@ describe('SharedStatisticsView.vue', () => {
           apexchart: true,
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
-          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>' },
+          VAppBar: {
+            template:
+              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>',
+          },
           VContainer: { template: '<div><slot /></div>' },
         },
       },
@@ -55,10 +68,13 @@ describe('SharedStatisticsView.vue', () => {
   });
 
   it('fetches and displays shared statistics on mount', async () => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
     const mockStatsData = {
       STATISTICS: {
-        year: 2023,
-        month: 10,
+        year: currentYear,
+        month: currentMonth,
         monthly_deck_distribution: [{ deck_name: 'Deck A', count: 10 }],
         recent_deck_distribution: [{ deck_name: 'Deck B', count: 5 }],
         matchup_data: [
@@ -92,14 +108,13 @@ describe('SharedStatisticsView.vue', () => {
           DuelTable: true,
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
-          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>' },
+          VAppBar: {
+            template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
+          },
           VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
-
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
 
     await flushPromises();
     await wrapper.vm.$nextTick();
@@ -108,14 +123,20 @@ describe('SharedStatisticsView.vue', () => {
       'test_share_id',
       currentYear,
       currentMonth,
+      expect.objectContaining({
+        periodType: 'all',
+        rangeStart: 1,
+        rangeEnd: 30,
+        myDeckId: null,
+      }),
     );
 
     // processedStatsが生成されているか確認
     expect(wrapper.vm.processedStats).not.toBeNull();
 
     // displayYearとdisplayMonthが設定されているか確認
-    expect(wrapper.vm.displayYear).toBe(2023);
-    expect(wrapper.vm.displayMonth).toBe(10);
+    expect(wrapper.vm.displayYear).toBe(currentYear);
+    expect(wrapper.vm.displayMonth).toBe(currentMonth);
   });
 
   it('displays error message if shared statistics fetch fails', async () => {
@@ -130,7 +151,10 @@ describe('SharedStatisticsView.vue', () => {
           apexchart: true,
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
-          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>' },
+          VAppBar: {
+            template:
+              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>',
+          },
           VContainer: { template: '<div><slot /></div>' },
         },
       },
@@ -146,6 +170,12 @@ describe('SharedStatisticsView.vue', () => {
       'test_share_id',
       currentYear,
       currentMonth,
+      expect.objectContaining({
+        periodType: 'all',
+        rangeStart: 1,
+        rangeEnd: 30,
+        myDeckId: null,
+      }),
     );
     expect(wrapper.text()).toContain('共有統計データを読み込めませんでした');
   });
@@ -153,7 +183,7 @@ describe('SharedStatisticsView.vue', () => {
   it('displays loading state', async () => {
     // loadingをtrueに設定してから、getSharedStatisticsをモック
     let resolvePromise: (value: boolean) => void;
-    const loadingPromise = new Promise<boolean>(resolve => {
+    const loadingPromise = new Promise<boolean>((resolve) => {
       resolvePromise = resolve;
     });
 
@@ -169,7 +199,10 @@ describe('SharedStatisticsView.vue', () => {
           apexchart: true,
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
-          VAppBar: { template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>' },
+          VAppBar: {
+            template:
+              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>',
+          },
           VContainer: { template: '<div><slot /></div>' },
         },
       },
