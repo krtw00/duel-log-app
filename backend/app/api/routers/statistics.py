@@ -15,7 +15,7 @@ from app.models.user import User
 from app.services.general_stats_service import general_stats_service
 from app.services.general_stats_service import general_stats_service
 from app.services.duel_service import duel_service
-from app.services.statistics_service import statistics_service
+from app.schemas.duel import DuelWithDeckNames
 from app.services.win_rate_service import win_rate_service
 from app.services.deck_distribution_service import deck_distribution_service
 from app.services.matchup_service import matchup_service
@@ -53,9 +53,12 @@ def get_all_statistics(
         )
         overall_stats = general_stats_service._calculate_general_stats(duels)
 
+        # DuelWithDeckNamesスキーマに変換
+        duels_with_names = [DuelWithDeckNames.model_validate(d) for d in duels]
+
         result[mode] = {
             "overall_stats": overall_stats,
-            "duels": duels,
+            "duels": duels_with_names,
             "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
                 db=db,
                 user_id=current_user.id,
