@@ -13,6 +13,8 @@ from app.auth import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.services.general_stats_service import general_stats_service
+from app.services.general_stats_service import general_stats_service
+from app.services.duel_service import duel_service
 from app.services.statistics_service import statistics_service
 from app.services.win_rate_service import win_rate_service
 from app.services.deck_distribution_service import deck_distribution_service
@@ -38,7 +40,22 @@ def get_all_statistics(
     result = {}
 
     for mode in game_modes:
+        duels = duel_service.get_user_duels(
+            db=db,
+            user_id=current_user.id,
+            year=year,
+            month=month,
+            game_mode=mode,
+            range_start=range_start,
+            range_end=range_end,
+            my_deck_id=my_deck_id,
+            opponent_deck_id=opponent_deck_id,
+        )
+        overall_stats = general_stats_service._calculate_general_stats(duels)
+
         result[mode] = {
+            "overall_stats": overall_stats,
+            "duels": duels,
             "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
                 db=db,
                 user_id=current_user.id,
