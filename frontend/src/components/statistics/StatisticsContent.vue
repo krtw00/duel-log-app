@@ -151,7 +151,7 @@ interface StatisticsData {
 interface Props {
   statistics: StatisticsData;
   gameMode: 'RANK' | 'RATE' | 'EVENT' | 'DC';
-  displayMonth: number;
+  displayMonth: string;
   loading?: boolean;
   isShared?: boolean;
 }

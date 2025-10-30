@@ -41,7 +41,7 @@
               <v-card-title class="d-flex align-center justify-space-between pa-4">
                 <div class="d-flex align-center">
                   <v-icon class="mr-2" color="primary">mdi-share-variant</v-icon>
-                  <span class="text-h6">{{ displayYear }}年 {{ displayMonth }}月の統計データ</span>
+                  <span class="text-h6">{{ displayMonth }}の統計データ</span>
                 </div>
                 <div>
                   <v-btn color="secondary" @click="exportCSV">
@@ -222,7 +222,10 @@ const currentView = ref<'dashboard' | 'statistics'>('dashboard'); // Default to 
 const currentGameMode = ref<GameMode>('RANK'); // Default to RANK mode
 const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 const displayYear = ref<number>(new Date().getFullYear()); // 表示用の年
-const displayMonth = ref<number>(new Date().getMonth() + 1); // 表示用の月
+const displayMonthNum = ref<number>(new Date().getMonth() + 1); // 表示用の月（数値）
+
+// 表示用の年月文字列
+const displayMonth = computed(() => `${displayYear.value}年${displayMonthNum.value}月`);
 
 // 利用可能なゲームモード（データがあるもののみ）
 const availableGameModes = computed(() => {
@@ -333,14 +336,14 @@ const exportCSV = async () => {
     const response = await api.get(`/shared-statistics/${shareId}/export/csv`, {
       params: {
         year: displayYear.value,
-        month: displayMonth.value,
+        month: displayMonthNum.value,
       },
       responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    const filename = `duels_${displayYear.value}_${displayMonth.value}.csv`;
+    const filename = `duels_${displayYear.value}_${displayMonthNum.value}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
@@ -443,7 +446,7 @@ const fetchSharedStatistics = async () => {
       if (firstMode) {
         const modeData = tempProcessedStats[firstMode] as DashboardModeData;
         displayYear.value = modeData.year || selectedYear.value;
-        displayMonth.value = modeData.month || selectedMonth.value;
+        displayMonthNum.value = modeData.month || selectedMonth.value;
       }
 
       // 最初の利用可能なゲームモードを選択
