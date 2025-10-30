@@ -34,15 +34,37 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
     shareId: string,
     year: number,
     month: number,
+    filters?: {
+      periodType?: string;
+      rangeStart?: number | null;
+      rangeEnd?: number | null;
+      myDeckId?: number | null;
+    },
   ): Promise<boolean> => {
     loading.value = true;
     sharedStatsData.value = null; // Clear previous data
     try {
+      const params: Record<string, any> = {
+        year: year,
+        month: month,
+      };
+
+      // Add filter parameters if provided
+      if (filters?.periodType) {
+        params.period_type = filters.periodType;
+      }
+      if (filters?.rangeStart !== null && filters?.rangeStart !== undefined) {
+        params.range_start = filters.rangeStart;
+      }
+      if (filters?.rangeEnd !== null && filters?.rangeEnd !== undefined) {
+        params.range_end = filters.rangeEnd;
+      }
+      if (filters?.myDeckId !== null && filters?.myDeckId !== undefined) {
+        params.my_deck_id = filters.myDeckId;
+      }
+
       const response = await api.get<SharedStatisticsData>(`/shared-statistics/${shareId}`, {
-        params: {
-          year: year,
-          month: month,
-        },
+        params,
       });
       sharedStatsData.value = response.data;
       return true;
