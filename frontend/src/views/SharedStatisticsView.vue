@@ -26,7 +26,12 @@
                   <span class="text-h6">共有統計データ</span>
                 </div>
                 <div>
-                  <v-chip v-if="processedStats && currentTab" color="info" variant="outlined" class="mr-2">
+                  <v-chip
+                    v-if="processedStats && currentTab"
+                    color="info"
+                    variant="outlined"
+                    class="mr-2"
+                  >
                     {{ getGameModeDisplayName(currentTab) }}
                     -
                     {{ displayYear }}年 {{ displayMonth }}月
@@ -48,12 +53,11 @@
                     height="64"
                     @update:model-value="fetchSharedStatistics"
                   >
-                    <v-tab
-                      v-for="mode in displayModes"
-                      :key="mode"
-                      :value="mode"
-                      class="custom-tab"
-                    >
+                    <v-tab value="DASHBOARD" class="custom-tab">
+                      <v-icon start>mdi-view-dashboard</v-icon>
+                      ダッシュボード
+                    </v-tab>
+                    <v-tab v-for="mode in gameModes" :key="mode" :value="mode" class="custom-tab">
                       <v-icon start>{{ getGameModeIcon(mode) }}</v-icon>
                       {{ getGameModeDisplayName(mode) }}
                     </v-tab>
@@ -61,9 +65,8 @@
                 </v-card>
 
                 <v-window v-model="currentTab">
-                  <v-window-item v-for="mode in displayModes" :key="mode" :value="mode">
-                    <!-- DASHBOARDタブ -->
-                    <div v-if="mode === 'DASHBOARD' && processedStats['DASHBOARD']">
+                  <v-window-item value="DASHBOARD">
+                    <div v-if="processedStats && processedStats['DASHBOARD']">
                       <h3 class="text-h5 mb-4 mt-4">ダッシュボード</h3>
 
                       <v-row class="mb-4">
@@ -78,7 +81,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).win_rate ?? 0)).toFixed(1)}%`"
+                            :value="`${((processedStats['DASHBOARD'] as DuelStats).win_rate ?? 0).toFixed(1)}%`"
                             icon="mdi-trophy"
                             color="success"
                           />
@@ -86,7 +89,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="先攻勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).first_turn_win_rate ?? 0)).toFixed(1)}%`"
+                            :value="`${((processedStats['DASHBOARD'] as DuelStats).first_turn_win_rate ?? 0).toFixed(1)}%`"
                             icon="mdi-lightning-bolt"
                             color="warning"
                           />
@@ -94,7 +97,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="後攻勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).second_turn_win_rate ?? 0)).toFixed(1)}%`"
+                            :value="`${((processedStats['DASHBOARD'] as DuelStats).second_turn_win_rate ?? 0).toFixed(1)}%`"
                             icon="mdi-shield"
                             color="secondary"
                           />
@@ -102,7 +105,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="コイン勝率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).coin_win_rate ?? 0)).toFixed(1)}%`"
+                            :value="`${((processedStats['DASHBOARD'] as DuelStats).coin_win_rate ?? 0).toFixed(1)}%`"
                             icon="mdi-poker-chip"
                             color="yellow"
                           />
@@ -110,7 +113,7 @@
                         <v-col cols="6" sm="4" md="2" lg="2">
                           <stat-card
                             title="先攻率"
-                            :value="`${(((processedStats['DASHBOARD'] as DuelStats).go_first_rate ?? 0)).toFixed(1)}%`"
+                            :value="`${((processedStats['DASHBOARD'] as DuelStats).go_first_rate ?? 0).toFixed(1)}%`"
                             icon="mdi-arrow-up-bold-hexagon-outline"
                             color="teal"
                           />
@@ -142,10 +145,11 @@
                         <p class="text-body-1 text-grey mt-4">対戦履歴がありません</p>
                       </div>
                     </div>
+                  </v-window-item>
 
-                    <!-- STATISTICSタブ -->
-                    <div v-else-if="mode === 'STATISTICS' && processedStats['STATISTICS']">
-                      <h3 class="text-h5 mb-4 mt-4">統計</h3>
+                  <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
+                    <div v-if="processedStats && processedStats[mode]">
+                      <h3 class="text-h5 mb-4 mt-4">{{ getGameModeDisplayName(mode) }} 統計</h3>
                       <v-row>
                         <!-- 月間デッキ分布 -->
                         <v-col cols="12" md="6">
@@ -154,14 +158,23 @@
                             <v-card-text>
                               <apexchart
                                 v-if="
-                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution &&
-                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution.series &&
-                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution.series.length > 0
+                                  (processedStats[mode] as StatisticsModeData)
+                                    .monthlyDistribution &&
+                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
+                                    .series &&
+                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
+                                    .series.length > 0
                                 "
                                 type="pie"
                                 height="350"
-                                :options="(processedStats[mode] as StatisticsModeData).monthlyDistribution.chartOptions"
-                                :series="(processedStats[mode] as StatisticsModeData).monthlyDistribution.series"
+                                :options="
+                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
+                                    .chartOptions
+                                "
+                                :series="
+                                  (processedStats[mode] as StatisticsModeData).monthlyDistribution
+                                    .series
+                                "
                               ></apexchart>
                               <div v-else class="no-data-placeholder">
                                 <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
@@ -179,13 +192,21 @@
                               <apexchart
                                 v-if="
                                   (processedStats[mode] as StatisticsModeData).recentDistribution &&
-                                  (processedStats[mode] as StatisticsModeData).recentDistribution.series &&
-                                  (processedStats[mode] as StatisticsModeData).recentDistribution.series.length > 0
+                                  (processedStats[mode] as StatisticsModeData).recentDistribution
+                                    .series &&
+                                  (processedStats[mode] as StatisticsModeData).recentDistribution
+                                    .series.length > 0
                                 "
                                 type="pie"
                                 height="350"
-                                :options="(processedStats[mode] as StatisticsModeData).recentDistribution.chartOptions"
-                                :series="(processedStats[mode] as StatisticsModeData).recentDistribution.series"
+                                :options="
+                                  (processedStats[mode] as StatisticsModeData).recentDistribution
+                                    .chartOptions
+                                "
+                                :series="
+                                  (processedStats[mode] as StatisticsModeData).recentDistribution
+                                    .series
+                                "
                               ></apexchart>
                               <div v-else class="no-data-placeholder">
                                 <v-icon size="64" color="grey">mdi-chart-donut</v-icon>
@@ -203,7 +224,8 @@
                               <div
                                 v-if="
                                   (processedStats[mode] as StatisticsModeData).matchupData &&
-                                  (processedStats[mode] as StatisticsModeData).matchupData.length > 0
+                                  (processedStats[mode] as StatisticsModeData).matchupData.length >
+                                    0
                                 "
                               >
                                 <v-data-table
@@ -212,9 +234,19 @@
                                   class="matchup-table"
                                   density="compact"
                                 >
-            <template #[`item.win_rate`]='{ item }'>
-              {{ item.wins }} / {{ item.total_duels }} ({{ item.total_duels > 0 ? (item.wins / item.total_duels * 100).toFixed(1) : 0 }}%)
-            </template>
+                                  <template #[item.win_rate]="{ item }">
+                                    {{ item.wins }} / {{ item.total_duels }} ({{
+                                      item.total_duels > 0
+                                        ? ((item.wins / item.total_duels) * 100).toFixed(1)
+                                        : 0
+                                    }}%)
+                                  </template>
+                                  <template #[item.win_rate_first]="{ item }">
+                                    {{ item.win_rate_first.toFixed(1) }}%
+                                  </template>
+                                  <template #[item.win_rate_second]="{ item }">
+                                    {{ item.win_rate_second.toFixed(1) }}%
+                                  </template>
                                 </v-data-table>
                               </div>
                               <div v-else class="no-data-placeholder py-8">
@@ -226,26 +258,38 @@
                         </v-col>
 
                         <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
-                        <v-col v-if="mode === 'STATISTICS'" cols="12" style="display: none;">
+                        <v-col v-if="mode === 'RATE' || mode === 'DC'" cols="12">
                           <v-card :class="statsCardClass">
-                            <v-card-title>変動グラフ</v-card-title>
+                            <v-card-title
+                              >{{ mode === 'RATE' ? 'レート変動' : 'DC変動' }} ({{
+                                displayMonth
+                              }})</v-card-title
+                            >
                             <v-card-text>
                               <apexchart
                                 v-if="
                                   (processedStats[mode] as StatisticsModeData).timeSeries &&
                                   (processedStats[mode] as StatisticsModeData).timeSeries.series &&
-                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0] &&
-                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0].data &&
-                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0].data.length > 0
+                                  (processedStats[mode] as StatisticsModeData).timeSeries
+                                    .series[0] &&
+                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0]
+                                    .data &&
+                                  (processedStats[mode] as StatisticsModeData).timeSeries.series[0]
+                                    .data.length > 0
                                 "
                                 type="line"
                                 height="350"
-                                :options="(processedStats[mode] as StatisticsModeData).timeSeries.chartOptions"
-                                :series="(processedStats[mode] as StatisticsModeData).timeSeries.series"
+                                :options="
+                                  (processedStats[mode] as StatisticsModeData).timeSeries
+                                    .chartOptions
+                                "
+                                :series="
+                                  (processedStats[mode] as StatisticsModeData).timeSeries.series
+                                "
                               ></apexchart>
                               <div v-else class="no-data-placeholder">
                                 <v-icon size="64" color="grey">{{
-                                  'mdi-chart-line'
+                                  mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
                                 }}</v-icon>
                                 <p class="text-body-1 text-grey mt-4">データがありません</p>
                               </div>
@@ -355,6 +399,7 @@ const sharedStatisticsStore = useSharedStatisticsStore();
 
 const processedStats = ref<AllStatisticsData | null>(null);
 const currentTab = ref('DASHBOARD'); // Default to DASHBOARD tab
+const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 const displayYear = ref<number>(new Date().getFullYear()); // 表示用の年
 const displayMonth = ref<number>(new Date().getMonth() + 1); // 表示用の月
 
@@ -369,9 +414,25 @@ const availableGameModes = computed(() => {
 
 const displayModes = computed(() => {
   const modes = ['DASHBOARD']; // Always include DASHBOARD
-  if (availableGameModes.value.includes('STATISTICS')) modes.push('STATISTICS');
+  // Add other game modes if they exist in processedStats
+  if (processedStats.value) {
+    if (processedStats.value['RANK']) modes.push('RANK');
+    if (processedStats.value['RATE']) modes.push('RATE');
+    if (processedStats.value['EVENT']) modes.push('EVENT');
+    if (processedStats.value['DC']) modes.push('DC');
+  }
   return modes;
 });
+
+// --- Data Table ---
+const matchupHeaders = [
+  { title: '使用デッキ', key: 'deck_name', sortable: false },
+  { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
+  { title: '対戦数', key: 'total_duels', sortable: true },
+  { title: '勝率', key: 'win_rate', sortable: true },
+  { title: '先攻勝率', key: 'win_rate_first', sortable: true },
+  { title: '後攻勝率', key: 'win_rate_second', sortable: true },
+];
 
 const statsCardClass = computed(() => [
   'stats-card',
@@ -487,62 +548,50 @@ const fetchSharedStatistics = async () => {
             ...(dashboardStats.overall_stats || {}),
             duels: transformedDuels,
           };
-        } else if (mode === 'STATISTICS') {
-          // Process STATISTICS data (all game modes combined)
-          const statsRawData = rawStats as unknown as RawStatsData;
-          tempProcessedStats['STATISTICS'] = {
-            year: statsRawData.year || selectedYear.value,
-            month: statsRawData.month || selectedMonth.value,
-            monthlyDistribution: {
-              series: statsRawData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [],
-              chartOptions: {
-                ...basePieChartOptions.value,
-                labels: statsRawData.monthly_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
-              },
-            },
-            recentDistribution: {
-              series: statsRawData.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
-              chartOptions: {
-                ...basePieChartOptions.value,
-                labels: statsRawData.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
-              },
-            },
-            matchupData: statsRawData.matchup_data || [],
-            timeSeries: {
-              series: [],
-              chartOptions: baseLineChartOptions.value,
-            },
-          };
         } else {
-          // Process other game mode specific data (RANK, RATE, EVENT, DC) - though these shouldn't exist now
+          // Process game mode specific data (RANK, RATE, EVENT, DC)
           const modeRawData = rawStats as unknown as RawStatsData;
           tempProcessedStats[mode] = {
             year: modeRawData.year || selectedYear.value,
             month: modeRawData.month || selectedMonth.value,
             monthlyDistribution: {
-              series: modeRawData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [],
+              series:
+                modeRawData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [],
               chartOptions: {
                 ...basePieChartOptions.value,
-                labels: modeRawData.monthly_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
+                labels:
+                  modeRawData.monthly_deck_distribution?.map(
+                    (d: { deck_name: string }) => d.deck_name,
+                  ) || [],
               },
             },
             recentDistribution: {
-              series: modeRawData.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
+              series:
+                modeRawData.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
               chartOptions: {
                 ...basePieChartOptions.value,
-                labels: modeRawData.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) || [],
+                labels:
+                  modeRawData.recent_deck_distribution?.map(
+                    (d: { deck_name: string }) => d.deck_name,
+                  ) || [],
               },
             },
             matchupData: modeRawData.matchup_data || [],
             timeSeries: {
               series: [
-                { name: mode, data: modeRawData.time_series_data?.map((d: { value: number }) => d.value) || [] },
+                {
+                  name: mode,
+                  data: modeRawData.time_series_data?.map((d: { value: number }) => d.value) || [],
+                },
               ],
               chartOptions: {
                 ...baseLineChartOptions.value,
                 xaxis: {
                   ...baseLineChartOptions.value.xaxis,
-                  categories: modeRawData.time_series_data?.map((_item: { date: string; value: number }, i: number) => String(i + 1)) || [],
+                  categories:
+                    modeRawData.time_series_data?.map(
+                      (_item: { date: string; value: number }, i: number) => String(i + 1),
+                    ) || [],
                 },
                 colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
               },
@@ -553,11 +602,19 @@ const fetchSharedStatistics = async () => {
 
       processedStats.value = tempProcessedStats;
 
-      // 共有リンクの年月を表示用に設定（STATISTICSまたはDASHBOARDから取得）
-      if (tempProcessedStats['STATISTICS']) {
-        const statsData = tempProcessedStats['STATISTICS'] as StatisticsModeData;
-        displayYear.value = statsData.year;
-        displayMonth.value = statsData.month;
+      // 共有リンクの年月を表示用に設定（DASHBOARDから取得）
+      if (tempProcessedStats['DASHBOARD']) {
+        const dashboardData = tempProcessedStats['DASHBOARD'] as DashboardData;
+        displayYear.value = dashboardData.year || selectedYear.value;
+        displayMonth.value = dashboardData.month || selectedMonth.value;
+      } else if (Object.keys(tempProcessedStats).length > 1) {
+        // If DASHBOARD is not present, try to get from first available game mode
+        const firstGameModeKey = Object.keys(tempProcessedStats).find((key) => key !== 'DASHBOARD');
+        if (firstGameModeKey) {
+          const statsData = tempProcessedStats[firstGameModeKey] as StatisticsModeData;
+          displayYear.value = statsData.year;
+          displayMonth.value = statsData.month;
+        }
       }
 
       // Initialize currentTab if it's not set or not in available modes
@@ -586,9 +643,12 @@ onMounted(() => {
 watch([currentTab], fetchSharedStatistics);
 
 // テーマ変更時にグラフを再描画
-watch(() => themeStore.isDark, () => {
-  fetchSharedStatistics();
-});
+watch(
+  () => themeStore.isDark,
+  () => {
+    fetchSharedStatistics();
+  },
+);
 
 // Expose for testing
 defineExpose({
@@ -640,7 +700,10 @@ defineExpose({
   border-radius: 12px !important;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.1);
   color: rgb(var(--v-theme-on-surface));
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .stats-card--dark {
