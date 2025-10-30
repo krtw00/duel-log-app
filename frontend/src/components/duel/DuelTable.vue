@@ -33,9 +33,9 @@
     </template>
 
     <!-- 相手デッキカラム -->
-    <template v-if="!hiddenColumnsSet.has('opponentdeck')" #[`item.opponentdeck`]='{ item }'>
+    <template v-if="!hiddenColumnsSet.has('opponentDeck')" #[`item.opponentDeck`]='{ item }'>
       <v-chip :color="isDarkMode ? 'warning' : 'purple'" variant='outlined'>
-        {{ item.opponentdeck?.name || '不明' }}
+        {{ item.opponentDeck?.name || '不明' }}
       </v-chip>
     </template>
 
@@ -135,7 +135,7 @@ defineEmits<{
 const headers = [
   { title: 'No.', key: 'no', sortable: false, width: 60 },
   { title: '使用デッキ', key: 'deck', sortable: false },
-  { title: '相手デッキ', key: 'opponentdeck', sortable: false },
+  { title: '相手デッキ', key: 'opponentDeck', sortable: false },
   { title: '勝敗', key: 'result', sortable: true, width: 100 },
   { title: 'コイン', key: 'coin', sortable: false, width: 100, class: 'hidden-xs' },
   { title: '先攻/後攻', key: 'first_or_second', sortable: false, width: 120, class: 'hidden-xs' },
