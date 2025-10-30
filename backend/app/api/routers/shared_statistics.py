@@ -129,7 +129,7 @@ def get_shared_statistics(
         )
         duel.deck_name = duel.deck.name if duel.deck else "不明"
         duel.opponent_deck_name = (
-            duel.opponentDeck.name if duel.opponentDeck else "不明"
+            duel.opponent_deck.name if duel.opponent_deck else "不明"
         )
 
     # DuelモデルをPydanticスキーマに変換
