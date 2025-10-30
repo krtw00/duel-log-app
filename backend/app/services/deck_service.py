@@ -1,6 +1,6 @@
-"""
-デッキサービス
-デッキに関するビジネスロジックを提供
+"""デッキサービス。
+
+デッキに関するビジネスロジックを提供。
 """
 
 from datetime import datetime
@@ -16,9 +16,10 @@ from app.services.base import BaseService
 
 
 class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
-    """デッキサービスクラス"""
+    """デッキサービスクラス。"""
 
     def __init__(self):
+        """DeckServiceのコンストラクタ。"""
         super().__init__(Deck)
 
     def get_user_decks(
@@ -28,25 +29,14 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         is_opponent: Optional[bool] = None,
         active_only: bool = True,
     ) -> List[Deck]:
-        """
-        ユーザーのデッキを取得
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            is_opponent: 対戦相手のデッキかどうか（Noneの場合は全て取得）
-            active_only: アクティブなデッキのみ取得するか
-
-        Returns:
-            デッキのリスト
-        """
+        """ユーザーのデッキを取得。"""
         if is_opponent:
             now = datetime.utcnow()
 
             # CTE to count duels for each opponent deck in the current month
             duel_counts = (
                 db.query(
-                    Duel.opponentDeck_id.label("deck_id"),
+                    Duel.opponent_deck_id.label("deck_id"),
                     func.count(Duel.id).label("duel_count"),
                 )
                 .filter(
@@ -54,7 +44,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
                     extract("month", Duel.played_date) == now.month,
                     extract("year", Duel.played_date) == now.year,
                 )
-                .group_by(Duel.opponentDeck_id)
+                .group_by(Duel.opponent_deck_id)
                 .subquery("duel_counts")
             )
 
@@ -92,9 +82,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         user_id: Optional[int] = None,
         include_inactive: bool = False,
     ) -> Optional[Deck]:
-        """
-        IDでデッキを取得（必要に応じて非アクティブも含む）
-        """
+        """IDでデッキを取得（必要に応じて非アクティブも含む）。"""
         query = db.query(Deck).filter(Deck.id == id)
 
         if user_id is not None:
@@ -113,18 +101,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         is_opponent: bool,
         include_inactive: bool = False,
     ) -> Optional[Deck]:
-        """
-        同じユーザー内で同じ名前とタイプのデッキを取得
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            name: デッキ名
-            is_opponent: 対戦相手のデッキかどうか
-
-        Returns:
-            デッキ（存在しない場合はNone）
-        """
+        """同じユーザー内で同じ名前とタイプのデッキを取得。"""
         query = db.query(Deck).filter(
             Deck.user_id == user_id,
             Deck.name == name,
@@ -139,20 +116,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
     def create_user_deck(
         self, db: Session, user_id: int, deck_in: DeckCreate, commit: bool = True
     ) -> Deck:
-        """
-        ユーザーのデッキを作成
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            deck_in: デッキ作成スキーマ
-
-        Returns:
-            作成されたデッキ
-
-        Raises:
-            ValueError: 同じ名前のデッキが既に存在する場合
-        """
+        """ユーザーのデッキを作成。"""
         # 同じ名前のデッキが存在するかチェック
         existing_deck = self.get_by_name(
             db=db, user_id=user_id, name=deck_in.name, is_opponent=deck_in.is_opponent
@@ -171,21 +135,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
     def update_user_deck(
         self, db: Session, deck_id: int, user_id: int, deck_in: DeckUpdate
     ) -> Optional[Deck]:
-        """
-        ユーザーのデッキを更新
-
-        Args:
-            db: データベースセッション
-            deck_id: デッキID
-            user_id: ユーザーID
-            deck_in: デッキ更新スキーマ
-
-        Returns:
-            更新されたデッキ（存在しない場合はNone）
-
-        Raises:
-            ValueError: 同じ名前のデッキが既に存在する場合
-        """
+        """ユーザーのデッキを更新。"""
         # 更新対象のデッキを取得
         deck = self.get_by_id(db=db, id=deck_id, user_id=user_id)
         if not deck:
@@ -209,9 +159,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         return self.update(db=db, id=deck_id, obj_in=deck_in, user_id=user_id)
 
     def delete(self, db: Session, id: int, user_id: Optional[int] = None) -> bool:
-        """
-        デッキを論理削除（active=False）に変更
-        """
+        """デッキを論理削除（active=False）に変更。"""
         deck = self.get_by_id(db=db, id=id, user_id=user_id, include_inactive=True)
 
         if deck is None or deck.active is False:
@@ -222,16 +170,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         return True
 
     def archive_all_decks(self, db: Session, user_id: int) -> int:
-        """
-        ユーザーの全デッキをアーカイブ（非アクティブ化）
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-
-        Returns:
-            アーカイブされたデッキの数
-        """
+        """ユーザーの全デッキをアーカイブ（非アクティブ化）。"""
         result = (
             db.query(Deck)
             .filter(Deck.user_id == user_id, Deck.active.is_(True))
@@ -243,9 +182,7 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
     def get_or_create(
         self, db: Session, user_id: int, name: str, is_opponent: bool
     ) -> Deck:
-        """
-        デッキを取得、なければ作成
-        """
+        """デッキを取得、なければ作成。"""
         deck = self.get_by_name(
             db,
             user_id=user_id,

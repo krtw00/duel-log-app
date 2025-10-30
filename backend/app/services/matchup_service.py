@@ -1,5 +1,4 @@
-"""
-デッキ相性計算サービス
+"""デッキ相性計算サービス
 デッキ間の相性計算に特化したビジネスロジックを提供
 """
 
@@ -28,42 +27,7 @@ class MatchupService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        デッキ相性表のデータを取得
-
-        プレイヤーデッキと相手デッキのペアごとに、先攻/後攻別の勝率を計算します。
-
-        Args:
-            db: データベースセッション
-            user_id: ユーザーID
-            year: 年でフィルタリング（任意）
-            month: 月でフィルタリング（任意）
-            game_mode: ゲームモード（'RANK', 'RATE', 'EVENT', 'DC'など）でフィルタリング（任意）
-            range_start: 対戦記録の範囲開始（1始まり、任意）
-            range_end: 対戦記録の範囲終了（1始まり、任意）
-            my_deck_id: プレイヤーデッキIDでフィルタリング（任意）
-            opponent_deck_id: 相手デッキIDでフィルタリング（任意）
-
-        Returns:
-            各デッキペアの相性データのリスト。各要素は以下の構造:
-            {
-                'deck_name': str,              # プレイヤーのデッキ名
-                'opponent_deck_name': str,     # 相手のデッキ名
-                'total_duels': int,            # 総対戦数
-                'wins': int,                   # 総勝利数
-                'losses': int,                 # 総敗北数
-                'win_rate': float,             # 総合勝率（%）
-                'win_rate_first': float,       # 先攻時の勝率（%）
-                'win_rate_second': float,      # 後攻時の勝率（%）
-            }
-            対戦数の多い順にソート済み
-
-        処理フロー:
-            1. フィルタリング条件に基づいて対戦記録を取得
-            2. プレイヤーデッキと相手デッキのマッピングを構築
-            3. デッキペアごとに先攻/後攻別の勝敗を集計
-            4. 勝率を計算してフロントエンド向けの形式に変換
-        """
+        """デッキ相性表のデータを取得。"""
         query = build_base_duels_query(db, user_id, game_mode)
 
         if year is not None:
@@ -75,7 +39,7 @@ class MatchupService:
         if my_deck_id is not None:
             query = query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+            query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
         duels = query.order_by(Duel.played_date.desc()).all()
 
@@ -102,10 +66,10 @@ class MatchupService:
         matchups: Dict[str, Dict[str, Dict[str, int]]] = {
             my_deck_name: {
                 opp_deck_name: {
-                    "wins_first": 0,    # 先攻時の勝利数
+                    "wins_first": 0,  # 先攻時の勝利数
                     "losses_first": 0,  # 先攻時の敗北数
-                    "wins_second": 0,   # 後攻時の勝利数
-                    "losses_second": 0, # 後攻時の敗北数
+                    "wins_second": 0,  # 後攻時の勝利数
+                    "losses_second": 0,  # 後攻時の敗北数
                 }
                 for opp_deck_name in opponent_deck_map.values()
             }
@@ -115,17 +79,17 @@ class MatchupService:
         # 各対戦記録を集計
         for duel in duels:
             my_deck_name = my_deck_map.get(duel.deck_id)
-            opp_deck_name = opponent_deck_map.get(duel.opponentDeck_id)
+            opp_deck_name = opponent_deck_map.get(duel.opponent_deck_id)
 
             # デッキ名が見つかった場合のみ集計（削除されたデッキの対戦記録はスキップ）
             if my_deck_name and opp_deck_name:
-                if duel.first_or_second:  # 先攻（first_or_second=True）の場合
-                    if duel.result:  # 勝利（result=True）
+                if duel.is_going_first:  # 先攻（is_going_first=True）の場合
+                    if duel.is_win:  # 勝利（is_win=True）
                         matchups[my_deck_name][opp_deck_name]["wins_first"] += 1
                     else:  # 敗北（result=False）
                         matchups[my_deck_name][opp_deck_name]["losses_first"] += 1
                 else:  # 後攻（first_or_second=False）の場合
-                    if duel.result:  # 勝利
+                    if duel.is_win:  # 勝利
                         matchups[my_deck_name][opp_deck_name]["wins_second"] += 1
                     else:  # 敗北
                         matchups[my_deck_name][opp_deck_name]["losses_second"] += 1

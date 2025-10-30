@@ -46,4 +46,7 @@ backend_log.txt
 db_log.txt
 gemini_log.txt
 venv/
+.venv/
+.coverage
+htmlcov/
 .claude/settings.local.json
