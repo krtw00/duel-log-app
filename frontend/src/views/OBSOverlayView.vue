@@ -59,6 +59,8 @@ const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォ�
 const allDisplayItems: OBSDisplayItemDefinition[] = [
   { key: 'current_deck', label: '使用デッキ', format: (v) => (v as string | undefined) || '未設定' },
   { key: 'current_rank', label: 'ランク', format: (v) => v ? getRankName(Number(v)) : '-' },
+  { key: 'current_rate', label: 'レート', format: (v) => (v !== undefined && v !== null) ? `${(v as number).toFixed(2)}` : '-' },
+  { key: 'current_dc', label: 'DC', format: (v) => (v !== undefined && v !== null) ? `${(v as number).toFixed(2)}` : '-' },
   { key: 'total_duels', label: '総試合数', format: (v) => (v as number | undefined)?.toString() || '0' },
   { key: 'win_rate', label: '勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
   { key: 'first_turn_win_rate', label: '先攻勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },

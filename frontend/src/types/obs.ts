@@ -26,6 +26,8 @@ export interface OBSQueryParams {
 export interface OBSStatsResponse extends OBSOverlayStats {
   current_deck?: string;
   current_rank?: string;
+  current_rate?: number;
+  current_dc?: number;
   total_duels: number;
   win_rate: number;
   first_turn_win_rate?: number;
