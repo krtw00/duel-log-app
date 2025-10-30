@@ -24,10 +24,10 @@ class DuelBase(CustomBaseModel):
         default="RANK", description="ゲームモード（RANK/RATE/EVENT/DC）"
     )
     rank: Optional[int] = Field(None, description="ランク（RANKモード時のみ）")
-    rate_value: Optional[int] = Field(
-        None, ge=0, description="レート数値（RATEモード時のみ）"
+    rate_value: Optional[float] = Field(
+        None, ge=0, description="レート数値（RATEモード時のみ、小数点2桁まで）"
     )
-    dc_value: Optional[int] = Field(None, ge=0, description="DC数値（DCモード時のみ）")
+    dc_value: Optional[float] = Field(None, ge=0, description="DC数値（DCモード時のみ、小数点2桁まで）")
     played_date: datetime = Field(..., description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
 
@@ -52,7 +52,7 @@ class DuelBase(CustomBaseModel):
 
     @field_validator("rate_value")
     @classmethod
-    def validate_rate_value(cls, v: Optional[int], info) -> Optional[int]:
+    def validate_rate_value(cls, v: Optional[float], info) -> Optional[float]:
         """RATEモード時はrate_valueが必須"""
         game_mode = info.data.get("game_mode")
         if game_mode == "RATE" and v is None:
@@ -63,7 +63,7 @@ class DuelBase(CustomBaseModel):
 
     @field_validator("dc_value")
     @classmethod
-    def validate_dc_value(cls, v: Optional[int], info) -> Optional[int]:
+    def validate_dc_value(cls, v: Optional[float], info) -> Optional[float]:
         """DCモード時はdc_valueが必須"""
         game_mode = info.data.get("game_mode")
         if game_mode == "DC" and v is None:
@@ -91,8 +91,8 @@ class DuelUpdate(BaseModel):
         None, description="ゲームモード"
     )
     rank: Optional[int] = Field(None, ge=1, le=32, description="ランク")
-    rate_value: Optional[int] = Field(None, ge=0, description="レート数値")
-    dc_value: Optional[int] = Field(None, ge=0, description="DC数値")
+    rate_value: Optional[float] = Field(None, ge=0, description="レート数値（小数点2桁まで）")
+    dc_value: Optional[float] = Field(None, ge=0, description="DC数値（小数点2桁まで）")
     played_date: Optional[datetime] = Field(None, description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
 

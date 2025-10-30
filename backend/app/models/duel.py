@@ -8,7 +8,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.models import Base
@@ -40,8 +40,8 @@ class Duel(Base):
 
     # ゲームモード別の値
     rank = Column(Integer, nullable=True)  # ランクモード時のランク（1-15: B2～M1）
-    rate_value = Column(Integer, nullable=True)  # レートモード時のレート数値
-    dc_value = Column(Integer, nullable=True)  # DCモード時のDC数値
+    rate_value = Column(Float, nullable=True)  # レートモード時のレート数値（小数点2桁）
+    dc_value = Column(Float, nullable=True)  # DCモード時のDC数値（小数点2桁）
 
     # 対戦詳細
     coin = Column(Boolean, nullable=False)  # True=コイントス勝利, False=敗北
