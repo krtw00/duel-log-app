@@ -63,6 +63,8 @@ def create_shared_statistics_link(
 @router.get("/{share_id}", response_model=SharedStatisticsResponse)
 def get_shared_statistics(
     share_id: str,
+    my_deck_id: Optional[int] = Query(None, description="使用デッキでフィルター"),
+    opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
     db: Session = Depends(get_db),
 ):
     """共有IDを使用して統計データを取得"""
@@ -83,6 +85,8 @@ def get_shared_statistics(
         current_user=shared_link.user,
         year=shared_link.year,
         month=shared_link.month,
+        my_deck_id=my_deck_id,
+        opponent_deck_id=opponent_deck_id,
     )
 
     return SharedStatisticsResponse(
