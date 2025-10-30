@@ -139,7 +139,7 @@ const fetchDuels = async () => {
     duels.value = duelsResponse.data.map((duel: Duel) => ({
       ...duel,
       deck: deckMap.get(duel.deck_id),
-      opponentdeck: deckMap.get(duel.opponentDeck_id),
+      opponentDeck: deckMap.get(duel.opponentDeck_id),
     }));
   } catch (error) {
     console.error('Failed to fetch duels:', error);
