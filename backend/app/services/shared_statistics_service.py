@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.shared_statistics import SharedStatistics
 from app.schemas.shared_statistics import SharedStatisticsCreate
@@ -40,11 +40,10 @@ class SharedStatisticsService(
         return db_obj
 
     def get_by_share_id(self, db: Session, share_id: str) -> Optional[SharedStatistics]:
-        """
-        共有IDに基づいて共有統計エントリを取得します。
-        """
+        """共有IDで共有リンクを取得。"""
         return (
             db.query(SharedStatistics)
+            .options(joinedload(SharedStatistics.user))
             .filter(SharedStatistics.share_id == share_id)
             .first()
         )
