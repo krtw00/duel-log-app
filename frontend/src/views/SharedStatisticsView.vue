@@ -442,14 +442,6 @@ const statsCardClass = computed(() => [
 // baseChartOptions と lineChartBaseOptions は useChartOptions から取得
 // basePieChartOptions と baseLineChartOptions として利用可能
 
-// --- Data Table ---
-const matchupHeaders = [
-  { title: '使用デッキ', key: 'deck_name', sortable: false },
-  { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
-  { title: '対戦数', key: 'total_duels', sortable: true },
-  { title: '勝率', key: 'win_rate', sortable: true },
-];
-
 const getGameModeDisplayName = (modeName: string) => {
   switch (modeName) {
     case 'DASHBOARD':
