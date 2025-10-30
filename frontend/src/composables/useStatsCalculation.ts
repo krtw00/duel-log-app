@@ -74,15 +74,15 @@ export function useStatsCalculation(props: UseStatsCalculationProps) {
       return emptyStats();
     }
 
-    const wins = duelList.filter((d) => d.result === true).length;
-    const coinWins = duelList.filter((d) => d.coin === true).length;
-    const firstTurnTotal = duelList.filter((d) => d.first_or_second === true).length;
+    const wins = duelList.filter((d) => d.is_win === true).length;
+    const coinWins = duelList.filter((d) => d.won_coin_toss === true).length;
+    const firstTurnTotal = duelList.filter((d) => d.is_going_first === true).length;
     const firstTurnWins = duelList.filter(
-      (d) => d.result === true && d.first_or_second === true,
+      (d) => d.is_win === true && d.is_going_first === true,
     ).length;
-    const secondTurnTotal = duelList.filter((d) => d.first_or_second === false).length;
+    const secondTurnTotal = duelList.filter((d) => d.is_going_first === false).length;
     const secondTurnWins = duelList.filter(
-      (d) => d.result === true && d.first_or_second === false,
+      (d) => d.is_win === true && d.is_going_first === false,
     ).length;
 
     return {
