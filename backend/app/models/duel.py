@@ -31,7 +31,7 @@ class Duel(Base):
     )  # 相手のデッキ
 
     # 対戦結果
-    is_win = Column(Boolean, nullable=False)  # True=勝利, False=敗北
+    result = Column(Boolean, nullable=False)  # True=勝利, False=敗北
     game_mode = Column(
         String(10), nullable=False, default="RANK", server_default="RANK"
     )  # RANK, RATE, EVENT, DC
@@ -42,8 +42,8 @@ class Duel(Base):
     dc_value = Column(Float, nullable=True)  # DCモード時のDC数値（小数点2桁）
 
     # 対戦詳細
-    won_coin_toss = Column(Boolean, nullable=False)  # True=コイントス勝利, False=敗北
-    is_going_first = Column(Boolean, nullable=False)  # True=先攻, False=後攻
+    coin = Column(Boolean, nullable=False)  # True=コイントス勝利, False=敗北
+    first_or_second = Column(Boolean, nullable=False)  # True=先攻, False=後攻
     played_date = Column(DateTime(timezone=True), nullable=False)  # 対戦日時
     notes = Column(String, nullable=True)  # メモ（任意）
 
