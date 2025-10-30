@@ -1,5 +1,4 @@
-"""
-デッキモデル
+"""デッキモデル
 
 ユーザーが使用するデッキと対戦相手のデッキを管理するモデル。
 is_opponentフラグにより、自分のデッキと相手のデッキを区別します。
@@ -20,8 +19,7 @@ if TYPE_CHECKING:
 
 
 class Deck(Base):
-    """
-    デッキモデル
+    """デッキモデル
 
     プレイヤーデッキと相手デッキの両方を管理します。
     is_opponentフラグで区別され、統計情報やデッキ相性分析に使用されます。
@@ -62,5 +60,5 @@ class Deck(Base):
         "Duel", foreign_keys="[Duel.deck_id]", back_populates="deck"
     )  # このデッキを使用した対戦
     opponent_duels = relationship(
-        "Duel", foreign_keys="[Duel.opponentDeck_id]", back_populates="opponent_deck"
+        "Duel", foreign_keys="[Duel.opponent_deck_id]", back_populates="opponent_deck"
     )  # このデッキと対戦した履歴
