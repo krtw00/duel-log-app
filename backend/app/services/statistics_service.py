@@ -1,12 +1,11 @@
-"""
-統計サービス
-統計に関するビジネスロジックを提供
+"""統計サービス。
+
+統計に関するビジネスロジックを提供。
 """
 
-from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import case, desc, extract, func
+from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
@@ -15,7 +14,7 @@ from app.utils.query_builders import build_base_duels_query
 
 
 class StatisticsService:
-    """統計サービスクラス"""
+    """統計サービスクラス。"""
 
     def _build_base_duels_query(
         self, db: Session, user_id: int, game_mode: Optional[str] = None
@@ -28,9 +27,9 @@ class StatisticsService:
         range_start: Optional[int] = None,
         range_end: Optional[int] = None,
     ) -> List[Duel]:
-        """
-        デュエルリストに範囲指定を適用
-        duelsは新しい順にソートされている必要がある
+        """デュエルリストに範囲指定を適用。
+
+        duelsは新しい順にソートされている必要がある。
         """
         filtered = duels
 
@@ -52,7 +51,7 @@ class StatisticsService:
         range_end: Optional[int] = None,
         game_mode: Optional[str] = None,
     ) -> Dict[str, List[Dict[str, Any]]]:
-        """指定された期間・範囲に存在するデッキ一覧を取得"""
+        """指定された期間・範囲に存在するデッキ一覧を取得。"""
         query = self._build_base_duels_query(db, user_id, game_mode)
         query = query.filter(
             extract("year", Duel.played_date) == year,
@@ -71,8 +70,8 @@ class StatisticsService:
         for duel in duels:
             if duel.deck_id:
                 my_deck_ids.add(duel.deck_id)
-            if duel.opponentDeck_id:
-                opponent_deck_ids.add(duel.opponentDeck_id)
+            if duel.opponent_deck_id:
+                opponent_deck_ids.add(duel.opponent_deck_id)
 
         # デッキ情報を取得
         my_decks = []
@@ -97,14 +96,10 @@ class StatisticsService:
 
         return {"my_decks": my_decks, "opponent_decks": opponent_decks}
 
-
-
-
-
     def get_duels_by_month(
         self, db: Session, user_id: int, year: int, month: int
     ) -> List[Duel]:
-        """指定された年月におけるユーザーのデュエルリストを取得"""
+        """指定された年月におけるユーザーのデュエルリストを取得。"""
         duels = (
             db.query(Duel)
             .filter(
@@ -120,7 +115,7 @@ class StatisticsService:
         deck_ids = list(
             set(
                 [d.deck_id for d in duels if d.deck_id]
-                + [d.opponentDeck_id for d in duels if d.opponentDeck_id]
+                + [d.opponent_deck_id for d in duels if d.opponent_deck_id]
             )
         )
         if deck_ids:  # deck_ids が空でない場合のみクエリを実行
@@ -133,7 +128,7 @@ class StatisticsService:
             # deck と opponentDeck オブジェクトを設定
             duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None
             duel.opponent_deck = (
-                deck_map.get(duel.opponentDeck_id) if duel.opponentDeck_id else None
+                deck_map.get(duel.opponent_deck_id) if duel.opponent_deck_id else None
             )
 
             # deck_name と opponent_deck_name 属性を必ず追加

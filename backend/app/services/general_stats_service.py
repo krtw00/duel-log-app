@@ -1,45 +1,20 @@
-"""
-総合統計サービス
+"""総合統計サービス
 全体、月次、直近などの総合的な統計に関するビジネスロジックを提供
 """
 
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.models.duel import Duel
-from app.utils.query_builders import build_base_duels_query
 
 
 class GeneralStatsService:
     """総合統計サービスクラス"""
 
     def _calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:
-        """
-        デュエルのリストから基本的な統計情報を計算する
-
-        Args:
-            duels: 対戦記録のリスト
-
-        Returns:
-            統計情報の辞書。以下のキーを含む:
-            - total_duels: 総対戦数
-            - win_count: 勝利数
-            - lose_count: 敗北数
-            - win_rate: 勝率（%）
-            - first_turn_win_rate: 先攻時の勝率（%）
-            - second_turn_win_rate: 後攻時の勝率（%）
-            - coin_win_rate: コイントス勝利時の勝率（%）
-            - go_first_rate: 先攻を引く割合（%）
-
-        処理フロー:
-            1. 総対戦数を計算
-            2. 勝敗をresultフラグで分類（True=勝利、False=敗北）
-            3. 先攻/後攻をfirst_or_secondフラグで分類（True=先攻、False=後攻）
-            4. 各カテゴリーの勝率を計算
-        """
+        """デュエルのリストから基本的な統計情報を計算する。"""
         total_duels = len(duels)
         if total_duels == 0:
             return {
@@ -53,32 +28,30 @@ class GeneralStatsService:
                 "go_first_rate": 0,
             }
 
-        win_count = sum(1 for d in duels if d.result is True)
+        win_count = sum(1 for d in duels if d.is_win is True)
         lose_count = total_duels - win_count
         win_rate = (win_count / total_duels) * 100 if total_duels > 0 else 0
 
-        first_turn_duels = [d for d in duels if d.first_or_second is True]
-        second_turn_duels = [d for d in duels if d.first_or_second is False]
+        first_turn_duels = [d for d in duels if d.is_going_first is True]
+        second_turn_duels = [d for d in duels if d.is_going_first is False]
 
         first_turn_total = len(first_turn_duels)
-        first_turn_wins = sum(1 for d in first_turn_duels if d.result is True)
+        first_turn_wins = sum(1 for d in first_turn_duels if d.is_win is True)
         first_turn_win_rate = (
             (first_turn_wins / first_turn_total) * 100 if first_turn_total > 0 else 0
         )
 
         second_turn_total = len(second_turn_duels)
-        second_turn_wins = sum(1 for d in second_turn_duels if d.result is True)
+        second_turn_wins = sum(1 for d in second_turn_duels if d.is_win is True)
         second_turn_win_rate = (
-            (second_turn_wins / second_turn_total) * 100
-            if second_turn_total > 0
-            else 0
+            (second_turn_wins / second_turn_total) * 100 if second_turn_total > 0 else 0
         )
 
         coin_total = total_duels
-        coin_wins = sum(1 for d in duels if d.coin is True)
+        coin_wins = sum(1 for d in duels if d.won_coin_toss is True)
         coin_win_rate = (coin_wins / coin_total) * 100 if coin_total > 0 else 0
 
-        go_first_total = sum(1 for d in duels if d.first_or_second is True)
+        go_first_total = sum(1 for d in duels if d.is_going_first is True)
         go_first_rate = (go_first_total / total_duels) * 100 if total_duels > 0 else 0
 
         return {
@@ -101,7 +74,7 @@ class GeneralStatsService:
         game_mode: Optional[str] = None,
         start_id: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """指定された年月におけるユーザーの全体的なデュエル統計を取得"""
+        """指定された年月におけるユーザーの全体的なデュエル統計を取得。"""
         query = db.query(Duel).filter(
             Duel.user_id == user_id,
             extract("year", Duel.played_date) == year,
@@ -143,7 +116,7 @@ class GeneralStatsService:
         game_mode: Optional[str] = None,
         start_id: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """全期間のユーザーの統計を取得"""
+        """全期間のユーザーの統計を取得。"""
         query = db.query(Duel).filter(Duel.user_id == user_id)
 
         if game_mode:
@@ -183,7 +156,7 @@ class GeneralStatsService:
         game_mode: Optional[str] = None,
         start_id: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """直近N戦のユーザーの統計を取得"""
+        """直近N戦のユーザーの統計を取得。"""
         query = db.query(Duel).filter(Duel.user_id == user_id)
 
         if game_mode:

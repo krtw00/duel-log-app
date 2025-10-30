@@ -1,6 +1,6 @@
-"""
-デッキ分布計算サービス
-相手デッキの分布計算に特化したビジネスロジックを提供
+"""デッキ分布計算サービス。
+
+相手デッキの分布計算に特化したビジネスロジックを提供。
 """
 
 from typing import Any, Dict, List, Optional
@@ -14,12 +14,12 @@ from app.utils.query_builders import apply_range_filter, build_base_duels_query
 
 
 class DeckDistributionService:
-    """デッキ分布計算サービスクラス"""
+    """デッキ分布計算サービスクラス。"""
 
     def _calculate_deck_distribution_from_duels(
         self, duels: List[Duel]
     ) -> List[Dict[str, Any]]:
-        """デュエルのリストから相手デッキの分布を計算する"""
+        """デュエルのリストから相手デッキの分布を計算する。"""
         total_duels = len(duels)
         if total_duels == 0:
             return []
@@ -54,7 +54,7 @@ class DeckDistributionService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """月間の相手デッキ分布を取得"""
+        """月間の相手デッキ分布を取得。"""
         base_query = build_base_duels_query(db, user_id, game_mode).filter(
             extract("year", Duel.played_date) == year,
             extract("month", Duel.played_date) == month,
@@ -64,7 +64,7 @@ class DeckDistributionService:
         if my_deck_id is not None:
             base_query = base_query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            base_query = base_query.filter(Duel.opponentDeck_id == opponent_deck_id)
+            base_query = base_query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
         # 範囲指定がある場合
         if range_start is not None or range_end is not None:
@@ -80,7 +80,7 @@ class DeckDistributionService:
                 return []
 
             deck_counts = (
-                filtered_query.join(Deck, Duel.opponentDeck_id == Deck.id)
+                filtered_query.join(Deck, Duel.opponent_deck_id == Deck.id)
                 .group_by(Deck.name)
                 .with_entities(Deck.name, func.count(Duel.id).label("count"))
                 .order_by(desc("count"))
@@ -108,13 +108,13 @@ class DeckDistributionService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """直近の相手デッキ分布を取得"""
+        """直近の相手デッキ分布を取得。"""
         query = build_base_duels_query(db, user_id, game_mode)
 
         if my_deck_id is not None:
             query = query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
-            query = query.filter(Duel.opponentDeck_id == opponent_deck_id)
+            query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
         # 範囲指定がある場合
         if range_start is not None or range_end is not None:
@@ -122,11 +122,7 @@ class DeckDistributionService:
             duels = apply_range_filter(duels, range_start, range_end)
             return self._calculate_deck_distribution_from_duels(duels)
         else:
-            duels = (
-                query.order_by(Duel.played_date.desc())
-                .limit(limit)
-                .all()
-            )
+            duels = query.order_by(Duel.played_date.desc()).limit(limit).all()
             return self._calculate_deck_distribution_from_duels(duels)
 
 
