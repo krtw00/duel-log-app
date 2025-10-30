@@ -6,7 +6,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.duel import Duel
 from app.schemas.duel import DuelCreate, DuelUpdate
