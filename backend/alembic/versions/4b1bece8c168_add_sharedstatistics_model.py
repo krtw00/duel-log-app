@@ -4,6 +4,17 @@ Revision ID: 4b1bece8c168
 Revises: feb8abc110c0
 Create Date: 2025-10-05 15:53:32.957353
 
+🧾 設計思想の分析
+
+このテーブルは…
+
+✅ 月次統計を
+✅ 特定ユーザーが
+✅ URL共有できて
+✅ 期限付き（expire）
+
+という仕様っぽいです。
+
 """
 
 import sqlalchemy as sa
