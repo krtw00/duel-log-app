@@ -67,7 +67,7 @@ def export_duels_csv(
         ) from e
 
 
-@router.get("/", response_model=List[DuelRead])
+@router.get("/", response_model=List[DuelRead], response_model_by_alias=True)
 def list_duels(
     deck_id: Optional[int] = Query(None, description="デッキIDでフィルタリング"),
     opponent_deck_id: Optional[int] = Query(
@@ -115,7 +115,12 @@ def list_duels(
     )
 
 
-@router.post("/", response_model=DuelRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=DuelRead,
+    status_code=status.HTTP_201_CREATED,
+    response_model_by_alias=True,
+)
 def create_duel(
     duel: DuelCreate,
     db: Session = Depends(get_db),
@@ -135,7 +140,7 @@ def create_duel(
     return duel_service.create_user_duel(db=db, user_id=current_user.id, duel_in=duel)
 
 
-@router.get("/{duel_id}", response_model=DuelRead)
+@router.get("/{duel_id}", response_model=DuelRead, response_model_by_alias=True)
 def get_duel(
     duel_id: int,
     db: Session = Depends(get_db),
@@ -165,7 +170,7 @@ def get_duel(
     return duel
 
 
-@router.put("/{duel_id}", response_model=DuelRead)
+@router.put("/{duel_id}", response_model=DuelRead, response_model_by_alias=True)
 def update_duel(
     duel_id: int,
     duel: DuelUpdate,
