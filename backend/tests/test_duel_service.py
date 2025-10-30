@@ -21,11 +21,11 @@ def test_create_user_duel(db_session: Session, test_user: User):
     duel_in = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=True,
+        result=True,
         game_mode="RANK",
         rank=10,
-        won_coin_toss=True,
-        is_going_first=True,
+        coin=True,
+        first_or_second=True,
         played_date=datetime.utcnow(),
     )
 
@@ -39,7 +39,7 @@ def test_create_user_duel(db_session: Session, test_user: User):
     assert created_duel.user_id == test_user.id
     assert created_duel.deck_id == my_deck.id
     assert created_duel.opponent_deck_id == opponent_deck.id
-    assert created_duel.is_win is True
+    assert created_duel.result is True
     assert created_duel.game_mode == "RANK"
     assert created_duel.rank == 10
 
@@ -57,22 +57,24 @@ def test_get_user_duels(db_session: Session, test_user: User):
     duel_in_1 = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=True,
+        result=True,
         game_mode="RANK",
+        rank=10,
         played_date=datetime(2023, 1, 15),
-        won_coin_toss=True,
-        is_going_first=True,
+        coin=True,
+        first_or_second=True,
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in_1)
 
     duel_in_2 = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=False,
+        result=False,
         game_mode="RATE",
+        rate_value=1500.0,
         played_date=datetime(2023, 2, 15),
-        won_coin_toss=False,
-        is_going_first=False,
+        coin=False,
+        first_or_second=False,
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in_2)
 
@@ -111,11 +113,11 @@ def test_export_duels_to_csv(db_session: Session, test_user: User):
     duel_in = DuelCreate(
         deck_id=my_deck.id,
         opponent_deck_id=opponent_deck.id,
-        is_win=True,
+        result=True,
         game_mode="RANK",
         rank=10,
-        won_coin_toss=True,
-        is_going_first=True,
+        coin=True,
+        first_or_second=True,
         played_date=datetime(2023, 1, 15, 12, 30),
         notes="Test note",
     )
