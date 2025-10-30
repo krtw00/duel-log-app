@@ -4,6 +4,31 @@ Revision ID: 4a7012b3be58
 Revises: 16b01cb8872f
 Create Date: 2025-09-26 16:07:58.003223
 
+このファイルは：
+AlembicのDBスキーマ変更履歴ファイル
+upgradeで変更を適用
+downgradeで元に戻す
+中身が空なので現状は何もしない
+
+“消してもいい” ケース
+この revision ID (4a7012b3be58) が DB に適用されていない
+
+削除前に確認すべきこと（重要）
+alembic history --verbose
+✅ もし 4a7012b3be58 が 未適用
+→ 削除して OK
+❌ もし 4a7012b3be58 が すでに適用済み
+→ 削除すると履歴チェーンが壊れるのでアウト
+
+すでに適用済みの場合どうする？
+① このファイルに正しい処理を書く
+（メールカラム追加など）
+
+② downgrade → 削除 → 再生成
+alembic downgrade 16b01cb8872f
+→ 削除
+→ 再度必要なマイグレーションを autogenerate
+
 """
 
 # revision identifiers, used by Alembic.
