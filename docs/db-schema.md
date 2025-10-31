@@ -67,6 +67,18 @@
 | `create_date` | `DateTime(timezone=True)` | Default: `now(utc)` | 作成日時 (UTC) |
 | `update_date` | `DateTime(timezone=True)` | Default: `now(utc)`, On Update: `now(utc)` | 更新日時 (UTC) |
 
+#### ⚠️ 命名の曖昧さに関する注意
+
+現在、`duels`テーブルには歴史的な経緯から命名が曖昧なカラムが存在します。
+
+- `result`: `is_win` または `won_duel` への変更を検討中。
+- `coin`: `won_coin_toss` への変更を検討中。
+- `first_or_second`: `is_going_first` または `went_first` への変更を検討中。
+- `opponentDeck_id`: `opponent_deck_id` (snake_case) への変更を検討中。
+
+これらのカラム名は、将来のバージョンでより明確な名前にリファクタリングされる予定です。移行にはAlembicによるデータベースマイグレーションが必要となります。詳細は [コード可読性向上ガイド](./code-readability-guide.md#6-曖昧な命名の改善) を参照してください。
+
+
 ### `password_reset_tokens` テーブル
 
 パスワードリセット用のトークンを管理します。
