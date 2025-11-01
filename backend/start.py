@@ -2,6 +2,7 @@
 """
 データベース接続待機とマイグレーション実行スクリプト
 """
+
 import logging
 import os
 import subprocess
