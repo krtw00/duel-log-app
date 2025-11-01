@@ -384,9 +384,9 @@ CSVファイルから対戦履歴を一括でインポートします。
   - `game_mode` (str, optional)
 - **レスポンス (200 OK):** `List[Dict[str, Any]]`
 
-### `GET /time-series/{game_mode}`
+### `GET /value-sequence/{game_mode}`
 
-指定されたゲームモード（RATEまたはDC）の月間時系列データを取得します。
+指定されたゲームモード（RATEまたはDC）の月間レート/DC値シーケンスを取得します。日付ごとの集約は行われず、取得した試合順に生の値が並びます。
 
 - **クエリパラメータ:**
   - `year` (int, optional)
@@ -417,4 +417,3 @@ OBSオーバーレイ用の統計情報を取得します。
   - `game_mode` (str, optional)
   - `start_id` (int, optional)
 - **レスポンス (200 OK):** `Dict[str, Any]`
-

@@ -132,12 +132,10 @@ export interface MatchupData {
 }
 
 /**
- * 時系列データ
+ * 値シーケンスデータ
  */
-export interface TimeSeriesData {
-  date: string;
-  win_rate: number;
-  total_duels: number;
+export interface ValueSequenceEntry {
+  value: number;
 }
 
 /**
@@ -149,7 +147,7 @@ export interface GameModeStatisticsData {
   monthly_deck_distribution: DeckDistribution[];
   recent_deck_distribution: DeckDistribution[];
   matchup_data: MatchupData[];
-  time_series_data: TimeSeriesData[];
+  value_sequence_data: ValueSequenceEntry[];
 }
 
 /**

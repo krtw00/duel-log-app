@@ -298,7 +298,6 @@ const importBackup = async (event: Event) => {
     // after a successful import on a different view.
     // A better solution would be a shared service or a more robust state management.
     await authStore.fetchUser(); // to refresh user related data if any
-
   } catch (error) {
     console.error('Failed to import data:', error);
     notificationStore.error('データのインポートに失敗しました。');

@@ -1,7 +1,4 @@
-"""時系列データサービス。
-
-レートやDCポイントの時系列データ生成に特化したビジネスロジックを提供。
-"""
+"""レート/DCの値推移（順序データ）サービス。"""
 
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
@@ -12,10 +9,10 @@ from app.models.duel import Duel
 from app.utils.query_builders import apply_range_filter, build_base_duels_query
 
 
-class TimeSeriesService:
-    """時系列データサービスクラス。"""
+class ValueSequenceService:
+    """レート/DCの生値を時系列順に並べたシーケンスを提供する。"""
 
-    def get_time_series_data(
+    def get_value_sequence_data(
         self,
         db: Session,
         user_id: int,
@@ -27,7 +24,7 @@ class TimeSeriesService:
         my_deck_id: Optional[int] = None,
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """指定されたゲームモードの月間時系列データを取得 (レート/DC)。"""
+        """指定されたゲームモードの月間値シーケンスを取得 (レート/DC)。"""
         # 月の最初の日と最後の日を計算
         start_date = datetime(year, month, 1, 0, 0, 0, tzinfo=timezone.utc)
         if month == 12:
@@ -57,36 +54,27 @@ class TimeSeriesService:
         if range_start is not None or range_end is not None:
             duels = apply_range_filter(duels, range_start, range_end)
 
-        # 時系列データとして再度日付順にソート
+        # 表示用に昇順で並べ替え
         duels = sorted(duels, key=lambda d: (d.played_date, d.id))
 
-        time_series_data = []
-        current_value = None
+        value_sequence = []
 
         for duel in duels:
-            date_str = duel.played_date.strftime("%Y-%m-%d")
-            value = None
-            if game_mode == "RATE" and duel.rate_value is not None:
+            if game_mode == "RATE":
                 value = duel.rate_value
-            elif game_mode == "DC" and duel.dc_value is not None:
+            elif game_mode == "DC":
                 value = duel.dc_value
+            else:
+                value = None
 
-            if value is not None:
-                current_value = value
+            if value is None:
+                continue
 
-            # その日の最後の値、または直前の値を使用
-            time_series_data.append({"date": date_str, "value": current_value})
+            # 1試合ごとの生の値を保持する。日付での集約は行わない。
+            value_sequence.append({"value": value})
 
-        # 同じ日付で複数のデュエルがある場合、最後の値のみを保持
-        processed_data = {}
-        for item in time_series_data:
-            processed_data[item["date"]] = item["value"]
-
-        # 辞書をリストに変換して返す
-        return [
-            {"date": date, "value": value} for date, value in processed_data.items()
-        ]
+        return value_sequence
 
 
 # シングルトンインスタンス
-time_series_service = TimeSeriesService()
+value_sequence_service = ValueSequenceService()
