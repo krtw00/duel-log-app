@@ -30,7 +30,7 @@
 - `backend/app/services/matchup_service.py`
 - `backend/app/services/general_stats_service.py`
 - `backend/app/services/deck_distribution_service.py`
-- `backend/app/services/time_series_service.py`
+- `backend/app/services/value_sequence_service.py`
 
 **改善例:**
 
@@ -177,7 +177,7 @@ matchups: Dict[str, Dict[str, Dict[str, int]]] = {
 
 **現状:**
 ```python
-# matchup_service.py, deck_distribution_service.py, time_series_service.py などで重複
+# matchup_service.py, deck_distribution_service.py, value_sequence_service.py などで重複
 def _build_base_duels_query(self, db: Session, user_id: int, game_mode: Optional[str] = None):
     query = db.query(Duel).filter(Duel.user_id == user_id)
     if game_mode:
@@ -403,7 +403,7 @@ test_statistics_api.py
   - 正常系: 認証済みユーザーが自分の統計を取得
   - 異常系: 未認証ユーザーのアクセス拒否
   - フィルター: 年月、ゲームモード、デッキ、範囲指定
-  - レスポンス形式: general_stats, win_rate, deck_distribution, matchup_data, time_series
+  - レスポンス形式: general_stats, win_rate, deck_distribution, matchup_data, value_sequence
 
 - GET /api/statistics/available-decks - 利用可能デッキ取得
   - 指定期間に存在するデッキのみ返却
@@ -664,7 +664,7 @@ module.exports = {
 - [x] `backend/app/services/matchup_service.py` - docstring追加完了
 - [ ] `backend/app/services/general_stats_service.py`
 - [ ] `backend/app/services/deck_distribution_service.py`
-- [ ] `backend/app/services/time_series_service.py`
+- [ ] `backend/app/services/value_sequence_service.py`
 
 #### フロントエンド
 - [x] `frontend/src/views/StatisticsView.vue` - コンポーネントドキュメント追加完了

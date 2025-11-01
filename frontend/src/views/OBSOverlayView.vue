@@ -1,13 +1,20 @@
 <template>
   <div class="obs-overlay" :class="['layout-' + layout, 'theme-' + theme]">
     <div v-if="!loading && stats" class="stats-container">
-      <div class="stats-card" :class="[
-        { 'single-column': displayItems.length === 1 },
-        'layout-' + layout
-      ]">
-        <div v-for="item in displayItems" :key="item.key" class="stat-item" :class="{ 'deck-item': item.key === 'current_deck' }">
+      <div
+        class="stats-card"
+        :class="[{ 'single-column': displayItems.length === 1 }, 'layout-' + layout]"
+      >
+        <div
+          v-for="item in displayItems"
+          :key="item.key"
+          class="stat-item"
+          :class="{ 'deck-item': item.key === 'current_deck' }"
+        >
           <div class="stat-label">{{ item.label }}</div>
-          <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">{{ stats && item.format(stats[item.key]) }}</div>
+          <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">
+            {{ stats && item.format(stats[item.key]) }}
+          </div>
         </div>
       </div>
     </div>
@@ -48,7 +55,9 @@ const year = ref(Number(route.query.year) || new Date().getFullYear());
 const month = ref(Number(route.query.month) || new Date().getMonth() + 1);
 const limit = ref(Number(route.query.limit) || 30);
 const gameMode = ref<string | undefined>((route.query.game_mode as string) || undefined);
-const startId = ref<number | undefined>(route.query.start_id ? Number(route.query.start_id) : undefined);
+const startId = ref<number | undefined>(
+  route.query.start_id ? Number(route.query.start_id) : undefined,
+);
 const displayItemsParam = ref((route.query.display_items as string) || '');
 const layout = ref((route.query.layout as string) || 'grid');
 const theme = ref((route.query.theme as string) || 'dark');
@@ -57,28 +66,64 @@ const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォ�
 // 表示項目のリスト
 // Note: バックエンドのOBS APIは既にパーセント値（0-100）を返すため、100倍しない
 const allDisplayItems: OBSDisplayItemDefinition[] = [
-  { key: 'current_deck', label: '使用デッキ', format: (v) => (v as string | undefined) || '未設定' },
-  { key: 'current_rank', label: 'ランク', format: (v) => v ? getRankName(Number(v)) : '-' },
-  { key: 'current_rate', label: 'レート', format: (v) => (v !== undefined && v !== null) ? `${(v as number).toFixed(2)}` : '-' },
-  { key: 'current_dc', label: 'DC', format: (v) => (v !== undefined && v !== null) ? `${(v as number).toFixed(2)}` : '-' },
-  { key: 'total_duels', label: '総試合数', format: (v) => (v as number | undefined)?.toString() || '0' },
-  { key: 'win_rate', label: '勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'first_turn_win_rate', label: '先攻勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'second_turn_win_rate', label: '後攻勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'coin_win_rate', label: 'コイン勝率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
-  { key: 'go_first_rate', label: '先攻率', format: (v) => v !== undefined ? `${(v as number).toFixed(1)}%` : '-' },
+  {
+    key: 'current_deck',
+    label: '使用デッキ',
+    format: (v) => (v as string | undefined) || '未設定',
+  },
+  { key: 'current_rank', label: 'ランク', format: (v) => (v ? getRankName(Number(v)) : '-') },
+  {
+    key: 'current_rate',
+    label: 'レート',
+    format: (v) => (v !== undefined && v !== null ? `${(v as number).toFixed(2)}` : '-'),
+  },
+  {
+    key: 'current_dc',
+    label: 'DC',
+    format: (v) => (v !== undefined && v !== null ? `${(v as number).toFixed(2)}` : '-'),
+  },
+  {
+    key: 'total_duels',
+    label: '総試合数',
+    format: (v) => (v as number | undefined)?.toString() || '0',
+  },
+  {
+    key: 'win_rate',
+    label: '勝率',
+    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+  },
+  {
+    key: 'first_turn_win_rate',
+    label: '先攻勝率',
+    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+  },
+  {
+    key: 'second_turn_win_rate',
+    label: '後攻勝率',
+    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+  },
+  {
+    key: 'coin_win_rate',
+    label: 'コイン勝率',
+    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+  },
+  {
+    key: 'go_first_rate',
+    label: '先攻率',
+    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+  },
 ];
 
 // 表示する項目をフィルタリング（URLパラメータの順番を保持）
 const displayItems = computed(() => {
   if (!displayItemsParam.value) {
     // パラメータがない場合は全項目（総試合数を除く）
-    return allDisplayItems.filter(item => item.key !== 'total_duels');
+    return allDisplayItems.filter((item) => item.key !== 'total_duels');
   }
   const selectedKeys = displayItemsParam.value.split(',');
   // URLパラメータの順番通りに並べる
   return selectedKeys
-    .map(key => allDisplayItems.find(item => item.key === key))
+    .map((key) => allDisplayItems.find((item) => item.key === key))
     .filter((item): item is OBSDisplayItemDefinition => item !== undefined);
 });
 

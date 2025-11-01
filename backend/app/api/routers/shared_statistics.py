@@ -1,16 +1,14 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
-from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
+from app.api.routers.statistics import get_all_statistics
 from app.auth import get_current_user
 from app.db.session import get_db
-from app.models.duel import Duel
 from app.models.user import User
-from app.schemas.duel import DuelWithDeckNames  # Import DuelWithDeckNames
 from app.schemas.shared_statistics import (
     SharedStatisticsCreate,
     SharedStatisticsRead,
@@ -18,12 +16,7 @@ from app.schemas.shared_statistics import (
 )
 from app.services.deck_distribution_service import deck_distribution_service
 from app.services.duel_service import duel_service
-from app.services.general_stats_service import general_stats_service
-from app.services.matchup_service import matchup_service
 from app.services.shared_statistics_service import shared_statistics_service
-from app.api.routers.statistics import get_all_statistics
-from app.services.time_series_service import time_series_service
-from app.services.win_rate_service import win_rate_service
 
 router = APIRouter(prefix="/shared-statistics", tags=["shared-statistics"])
 
@@ -79,7 +72,8 @@ def get_shared_statistics(
 
     if shared_link.expires_at and shared_link.expires_at < datetime.now(timezone.utc):
         raise HTTPException(
-            status_code=status.HTTP_410_GONE, detail="共有リンクの有効期限が切れています"
+            status_code=status.HTTP_410_GONE,
+            detail="共有リンクの有効期限が切れています",
         )
 
     statistics_data = get_all_statistics(

@@ -15,10 +15,30 @@ describe('StatisticsView.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     const mockStats = {
-      RANK: { monthly_deck_distribution: [], recent_deck_distribution: [], matchup_data: [], time_series_data: [] },
-      RATE: { monthly_deck_distribution: [], recent_deck_distribution: [], matchup_data: [], time_series_data: [] },
-      EVENT: { monthly_deck_distribution: [], recent_deck_distribution: [], matchup_data: [], time_series_data: [] },
-      DC: { monthly_deck_distribution: [], recent_deck_distribution: [], matchup_data: [], time_series_data: [] },
+      RANK: {
+        monthly_deck_distribution: [],
+        recent_deck_distribution: [],
+        matchup_data: [],
+        value_sequence_data: [],
+      },
+      RATE: {
+        monthly_deck_distribution: [],
+        recent_deck_distribution: [],
+        matchup_data: [],
+        value_sequence_data: [],
+      },
+      EVENT: {
+        monthly_deck_distribution: [],
+        recent_deck_distribution: [],
+        matchup_data: [],
+        value_sequence_data: [],
+      },
+      DC: {
+        monthly_deck_distribution: [],
+        recent_deck_distribution: [],
+        matchup_data: [],
+        value_sequence_data: [],
+      },
     };
 
     vi.mocked(api.get).mockImplementation((url: string) => {
@@ -38,7 +58,7 @@ describe('StatisticsView.vue', () => {
           apexchart: true,
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
-          VContainer: { template: '<div><slot /></div>' }
+          VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
