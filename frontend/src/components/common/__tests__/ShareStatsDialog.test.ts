@@ -16,7 +16,7 @@ const vuetify = createVuetify({
 // Helper function to wait for Vuetify dialog to render
 const waitForDialog = async () => {
   await flushPromises();
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise((resolve) => setTimeout(resolve, 100));
 };
 
 describe('ShareStatsDialog.vue', () => {
@@ -31,12 +31,12 @@ describe('ShareStatsDialog.vue', () => {
     });
     sharedStatisticsStore = useSharedStatisticsStore();
     notificationStore = useNotificationStore();
-    
+
     // Spy on notification methods
     vi.spyOn(notificationStore, 'success');
     vi.spyOn(notificationStore, 'error');
     vi.spyOn(sharedStatisticsStore, 'createSharedLink');
-    
+
     vi.clearAllMocks();
   });
 
@@ -70,11 +70,11 @@ describe('ShareStatsDialog.vue', () => {
     });
 
     await waitForDialog();
-    
+
     // Check if dialog content exists in the document
     const headlineText = document.body.textContent;
     expect(headlineText).toContain('共有リンクを生成');
-    
+
     wrapper.unmount();
   });
 
@@ -107,7 +107,7 @@ describe('ShareStatsDialog.vue', () => {
     // Find form in the document body (where Vuetify renders dialogs)
     const form = document.querySelector('form');
     expect(form).toBeTruthy();
-    
+
     // Trigger form submission
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
     form!.dispatchEvent(submitEvent);
@@ -120,7 +120,7 @@ describe('ShareStatsDialog.vue', () => {
       expires_at: undefined,
     });
     expect(wrapper.vm.generatedLink).toContain(mockShareId);
-    
+
     wrapper.unmount();
   });
 
@@ -155,7 +155,7 @@ describe('ShareStatsDialog.vue', () => {
 
     const form = document.querySelector('form');
     expect(form).toBeTruthy();
-    
+
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
     form!.dispatchEvent(submitEvent);
     await flushPromises();
@@ -167,7 +167,7 @@ describe('ShareStatsDialog.vue', () => {
       expires_at: '2025-12-31T00:00:00.000Z',
     });
     expect(wrapper.vm.generatedLink).toContain(mockShareId);
-    
+
     wrapper.unmount();
   });
 
@@ -192,7 +192,7 @@ describe('ShareStatsDialog.vue', () => {
 
     const form = document.querySelector('form');
     expect(form).toBeTruthy();
-    
+
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
     form!.dispatchEvent(submitEvent);
     await flushPromises();
@@ -201,7 +201,7 @@ describe('ShareStatsDialog.vue', () => {
     expect(notificationStore.error).toHaveBeenCalledWith(
       '有効期限の日付形式が不正です。YYYY-MM-DD 形式で入力してください。',
     );
-    
+
     wrapper.unmount();
   });
 
@@ -226,7 +226,7 @@ describe('ShareStatsDialog.vue', () => {
 
     const form = document.querySelector('form');
     expect(form).toBeTruthy();
-    
+
     const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
     form!.dispatchEvent(submitEvent);
     await flushPromises();
@@ -235,7 +235,7 @@ describe('ShareStatsDialog.vue', () => {
     expect(notificationStore.error).toHaveBeenCalledWith(
       '有効期限の日付が不正です。存在しない日付が入力されました。',
     );
-    
+
     wrapper.unmount();
   });
 
@@ -254,7 +254,7 @@ describe('ShareStatsDialog.vue', () => {
 
     await flushPromises();
     await wrapper.vm.$nextTick();
-    
+
     wrapper.vm.generatedLink = 'http://test.com/share/abc';
     wrapper.vm.expiresAt = '2023-11-01';
     await wrapper.vm.$nextTick();
