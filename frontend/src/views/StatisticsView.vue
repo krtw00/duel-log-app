@@ -91,7 +91,7 @@
                 duels: monthlyDuelsByMode[mode],
                 myDeckWinRates: statisticsByMode[mode].myDeckWinRates,
                 matchupData: statisticsByMode[mode].matchupData,
-                timeSeries: statisticsByMode[mode].timeSeries,
+                valueSequence: statisticsByMode[mode].valueSequence,
               }"
               :game-mode="mode"
               :display-month="currentMonth"
@@ -209,11 +209,13 @@
                   >
                   <v-card-text>
                     <apexchart
-                      v-if="!loading && statisticsByMode[mode].timeSeries.series[0].data.length > 0"
+                      v-if="
+                        !loading && statisticsByMode[mode].valueSequence.series[0].data.length > 0
+                      "
                       type="line"
                       height="350"
-                      :options="statisticsByMode[mode].timeSeries.chartOptions"
-                      :series="statisticsByMode[mode].timeSeries.series"
+                      :options="statisticsByMode[mode].valueSequence.chartOptions"
+                      :series="statisticsByMode[mode].valueSequence.series"
                     ></apexchart>
                     <div v-else class="no-data-placeholder">
                       <v-icon size="64" color="grey">{{
@@ -272,6 +274,26 @@ import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 const themeStore = useThemeStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 
+const determineStep = (count: number) => {
+  if (count <= 10) return 1;
+  if (count <= 50) return 5;
+  if (count <= 500) return 10;
+  return 100;
+};
+
+const createLabelFormatter = (step: number, total: number) => {
+  return (value: string) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return value;
+    }
+    if (numeric === 1 || numeric === total) {
+      return value;
+    }
+    return numeric % step === 0 ? value : '';
+  };
+};
+
 const drawer = ref(false);
 const navItems = [
   { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
@@ -289,7 +311,7 @@ interface DistributionData {
   chartOptions: ApexPieChartOptions;
 }
 
-interface TimeSeriesData {
+interface ValueSequenceChartData {
   series: { name: string; data: number[] }[];
   chartOptions: ApexLineChartOptions;
 }
@@ -302,8 +324,7 @@ interface MyDeckWinRate {
   win_rate: number;
 }
 
-interface TimeSeriesDataItem {
-  date: string;
+interface ValueSequenceEntry {
   value: number;
 }
 
@@ -313,7 +334,7 @@ interface StatisticsModeData {
   monthlyDistribution: DistributionData;
   matchupData: MatchupData[];
   myDeckWinRates: MyDeckWinRate[];
-  timeSeries: TimeSeriesData;
+  valueSequence: ValueSequenceChartData;
 }
 
 interface AllStatisticsData {
@@ -369,7 +390,7 @@ const createInitialStats = (): AllStatisticsData => {
       },
       matchupData: [],
       myDeckWinRates: [],
-      timeSeries: {
+      valueSequence: {
         series: [{ name: mode, data: [] }],
         chartOptions: {
           ...baseLineChartOptions.value,
@@ -550,17 +571,25 @@ const fetchStatistics = async () => {
       // My Deck Win Rates
       statisticsByMode.value[mode].myDeckWinRates = modeData.my_deck_win_rates || [];
 
-      // Time Series Data
-      const timeSeriesData: TimeSeriesDataItem[] = modeData.time_series_data || [];
-      const categories = timeSeriesData.map((_item: TimeSeriesDataItem, i: number) =>
+      // Value Sequence Data
+      const valueSequenceData: ValueSequenceEntry[] = modeData.value_sequence_data || [];
+      const categories = valueSequenceData.map((_item: ValueSequenceEntry, i: number) =>
         String(i + 1),
       );
-      const seriesData = timeSeriesData.map((d: TimeSeriesDataItem) => d.value);
-      statisticsByMode.value[mode].timeSeries = {
+      const seriesData = valueSequenceData.map((d: ValueSequenceEntry) => d.value);
+      const step = determineStep(categories.length);
+      statisticsByMode.value[mode].valueSequence = {
         series: [{ name: mode, data: seriesData }],
         chartOptions: {
           ...baseLineChartOptions.value,
-          xaxis: { ...baseLineChartOptions.value.xaxis, categories },
+          xaxis: {
+            ...baseLineChartOptions.value.xaxis,
+            categories,
+            labels: {
+              ...(baseLineChartOptions.value.xaxis?.labels || {}),
+              formatter: createLabelFormatter(step, categories.length),
+            },
+          },
           colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
         },
       };

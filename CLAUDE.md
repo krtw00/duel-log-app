@@ -115,7 +115,7 @@ npm run format                # Prettierでコードフォーマット
 - `win_rate_service.py` - ターン順とコイントス勝率
 - `deck_distribution_service.py` - 相手デッキの出現頻度分析
 - `matchup_service.py` - デッキ相性表
-- `time_series_service.py` - レート/DC値の推移
+- `value_sequence_service.py` - レート/DC値のシーケンス生成
 - `csv_service.py` - CSVインポート/エクスポート機能
 - `user_service.py` - ユーザーアカウント管理
 - `shared_statistics_service.py` - 統計情報共有URL生成
