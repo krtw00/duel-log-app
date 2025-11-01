@@ -176,7 +176,9 @@ def logout(response: Response, user_agent: str | None = Header(None)):
     if is_safari:
         samesite_value = "lax"
         secure_value = True if is_production else False
-        logger.info("Safari/iOS detected on logout - using SameSite=Lax for cookie deletion")
+        logger.info(
+            "Safari/iOS detected on logout - using SameSite=Lax for cookie deletion"
+        )
     else:
         samesite_value = "none" if is_production else "lax"
         secure_value = is_production

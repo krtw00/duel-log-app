@@ -120,8 +120,8 @@ npm run test:coverage
 
 Vercel Dashboard で以下の環境変数を設定:
 
-| Name | Value | Environment |
-|------|-------|-------------|
+| Name           | Value                               | Environment         |
+| -------------- | ----------------------------------- | ------------------- |
 | `VITE_API_URL` | `https://duel-log-app.onrender.com` | Production, Preview |
 
 詳細な手順は [VERCEL_ENV_SETUP.md](./VERCEL_ENV_SETUP.md) を参照してください。
@@ -199,6 +199,7 @@ frontend/
 ## 主な機能
 
 ### 認証機能
+
 - ユーザー登録
 - ログイン/ログアウト
 - パスワードリセット（メール送信機能）
@@ -206,6 +207,7 @@ frontend/
 - アカウント削除
 
 ### デュエル管理
+
 - 対戦記録の登録
 - 対戦履歴の表示・編集・削除
 - ゲームモード別フィルタリング（ランク、レート、イベント、DC）
@@ -213,11 +215,13 @@ frontend/
 - ランク/レート値の記録
 
 ### デッキ管理
+
 - 自分のデッキ登録
 - 相手デッキ登録
 - デッキの編集・削除
 
 ### 統計機能
+
 - 総合勝率
 - デッキ別勝率
 - 先攻/後攻勝率
@@ -227,6 +231,7 @@ frontend/
 - 直近デッキトレンド
 
 ### UI/UX
+
 - レスポンシブデザイン
 - ダークモード対応
 - ローディング表示（中央配置）
@@ -252,10 +257,10 @@ frontend/
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  withCredentials: true  // クッキーを送信
-})
+  withCredentials: true, // クッキーを送信
+});
 ```
 
 ## IDE設定
@@ -263,18 +268,17 @@ export const api = axios.create({
 ### VSCode
 
 推奨拡張機能:
+
 - Vue - Official (旧 Volar)
 - TypeScript Vue Plugin (Volar)
 - ESLint
 - Prettier
 
 `.vscode/extensions.json`:
+
 ```json
 {
-  "recommendations": [
-    "Vue.volar",
-    "Vue.vscode-typescript-vue-plugin"
-  ]
+  "recommendations": ["Vue.volar", "Vue.vscode-typescript-vue-plugin"]
 }
 ```
 

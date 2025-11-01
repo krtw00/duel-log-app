@@ -1,5 +1,9 @@
 <template>
-  <v-dialog :model-value="modelValue" max-width="700px" @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog
+    :model-value="modelValue"
+    max-width="700px"
+    @update:model-value="$emit('update:modelValue', $event)"
+  >
     <v-card>
       <v-card-title class="d-flex align-center pa-4">
         <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
@@ -116,7 +120,7 @@
                 v-for="(item, index) in displayItems"
                 :key="item.value"
                 class="display-item"
-                :class="{ 'dragging': draggedIndex === index }"
+                :class="{ dragging: draggedIndex === index }"
                 draggable="true"
                 @dragstart="$emit('drag-start', index)"
                 @dragover.prevent="$emit('drag-over', index)"
@@ -241,7 +245,7 @@ defineEmits<{
   'drag-over': [index: number];
   'drag-enter': [index: number];
   'drag-leave': [];
-  'drop': [index: number];
+  drop: [index: number];
   'drag-end': [];
   'copy-url': [];
 }>();
