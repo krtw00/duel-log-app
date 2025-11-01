@@ -1,36 +1,36 @@
 1️⃣フォルダ構造の意味
 
-api/	
+api/
 ルーターやエンドポイント。ユーザーが呼ぶ URL に対応。
 
-core/	
+core/
 設定や定数、アプリ全体で使う共通設定（例: JWT設定、環境変数）
 
-db/	
+db/
 DB接続、セッション生成。SQLAlchemyエンジン設定など
 
-models/	
+models/
 SQLAlchemyモデルクラス。DBテーブル定義。マイグレーションと連動
 
-schemas/	
+schemas/
 Pydanticモデル。APIリクエスト/レスポンスのバリデーション用
 
-services/	
+services/
 ビジネスロジック層。DB操作や統計計算などアプリの処理を書く
 
-templates/	
+templates/
 Jinja2テンプレート（HTML出力用）
 
-utils/	
+utils/
 ユーティリティ関数。共通処理をまとめる場所
 
-__init__.py	
+__init__.py
 Pythonパッケージ初期化用
 
-auth.py	
+auth.py
 認証関連処理（JWT、ログイン/ログアウトなど）
 
-main.py	
+main.py
 FastAPI アプリのエントリーポイント（起動・ルーター登録）
 
 2️⃣ 理解する順序（おすすめ）
