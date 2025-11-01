@@ -25,8 +25,7 @@ export const api = axios.create({
 // MacOSではCookie制限が厳しいため、Authorizationヘッダーを使用
 function shouldUseAuthorizationHeader(): boolean {
   const ua = navigator.userAgent.toLowerCase();
-  const isSafariBrowser =
-    ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
+  const isSafariBrowser = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
   const isIOS = /iphone|ipad|ipod/.test(ua);
   const isMacOS = /macintosh|mac os x/.test(ua);
   return isSafariBrowser || isIOS || isMacOS;
@@ -104,7 +103,9 @@ api.interceptors.response.use(
 
       switch (status) {
         case 400:
-          message = (typeof data?.detail === 'string' ? data.detail : undefined) || 'リクエストが正しくありません';
+          message =
+            (typeof data?.detail === 'string' ? data.detail : undefined) ||
+            'リクエストが正しくありません';
           break;
         case 401:
           // /meエンドポイントからの401エラーは、単に「ログインしていない」状態を示すため、
@@ -121,7 +122,9 @@ api.interceptors.response.use(
           message = 'この操作を行う権限がありません';
           break;
         case 404:
-          message = (typeof data?.detail === 'string' ? data.detail : undefined) || 'リソースが見つかりません';
+          message =
+            (typeof data?.detail === 'string' ? data.detail : undefined) ||
+            'リソースが見つかりません';
           break;
         case 422:
           // バリデーションエラー
@@ -134,7 +137,9 @@ api.interceptors.response.use(
               .join(', ');
             message = `入力エラー: ${errors}`;
           } else {
-            message = (typeof data?.detail === 'string' ? data.detail : undefined) || '入力内容に誤りがあります';
+            message =
+              (typeof data?.detail === 'string' ? data.detail : undefined) ||
+              '入力内容に誤りがあります';
           }
           break;
         case 500:
@@ -144,7 +149,9 @@ api.interceptors.response.use(
           message = 'サービスが一時的に利用できません';
           break;
         default:
-          message = (typeof data?.detail === 'string' ? data.detail : undefined) || `エラーが発生しました (${status})`;
+          message =
+            (typeof data?.detail === 'string' ? data.detail : undefined) ||
+            `エラーが発生しました (${status})`;
       }
     } else if (error.request) {
       // リクエストは送信されたがレスポンスがない

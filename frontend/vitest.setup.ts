@@ -1,13 +1,13 @@
 /// <reference types="vitest/globals" />
-import { vi } from 'vitest'
-import { config } from '@vue/test-utils'
+import { vi } from 'vitest';
+import { config } from '@vue/test-utils';
 
 // ResizeObserverのモック
 global.ResizeObserver = vi.fn(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}))
+}));
 
 // visualViewportのモック
 global.visualViewport = {
@@ -26,7 +26,7 @@ global.visualViewport = {
 // matchMediaのモック
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
