@@ -91,71 +91,118 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
 - **リンター/フォーマッター**: ESLint, Prettier
 - **CSSプリプロセッサ**: Sass
 
-## 開発環境のセットアップ (Docker)
+## 開発環境のセットアップ (WSL + Docker)
 
-Dockerを利用して、数コマンドで開発環境を構築できます。
+このガイドでは、Windows Subsystem for Linux (WSL) を使用して、Windows上に開発環境を構築する手順を説明します。Docker Desktop for Windowsは不要です。
 
 ### 前提条件
+- Windows 11 または Windows 10 (バージョン 2004 以降)
+- Git for Windows
 
-- Git
-- Docker
-- Docker Compose
+### Step 1: WSLとUbuntuのインストール
 
-### 1. リポジトリのクローン
+1. 管理者としてPowerShellまたはコマンドプロンプトを開きます。
+2. 以下のコマンドを実行してWSLとデフォルトのUbuntuディストリビューションをインストールします。
+   ```powershell
+   wsl --install
+   ```
+3. PCを再起動します。再起動後、Ubuntuのインストールが自動的に続行されます。ユーザー名とパスワードを設定してください。
 
-```bash
-git clone https://github.com/krtw00/duel-log-app.git
-cd duel-log-app
-```
+### Step 2: 開発ツールのインストール (WSL内)
 
-### 2. 環境変数の設定
+これ以降のコマンドは、すべてWSL (Ubuntu) のターミナル内で実行します。
 
-プロジェクトルートにある `.env.example` をコピーして `.env` ファイルを作成します。
+1. **Node.js (nvm経由) のインストール**
+   `pre-commit`フックの実行やフロントエンドのライブラリ管理のためにNode.jsをインストールします。
+   ```bash
+   # nvm（Node Version Manager）をインストール
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
-```bash
-cp .env.example .env
-```
+   # ターミナルを再起動するか、以下のコマンドでnvmを読み込み
+   export NVM_DIR="$HOME/.nvm"
+   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-次に、`.env` ファイルをエディタで開き、SECRET_KEYなど必要な値を設定してください。`SECRET_KEY` は以下のコマンドで生成できます。
+   # 最新のLTS版Node.jsをインストール
+   nvm install --lts
+   ```
 
-```bash
-# 32バイトのランダムな16進数文字列を生成
-openssl rand -hex 32
-```
+2. **Docker Engineのインストール**
+   Dockerの公式サイトの手順に従って、Docker Engineをインストールします。
+   ```bash
+   # 1. パッケージリストを更新し、HTTPS経由でリポジトリを使用できるようにする
+   sudo apt-get update
+   sudo apt-get install -y ca-certificates curl
 
-`.env` ファイルの例：
-```
-# .env
-POSTGRES_USER=user
-POSTGRES_PASSWORD=password
-POSTGRES_DB=duel_log_db
+   # 2. Dockerの公式GPGキーを追加
+   sudo install -m 0755 -d /etc/apt/keyrings
+   sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+   sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-# 生成したSECRET_KEYを設定
-SECRET_KEY="your_super_secret_key_generated_by_openssl"
+   # 3. Dockerリポジトリを設定
+   echo \
+     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+     $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# 開発環境ではデフォルトでOK
-ENVIRONMENT="development"
-FRONTEND_URL="http://localhost:5173"
-DATABASE_URL="postgresql://user:password@db:5432/duel_log_db"
-```
+   # 4. Docker Engineをインストール
+   sudo apt-get update
+   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   ```
 
-### 3. アプリケーションのビルドと起動
+3. **Dockerの権限設定と起動**
+   ```bash
+   # Dockerグループに現在のユーザーを追加（sudoなしでdockerコマンドを実行するため）
+   sudo usermod -aG docker $USER
 
-以下のコマンドを実行して、Dockerコンテナをビルドし、バックグラウンドで起動します。
+   # Dockerデーモンを起動
+   sudo service docker start
+   ```
+   **重要:** ユーザーグループの変更を反映させるため、ここで一度WSLターミナルを閉じて、再度開いてください。再起動後、`docker ps`コマンドが`sudo`なしで実行できれば成功です。
 
-```bash
-docker-compose up --build -d
-```
+### Step 3: プロジェクトのセットアップ
 
-### 4. データベースマイグレーションの実行
+1. **リポジトリのクローン**
+   Windowsのターミナルではなく、WSLのターミナル内でクローンします。
+   ```bash
+   git clone https://github.com/krtw00/duel-log-app.git
+   cd duel-log-app
+   ```
 
-コンテナが起動したら、以下のコマンドでデータベースのテーブルを作成します。
+2. **環境変数の設定**
+   プロジェクトルートにある `.env.example` をコピーして `.env` ファイルを作成します。
+   ```bash
+   cp .env.example .env
+   ```
+   次に、`.env` ファイルをエディタで開き、`SECRET_KEY`など必要な値を設定してください。`SECRET_KEY` は以下のコマンドで生成できます。
+   ```bash
+   # 32バイトのランダムな16進数文字列を生成
+   openssl rand -hex 32
+   ```
+   `.env` ファイルの例：
+   ```
+   # .env
+   POSTGRES_USER=user
+   POSTGRES_PASSWORD=password
+   POSTGRES_DB=duel_log_db
+   SECRET_KEY="your_super_secret_key_generated_by_openssl"
+   ENVIRONMENT="development"
+   FRONTEND_URL="http://localhost:5173"
+   DATABASE_URL="postgresql://user:password@db:5432/duel_log_db"
+   ```
 
-```bash
-docker-compose exec backend alembic upgrade head
-```
+3. **アプリケーションのビルドと起動**
+   `docker-compose`ではなく、`docker compose` (ハイフンなし) を使用します。
+   ```bash
+   docker compose up --build -d
+   ```
 
-### 5. 動作確認
+4. **データベースマイグレーションの実行**
+   コンテナが起動したら、以下のコマンドでデータベースのテーブルを作成します。
+   ```bash
+   docker compose exec backend alembic upgrade head
+   ```
+
+### Step 4: 動作確認
 
 これでセットアップは完了です。以下のURLにアクセスして動作を確認してください。
 
@@ -167,7 +214,7 @@ docker-compose exec backend alembic upgrade head
 初期データとしてサンプルを投入したい場合は、以下のコマンドを実行します。
 
 ```bash
-docker-compose exec backend python -c "from app.db.seed import seed_db; seed_db()"
+docker compose exec backend python -m app.db.seed
 ```
 
 ### 開発環境の停止
@@ -175,12 +222,12 @@ docker-compose exec backend python -c "from app.db.seed import seed_db; seed_db(
 アプリケーションを停止する際は、以下のコマンドを実行します。
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ボリューム（データベースのデータなど）も完全に削除したい場合は、以下のコマンドを実行してください。
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Git運用ルール
