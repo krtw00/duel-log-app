@@ -1,100 +1,100 @@
 <template>
   <div class="register-container">
-      <!-- 背景装飾 -->
-      <div class="background-overlay">
-        <div class="grid-pattern"></div>
-        <div class="glow-orb glow-orb-1"></div>
-        <div class="glow-orb glow-orb-2"></div>
-      </div>
+    <!-- 背景装飾 -->
+    <div class="background-overlay">
+      <div class="grid-pattern"></div>
+      <div class="glow-orb glow-orb-1"></div>
+      <div class="glow-orb glow-orb-2"></div>
+    </div>
 
-      <!-- 新規登録カード -->
-      <v-card class="register-card" elevation="24">
-        <div class="card-glow"></div>
+    <!-- 新規登録カード -->
+    <v-card class="register-card" elevation="24">
+      <div class="card-glow"></div>
 
-        <v-card-text class="pa-8">
-          <!-- ロゴ・タイトル -->
-          <div class="text-center mb-8">
-            <h1 class="app-title">
-              <span class="text-primary">DUEL</span>
-              <span class="text-secondary">LOG</span>
-            </h1>
-            <p class="app-subtitle">Create Your Account</p>
+      <v-card-text class="pa-8">
+        <!-- ロゴ・タイトル -->
+        <div class="text-center mb-8">
+          <h1 class="app-title">
+            <span class="text-primary">DUEL</span>
+            <span class="text-secondary">LOG</span>
+          </h1>
+          <p class="app-subtitle">Create Your Account</p>
+        </div>
+
+        <!-- 新規登録フォーム -->
+        <v-form ref="formRef" @submit.prevent="handleRegister">
+          <v-text-field
+            v-model="username"
+            label="ユーザー名"
+            prepend-inner-icon="mdi-account-outline"
+            type="text"
+            variant="outlined"
+            color="primary"
+            :rules="[rules.required, rules.username]"
+            class="mb-2"
+          />
+
+          <v-text-field
+            v-model="email"
+            label="メールアドレス"
+            prepend-inner-icon="mdi-email-outline"
+            type="email"
+            variant="outlined"
+            color="primary"
+            :rules="[rules.required, rules.email]"
+            class="mb-2"
+          />
+
+          <v-text-field
+            v-model="password"
+            label="パスワード"
+            prepend-inner-icon="mdi-lock-outline"
+            :type="showPassword ? 'text' : 'password'"
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            variant="outlined"
+            color="primary"
+            :rules="[rules.required, rules.password]"
+            class="mb-2"
+            @click:append-inner="showPassword = !showPassword"
+          />
+
+          <v-text-field
+            v-model="passwordConfirm"
+            label="パスワード（確認）"
+            prepend-inner-icon="mdi-lock-check-outline"
+            :type="showPasswordConfirm ? 'text' : 'password'"
+            :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
+            variant="outlined"
+            color="primary"
+            :rules="[rules.required, rules.passwordMatch]"
+            class="mb-4"
+            @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
+          />
+
+          <!-- 登録ボタン -->
+          <v-btn
+            type="submit"
+            block
+            size="large"
+            color="primary"
+            :loading="loading"
+            class="register-btn mb-4"
+          >
+            <v-icon start>mdi-account-plus</v-icon>
+            新規登録
+          </v-btn>
+
+          <!-- リンク -->
+          <div class="text-center">
+            <v-divider class="my-3" />
+            <p class="text-caption text-grey">
+              既にアカウントをお持ちの方は
+              <router-link to="/login" class="text-secondary">ログイン</router-link>
+            </p>
           </div>
-
-          <!-- 新規登録フォーム -->
-          <v-form ref="formRef" @submit.prevent="handleRegister">
-            <v-text-field
-              v-model="username"
-              label="ユーザー名"
-              prepend-inner-icon="mdi-account-outline"
-              type="text"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required, rules.username]"
-              class="mb-2"
-            />
-
-            <v-text-field
-              v-model="email"
-              label="メールアドレス"
-              prepend-inner-icon="mdi-email-outline"
-              type="email"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required, rules.email]"
-              class="mb-2"
-            />
-
-            <v-text-field
-              v-model="password"
-              label="パスワード"
-              prepend-inner-icon="mdi-lock-outline"
-              :type="showPassword ? 'text' : 'password'"
-              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required, rules.password]"
-              class="mb-2"
-              @click:append-inner="showPassword = !showPassword"
-            />
-
-            <v-text-field
-              v-model="passwordConfirm"
-              label="パスワード（確認）"
-              prepend-inner-icon="mdi-lock-check-outline"
-              :type="showPasswordConfirm ? 'text' : 'password'"
-              :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required, rules.passwordMatch]"
-              class="mb-4"
-              @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
-            />
-
-            <!-- 登録ボタン -->
-            <v-btn
-              type="submit"
-              block
-              size="large"
-              color="primary"
-              :loading="loading"
-              class="register-btn mb-4"
-            >
-              <v-icon start>mdi-account-plus</v-icon>
-              新規登録
-            </v-btn>
-
-            <!-- リンク -->
-            <div class="text-center">
-              <v-divider class="my-3" />
-              <p class="text-caption text-grey">
-                既にアカウントをお持ちの方は
-                <router-link to="/login" class="text-secondary">ログイン</router-link>
-              </p>
-            </div>
-          </v-form>
-        </v-card-text>
-      </v-card>
+        </v-form>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 

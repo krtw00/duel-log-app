@@ -79,7 +79,7 @@ describe('OBSOverlayView.vue', () => {
         headers: expect.objectContaining({
           Authorization: 'Bearer test-token-123',
         }),
-      })
+      }),
     );
 
     // 統計情報が表示されていることを確認
@@ -147,7 +147,7 @@ describe('OBSOverlayView.vue', () => {
           year: 2025,
           month: 10,
         }),
-      })
+      }),
     );
   });
 
@@ -183,7 +183,7 @@ describe('OBSOverlayView.vue', () => {
         params: expect.objectContaining({
           game_mode: 'RANK',
         }),
-      })
+      }),
     );
   });
 

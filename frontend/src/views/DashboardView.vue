@@ -55,8 +55,6 @@
       :initial-month="selectedMonth"
       :initial-game-mode="currentMode"
     />
-
-
   </div>
 </template>
 
@@ -92,7 +90,6 @@ const shareDialogOpened = ref(false);
 const selectedYear = ref(new Date().getFullYear());
 const selectedMonth = ref(new Date().getMonth() + 1);
 
-
 // ゲームモード別にデュエルをフィルタリング
 const rankDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RANK'));
 const rateDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RATE'));
@@ -113,8 +110,6 @@ const currentDuels = computed(() => {
       return [];
   }
 });
-
-
 
 // Data fetching - declare before using in composables
 const fetchDuels = async () => {
@@ -138,10 +133,6 @@ const fetchDuels = async () => {
     loading.value = false;
   }
 };
-
-
-
-
 
 // Lifecycle
 onMounted(() => {

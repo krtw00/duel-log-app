@@ -15,13 +15,8 @@ interface UseStatsCalculationProps {
 }
 
 export function useStatsCalculation(props: UseStatsCalculationProps) {
-  const {
-    currentMode,
-    filteredRankDuels,
-    filteredRateDuels,
-    filteredEventDuels,
-    filteredDcDuels,
-  } = props;
+  const { currentMode, filteredRankDuels, filteredRateDuels, filteredEventDuels, filteredDcDuels } =
+    props;
 
   /**
    * 空の統計オブジェクトを生成

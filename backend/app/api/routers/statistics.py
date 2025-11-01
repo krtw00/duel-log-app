@@ -12,15 +12,14 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.db.session import get_db
 from app.models.user import User
-from app.services.general_stats_service import general_stats_service
-from app.services.general_stats_service import general_stats_service
-from app.services.duel_service import duel_service
 from app.schemas.duel import DuelWithDeckNames
-from app.services.statistics_service import statistics_service
-from app.services.win_rate_service import win_rate_service
 from app.services.deck_distribution_service import deck_distribution_service
+from app.services.duel_service import duel_service
+from app.services.general_stats_service import general_stats_service
 from app.services.matchup_service import matchup_service
-from app.services.time_series_service import time_series_service
+from app.services.statistics_service import statistics_service
+from app.services.value_sequence_service import value_sequence_service
+from app.services.win_rate_service import win_rate_service
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
@@ -104,21 +103,23 @@ def get_all_statistics(
             ),
         }
 
-        # レートとDCの場合は時系列データも取得
+        # レートとDCの場合は値シーケンスも取得
         if mode in ["RATE", "DC"]:
-            result[mode]["time_series_data"] = time_series_service.get_time_series_data(
-                db=db,
-                user_id=current_user.id,
-                game_mode=mode,
-                year=year,
-                month=month,
-                range_start=range_start,
-                range_end=range_end,
-                my_deck_id=my_deck_id,
-                opponent_deck_id=opponent_deck_id,
+            result[mode]["value_sequence_data"] = (
+                value_sequence_service.get_value_sequence_data(
+                    db=db,
+                    user_id=current_user.id,
+                    game_mode=mode,
+                    year=year,
+                    month=month,
+                    range_start=range_start,
+                    range_end=range_end,
+                    my_deck_id=my_deck_id,
+                    opponent_deck_id=opponent_deck_id,
+                )
             )
         else:
-            result[mode]["time_series_data"] = []
+            result[mode]["value_sequence_data"] = []
 
     return result
 
@@ -175,21 +176,21 @@ def get_matchup_chart(
     )
 
 
-@router.get("/time-series/{game_mode}", response_model=List[Dict[str, Any]])
-def get_time_series_data(
+@router.get("/value-sequence/{game_mode}", response_model=List[Dict[str, Any]])
+def get_value_sequence_data(
     game_mode: str,
     year: int = Query(datetime.now().year, description="年"),
     month: int = Query(datetime.now().month, description="月"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """指定されたゲームモードの月間時系列データを取得 (レート/DC)"""
+    """指定されたゲームモードの月間値シーケンスを取得 (レート/DC)"""
     if game_mode not in ["RATE", "DC"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="ゲームモードは 'RATE' または 'DC' である必要があります。",
         )
-    return time_series_service.get_time_series_data(
+    return value_sequence_service.get_value_sequence_data(
         db=db, user_id=current_user.id, game_mode=game_mode, year=year, month=month
     )
 
@@ -225,7 +226,9 @@ def get_obs_statistics(
     month: Optional[int] = Query(None, description="月（monthly時のみ）"),
     limit: int = Query(30, ge=1, le=100, description="取得する対戦数（recent時のみ）"),
     game_mode: Optional[str] = Query(None, description="ゲームモード"),
-    start_id: Optional[int] = Query(None, description="開始ID（このID以降のデータのみ）"),
+    start_id: Optional[int] = Query(
+        None, description="開始ID（このID以降のデータのみ）"
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -249,14 +252,19 @@ def get_obs_statistics(
             year = datetime.now().year
             month = datetime.now().month
         return general_stats_service.get_overall_stats(
-            db=db, user_id=current_user.id, year=year, month=month, game_mode=game_mode, start_id=start_id
+            db=db,
+            user_id=current_user.id,
+            year=year,
+            month=month,
+            game_mode=game_mode,
+            start_id=start_id,
         )
     elif period_type == "from_start":
         # 配信開始からの統計（start_id必須）
         if start_id is None:
             raise HTTPException(
                 status_code=400,
-                detail="start_id is required for from_start period type"
+                detail="start_id is required for from_start period type",
             )
         return general_stats_service.get_all_time_stats(
             db=db, user_id=current_user.id, game_mode=game_mode, start_id=start_id
@@ -264,5 +272,9 @@ def get_obs_statistics(
     else:  # recent
         # 直近N戦
         return general_stats_service.get_recent_stats(
-            db=db, user_id=current_user.id, limit=limit, game_mode=game_mode, start_id=start_id
+            db=db,
+            user_id=current_user.id,
+            limit=limit,
+            game_mode=game_mode,
+            start_id=start_id,
         )

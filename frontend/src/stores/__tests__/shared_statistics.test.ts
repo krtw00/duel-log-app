@@ -26,7 +26,7 @@ describe('sharedStatisticsStore', () => {
     vi.clearAllMocks();
     sharedStatisticsStore = useSharedStatisticsStore(pinia);
     notificationStore = useNotificationStore(pinia);
-    
+
     // Spy on notification methods
     vi.spyOn(notificationStore, 'success');
     vi.spyOn(notificationStore, 'error');
@@ -68,9 +68,9 @@ describe('sharedStatisticsStore', () => {
       const errorResponse = {
         response: {
           data: {
-            detail: createLinkErrorMessage
-          }
-        }
+            detail: createLinkErrorMessage,
+          },
+        },
       };
       vi.mocked(api.post).mockRejectedValue(errorResponse);
 
@@ -92,11 +92,11 @@ describe('sharedStatisticsStore', () => {
         monthly_deck_distribution: [{ deck_name: 'Deck A', count: 10, percentage: 50 }],
         recent_deck_distribution: [],
         matchup_data: [],
-        time_series_data: [],
+        value_sequence_data: [],
       },
     };
     const fetchStatsErrorMessage = 'Failed to fetch stats';
-    
+
     it('fetches shared statistics successfully', async () => {
       vi.mocked(api.get).mockResolvedValue({ data: { statistics_data: mockStatsData } });
 
@@ -117,9 +117,9 @@ describe('sharedStatisticsStore', () => {
       const errorResponse = {
         response: {
           data: {
-            detail: fetchStatsErrorMessage
-          }
-        }
+            detail: fetchStatsErrorMessage,
+          },
+        },
       };
       vi.mocked(api.get).mockRejectedValue(errorResponse);
 
@@ -157,9 +157,9 @@ describe('sharedStatisticsStore', () => {
       const errorResponse = {
         response: {
           data: {
-            detail: deleteLinkErrorMessage
-          }
-        }
+            detail: deleteLinkErrorMessage,
+          },
+        },
       };
       vi.mocked(api.delete).mockRejectedValue(errorResponse);
 
