@@ -63,9 +63,7 @@ describe('useLatestDuelValues', () => {
       latestValues.value = {
         RATE: { value: 1700, deck_id: 2, opponentDeck_id: 3 },
       };
-      const myDecks: Deck[] = [
-        { id: 2, name: 'デッキC', is_opponent: false, active: true },
-      ];
+      const myDecks: Deck[] = [{ id: 2, name: 'デッキC', is_opponent: false, active: true }];
 
       const result = applyLatestValuesToGameMode('RATE', myDecks);
 
@@ -79,9 +77,7 @@ describe('useLatestDuelValues', () => {
       latestValues.value = {
         DC: { value: 5, deck_id: 4, opponentDeck_id: 5 },
       };
-      const myDecks: Deck[] = [
-        { id: 4, name: 'デッキD', is_opponent: false, active: true },
-      ];
+      const myDecks: Deck[] = [{ id: 4, name: 'デッキD', is_opponent: false, active: true }];
 
       const result = applyLatestValuesToGameMode('DC', myDecks);
 
@@ -127,9 +123,7 @@ describe('useLatestDuelValues', () => {
       latestValues.value = {
         RANK: { value: 15, deck_id: 999, opponentDeck_id: 2 },
       };
-      const myDecks: Deck[] = [
-        { id: 1, name: 'デッキA', is_opponent: false, active: true },
-      ];
+      const myDecks: Deck[] = [{ id: 1, name: 'デッキA', is_opponent: false, active: true }];
 
       const result = applyLatestValuesToGameMode('RANK', myDecks);
 

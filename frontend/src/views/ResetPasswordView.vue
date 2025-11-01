@@ -1,76 +1,76 @@
 <template>
   <div class="reset-password-container">
-      <!-- 背景装飾 -->
-      <div class="background-overlay">
-        <div class="grid-pattern"></div>
-        <div class="glow-orb glow-orb-1"></div>
-        <div class="glow-orb glow-orb-2"></div>
-      </div>
+    <!-- 背景装飾 -->
+    <div class="background-overlay">
+      <div class="grid-pattern"></div>
+      <div class="glow-orb glow-orb-1"></div>
+      <div class="glow-orb glow-orb-2"></div>
+    </div>
 
-      <!-- パスワードリセットカード -->
-      <v-card class="reset-password-card" elevation="24">
-        <div class="card-glow"></div>
+    <!-- パスワードリセットカード -->
+    <v-card class="reset-password-card" elevation="24">
+      <div class="card-glow"></div>
 
-        <v-card-text class="pa-8">
-          <!-- タイトル -->
-          <div class="text-center mb-8">
-            <h1 class="app-title">
-              <span class="text-primary">RESET</span>
-              <span class="text-secondary">PASSWORD</span>
-            </h1>
-            <p class="app-subtitle">Enter your new password.</p>
-          </div>
+      <v-card-text class="pa-8">
+        <!-- タイトル -->
+        <div class="text-center mb-8">
+          <h1 class="app-title">
+            <span class="text-primary">RESET</span>
+            <span class="text-secondary">PASSWORD</span>
+          </h1>
+          <p class="app-subtitle">Enter your new password.</p>
+        </div>
 
-          <!-- フォーム -->
-          <v-form ref="formRef" @submit.prevent="handleResetPassword">
-            <v-text-field
-              v-model="newPassword"
-              label="新しいパスワード"
-              prepend-inner-icon="mdi-lock-outline"
-              :type="showNewPassword ? 'text' : 'password'"
-              :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required, rules.min]"
-              class="mb-2"
-              @click:append-inner="showNewPassword = !showNewPassword"
-            />
+        <!-- フォーム -->
+        <v-form ref="formRef" @submit.prevent="handleResetPassword">
+          <v-text-field
+            v-model="newPassword"
+            label="新しいパスワード"
+            prepend-inner-icon="mdi-lock-outline"
+            :type="showNewPassword ? 'text' : 'password'"
+            :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            variant="outlined"
+            color="primary"
+            :rules="[rules.required, rules.min]"
+            class="mb-2"
+            @click:append-inner="showNewPassword = !showNewPassword"
+          />
 
-            <v-text-field
-              v-model="confirmPassword"
-              label="パスワードの確認"
-              prepend-inner-icon="mdi-lock-check-outline"
-              :type="showConfirmPassword ? 'text' : 'password'"
-              :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required, rules.min, rules.passwordMatch]"
-              class="mb-4"
-              @click:append-inner="showConfirmPassword = !showConfirmPassword"
-            />
+          <v-text-field
+            v-model="confirmPassword"
+            label="パスワードの確認"
+            prepend-inner-icon="mdi-lock-check-outline"
+            :type="showConfirmPassword ? 'text' : 'password'"
+            :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            variant="outlined"
+            color="primary"
+            :rules="[rules.required, rules.min, rules.passwordMatch]"
+            class="mb-4"
+            @click:append-inner="showConfirmPassword = !showConfirmPassword"
+          />
 
-            <!-- 送信ボタン -->
-            <v-btn
-              type="submit"
-              block
-              size="large"
-              color="primary"
-              :loading="loading"
-              class="reset-password-btn mb-4"
+          <!-- 送信ボタン -->
+          <v-btn
+            type="submit"
+            block
+            size="large"
+            color="primary"
+            :loading="loading"
+            class="reset-password-btn mb-4"
+          >
+            <v-icon start>mdi-check</v-icon>
+            パスワードをリセット
+          </v-btn>
+
+          <!-- ログインページへのリンク -->
+          <div class="text-center">
+            <router-link to="/login" class="text-caption text-grey"
+              >ログインページに戻る</router-link
             >
-              <v-icon start>mdi-check</v-icon>
-              パスワードをリセット
-            </v-btn>
-
-            <!-- ログインページへのリンク -->
-            <div class="text-center">
-              <router-link to="/login" class="text-caption text-grey"
-                >ログインページに戻る</router-link
-              >
-            </div>
-          </v-form>
-        </v-card-text>
-      </v-card>
+          </div>
+        </v-form>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 

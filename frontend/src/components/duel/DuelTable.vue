@@ -26,15 +26,15 @@
     </template>
 
     <!-- 使用デッキカラム -->
-    <template v-if="!hiddenColumnsSet.has('deck')" #[`item.deck`]='{ item }'>
-      <v-chip color='primary' variant='outlined'>
+    <template v-if="!hiddenColumnsSet.has('deck')" #[`item.deck`]="{ item }">
+      <v-chip color="primary" variant="outlined">
         {{ item.deck?.name || '不明' }}
       </v-chip>
     </template>
 
     <!-- 相手デッキカラム -->
-    <template v-if="!hiddenColumnsSet.has('opponent_deck')" #[`item.opponent_deck`]='{ item }'>
-      <v-chip :color="isDarkMode ? 'warning' : 'purple'" variant='outlined'>
+    <template v-if="!hiddenColumnsSet.has('opponent_deck')" #[`item.opponent_deck`]="{ item }">
+      <v-chip :color="isDarkMode ? 'warning' : 'purple'" variant="outlined">
         {{ item.opponent_deck?.name || '不明' }}
       </v-chip>
     </template>
