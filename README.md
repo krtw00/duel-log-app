@@ -169,6 +169,10 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
    ```
 
 2. **環境変数の設定**
+   バックエンドとフロントエンドの環境変数を設定します。
+
+   **バックエンド**
+
    プロジェクトルートにある `.env.example` をコピーして `.env` ファイルを作成します。
    ```bash
    cp .env.example .env
@@ -178,6 +182,15 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
    # 32バイトのランダムな16進数文字列を生成
    openssl rand -hex 32
    ```
+
+   **フロントエンド**
+
+   `frontend`ディレクトリにある `.env.example` をコピーして `.env` ファイルを作成します。
+   ```bash
+   cp frontend/.env.example frontend/.env
+   ```
+   必要に応じて `frontend/.env` ファイルを編集し、`VITE_API_BASE_URL` などを環境に合わせて設定します。通常、開発環境ではデフォルト値（`http://localhost:8000`）のままで問題ありません。
+
    `.env` ファイルの例：
    ```
    # .env
