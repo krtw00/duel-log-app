@@ -562,7 +562,10 @@ const fetchStatistics = async () => {
         modeData.monthly_deck_distribution?.map((d: { count: number }) => d.count) || [];
       statisticsByMode.value[mode].monthlyDistribution = {
         series: monthlySeries,
-        chartOptions: { ...basePieChartOptions.value, labels: monthlyLabels },
+        chartOptions: {
+          ...basePieChartOptions.value,
+          labels: monthlyLabels,
+        } as ApexPieChartOptions,
       };
 
       // Matchup Data
@@ -591,7 +594,7 @@ const fetchStatistics = async () => {
             },
           },
           colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
-        },
+        } as ApexLineChartOptions,
       };
     });
   } catch (error) {
