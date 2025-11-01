@@ -88,7 +88,7 @@ describe('SharedStatisticsView.vue', () => {
             win_rate_second: 0.7,
           },
         ],
-        time_series_data: [],
+        value_sequence_data: [],
       },
     };
 

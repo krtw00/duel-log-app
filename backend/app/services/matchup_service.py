@@ -122,12 +122,16 @@ class MatchupService:
                                 if total_duels > 0
                                 else 0
                             ),
-                            "win_rate_first": (results["wins_first"] / total_first) * 100
-                            if total_first > 0
-                            else 0,
-                            "win_rate_second": (results["wins_second"] / total_second) * 100
-                            if total_second > 0
-                            else 0,
+                            "win_rate_first": (
+                                (results["wins_first"] / total_first) * 100
+                                if total_first > 0
+                                else 0
+                            ),
+                            "win_rate_second": (
+                                (results["wins_second"] / total_second) * 100
+                                if total_second > 0
+                                else 0
+                            ),
                         }
                     )
 

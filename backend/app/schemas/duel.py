@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, computed_field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from . import CustomBaseModel
 from .deck import DeckRead
@@ -14,7 +14,9 @@ class DuelBase(CustomBaseModel):
 
     deck_id: int = Field(..., gt=0, description="使用デッキID")
     opponent_deck_id: int = Field(..., gt=0, description="対戦相手デッキID")
-    won_coin_toss: bool = Field(..., description="コイントスの結果（True: 勝利, False: 敗北）")
+    won_coin_toss: bool = Field(
+        ..., description="コイントスの結果（True: 勝利, False: 敗北）"
+    )
     is_going_first: bool = Field(..., description="先攻後攻（True: 先攻, False: 後攻）")
     is_win: bool = Field(..., description="対戦結果（True: 勝利, False: 敗北）")
     game_mode: Literal["RANK", "RATE", "EVENT", "DC"] = Field(
@@ -123,8 +125,6 @@ class DuelRead(DuelBase):
         from_attributes=True,
         populate_by_name=True,
     )
-
-
 
 
 class DuelWithDeckNames(DuelRead):

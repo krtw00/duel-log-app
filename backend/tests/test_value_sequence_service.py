@@ -6,11 +6,11 @@ from app.models.user import User
 from app.schemas.duel import DuelCreate
 from app.services.deck_service import deck_service
 from app.services.duel_service import duel_service
-from app.services.time_series_service import time_series_service
+from app.services.value_sequence_service import value_sequence_service
 
 
-def create_time_series_test_data(db: Session, user: User):
-    """時系列データテスト用の基本的なデータを作成します。"""
+def create_value_sequence_test_data(db: Session, user: User):
+    """値シーケンステスト用の基本的なデータを作成します。"""
     deck1 = deck_service.get_or_create(
         db, user_id=user.id, name="MyDeck1", is_opponent=False
     )
@@ -78,33 +78,29 @@ def create_time_series_test_data(db: Session, user: User):
         duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)
 
 
-class TestTimeSeriesService:
-    """TimeSeriesServiceのテストクラス"""
+class TestValueSequenceService:
+    """ValueSequenceServiceのテストクラス"""
 
-    def test_get_time_series_data_rate(self, db_session: Session, test_user: User):
-        """RATEモードの時系列データが正しく生成されるかテスト"""
-        create_time_series_test_data(db_session, test_user)
+    def test_get_value_sequence_data_rate(self, db_session: Session, test_user: User):
+        """RATEモードの値シーケンスが正しく生成されるかテスト"""
+        create_value_sequence_test_data(db_session, test_user)
 
-        time_series = time_series_service.get_time_series_data(
+        value_sequence = value_sequence_service.get_value_sequence_data(
             db=db_session, user_id=test_user.id, game_mode="RATE", year=2024, month=7
         )
 
-        # 日付ごとに最後の値が採用されることを確認
-        assert len(time_series) == 2
-        assert time_series[0]["date"] == "2024-07-01"
-        assert time_series[0]["value"] == 1480  # 7/1の最後のレート
-        assert time_series[1]["date"] == "2024-07-03"
-        assert time_series[1]["value"] == 1520  # 7/3の最後のレート
+        # 試合ごとの生値が順番に取得できることを確認
+        assert len(value_sequence) == 3
+        assert [item["value"] for item in value_sequence] == [1500, 1480, 1520]
 
-    def test_get_time_series_data_dc(self, db_session: Session, test_user: User):
-        """DCモードの時系列データが正しく生成されるかテスト"""
-        create_time_series_test_data(db_session, test_user)
+    def test_get_value_sequence_data_dc(self, db_session: Session, test_user: User):
+        """DCモードの値シーケンスが正しく生成されるかテスト"""
+        create_value_sequence_test_data(db_session, test_user)
 
-        time_series = time_series_service.get_time_series_data(
+        value_sequence = value_sequence_service.get_value_sequence_data(
             db=db_session, user_id=test_user.id, game_mode="DC", year=2024, month=7
         )
 
-        # 1日の中に複数のデータ
-        assert len(time_series) == 1
-        assert time_series[0]["date"] == "2024-07-05"
-        assert time_series[0]["value"] == 2000  # 7/5の最後のDCポイント
+        # 1日の複数試合がそのまま返ることを確認
+        assert len(value_sequence) == 2
+        assert [item["value"] for item in value_sequence] == [1000, 2000]
