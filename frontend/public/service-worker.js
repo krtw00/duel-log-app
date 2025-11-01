@@ -9,27 +9,25 @@ const urlsToCache = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        // addAll can fail if any of the files are not found. 
-        // It's better to handle potential failures gracefully.
-        return cache.addAll(urlsToCache).catch(err => {
-          console.error('Failed to cache urls:', err);
-        });
-      })
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Opened cache');
+      // addAll can fail if any of the files are not found.
+      // It's better to handle potential failures gracefully.
+      return cache.addAll(urlsToCache).catch((err) => {
+        console.error('Failed to cache urls:', err);
+      });
+    }),
   );
 });
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+    caches.match(event.request).then((response) => {
+      if (response) {
+        return response;
+      }
+      return fetch(event.request);
+    }),
   );
 });
 
@@ -42,8 +40,8 @@ self.addEventListener('activate', (event) => {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
-        })
+        }),
       );
-    })
+    }),
   );
 });

@@ -31,13 +31,13 @@ def test_get_all_statistics_success(authenticated_client):
         assert "monthly_deck_distribution" in data[mode]
         assert "recent_deck_distribution" in data[mode]
         assert "matchup_data" in data[mode]
-        assert "time_series_data" in data[mode]
+        assert "value_sequence_data" in data[mode]
 
         # 各データがリスト形式
         assert isinstance(data[mode]["monthly_deck_distribution"], list)
         assert isinstance(data[mode]["recent_deck_distribution"], list)
         assert isinstance(data[mode]["matchup_data"], list)
-        assert isinstance(data[mode]["time_series_data"], list)
+        assert isinstance(data[mode]["value_sequence_data"], list)
 
 
 def test_get_all_statistics_with_default_params(authenticated_client):
@@ -106,16 +106,16 @@ def test_get_matchup_chart_success(authenticated_client):
     assert isinstance(data, list)
 
 
-def test_get_time_series_data_unauthorized(client):
-    """未認証で時系列データ取得を試みる"""
-    response = client.get("/statistics/time-series/RATE")
+def test_get_value_sequence_data_unauthorized(client):
+    """未認証で値シーケンス取得を試みる"""
+    response = client.get("/statistics/value-sequence/RATE")
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_get_time_series_data_success(authenticated_client):
-    """時系列データの取得が成功する（RATE）"""
+def test_get_value_sequence_data_success(authenticated_client):
+    """値シーケンスの取得が成功する（RATE）"""
     response = authenticated_client.get(
-        "/statistics/time-series/RATE",
+        "/statistics/value-sequence/RATE",
         params={"year": 2025, "month": 10},
     )
     assert response.status_code == status.HTTP_200_OK
@@ -123,10 +123,10 @@ def test_get_time_series_data_success(authenticated_client):
     assert isinstance(data, list)
 
 
-def test_get_time_series_data_dc_success(authenticated_client):
-    """時系列データの取得が成功する（DC）"""
+def test_get_value_sequence_data_dc_success(authenticated_client):
+    """値シーケンスの取得が成功する（DC）"""
     response = authenticated_client.get(
-        "/statistics/time-series/DC",
+        "/statistics/value-sequence/DC",
         params={"year": 2025, "month": 10},
     )
     assert response.status_code == status.HTTP_200_OK
@@ -134,10 +134,10 @@ def test_get_time_series_data_dc_success(authenticated_client):
     assert isinstance(data, list)
 
 
-def test_get_time_series_data_invalid_mode(authenticated_client):
-    """無効なゲームモードで時系列データ取得を試みる"""
+def test_get_value_sequence_data_invalid_mode(authenticated_client):
+    """無効なゲームモードで値シーケンス取得を試みる"""
     response = authenticated_client.get(
-        "/statistics/time-series/INVALID",
+        "/statistics/value-sequence/INVALID",
         params={"year": 2025, "month": 10},
     )
     # ゲームモードのバリデーションエラー

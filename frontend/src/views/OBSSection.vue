@@ -41,7 +41,6 @@
 </template>
 
 <script setup lang="ts">
-
 // Components
 import OBSInfoCard from '@/components/dashboard/OBSInfoCard.vue';
 import OBSConfigPanel from '@/components/dashboard/OBSConfigPanel.vue';
@@ -92,5 +91,4 @@ const handleCopyUrl = async () => {
   await fetchLatestDuelId();
   await copyOBSUrl();
 };
-
 </script>

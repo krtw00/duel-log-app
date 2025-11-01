@@ -6,7 +6,6 @@ from fastapi import status
 
 
 class TestSharedStatisticsEndpoints:
-
     @pytest.fixture
     def mock_statistics_service_data(self):
         """統計サービスが返すダミーデータをモックするフィクスチャ"""

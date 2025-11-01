@@ -112,16 +112,16 @@
         <v-card-text>
           <apexchart
             v-if="
-              statistics.timeSeries &&
-              statistics.timeSeries.series &&
-              statistics.timeSeries.series[0] &&
-              statistics.timeSeries.series[0].data &&
-              statistics.timeSeries.series[0].data.length > 0
+              statistics.valueSequence &&
+              statistics.valueSequence.series &&
+              statistics.valueSequence.series[0] &&
+              statistics.valueSequence.series[0].data &&
+              statistics.valueSequence.series[0].data.length > 0
             "
             type="line"
             height="350"
-            :options="statistics.timeSeries.chartOptions"
-            :series="statistics.timeSeries.series"
+            :options="statistics.valueSequence.chartOptions"
+            :series="statistics.valueSequence.series"
           ></apexchart>
           <div v-else class="no-data-placeholder">
             <v-icon size="64" color="grey">{{
@@ -145,7 +145,7 @@ interface StatisticsData {
   duels?: any[];
   myDeckWinRates?: any[];
   matchupData?: any[];
-  timeSeries?: any;
+  valueSequence?: any;
 }
 
 interface Props {

@@ -2,7 +2,7 @@
  * 統計データ関連の型定義
  */
 
-import type { GameMode, DeckDistribution, MatchupData, TimeSeriesData, Duel } from './index';
+import type { GameMode, DeckDistribution, MatchupData, ValueSequenceEntry, Duel } from './index';
 import type { PieChartData, LineChartData, ApexPieChartOptions } from './chart';
 
 /**
@@ -27,7 +27,7 @@ export interface StatisticsResponse {
   monthly_deck_distribution: DeckDistribution[];
   recent_deck_distribution: DeckDistribution[];
   matchup_data: MatchupData[];
-  time_series_data: TimeSeriesData[];
+  value_sequence_data: ValueSequenceEntry[];
 }
 
 /**
@@ -50,7 +50,7 @@ export interface DashboardStatisticsResponse {
   monthly_deck_distribution: DeckDistribution[];
   recent_deck_distribution: DeckDistribution[];
   matchup_data: MatchupData[];
-  time_series_data: TimeSeriesData[];
+  value_sequence_data: ValueSequenceEntry[];
 }
 
 /**
@@ -62,7 +62,7 @@ export interface ProcessedStatistics {
   monthlyDeckDistribution: PieChartData;
   recentDeckDistribution: PieChartData;
   matchupData: ProcessedMatchupData[];
-  timeSeriesData: LineChartData;
+  valueSequenceData: LineChartData;
 }
 
 /**
@@ -109,9 +109,9 @@ export interface DeckDistributionChartConfig {
 }
 
 /**
- * 時系列チャートの設定
+ * 値シーケンスチャートの設定
  */
-export interface TimeSeriesChartConfig {
+export interface ValueSequenceChartConfig {
   title: string;
   description?: string;
 }
