@@ -173,6 +173,13 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
    ```bash
    cp .env.example .env
    ```
+   次に、`frontend`ディレクトリに移動し、`.env.example` をコピーして `.env` ファイルを作成します。
+   ```bash
+   cd frontend
+   cp .env.example .env
+   cd ..
+   ```
+   必要に応じて、`frontend/.env` ファイルをエディタで開き、設定してください。
    次に、`.env` ファイルをエディタで開き、`SECRET_KEY`など必要な値を設定してください。`SECRET_KEY` は以下のコマンドで生成できます。
    ```bash
    # 32バイトのランダムな16進数文字列を生成
