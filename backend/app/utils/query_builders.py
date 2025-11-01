@@ -61,9 +61,7 @@ def apply_duel_filters(
     return query
 
 
-def build_base_duels_query(
-    db, user_id: int, game_mode: Optional[str] = None
-) -> Query:
+def build_base_duels_query(db, user_id: int, game_mode: Optional[str] = None) -> Query:
     """
     デュエルの基本クエリを構築
 

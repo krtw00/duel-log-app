@@ -104,10 +104,7 @@ export function useCSVOperations(props: UseCSVOperationsProps) {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute(
-        'download',
-        `duels_${selectedYear.value}_${selectedMonth.value}.csv`,
-      );
+      link.setAttribute('download', `duels_${selectedYear.value}_${selectedMonth.value}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
