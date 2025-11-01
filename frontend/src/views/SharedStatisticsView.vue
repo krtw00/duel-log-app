@@ -419,7 +419,7 @@ const fetchSharedStatistics = async () => {
                 rawStats.monthly_deck_distribution?.map(
                   (d: { deck_name: string }) => d.deck_name,
                 ) || [],
-            },
+            } as ApexPieChartOptions,
           },
           recentDistribution: {
             series: rawStats.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
@@ -428,7 +428,7 @@ const fetchSharedStatistics = async () => {
               labels:
                 rawStats.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) ||
                 [],
-            },
+            } as ApexPieChartOptions,
           },
           myDeckWinRates: rawStats.my_deck_win_rates || [],
           matchupData: rawStats.matchup_data || [],
@@ -450,7 +450,7 @@ const fetchSharedStatistics = async () => {
                 },
               },
               colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
-            },
+            } as ApexLineChartOptions,
           },
         };
       });
