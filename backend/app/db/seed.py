@@ -121,10 +121,10 @@ def seed_data(db: Session):
 
                     duel_data = {
                         "deck_id": my_deck.id,
-                        "opponentDeck_id": opponent_deck.id,
-                        "coin": random.choice([True, False]),
-                        "first_or_second": random.choice([True, False]),
-                        "result": result,
+                        "opponent_deck_id": opponent_deck.id,
+                        "won_coin_toss": random.choice([True, False]),
+                        "is_going_first": random.choice([True, False]),
+                        "is_win": result,
                         "game_mode": mode,
                         "played_date": fake.date_time_between_dates(
                             datetime_start=start_date_month, datetime_end=end_date_month
@@ -139,13 +139,15 @@ def seed_data(db: Session):
                         duel_data["rank"] = random.randint(1, 32)
 
                     elif mode == "RATE":
-                        duel_data["rate_value"] = 300
+                        duel_data["rate_value"] = round(random.uniform(200.0, 400.0), 2)
 
                     elif mode == "EVENT":
                         duel_data["notes"] = "イベント300"
 
                     elif mode == "DC":
-                        duel_data["dc_value"] = 300
+                        duel_data["dc_value"] = round(
+                            random.uniform(200.0, 400.0), 2
+                        )
 
                     duel_in = DuelCreate(**duel_data)
                     duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)

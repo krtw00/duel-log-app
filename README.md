@@ -214,7 +214,7 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
 初期データとしてサンプルを投入したい場合は、以下のコマンドを実行します。
 
 ```bash
-docker compose exec backend python -c "from app.db.seed import seed_db; seed_db()"
+docker compose exec backend python -m app.db.seed
 ```
 
 ### 開発環境の停止
