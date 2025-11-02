@@ -53,14 +53,12 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
       // Add filter parameters if provided
       if (filters?.periodType) {
         params.period_type = filters.periodType;
-        if (filters.periodType === 'range') {
-          if (filters.rangeStart !== null && filters.rangeStart !== undefined) {
-            params.range_start = filters.rangeStart;
-          }
-          if (filters.rangeEnd !== null && filters.rangeEnd !== undefined) {
-            params.range_end = filters.rangeEnd;
-          }
-        }
+      }
+      if (filters?.rangeStart !== null && filters?.rangeStart !== undefined) {
+        params.range_start = filters.rangeStart;
+      }
+      if (filters?.rangeEnd !== null && filters?.rangeEnd !== undefined) {
+        params.range_end = filters.rangeEnd;
       }
       if (filters?.myDeckId !== null && filters?.myDeckId !== undefined) {
         params.my_deck_id = filters.myDeckId;
