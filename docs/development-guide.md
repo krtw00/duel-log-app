@@ -61,15 +61,15 @@ npm run format
       - `docs`: ドキュメントの更新
       - `chore`: ビルドツール、ライブラリの更新など、コードの変更を伴わない作業
     - `<issue-id>`: 関連するIssue番号（例: `GH-123`）。Issueトラッカーを使用しない場合は省略可能です。
-    - `<description>`: ブランチの目的を簡潔に**日本語**で記述します。単語はハイフン (`-`) で繋ぎ、小文字を使用します。
+    - `<description>`: ブランチの目的を簡潔に**英語**で記述します。単語はハイフン (`-`) で繋ぎ、小文字を使用します。
 
   **例:**
 
-  - `feature/GH-456-ユーザープロフィールページ追加`
-  - `fix/GH-123-ログインエラー修正`
-  - `refactor/共通コンポーネント抽出`
-  - `docs/デプロイガイド更新`
-  - `chore/依存関係更新`
+  - `feature/GH-456-add-user-profile-page`
+  - `fix/GH-123-fix-login-error`
+  - `refactor/extract-common-components`
+  - `docs/update-deployment-guide`
+  - `chore/update-dependencies`
 - **リリースブランチ (オプション)**: 大規模なリリース前には、`develop`からリリースブランチを作成し、最終的なバグ修正や調整を行います。リリース後、`main`と`develop`にマージされます。
 
 ### 開発フロー
