@@ -144,7 +144,9 @@ class TestWinRateService:
     def test_get_my_deck_win_rates_with_range(
         self, db_session: Session, test_user: User
     ):
-        my_deck1, my_deck2, opp_deck1, opp_deck2 = create_test_data(db_session, test_user)
+        my_deck1, my_deck2, opp_deck1, opp_deck2 = create_test_data(
+            db_session, test_user
+        )
 
         # played_dateが新しい順にソートして、2戦目から5戦目までを取得するケース
         # 対象デュエル: 7/6, 7/5, 7/4, 7/3 (MyDeck2: 1勝2敗, MyDeck1: 1勝1敗)

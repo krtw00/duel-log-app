@@ -7,6 +7,7 @@
 ## 環境変数ファイル
 
 ### `.env.development`
+
 開発環境で使用される環境変数です。`npm run dev` 実行時に自動的に読み込まれます。
 
 ```
@@ -14,6 +15,7 @@ VITE_API_URL=http://localhost:8000
 ```
 
 ### `.env.production`
+
 本番環境で使用される環境変数です。`npm run build` 実行時に自動的に読み込まれます。
 
 **重要**: 本番環境にデプロイする前に、このファイルの `VITE_API_URL` を実際の本番APIのURLに変更してください。
@@ -23,6 +25,7 @@ VITE_API_URL=https://your-production-api.com
 ```
 
 ### `.env.local` (オプション)
+
 ローカル環境での個別設定に使用できます。このファイルは `.gitignore` に含まれているため、Git にコミットされません。
 
 個人の開発環境に合わせた設定を行いたい場合は、`.env.example` をコピーして `.env.local` を作成してください。
@@ -43,6 +46,7 @@ Viteは以下の優先順位で環境変数を読み込みます（上が優先�
 ## 使用可能な環境変数
 
 ### VITE_API_URL
+
 バックエンドAPIのベースURLを指定します。
 
 - **開発環境**: `http://localhost:8000`
@@ -80,12 +84,12 @@ npm run build
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string
+  readonly VITE_API_URL: string;
   // 他の環境変数を追加...
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv
+  readonly env: ImportMetaEnv;
 }
 ```
 
@@ -94,6 +98,7 @@ interface ImportMeta {
 ### 環境変数が反映されない
 
 1. 開発サーバーを再起動してください
+
 ```bash
 npm run dev
 ```
@@ -103,6 +108,7 @@ npm run dev
 ### 本番ビルドで環境変数が反映されない
 
 1. ビルドをクリーンアップしてから再ビルドしてください
+
 ```bash
 rm -rf dist
 npm run build

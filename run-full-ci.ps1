@@ -78,7 +78,7 @@ try {
         $env:SECRET_KEY = "a_very_secure_and_long_32_char_test_secret_key"
         $env:RESEND_API_KEY = "test_key"
         $env:DEBUG = "true"
-        
+
         pytest --tb=short --quiet
         if ($LASTEXITCODE -ne 0) { throw "Pytest failed with exit code $LASTEXITCODE" }
     }
@@ -90,7 +90,7 @@ try {
 
     # --- フロントエンドのセットアップとテスト ---
     Write-SectionHeader "[3/4] フロントエンドのセットアップとテストを実行中..."
-    
+
     Push-Location -Path ".\frontend"
     try {
         # node_modulesがなければ依存関係をインストール
@@ -113,7 +113,7 @@ try {
 
     # --- 完了 ---
     Write-SectionHeader "[4/4] すべてのチェックが完了しました!"
-    
+
     Write-Host "🎉 すべてのテストが成功しました! 🎉" -ForegroundColor Green
     Write-Host ""
     Write-Host "次のステップ:" -ForegroundColor Yellow

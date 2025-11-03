@@ -41,9 +41,7 @@ export function useDashboardFilters(props: UseDashboardFiltersProps) {
   });
 
   // 現在のモードで利用可能なデッキ
-  const availableMyDecks = computed(
-    () => availableDecksByMode.value[currentMode.value] || [],
-  );
+  const availableMyDecks = computed(() => availableDecksByMode.value[currentMode.value] || []);
 
   /**
    * 範囲フィルターのみを適用
@@ -107,8 +105,7 @@ export function useDashboardFilters(props: UseDashboardFiltersProps) {
       rangeFiltered.forEach((duel) => {
         if (duel.deck_id) {
           // Try to get deck name from embedded deck object or from decks array
-          const deckName =
-            duel.deck?.name || decks.value.find((d) => d.id === duel.deck_id)?.name;
+          const deckName = duel.deck?.name || decks.value.find((d) => d.id === duel.deck_id)?.name;
           if (deckName) {
             deckMap.set(duel.deck_id, { id: duel.deck_id, name: deckName });
           }
