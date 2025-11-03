@@ -22,13 +22,13 @@ try {
 
     # --- バックエンド ---
     Write-Host "[1/2] バックエンドのテストを実行中..." -ForegroundColor Yellow
-    
+
     # Python仮想環境の有効化
     if (-not (Test-Path -Path ".\venv\Scripts\Activate.ps1")) {
         throw "Python仮想環境が見つかりません。先に 'run-full-ci.ps1' を実行して環境を構築してください。"
     }
     . .\venv\Scripts\Activate.ps1
-    
+
     Push-Location -Path ".\backend"
     try {
         # empty
@@ -36,7 +36,7 @@ try {
     finally {
         Pop-Location
     }
-    
+
     # 仮想環境の無効化 (スクリプト終了時に自動的に無効化されるため通常は不要)
     # Deactivate
 
@@ -45,7 +45,7 @@ try {
 
     # --- フロントエンド ---
     Write-Host "[2/2] フロントエンドのテストを実行中..." -ForegroundColor Yellow
-    
+
     # npmテストの実行
     npm run test:unit --prefix frontend -- --reporter=basic
     if ($LASTEXITCODE -ne 0) { throw "NPM test failed with exit code $LASTEXITCODE" }
