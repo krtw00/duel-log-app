@@ -1,8 +1,11 @@
-"""
-OBS統計API のテスト
-"""
+"""OBS統計API のテスト"""
+
+from datetime import datetime, timedelta, timezone
 
 from fastapi import status
+
+from app.models.deck import Deck
+from app.models.duel import Duel
 
 
 def test_get_obs_statistics_unauthorized(client):
@@ -173,3 +176,61 @@ def test_get_obs_statistics_with_rank_rate_dc_fields(authenticated_client):
         assert isinstance(data["current_rate"], (int, float)), "current_rate should be int or float"
     if data["current_dc"] is not None:
         assert isinstance(data["current_dc"], (int, float)), "current_dc should be int or float"
+
+
+def test_get_obs_statistics_rank_fallback_with_start_id(
+    authenticated_client, db_session, test_user
+):
+    """start_id 以降にランク戦がなくても直近のランクが返される"""
+
+    now = datetime.now(timezone.utc)
+
+    my_deck = Deck(user_id=test_user.id, name="My Deck", is_opponent=False)
+    opponent_deck = Deck(user_id=test_user.id, name="Opp Deck", is_opponent=True)
+    db_session.add_all([my_deck, opponent_deck])
+    db_session.commit()
+    db_session.refresh(my_deck)
+    db_session.refresh(opponent_deck)
+
+    rank_duel = Duel(
+        user_id=test_user.id,
+        deck_id=my_deck.id,
+        opponent_deck_id=opponent_deck.id,
+        is_win=True,
+        game_mode="RANK",
+        rank=25,
+        rate_value=None,
+        dc_value=None,
+        won_coin_toss=True,
+        is_going_first=True,
+        played_date=now - timedelta(hours=1),
+    )
+    later_duel = Duel(
+        user_id=test_user.id,
+        deck_id=my_deck.id,
+        opponent_deck_id=opponent_deck.id,
+        is_win=False,
+        game_mode="RATE",
+        rank=None,
+        rate_value=1234.56,
+        dc_value=None,
+        won_coin_toss=False,
+        is_going_first=False,
+        played_date=now,
+    )
+    db_session.add_all([rank_duel, later_duel])
+    db_session.commit()
+    db_session.refresh(rank_duel)
+    db_session.refresh(later_duel)
+
+    response = authenticated_client.get(
+        "/statistics/obs",
+        params={"period_type": "from_start", "start_id": later_duel.id},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+
+    assert data["total_duels"] == 0
+    assert data["current_rank"] == 25
+    assert data["current_rate"] == 1234.56
