@@ -3,16 +3,16 @@
 デッキに関するビジネスロジックを提供。
 """
 
-from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import extract, func
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
 from app.models.duel import Duel
 from app.schemas.deck import DeckCreate, DeckUpdate
 from app.services.base import BaseService
+from app.utils.datetime_utils import current_month_range_utc
 
 
 class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
@@ -31,9 +31,9 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
     ) -> List[Deck]:
         """ユーザーのデッキを取得。"""
         if is_opponent:
-            now = datetime.utcnow()
+            start_utc, end_utc = current_month_range_utc()
 
-            # CTE to count duels for each opponent deck in the current month
+            # CTE to count duels for each opponent deck in the current (local) month
             duel_counts = (
                 db.query(
                     Duel.opponent_deck_id.label("deck_id"),
@@ -41,8 +41,8 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
                 )
                 .filter(
                     Duel.user_id == user_id,
-                    extract("month", Duel.played_date) == now.month,
-                    extract("year", Duel.played_date) == now.year,
+                    Duel.played_date >= start_utc,
+                    Duel.played_date < end_utc,
                 )
                 .group_by(Duel.opponent_deck_id)
                 .subquery("duel_counts")
