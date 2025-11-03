@@ -50,3 +50,4 @@ venv/
 .coverage
 htmlcov/
 .claude/settings.local.json
+.serena/
