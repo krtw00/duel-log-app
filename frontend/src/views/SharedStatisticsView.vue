@@ -149,6 +149,26 @@ const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 
+const determineStep = (count: number) => {
+  if (count <= 10) return 1;
+  if (count <= 50) return 5;
+  if (count <= 500) return 10;
+  return 100;
+};
+
+const createLabelFormatter = (step: number, total: number) => {
+  return (value: string) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return value;
+    }
+    if (numeric === 1 || numeric === total) {
+      return value;
+    }
+    return numeric % step === 0 ? value : '';
+  };
+};
+
 // --- Types ---
 import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
 import type { MatchupData } from '@/types';
@@ -158,7 +178,7 @@ interface DistributionData {
   chartOptions: ApexPieChartOptions;
 }
 
-interface TimeSeriesData {
+interface ValueSequenceChartData {
   series: { name: string; data: number[] }[];
   chartOptions: ApexLineChartOptions;
 }
@@ -169,7 +189,7 @@ interface StatisticsModeData {
   monthlyDistribution: DistributionData;
   recentDistribution: DistributionData;
   matchupData: MatchupData[];
-  timeSeries: TimeSeriesData;
+  valueSequence: ValueSequenceChartData;
 }
 
 interface DuelStats {
@@ -199,7 +219,7 @@ interface DashboardModeData {
   recentDistribution?: DistributionData;
   myDeckWinRates?: MyDeckWinRate[];
   matchupData?: MatchupData[];
-  timeSeries?: TimeSeriesData;
+  valueSequence?: ValueSequenceChartData;
 }
 
 type GameMode = 'RANK' | 'RATE' | 'EVENT' | 'DC';
@@ -378,6 +398,13 @@ const fetchSharedStatistics = async () => {
         const rawStats = statsData[mode] as any;
         if (!rawStats) return;
 
+        const rawValueSequence: { value: number }[] = rawStats.value_sequence_data || [];
+        const categories = rawValueSequence.map((_item: { value: number }, i: number) =>
+          String(i + 1),
+        );
+        const seriesData = rawValueSequence.map((d: { value: number }) => d.value);
+        const step = determineStep(categories.length);
+
         tempProcessedStats[mode] = {
           overall_stats: rawStats.overall_stats || {},
           duels: rawStats.duels || [],
@@ -392,7 +419,7 @@ const fetchSharedStatistics = async () => {
                 rawStats.monthly_deck_distribution?.map(
                   (d: { deck_name: string }) => d.deck_name,
                 ) || [],
-            },
+            } as ApexPieChartOptions,
           },
           recentDistribution: {
             series: rawStats.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
@@ -401,28 +428,29 @@ const fetchSharedStatistics = async () => {
               labels:
                 rawStats.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) ||
                 [],
-            },
+            } as ApexPieChartOptions,
           },
           myDeckWinRates: rawStats.my_deck_win_rates || [],
           matchupData: rawStats.matchup_data || [],
-          timeSeries: {
+          valueSequence: {
             series: [
               {
                 name: mode,
-                data: rawStats.time_series_data?.map((d: { value: number }) => d.value) || [],
+                data: seriesData,
               },
             ],
             chartOptions: {
               ...baseLineChartOptions.value,
               xaxis: {
                 ...baseLineChartOptions.value.xaxis,
-                categories:
-                  rawStats.time_series_data?.map(
-                    (_item: { date: string; value: number }, i: number) => String(i + 1),
-                  ) || [],
+                categories,
+                labels: {
+                  ...(baseLineChartOptions.value.xaxis?.labels || {}),
+                  formatter: createLabelFormatter(step, categories.length),
+                },
               },
               colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
-            },
+            } as ApexLineChartOptions,
           },
         };
       });
