@@ -4,10 +4,10 @@
 
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.models.duel import Duel
+from app.utils.datetime_utils import month_range_utc
 
 
 class GeneralStatsService:
@@ -75,10 +75,11 @@ class GeneralStatsService:
         start_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         """指定された年月におけるユーザーの全体的なデュエル統計を取得。"""
-        query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            extract("year", Duel.played_date) == year,
-            extract("month", Duel.played_date) == month,
+        start_utc, end_utc = month_range_utc(year, month)
+        query = (
+            db.query(Duel)
+            .filter(Duel.user_id == user_id)
+            .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
         )
         if game_mode:
             query = query.filter(Duel.game_mode == game_mode)
