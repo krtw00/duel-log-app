@@ -86,10 +86,12 @@ echo -e "\033[0;32m✅ Backend dependencies are up to date.\033[0m"
 echo -e "\033[0;33mRunning backend tests...\033[0m"
 pushd backend > /dev/null
 export PYTHONPATH="."
-export DATABASE_URL="sqlite:///./test.db"
+export DATABASE_URL="sqlite:///./ci_test.db"
 export SECRET_KEY="a_very_secure_and_long_32_char_test_secret_key"
 export DEBUG="true"
 export RESEND_API_KEY="testing"
+export PYTEST_ADDOPTS="-o cache_dir=.pytest_cache_ci"
+rm -f ci_test.db
 pytest --tb=short --quiet
 popd > /dev/null
 echo -e "\033[0;32m✅ Backend tests passed!\033[0m"
