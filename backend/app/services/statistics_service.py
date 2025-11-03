@@ -5,11 +5,11 @@
 
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
 from app.models.duel import Duel
+from app.utils.datetime_utils import month_range_utc
 from app.utils.query_builders import build_base_duels_query
 
 
@@ -52,10 +52,10 @@ class StatisticsService:
         game_mode: Optional[str] = None,
     ) -> Dict[str, List[Dict[str, Any]]]:
         """指定された期間・範囲に存在するデッキ一覧を取得。"""
-        query = self._build_base_duels_query(db, user_id, game_mode)
-        query = query.filter(
-            extract("year", Duel.played_date) == year,
-            extract("month", Duel.played_date) == month,
+        start_utc, end_utc = month_range_utc(year, month)
+        query = (
+            self._build_base_duels_query(db, user_id, game_mode)
+            .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
         )
 
         # 範囲指定がある場合
@@ -100,13 +100,11 @@ class StatisticsService:
         self, db: Session, user_id: int, year: int, month: int
     ) -> List[Duel]:
         """指定された年月におけるユーザーのデュエルリストを取得。"""
+        start_utc, end_utc = month_range_utc(year, month)
         duels = (
             db.query(Duel)
-            .filter(
-                Duel.user_id == user_id,
-                extract("year", Duel.played_date) == year,
-                extract("month", Duel.played_date) == month,
-            )
+            .filter(Duel.user_id == user_id)
+            .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
             .order_by(Duel.played_date.desc())
             .all()
         )
