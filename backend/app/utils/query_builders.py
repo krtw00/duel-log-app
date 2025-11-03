@@ -9,6 +9,7 @@ from sqlalchemy import extract
 from sqlalchemy.orm import Query
 
 from app.models.duel import Duel
+from app.utils.datetime_utils import month_range_utc, year_range_utc
 
 
 def apply_duel_filters(
@@ -42,12 +43,15 @@ def apply_duel_filters(
     if game_mode:
         query = query.filter(Duel.game_mode == game_mode)
 
-    # 年でフィルタ
-    if year is not None:
-        query = query.filter(extract("year", Duel.played_date) == year)
-
-    # 月でフィルタ
-    if month is not None:
+    # 年・月でフィルタ
+    if year is not None and month is not None:
+        start_utc, end_utc = month_range_utc(year, month)
+        query = query.filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+    elif year is not None:
+        start_utc, end_utc = year_range_utc(year)
+        query = query.filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+    elif month is not None:
+        # 年が指定されていない場合は従来通り月のみでフィルタ
         query = query.filter(extract("month", Duel.played_date) == month)
 
     # デッキIDでフィルタ
@@ -95,9 +99,13 @@ def apply_date_range_filter(
     Returns:
         フィルタが適用されたクエリ
     """
-    if year is not None:
-        query = query.filter(extract("year", Duel.played_date) == year)
-    if month is not None:
+    if year is not None and month is not None:
+        start_utc, end_utc = month_range_utc(year, month)
+        query = query.filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+    elif year is not None:
+        start_utc, end_utc = year_range_utc(year)
+        query = query.filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+    elif month is not None:
         query = query.filter(extract("month", Duel.played_date) == month)
     return query
 
