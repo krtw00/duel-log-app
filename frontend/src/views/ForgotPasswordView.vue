@@ -1,61 +1,61 @@
 <template>
   <div class="forgot-password-container">
-      <!-- 背景装飾 -->
-      <div class="background-overlay">
-        <div class="grid-pattern"></div>
-        <div class="glow-orb glow-orb-1"></div>
-        <div class="glow-orb glow-orb-2"></div>
-      </div>
+    <!-- 背景装飾 -->
+    <div class="background-overlay">
+      <div class="grid-pattern"></div>
+      <div class="glow-orb glow-orb-1"></div>
+      <div class="glow-orb glow-orb-2"></div>
+    </div>
 
-      <!-- パスワード再設定カード -->
-      <v-card class="forgot-password-card" elevation="24">
-        <div class="card-glow"></div>
+    <!-- パスワード再設定カード -->
+    <v-card class="forgot-password-card" elevation="24">
+      <div class="card-glow"></div>
 
-        <v-card-text class="pa-8">
-          <!-- タイトル -->
-          <div class="text-center mb-8">
-            <h1 class="app-title">
-              <span class="text-primary">FORGOT</span>
-              <span class="text-secondary">PASSWORD</span>
-            </h1>
-            <p class="app-subtitle">Enter your email to reset your password.</p>
-          </div>
+      <v-card-text class="pa-8">
+        <!-- タイトル -->
+        <div class="text-center mb-8">
+          <h1 class="app-title">
+            <span class="text-primary">FORGOT</span>
+            <span class="text-secondary">PASSWORD</span>
+          </h1>
+          <p class="app-subtitle">Enter your email to reset your password.</p>
+        </div>
 
-          <!-- フォーム -->
-          <v-form ref="formRef" @submit.prevent="handleForgotPassword">
-            <v-text-field
-              v-model="email"
-              label="メールアドレス"
-              prepend-inner-icon="mdi-email-outline"
-              type="email"
-              variant="outlined"
-              color="primary"
-              :rules="[rules.required, rules.email]"
-              class="mb-4"
-            />
+        <!-- フォーム -->
+        <v-form ref="formRef" @submit.prevent="handleForgotPassword">
+          <v-text-field
+            v-model="email"
+            label="メールアドレス"
+            prepend-inner-icon="mdi-email-outline"
+            type="email"
+            variant="outlined"
+            color="primary"
+            :rules="[rules.required, rules.email]"
+            class="mb-4"
+          />
 
-            <!-- 送信ボタン -->
-            <v-btn
-              type="submit"
-              block
-              size="large"
-              color="primary"
-              :loading="loading"
-              class="forgot-password-btn mb-4"
+          <!-- 送信ボタン -->
+          <v-btn
+            type="submit"
+            block
+            size="large"
+            color="primary"
+            :loading="loading"
+            class="forgot-password-btn mb-4"
+          >
+            <v-icon start>mdi-send</v-icon>
+            再設定メールを送信
+          </v-btn>
+
+          <!-- ログインページへのリンク -->
+          <div class="text-center">
+            <router-link to="/login" class="text-caption text-grey"
+              >ログインページに戻る</router-link
             >
-              <v-icon start>mdi-send</v-icon>
-              再設定メールを送信
-            </v-btn>
-
-            <!-- ログインページへのリンク -->
-            <div class="text-center">
-              <router-link to="/login" class="text-caption text-grey"
-                >ログインページに戻る</router-link
-              >
-            </div>
-          </v-form>
-        </v-card-text>
-      </v-card>
+          </div>
+        </v-form>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 
