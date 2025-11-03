@@ -7,10 +7,10 @@ from datetime import datetime
 from io import StringIO
 from typing import List, Optional
 
-from sqlalchemy import extract as sa_extract
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.duel import Duel
+from app.utils.datetime_utils import month_range_utc, year_range_utc
 from app.utils.ranks import get_rank_name, get_rank_value
 
 
@@ -46,11 +46,19 @@ class CSVService:
             .options(joinedload(Duel.deck), joinedload(Duel.opponent_deck))
         )
 
-        if year:
+        if year and month:
+            start_utc, end_utc = month_range_utc(year, month)
             duels_query = duels_query.filter(
-                sa_extract("year", Duel.played_date) == year
+                Duel.played_date >= start_utc, Duel.played_date < end_utc
             )
-        if month:
+        elif year:
+            start_utc, end_utc = year_range_utc(year)
+            duels_query = duels_query.filter(
+                Duel.played_date >= start_utc, Duel.played_date < end_utc
+            )
+        elif month:
+            from sqlalchemy import extract as sa_extract
+
             duels_query = duels_query.filter(
                 sa_extract("month", Duel.played_date) == month
             )
