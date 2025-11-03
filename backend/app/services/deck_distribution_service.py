@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.models.deck import Deck
 from app.models.duel import Duel
 from app.utils.query_builders import apply_range_filter, build_base_duels_query
+from app.utils.datetime_utils import month_range_utc
 
 
 class DeckDistributionService:
@@ -55,9 +56,10 @@ class DeckDistributionService:
         opponent_deck_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """月間の相手デッキ分布を取得。"""
+        start_utc, end_utc = month_range_utc(year, month)
         base_query = build_base_duels_query(db, user_id, game_mode).filter(
-            extract("year", Duel.played_date) == year,
-            extract("month", Duel.played_date) == month,
+            Duel.played_date >= start_utc,
+            Duel.played_date < end_utc,
         )
 
         # デッキフィルター
