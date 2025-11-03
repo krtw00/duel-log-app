@@ -110,6 +110,7 @@ export interface ApexMarkers {
 export interface ApexXAxis {
   categories?: string[];
   labels?: {
+    formatter?: (value: string, index?: number) => string;
     style?: {
       colors?: string | string[];
       fontSize?: string;
