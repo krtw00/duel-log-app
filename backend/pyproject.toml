@@ -35,6 +35,9 @@ exclude_lines = [
     "if TYPE_CHECKING:",
 ]
 
+[tool.coverage.html]
+directory = ".htmlcov"
+
 [tool.black]
 line-length = 88
 target-version = ['py311']

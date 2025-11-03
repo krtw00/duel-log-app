@@ -199,9 +199,9 @@ export interface DisplayItem {
  */
 export interface OBSOverlayStats {
   current_deck?: string;
-  current_rank?: string;
-  current_rate?: number;
-  current_dc?: number;
+  current_rank?: number | string;
+  current_rate?: number | string;
+  current_dc?: number | string;
   total_duels: number;
   win_rate: number;
   first_turn_win_rate?: number;
