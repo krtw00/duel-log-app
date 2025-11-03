@@ -65,6 +65,52 @@ class GeneralStatsService:
             "go_first_rate": go_first_rate,
         }
 
+    def _get_latest_metric_duel(
+        self,
+        db: Session,
+        user_id: int,
+        target_mode: str,
+        value_column,
+        start_id: Optional[int] = None,
+        additional_filters: Optional[List[Any]] = None,
+    ) -> Optional[Duel]:
+        """指定したモードの最新デュエル（メトリック値付き）を取得。
+
+        start_id が指定されている場合は start_id より後のデータを優先し、
+        存在しない場合は start_id 以前の直近データをフォールバックとして利用する。
+        """
+
+        query = (
+            db.query(Duel)
+            .filter(Duel.user_id == user_id)
+            .filter(Duel.game_mode == target_mode)
+            .filter(value_column.isnot(None))
+        )
+
+        if additional_filters:
+            for condition in additional_filters:
+                query = query.filter(condition)
+
+        if start_id is not None:
+            latest_after_start = (
+                query.filter(Duel.id > start_id)
+                .order_by(Duel.played_date.desc(), Duel.id.desc())
+                .first()
+            )
+            if latest_after_start:
+                return latest_after_start
+
+            return (
+                query.filter(Duel.id <= start_id)
+                .order_by(Duel.played_date.desc(), Duel.id.desc())
+                .first()
+            )
+
+        return (
+            query.order_by(Duel.played_date.desc(), Duel.id.desc())
+            .first()
+        )
+
     def get_overall_stats(
         self,
         db: Session,
@@ -97,42 +143,40 @@ class GeneralStatsService:
 
         # 各ゲームモードの最新デュエルからランク/レート/DCを取得
         # current_rank: RANKモードの最新デュエルから取得
-        rank_query = (
-            db.query(Duel)
-            .filter(Duel.user_id == user_id)
-            .filter(Duel.game_mode == "RANK")
-            .filter(Duel.rank.isnot(None))
-            .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+        date_filters = [
+            Duel.played_date >= start_utc,
+            Duel.played_date < end_utc,
+        ]
+        latest_rank_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RANK",
+            value_column=Duel.rank,
+            start_id=start_id,
+            additional_filters=date_filters,
         )
-        if start_id is not None:
-            rank_query = rank_query.filter(Duel.id > start_id)
-        latest_rank_duel = rank_query.order_by(Duel.played_date.desc()).first()
         current_rank = latest_rank_duel.rank if latest_rank_duel else None
 
         # current_rate: RATEモードの最新デュエルから取得
-        rate_query = (
-            db.query(Duel)
-            .filter(Duel.user_id == user_id)
-            .filter(Duel.game_mode == "RATE")
-            .filter(Duel.rate_value.isnot(None))
-            .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+        latest_rate_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RATE",
+            value_column=Duel.rate_value,
+            start_id=start_id,
+            additional_filters=date_filters,
         )
-        if start_id is not None:
-            rate_query = rate_query.filter(Duel.id > start_id)
-        latest_rate_duel = rate_query.order_by(Duel.played_date.desc()).first()
         current_rate = latest_rate_duel.rate_value if latest_rate_duel else None
 
         # current_dc: DCモードの最新デュエルから取得
-        dc_query = (
-            db.query(Duel)
-            .filter(Duel.user_id == user_id)
-            .filter(Duel.game_mode == "DC")
-            .filter(Duel.dc_value.isnot(None))
-            .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+        latest_dc_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="DC",
+            value_column=Duel.dc_value,
+            start_id=start_id,
+            additional_filters=date_filters,
         )
-        if start_id is not None:
-            dc_query = dc_query.filter(Duel.id > start_id)
-        latest_dc_duel = dc_query.order_by(Duel.played_date.desc()).first()
         current_dc = latest_dc_duel.dc_value if latest_dc_duel else None
 
         return {
@@ -169,36 +213,33 @@ class GeneralStatsService:
 
         # 各ゲームモードの最新デュエルからランク/レート/DCを取得
         # current_rank: RANKモードの最新デュエルから取得
-        rank_query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            Duel.game_mode == "RANK",
-            Duel.rank.isnot(None),
+        latest_rank_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RANK",
+            value_column=Duel.rank,
+            start_id=start_id,
         )
-        if start_id is not None:
-            rank_query = rank_query.filter(Duel.id > start_id)
-        latest_rank_duel = rank_query.order_by(Duel.played_date.desc()).first()
         current_rank = latest_rank_duel.rank if latest_rank_duel else None
 
         # current_rate: RATEモードの最新デュエルから取得
-        rate_query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            Duel.game_mode == "RATE",
-            Duel.rate_value.isnot(None),
+        latest_rate_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RATE",
+            value_column=Duel.rate_value,
+            start_id=start_id,
         )
-        if start_id is not None:
-            rate_query = rate_query.filter(Duel.id > start_id)
-        latest_rate_duel = rate_query.order_by(Duel.played_date.desc()).first()
         current_rate = latest_rate_duel.rate_value if latest_rate_duel else None
 
         # current_dc: DCモードの最新デュエルから取得
-        dc_query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            Duel.game_mode == "DC",
-            Duel.dc_value.isnot(None),
+        latest_dc_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="DC",
+            value_column=Duel.dc_value,
+            start_id=start_id,
         )
-        if start_id is not None:
-            dc_query = dc_query.filter(Duel.id > start_id)
-        latest_dc_duel = dc_query.order_by(Duel.played_date.desc()).first()
         current_dc = latest_dc_duel.dc_value if latest_dc_duel else None
 
         return {
@@ -237,36 +278,33 @@ class GeneralStatsService:
 
         # 各ゲームモードの最新デュエルからランク/レート/DCを取得
         # current_rank: RANKモードの最新デュエルから取得
-        rank_query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            Duel.game_mode == "RANK",
-            Duel.rank.isnot(None),
+        latest_rank_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RANK",
+            value_column=Duel.rank,
+            start_id=start_id,
         )
-        if start_id is not None:
-            rank_query = rank_query.filter(Duel.id > start_id)
-        latest_rank_duel = rank_query.order_by(Duel.played_date.desc()).first()
         current_rank = latest_rank_duel.rank if latest_rank_duel else None
 
         # current_rate: RATEモードの最新デュエルから取得
-        rate_query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            Duel.game_mode == "RATE",
-            Duel.rate_value.isnot(None),
+        latest_rate_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RATE",
+            value_column=Duel.rate_value,
+            start_id=start_id,
         )
-        if start_id is not None:
-            rate_query = rate_query.filter(Duel.id > start_id)
-        latest_rate_duel = rate_query.order_by(Duel.played_date.desc()).first()
         current_rate = latest_rate_duel.rate_value if latest_rate_duel else None
 
         # current_dc: DCモードの最新デュエルから取得
-        dc_query = db.query(Duel).filter(
-            Duel.user_id == user_id,
-            Duel.game_mode == "DC",
-            Duel.dc_value.isnot(None),
+        latest_dc_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="DC",
+            value_column=Duel.dc_value,
+            start_id=start_id,
         )
-        if start_id is not None:
-            dc_query = dc_query.filter(Duel.id > start_id)
-        latest_dc_duel = dc_query.order_by(Duel.played_date.desc()).first()
         current_dc = latest_dc_duel.dc_value if latest_dc_duel else None
 
         return {
