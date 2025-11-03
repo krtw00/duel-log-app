@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
 from app.models.duel import Duel
+from app.utils.datetime_utils import month_range_utc, year_range_utc
 from app.utils.query_builders import apply_range_filter, build_base_duels_query
 
 
@@ -63,9 +64,17 @@ class WinRateService:
         """ユーザー自身の各デッキの勝率を計算。"""
         query = build_base_duels_query(db, user_id, game_mode)
 
-        if year is not None:
-            query = query.filter(extract("year", Duel.played_date) == year)
-        if month is not None:
+        if year is not None and month is not None:
+            start_utc, end_utc = month_range_utc(year, month)
+            query = query.filter(
+                Duel.played_date >= start_utc, Duel.played_date < end_utc
+            )
+        elif year is not None:
+            start_utc, end_utc = year_range_utc(year)
+            query = query.filter(
+                Duel.played_date >= start_utc, Duel.played_date < end_utc
+            )
+        elif month is not None:
             query = query.filter(extract("month", Duel.played_date) == month)
 
         # デッキフィルター
