@@ -395,7 +395,11 @@ const handleSubmit = async () => {
   try {
     // デッキIDを解決（必要に応じて新規作成）
     const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecks.value);
-    const opponentDeckId = await resolveDeckId(selectedOpponentDeck.value, true, opponentDecks.value);
+    const opponentDeckId = await resolveDeckId(
+      selectedOpponentDeck.value,
+      true,
+      opponentDecks.value,
+    );
 
     if (!myDeckId || !opponentDeckId) {
       notificationStore.error('デッキの登録に失敗しました');
