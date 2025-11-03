@@ -149,3 +149,27 @@ def test_get_obs_statistics_response_structure(authenticated_client):
     # 勝率は0から1の範囲
     if data["total_duels"] > 0:
         assert 0 <= data["win_rate"] <= 1, "win_rate should be between 0 and 1"
+
+
+def test_get_obs_statistics_with_rank_rate_dc_fields(authenticated_client):
+    """OBS統計レスポンスにcurrent_rank、current_rate、current_dcが含まれることを確認"""
+    response = authenticated_client.get(
+        "/statistics/obs",
+        params={"period_type": "recent", "limit": 30},
+    )
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+
+    # current_rank、current_rate、current_dcがレスポンスに含まれることを確認
+    # これらのフィールドはオプショナルだが、APIレスポンスには常に含まれるべき
+    assert "current_rank" in data, "current_rank field should exist in response"
+    assert "current_rate" in data, "current_rate field should exist in response"
+    assert "current_dc" in data, "current_dc field should exist in response"
+
+    # フィールドが存在する場合、型を確認（Noneの場合は型チェックをスキップ）
+    if data["current_rank"] is not None:
+        assert isinstance(data["current_rank"], (int, str)), "current_rank should be int or string"
+    if data["current_rate"] is not None:
+        assert isinstance(data["current_rate"], (int, float)), "current_rate should be int or float"
+    if data["current_dc"] is not None:
+        assert isinstance(data["current_dc"], (int, float)), "current_dc should be int or float"
