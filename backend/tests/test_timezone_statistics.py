@@ -21,7 +21,7 @@ def _insert_decks_and_duel(db_session, user_id: int) -> None:
         is_win=True,
         game_mode="RATE",
         rate_value=1500.0,
-        played_date=datetime(2024, 5, 31, 15, 0, tzinfo=timezone.utc),
+        played_date=datetime(2024, 5, 31, 23, 0, tzinfo=timezone.utc),
         notes=None,
     )
     db_session.add(duel)
