@@ -93,11 +93,11 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
 
 ## 開発環境のセットアップ (WSL + Docker)
 
-このガイドでは、Windows Subsystem for Linux (WSL) を使用して、Windows上に開発環境を構築する手順を説明します。Docker Desktop for Windowsは不要です。
+このガイドでは、Windows Subsystem for Linux (WSL) を使用して、Windows上に開発環境を構築する手順を説明します。Docker Desktop for Windowsは原則不要です。
 
 ### 前提条件
 - Windows 11 または Windows 10 (バージョン 2004 以降)
-- Git for Windows
+- Docker Desktop for Windows (Windows 10 の場合 Docker Engine を動かすのに必要)
 
 ### Step 1: WSLとUbuntuのインストール
 
