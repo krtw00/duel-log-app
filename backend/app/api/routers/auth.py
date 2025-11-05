@@ -4,6 +4,7 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import resend
 from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
@@ -30,7 +31,9 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 logger = logging.getLogger(__name__)
 
 # Jinja2テンプレート環境の初期化
-jinja_env = Environment(loader=FileSystemLoader("./app/templates/email"))
+# 現在のファイルからの相対パスでテンプレートディレクトリを指定
+template_dir = Path(__file__).parent.parent.parent / "templates" / "email"
+jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
 
 
 def _is_safari_browser(user_agent: str) -> bool:
