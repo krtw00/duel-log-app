@@ -90,8 +90,8 @@ def seed_data(db: Session):
                 f"  Creating 300 duels for '{mode}' mode over the last 3 months..."
             )
 
-            # 300戦を3ヶ月に分散 (1ヶ月あたり100戦)
-            duels_per_month_per_mode = 100
+            # 各月300戦ずつ作成（3ヶ月で合計900戦）
+            duels_per_month_per_mode = 300
             for month_index in range(3):
                 # --- 期間の計算 (JSTタイムゾーン付き) ---
                 first_day_of_current_month = now.replace(
