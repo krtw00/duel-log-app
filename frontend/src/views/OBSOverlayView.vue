@@ -51,18 +51,8 @@ const periodType = ref(
     ? initialPeriodType
     : 'from_start',
 );
-const hasYearQueryParam = route.query.year !== undefined;
-const hasMonthQueryParam = route.query.month !== undefined;
-const year = ref(
-  hasYearQueryParam
-    ? Number(route.query.year) || new Date().getFullYear()
-    : new Date().getFullYear(),
-);
-const month = ref(
-  hasMonthQueryParam
-    ? Number(route.query.month) || new Date().getMonth() + 1
-    : new Date().getMonth() + 1,
-);
+const year = ref(Number(route.query.year) || new Date().getFullYear());
+const month = ref(Number(route.query.month) || new Date().getMonth() + 1);
 const limit = ref(Number(route.query.limit) || 30);
 const gameMode = ref<string | undefined>((route.query.game_mode as string) || undefined);
 const startId = ref<number | undefined>(
@@ -244,12 +234,6 @@ const fetchStats = async () => {
 
     // 集計期間に応じたパラメータ
     if (periodType.value === 'monthly') {
-      if (!hasYearQueryParam) {
-        year.value = new Date().getFullYear();
-      }
-      if (!hasMonthQueryParam) {
-        month.value = new Date().getMonth() + 1;
-      }
       params.year = year.value;
       params.month = month.value;
     } else if (periodType.value === 'recent') {
