@@ -235,5 +235,7 @@ class TestListUsers:
         """ユーザー一覧取得エンドポイントが無効化されていることを確認"""
         response = authenticated_client.get("/users/")
 
-        # エンドポイントがコメントアウトされているため404が返される
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        # エンドポイントがコメントアウトされているため、
+        # GET /users/ は存在しないが、POST /users/ は存在するため、
+        # FastAPIは405 Method Not Allowedを返す
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
