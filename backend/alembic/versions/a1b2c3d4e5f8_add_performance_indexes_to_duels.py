@@ -48,10 +48,10 @@ def upgrade() -> None:
         """
     )
 
-    # idx_duels_duel_date インデックスを作成（存在しない場合のみ）
+    # idx_duels_played_date インデックスを作成（存在しない場合のみ）
     op.execute(
         """
-        CREATE INDEX IF NOT EXISTS idx_duels_duel_date ON duels (duel_date)
+        CREATE INDEX IF NOT EXISTS idx_duels_played_date ON duels (played_date)
         """
     )
 
@@ -64,4 +64,4 @@ def downgrade() -> None:
     op.execute("DROP INDEX IF EXISTS idx_duels_deck_id")
     op.execute("DROP INDEX IF EXISTS idx_duels_opponent_deck_id")
     op.execute("DROP INDEX IF EXISTS idx_duels_game_mode")
-    op.execute("DROP INDEX IF EXISTS idx_duels_duel_date")
+    op.execute("DROP INDEX IF EXISTS idx_duels_played_date")
