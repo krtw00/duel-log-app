@@ -152,8 +152,11 @@ class TestPasswordReset:
         assert "パスワードが正常にリセットされました" in response.json()["message"]
 
         # パスワードが変更されたか確認
-        db_session.refresh(test_user)
-        assert verify_password(new_password, test_user.passwordhash)
+        # 注: test_userインスタンスはセッションから切り離されているため、
+        # 新しくクエリしてパスワードを確認する
+        updated_user = db_session.query(User).filter(User.id == test_user.id).first()
+        assert updated_user is not None
+        assert verify_password(new_password, updated_user.passwordhash)
 
         # トークンが削除されたか確認
         token_entry = (
