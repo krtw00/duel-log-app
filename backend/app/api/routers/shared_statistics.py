@@ -70,11 +70,16 @@ def get_shared_statistics(
             status_code=status.HTTP_404_NOT_FOUND, detail="共有リンクが見つかりません"
         )
 
-    if shared_link.expires_at and shared_link.expires_at < datetime.now(timezone.utc):
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="共有リンクの有効期限が切れています",
-        )
+    if shared_link.expires_at:
+        expires_at = shared_link.expires_at
+        # Ensure expires_at is timezone-aware for comparison
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="共有リンクの有効期限が切れています",
+            )
 
     statistics_data = get_all_statistics(
         db=db,
@@ -138,11 +143,16 @@ def export_shared_duels_csv(
         )
 
     # 有効期限の確認
-    if shared_link.expires_at and shared_link.expires_at < datetime.now(timezone.utc):
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="この共有リンクは期限切れです。",
-        )
+    if shared_link.expires_at:
+        expires_at = shared_link.expires_at
+        # Ensure expires_at is timezone-aware for comparison
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="この共有リンクは期限切れです。",
+            )
 
     user_id = shared_link.user_id
 
