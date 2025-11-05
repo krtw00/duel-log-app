@@ -4,17 +4,22 @@
 
 import pytest
 from fastapi.testclient import TestClient
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.api.deps import get_current_user
 from app.core.security import get_password_hash
+from app.core.config import settings
 from app.db.session import Base, get_db
 from app.main import app
 from app.models.user import User
 
 # テスト用データベースURL
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", settings.DATABASE_URL)
+
+SQLALCHEMY_DATABASE_URL = TEST_DATABASE_URL
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}

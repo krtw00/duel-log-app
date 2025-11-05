@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
@@ -85,6 +85,48 @@ describe('OBSOverlayView.vue', () => {
     // 統計情報が表示されていることを確認
     expect(wrapper.text()).toContain('使用デッキ');
     expect(wrapper.text()).toContain('ライゼル');
+  });
+
+  it('ランクやレートが文字列で返ってもフォーマットして表示する', async () => {
+    const mockStats = {
+      current_deck: 'ライゼル',
+      current_rank: 'MASTER5',
+      current_rate: 'Rate: 1520.5pt',
+      current_dc: 'DC 120.25',
+      total_duels: '42 matches',
+      win_rate: '0.55',
+      first_turn_win_rate: '50%',
+      second_turn_win_rate: '0.6',
+      coin_win_rate: '60 %',
+      go_first_rate: '0.4',
+    };
+
+    vi.mocked(axios.get).mockResolvedValue({ data: mockStats });
+
+    router = createRouterWithQuery();
+
+    await router.push({
+      path: '/obs-overlay',
+      query: {
+        token: 'test-token-123',
+        period_type: 'recent',
+        limit: '30',
+      },
+    });
+    await router.isReady();
+
+    const wrapper = mount(OBSOverlayView, {
+      global: {
+        plugins: [vuetify, router],
+      },
+    });
+
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('マスター5');
+    expect(wrapper.text()).toContain('1520.50');
+    expect(wrapper.text()).toContain('120.25');
+    expect(wrapper.text()).toContain('55.0%');
   });
 
   it('トークンがない場合にエラーメッセージを表示する', async () => {

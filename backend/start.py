@@ -117,11 +117,19 @@ def get_current_db_state():
                 )
                 tables_exist = cur.fetchone()[0]
 
-                # 現在のalembicバージョン確認
+                # 現在のalembicバージョン確認（すべてのバージョンを取得）
                 try:
                     cur.execute("SELECT version_num FROM alembic_version")
-                    current_version = cur.fetchone()
-                    current_version = current_version[0] if current_version else None
+                    all_versions = cur.fetchall()
+                    if all_versions:
+                        if len(all_versions) > 1:
+                            logger.warning(f"⚠️  Multiple versions found in alembic_version table: {[v[0] for v in all_versions]}")
+                            # 最初のバージョンを返すが、複数あることを記録
+                            current_version = all_versions[0][0]
+                        else:
+                            current_version = all_versions[0][0]
+                    else:
+                        current_version = None
                 except Exception:
                     current_version = None
 
@@ -129,6 +137,68 @@ def get_current_db_state():
     except Exception as e:
         logger.warning(f"Could not get DB state: {e}")
         return None, None
+
+
+def fix_multiple_alembic_heads():
+    """alembic_versionテーブルに複数のheadがある場合、最新のものだけを残す"""
+    try:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return False
+
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+        # URLをパースして接続パラメータを取得
+        parsed_url = urlparse(database_url)
+        conn_params = {
+            "host": parsed_url.hostname,
+            "port": parsed_url.port,
+            "user": parsed_url.username,
+            "password": unquote(parsed_url.password) if parsed_url.password else None,
+            "dbname": parsed_url.path.lstrip("/"),
+        }
+
+        # NeonDB用のSSL設定
+        if "sslmode=require" in database_url:
+            conn_params["sslmode"] = "require"
+
+        with psycopg.connect(**conn_params) as conn:
+            with conn.cursor() as cur:
+                # alembic_versionテーブルのすべてのバージョンを取得
+                try:
+                    cur.execute("SELECT version_num FROM alembic_version")
+                    all_versions = cur.fetchall()
+
+                    if len(all_versions) > 1:
+                        logger.warning(f"🔧 Found multiple heads in alembic_version: {[v[0] for v in all_versions]}")
+                        logger.info("🔧 Cleaning up alembic_version table...")
+
+                        # すべてのバージョンを削除
+                        cur.execute("DELETE FROM alembic_version")
+
+                        # 現在の正しいheadバージョンを挿入（4ed32ebe9919）
+                        # マイグレーションファイルから確認した最新のhead
+                        cur.execute("INSERT INTO alembic_version (version_num) VALUES ('4ed32ebe9919')")
+                        conn.commit()
+
+                        logger.info("✅ Cleaned up alembic_version table, set to head: 4ed32ebe9919")
+                        sys.stdout.flush()
+                        return True
+                    else:
+                        logger.info("✅ No multiple heads found, alembic_version is clean")
+                        sys.stdout.flush()
+                        return True
+
+                except Exception as e:
+                    logger.error(f"❌ Error checking alembic_version: {e}")
+                    sys.stdout.flush()
+                    return False
+
+    except Exception as e:
+        logger.error(f"❌ Could not fix multiple alembic heads: {e}")
+        sys.stdout.flush()
+        return False
 
 
 def fix_alembic_version_if_needed():
@@ -253,12 +323,12 @@ def run_migrations():
         sys.stdout.flush()
         fix_alembic_version_if_needed()
 
-    logger.info("Starting alembic upgrade head...")
+    logger.info("Starting alembic upgrade heads...")
     sys.stdout.flush()
 
     try:
         result = subprocess.run(
-            ["alembic", "upgrade", "head"], check=True, capture_output=True, text=True
+            ["alembic", "upgrade", "heads"], check=True, capture_output=True, text=True
         )
         logger.info("Alembic output:")
         logger.info(result.stdout)
@@ -271,8 +341,32 @@ def run_migrations():
         logger.error(f"Error output: {e.stderr}")
         sys.stdout.flush()
 
+        # "Multiple head revisions" エラーの場合、修復して再試行
+        if "Multiple head revisions are present" in e.stderr:
+            logger.info("🔧 Multiple heads detected! Fixing...")
+            sys.stdout.flush()
+            fix_multiple_alembic_heads()
+
+            # 再試行
+            try:
+                result = subprocess.run(
+                    ["alembic", "upgrade", "heads"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                logger.info(result.stdout)
+                logger.info("✅ Migrations completed successfully after fixing multiple heads!")
+                sys.stdout.flush()
+                return True
+            except subprocess.CalledProcessError as e2:
+                logger.error("❌ Migration still failed after fixing multiple heads!")
+                logger.error(e2.stderr)
+                sys.stdout.flush()
+                return False
+
         # "Can't locate revision" エラーの場合、修復して再試行
-        if "Can't locate revision" in e.stderr:
+        elif "Can't locate revision" in e.stderr:
             logger.info("🔧 Attempting to fix alembic version conflict...")
             sys.stdout.flush()
             fix_alembic_version_if_needed()
@@ -280,7 +374,7 @@ def run_migrations():
             # 再試行
             try:
                 result = subprocess.run(
-                    ["alembic", "upgrade", "head"],
+                    ["alembic", "upgrade", "heads"],
                     check=True,
                     capture_output=True,
                     text=True,
@@ -304,7 +398,7 @@ def run_migrations():
             # 再試行（今度は変更なしで成功するはず）
             try:
                 result = subprocess.run(
-                    ["alembic", "upgrade", "head"],
+                    ["alembic", "upgrade", "heads"],
                     check=True,
                     capture_output=True,
                     text=True,

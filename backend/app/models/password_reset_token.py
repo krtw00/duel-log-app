@@ -31,7 +31,13 @@ class PasswordResetToken(Base):
     user: Mapped["User"] = relationship("User", back_populates="password_reset_tokens")
 
     def is_expired(self) -> bool:
-        return datetime.now(timezone.utc) > self.expires_at
+        now = datetime.now(timezone.utc)
+        # Ensure expires_at is timezone-aware for comparison
+        expires_at = self.expires_at
+        if expires_at.tzinfo is None:
+            # If naive, assume UTC
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        return now > expires_at
 
     def __repr__(self):
         return f"<PasswordResetToken id={self.id} user_id={self.user_id} expires_at={self.expires_at}>"
