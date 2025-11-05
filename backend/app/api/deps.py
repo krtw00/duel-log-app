@@ -59,30 +59,30 @@ def get_current_user(
         logger.warning(
             "No access token found - neither Cookie nor Authorization header"
         )
-        raise UnauthorizedException(detail="認証されていません")
+        raise UnauthorizedException(message="認証されていません")
 
     logger.debug("Access token received (length: %d)", len(token))
 
     # トークンをデコード
     payload = decode_access_token(token)
     if payload is None:
-        raise UnauthorizedException(detail="トークンが無効または期限切れです")
+        raise UnauthorizedException(message="トークンが無効または期限切れです")
 
     # ペイロードからユーザーIDを取得
     user_id: Optional[str] = payload.get("sub")
     if user_id is None:
-        raise UnauthorizedException(detail="トークンにユーザーIDが含まれていません")
+        raise UnauthorizedException(message="トークンにユーザーIDが含まれていません")
 
     # データベースからユーザーを取得
     try:
         user_id_int = int(user_id)
     except ValueError as e:
-        raise UnauthorizedException(detail="ユーザーIDの形式が不正です") from e
+        raise UnauthorizedException(message="ユーザーIDの形式が不正です") from e
 
     user = db.query(User).filter(User.id == user_id_int).first()
 
     if user is None:
-        raise UnauthorizedException(detail="ユーザーが見つかりません")
+        raise UnauthorizedException(message="ユーザーが見つかりません")
 
     return user
 
