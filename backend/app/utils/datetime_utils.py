@@ -21,25 +21,32 @@ def month_range_utc(year: int, month: int, tz: ZoneInfo = DEFAULT_TIMEZONE) -> T
 
     Returns:
         A tuple of (start_utc, end_utc) datetimes.
+
+    Note:
+        Month boundaries are set at 7:59:00 to match the game's month reset timing at 7:59.
     """
 
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
 
-    start_local = datetime(year, month, 1, tzinfo=tz)
+    start_local = datetime(year, month, 1, 7, 59, 0, 0, tzinfo=tz)
     if month == 12:
-        end_local = datetime(year + 1, 1, 1, tzinfo=tz)
+        end_local = datetime(year + 1, 1, 1, 7, 59, 0, 0, tzinfo=tz)
     else:
-        end_local = datetime(year, month + 1, 1, tzinfo=tz)
+        end_local = datetime(year, month + 1, 1, 7, 59, 0, 0, tzinfo=tz)
 
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 
 def year_range_utc(year: int, tz: ZoneInfo = DEFAULT_TIMEZONE) -> Tuple[datetime, datetime]:
-    """Return the UTC start (inclusive) and end (exclusive) timestamps for the given year."""
+    """Return the UTC start (inclusive) and end (exclusive) timestamps for the given year.
 
-    start_local = datetime(year, 1, 1, tzinfo=tz)
-    end_local = datetime(year + 1, 1, 1, tzinfo=tz)
+    Note:
+        Year boundaries are set at 7:59:00 to match the game's month reset timing at 7:59.
+    """
+
+    start_local = datetime(year, 1, 1, 7, 59, 0, 0, tzinfo=tz)
+    end_local = datetime(year + 1, 1, 1, 7, 59, 0, 0, tzinfo=tz)
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 

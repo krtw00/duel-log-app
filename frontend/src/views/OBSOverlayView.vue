@@ -63,54 +63,142 @@ const layout = ref((route.query.layout as string) || 'grid');
 const theme = ref((route.query.theme as string) || 'dark');
 const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォルト30秒
 
+const rankTierLabelMap: Record<string, string> = {
+  BEGINNER: 'ビギナー',
+  BRONZE: 'ブロンズ',
+  SILVER: 'シルバー',
+  GOLD: 'ゴールド',
+  PLATINUM: 'プラチナ',
+  DIAMOND: 'ダイヤ',
+  MASTER: 'マスター',
+};
+
+const normalizeNumericValue = (value: string | number | null | undefined): number | null => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+  if (typeof value === 'number') {
+    return Number.isNaN(value) ? null : value;
+  }
+  const trimmed = value.trim();
+  const directNumber = Number(trimmed);
+  if (!Number.isNaN(directNumber)) {
+    return directNumber;
+  }
+  const numericMatch = trimmed.match(/-?\d+(?:\.\d+)?/);
+  if (numericMatch) {
+    const extracted = Number(numericMatch[0]);
+    return Number.isNaN(extracted) ? null : extracted;
+  }
+  return null;
+};
+
+const formatDecimalValue = (
+  value: string | number | null | undefined,
+  fractionDigits = 2,
+): string => {
+  const numeric = normalizeNumericValue(value);
+  if (numeric === null) {
+    return '-';
+  }
+  return numeric.toFixed(fractionDigits);
+};
+
+const formatPercentageValue = (
+  value: string | number | null | undefined,
+  fractionDigits = 1,
+): string => {
+  const numeric = normalizeNumericValue(value);
+  if (numeric === null) {
+    return '-';
+  }
+  const percentage = numeric <= 1 ? numeric * 100 : numeric;
+  return `${percentage.toFixed(fractionDigits)}%`;
+};
+
+const formatIntegerValue = (value: string | number | null | undefined): string => {
+  const numeric = normalizeNumericValue(value);
+  if (numeric === null) {
+    return '0';
+  }
+  return Math.round(numeric).toString();
+};
+
+const formatRankValue = (value: string | number | null | undefined): string => {
+  if (value === undefined || value === null || value === '') {
+    return '-';
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    const upper = trimmed.toUpperCase();
+    const match = /^([A-Z]+)[ _-]?([0-9]+)$/.exec(upper);
+    if (match) {
+      const [, tier, stage] = match;
+      const tierLabel = rankTierLabelMap[tier];
+      if (tierLabel) {
+        return `${tierLabel}${stage}`;
+      }
+    }
+    const numericFromString = normalizeNumericValue(trimmed);
+    if (numericFromString !== null) {
+      return getRankName(numericFromString);
+    }
+    return trimmed;
+  }
+  const numeric = normalizeNumericValue(value);
+  if (numeric !== null) {
+    return getRankName(numeric);
+  }
+  return '-';
+};
+
 // 表示項目のリスト
-// Note: バックエンドのOBS APIは既にパーセント値（0-100）を返すため、100倍しない
 const allDisplayItems: OBSDisplayItemDefinition[] = [
   {
     key: 'current_deck',
     label: '使用デッキ',
     format: (v) => (v as string | undefined) || '未設定',
   },
-  { key: 'current_rank', label: 'ランク', format: (v) => (v ? getRankName(Number(v)) : '-') },
+  { key: 'current_rank', label: 'ランク', format: (v) => formatRankValue(v) },
   {
     key: 'current_rate',
     label: 'レート',
-    format: (v) => (v !== undefined && v !== null ? `${(v as number).toFixed(2)}` : '-'),
+    format: (v) => formatDecimalValue(v),
   },
   {
     key: 'current_dc',
     label: 'DC',
-    format: (v) => (v !== undefined && v !== null ? `${(v as number).toFixed(2)}` : '-'),
+    format: (v) => formatDecimalValue(v),
   },
   {
     key: 'total_duels',
     label: '総試合数',
-    format: (v) => (v as number | undefined)?.toString() || '0',
+    format: (v) => formatIntegerValue(v),
   },
   {
     key: 'win_rate',
     label: '勝率',
-    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+    format: (v) => formatPercentageValue(v),
   },
   {
     key: 'first_turn_win_rate',
     label: '先攻勝率',
-    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+    format: (v) => formatPercentageValue(v),
   },
   {
     key: 'second_turn_win_rate',
     label: '後攻勝率',
-    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+    format: (v) => formatPercentageValue(v),
   },
   {
     key: 'coin_win_rate',
     label: 'コイン勝率',
-    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+    format: (v) => formatPercentageValue(v),
   },
   {
     key: 'go_first_rate',
     label: '先攻率',
-    format: (v) => (v !== undefined ? `${(v as number).toFixed(1)}%` : '-'),
+    format: (v) => formatPercentageValue(v),
   },
 ];
 

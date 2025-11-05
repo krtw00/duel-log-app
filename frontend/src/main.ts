@@ -13,7 +13,7 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(router);
 app.use(vuetify);
-app.use(VueApexCharts as any);
+app.use(VueApexCharts);
 
 app.mount('#app');
 

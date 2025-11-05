@@ -10,6 +10,18 @@ import type {
   SharedStatisticsResponse,
 } from '../types';
 
+/**
+ * 共有統計取得のクエリパラメータ
+ */
+interface SharedStatisticsQueryParams {
+  year: number;
+  month: number;
+  period_type?: string;
+  range_start?: number;
+  range_end?: number;
+  my_deck_id?: number;
+}
+
 export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
   const notificationStore = useNotificationStore();
   const sharedStatsData = ref<SharedStatisticsData | null>(null);
@@ -45,7 +57,7 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
     loading.value = true;
     sharedStatsData.value = null; // Clear previous data
     try {
-      const params: Record<string, any> = {
+      const params: SharedStatisticsQueryParams = {
         year: year,
         month: month,
       };
