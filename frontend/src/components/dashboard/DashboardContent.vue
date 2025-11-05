@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import StatCard from '@/components/duel/StatCard.vue';
 import DuelTable from '@/components/duel/DuelTable.vue';
+import type { Duel } from '@/types';
 
 interface OverallStats {
   total_duels?: number;
@@ -85,7 +86,7 @@ interface OverallStats {
 
 interface Props {
   overallStats?: OverallStats;
-  duels?: any[];
+  duels?: Duel[];
   loading?: boolean;
   isShared?: boolean;
 }
