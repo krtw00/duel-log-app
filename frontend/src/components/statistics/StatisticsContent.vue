@@ -139,13 +139,44 @@
 import { computed } from 'vue';
 import { useThemeStore } from '@/stores/theme';
 import DuelTable from '@/components/duel/DuelTable.vue';
+import type { Duel, MatchupData } from '@/types';
+import type { ApexPieChartOptions, ApexLineChartOptions, ApexLineChartSeries } from '@/types/chart';
 
+/**
+ * 自分のデッキ勝率データ
+ */
+interface MyDeckWinRate {
+  deck_name: string;
+  total_duels: number;
+  wins: number;
+  win_rate: number;
+}
+
+/**
+ * 月間デッキ分布データ（チャート用）
+ */
+interface MonthlyDistribution {
+  series: number[];
+  chartOptions: ApexPieChartOptions;
+}
+
+/**
+ * 値シーケンスデータ（チャート用）
+ */
+interface ValueSequence {
+  series: ApexLineChartSeries[];
+  chartOptions: ApexLineChartOptions;
+}
+
+/**
+ * 統計データのインターフェース
+ */
 interface StatisticsData {
-  monthlyDistribution?: any;
-  duels?: any[];
-  myDeckWinRates?: any[];
-  matchupData?: any[];
-  valueSequence?: any;
+  monthlyDistribution?: MonthlyDistribution;
+  duels?: Duel[];
+  myDeckWinRates?: MyDeckWinRate[];
+  matchupData?: MatchupData[];
+  valueSequence?: ValueSequence;
 }
 
 interface Props {
