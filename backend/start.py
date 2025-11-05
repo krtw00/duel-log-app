@@ -273,6 +273,31 @@ def fix_alembic_version_if_needed():
         sys.stdout.flush()
 
 
+def check_for_multiple_heads():
+    """複数のAlembicヘッドが存在するかチェック"""
+    try:
+        result = subprocess.run(
+            ["alembic", "heads"], capture_output=True, text=True, check=True
+        )
+        heads = [line for line in result.stdout.strip().split("\n") if line]
+
+        if len(heads) > 1:
+            logger.warning(f"⚠️  Multiple alembic heads detected ({len(heads)} heads):")
+            for head in heads:
+                logger.warning(f"   - {head}")
+            logger.warning("   This may cause migration conflicts.")
+            sys.stdout.flush()
+            return True
+
+        logger.info("✅ Single head found, alembic history is linear")
+        sys.stdout.flush()
+        return False
+    except Exception as e:
+        logger.warning(f"Could not check for multiple heads: {e}")
+        sys.stdout.flush()
+        return False
+
+
 def run_migrations():
     """Alembicマイグレーションを実行"""
     logger.info("=" * 60)
@@ -287,10 +312,10 @@ def run_migrations():
     )
     sys.stdout.flush()
 
-    # 複数のheadがある場合、クリーンアップ
+    # 複数のヘッドをチェック
     logger.info("🔍 Checking for multiple alembic heads...")
     sys.stdout.flush()
-    fix_multiple_alembic_heads()
+    check_for_multiple_heads()
 
     # テーブルが存在するがバージョンがない/不一致の場合、事前に修復
     if tables_exist and not current_version:
