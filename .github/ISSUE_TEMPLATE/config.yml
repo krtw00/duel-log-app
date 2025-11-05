@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 質問・相談
+    url: https://github.com/krtw00/duel-log-app/discussions
+    about: バグ以外の質問や機能要望はDiscussionsをご利用ください
