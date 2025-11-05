@@ -44,6 +44,13 @@ def read_user(
     current_user: User = Depends(get_current_user),
 ):
     """IDで指定されたユーザーを取得する"""
+    # 認可チェック: 自分のデータのみ取得可能
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="他のユーザーの情報にアクセスする権限がありません",
+        )
+
     db_user = user_service.get_by_id(db=db, id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -51,18 +58,25 @@ def read_user(
 
 
 # ユーザー一覧取得
-@router.get("/", response_model=list[UserResponse])
-def read_users(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """ユーザーの一覧を取得する"""
-    return user_service.get_all(db=db, skip=skip, limit=limit)
+# 注意: このエンドポイントは管理者のみがアクセスできるべきですが、
+# 現在管理者の概念が実装されていません。
+# セキュリティ上のリスクを避けるため、このエンドポイントは無効化されています。
+# TODO: 管理者機能を実装後、適切な権限チェックを追加してください。
+# @router.get("/", response_model=list[UserResponse])
+# def read_users(
+#     skip: int = 0,
+#     limit: int = 100,
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(get_current_user),
+# ):
+#     """ユーザーの一覧を取得する（管理者のみ）"""
+#     # TODO: 管理者チェックを追加
+#     # if not current_user.is_admin:
+#     #     raise HTTPException(status_code=403, detail="管理者権限が必要です")
+#     return user_service.get_all(db=db, skip=skip, limit=limit)
 
 
-# ユーザー更新 (注意: このエンドポイントは管理者向けであるべき)
+# ユーザー更新
 @router.put("/{user_id}", response_model=UserResponse)
 def update_user(
     user_id: int,
@@ -70,26 +84,40 @@ def update_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """IDで指定されたユーザーを更新する (管理者向け)"""
+    """IDで指定されたユーザーを更新する"""
+    # 認可チェック: 自分のデータのみ更新可能
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="他のユーザーの情報を更新する権限がありません",
+        )
+
     db_user = user_service.get_by_id(db=db, id=user_id)
     if not db_user:
-        raise HTTPException(status_code=4.04, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    # user_serviceのupdate_profileを管理者権限で呼び出す形にする
-    # 本来は権限チェックが必要
     updated_user = user_service.update_profile(db=db, db_obj=db_user, obj_in=user_in)
     return updated_user
 
 
-# ユーザー削除 (注意: このエンドポイントは管理者向けであるべき)
+# ユーザー削除
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """IDで指定されたユーザーを削除する (管理者向け)"""
+    """IDで指定されたユーザーを削除する"""
+    # 認可チェック: 自分のアカウントのみ削除可能
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="他のユーザーのアカウントを削除する権限がありません",
+        )
+
     success = user_service.delete(db=db, id=user_id)
     if not success:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return
