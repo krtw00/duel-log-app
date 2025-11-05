@@ -298,12 +298,12 @@ def run_migrations():
         sys.stdout.flush()
         fix_alembic_version_if_needed()
 
-    logger.info("Starting alembic upgrade head...")
+    logger.info("Starting alembic upgrade heads...")
     sys.stdout.flush()
 
     try:
         result = subprocess.run(
-            ["alembic", "upgrade", "head"], check=True, capture_output=True, text=True
+            ["alembic", "upgrade", "heads"], check=True, capture_output=True, text=True
         )
         logger.info("Alembic output:")
         logger.info(result.stdout)
@@ -325,7 +325,7 @@ def run_migrations():
             # 再試行
             try:
                 result = subprocess.run(
-                    ["alembic", "upgrade", "head"],
+                    ["alembic", "upgrade", "heads"],
                     check=True,
                     capture_output=True,
                     text=True,
@@ -349,7 +349,7 @@ def run_migrations():
             # 再試行
             try:
                 result = subprocess.run(
-                    ["alembic", "upgrade", "head"],
+                    ["alembic", "upgrade", "heads"],
                     check=True,
                     capture_output=True,
                     text=True,
@@ -373,7 +373,7 @@ def run_migrations():
             # 再試行（今度は変更なしで成功するはず）
             try:
                 result = subprocess.run(
-                    ["alembic", "upgrade", "head"],
+                    ["alembic", "upgrade", "heads"],
                     check=True,
                     capture_output=True,
                     text=True,
