@@ -5,6 +5,7 @@ import random
 # プロジェクトのルートパスをsys.pathに追加
 import sys
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from faker import Faker
 from sqlalchemy.orm import Session
@@ -29,6 +30,9 @@ fake = Faker("ja_JP")
 
 def seed_data(db: Session):
     """ダミーデータをデータベースに投入する"""
+    # JSTタイムゾーン設定
+    jst = ZoneInfo("Asia/Tokyo")
+
     try:
         # --- 1. 固定ユーザーの取得または作成 ---
         logger.info("Getting or creating a fixed user...")
@@ -78,7 +82,7 @@ def seed_data(db: Session):
         # --- 3. ダミーデュエルの作成 (各モード300戦ずつ) ---
         logger.info("Creating dummy duels: 300 for each game mode...")
         total_created_count = 0
-        now = datetime.now()
+        now = datetime.now(jst)  # JSTタイムゾーン付きの現在時刻
         game_modes = ["RANK", "RATE", "EVENT", "DC"]
 
         for mode in game_modes:
@@ -87,9 +91,9 @@ def seed_data(db: Session):
             )
 
             # 300戦を3ヶ月に分散 (1ヶ月あたり100戦)
-            duels_per_month_per_mode = 300
+            duels_per_month_per_mode = 100
             for month_index in range(3):
-                # --- 期間の計算 ---
+                # --- 期間の計算 (JSTタイムゾーン付き) ---
                 first_day_of_current_month = now.replace(
                     day=1, hour=0, minute=0, second=0, microsecond=0
                 )
@@ -119,6 +123,13 @@ def seed_data(db: Session):
                     opponent_deck = random.choice(opponent_decks)
                     result = random.choice([True, False])
 
+                    # ナイーブなdatetimeを生成してJSTタイムゾーンを付与
+                    naive_datetime = fake.date_time_between_dates(
+                        datetime_start=start_date_month.replace(tzinfo=None),
+                        datetime_end=end_date_month.replace(tzinfo=None)
+                    )
+                    played_date_jst = naive_datetime.replace(tzinfo=jst)
+
                     duel_data = {
                         "deck_id": my_deck.id,
                         "opponent_deck_id": opponent_deck.id,
@@ -126,9 +137,7 @@ def seed_data(db: Session):
                         "is_going_first": random.choice([True, False]),
                         "is_win": result,
                         "game_mode": mode,
-                        "played_date": fake.date_time_between_dates(
-                            datetime_start=start_date_month, datetime_end=end_date_month
-                        ),
+                        "played_date": played_date_jst,
                         "notes": fake.sentence() if random.random() > 0.5 else None,
                         "rank": None,
                         "rate_value": None,
