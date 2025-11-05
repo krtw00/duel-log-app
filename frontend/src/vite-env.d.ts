@@ -8,3 +8,10 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// vue3-apexcharts のモジュール宣言
+declare module 'vue3-apexcharts' {
+  import { Plugin } from 'vue';
+  const VueApexCharts: Plugin;
+  export default VueApexCharts;
+}
