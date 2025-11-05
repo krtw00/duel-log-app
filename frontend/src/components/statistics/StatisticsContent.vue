@@ -57,7 +57,7 @@
             class="matchup-table"
             density="compact"
           >
-            <template #[`item.win_rate`]="{ item }">
+            <template #item.win_rate="{ item }">
               {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
             </template>
             <template #no-data>
@@ -83,13 +83,13 @@
             class="matchup-table"
             density="compact"
           >
-            <template #[`item.win_rate`]="{ item }">
+            <template #item.win_rate="{ item }">
               {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
             </template>
-            <template #[`item.win_rate_first`]="{ item }">
+            <template #item.win_rate_first="{ item }">
               {{ item.win_rate_first.toFixed(1) }}%
             </template>
-            <template #[`item.win_rate_second`]="{ item }">
+            <template #item.win_rate_second="{ item }">
               {{ item.win_rate_second.toFixed(1) }}%
             </template>
             <template #no-data>

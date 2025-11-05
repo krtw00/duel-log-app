@@ -87,6 +87,39 @@ class Settings(BaseSettings):
             raise ValueError(f"ENVIRONMENT must be one of {valid_environments}")
         return v_lower
 
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        """SECRET_KEYのセキュリティ検証"""
+        # プレースホルダーの検出
+        insecure_patterns = [
+            "your-secret-key",
+            "your_secret_key",
+            "change-me",
+            "changeme",
+            "replace-with",
+            "example",
+            "test-key",
+            "demo-key",
+        ]
+
+        v_lower = v.lower()
+        for pattern in insecure_patterns:
+            if pattern in v_lower:
+                raise ValueError(
+                    f"SECRET_KEYにプレースホルダーが含まれています: '{pattern}'\n"
+                    "安全な秘密鍵を生成してください: openssl rand -hex 32"
+                )
+
+        # 複雑さのチェック（英数字のみではダメ）
+        if v.isalnum():
+            raise ValueError(
+                "SECRET_KEYは英数字のみでは不十分です。\n"
+                "より安全な鍵を生成してください: openssl rand -hex 32"
+            )
+
+        return v
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
