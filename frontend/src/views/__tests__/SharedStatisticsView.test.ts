@@ -125,8 +125,8 @@ describe('SharedStatisticsView.vue', () => {
       currentMonth,
       expect.objectContaining({
         periodType: 'all',
-        rangeStart: 1,
-        rangeEnd: 30,
+        rangeStart: null,
+        rangeEnd: null,
         myDeckId: null,
       }),
     );
@@ -172,8 +172,8 @@ describe('SharedStatisticsView.vue', () => {
       currentMonth,
       expect.objectContaining({
         periodType: 'all',
-        rangeStart: 1,
-        rangeEnd: 30,
+        rangeStart: null,
+        rangeEnd: null,
         myDeckId: null,
       }),
     );

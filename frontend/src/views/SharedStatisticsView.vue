@@ -110,7 +110,7 @@
                     <v-window-item v-for="mode in availableGameModes" :key="mode" :value="mode">
                       <statistics-content
                         v-if="processedStats && processedStats[mode]"
-                        :statistics="processedStats[mode] as DashboardModeData"
+                        :statistics="processedStats[mode] as unknown as any"
                         :game-mode="mode"
                         :display-month="displayMonth"
                         :loading="sharedStatisticsStore.loading"
@@ -171,7 +171,7 @@ const createLabelFormatter = (step: number, total: number) => {
 
 // --- Types ---
 import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
-import type { MatchupData } from '@/types';
+import type { MatchupData, Duel } from '@/types';
 
 interface DistributionData {
   series: number[];
@@ -212,7 +212,7 @@ interface MyDeckWinRate {
 
 interface DashboardModeData {
   overall_stats?: DuelStats;
-  duels?: Array<Record<string, unknown>>;
+  duels?: Duel[];
   year?: number;
   month?: number;
   monthlyDistribution?: DistributionData;
@@ -379,14 +379,15 @@ const fetchSharedStatistics = async () => {
   sharedStatisticsStore.loading = true;
   try {
     // 共有リンクから取得する際は、選択された年月とフィルター設定を使用
+    // periodTypeが'all'の場合はrangeStart/Endをnullにして全データを取得
     const success = await sharedStatisticsStore.getSharedStatistics(
       shareId,
       selectedYear.value,
       selectedMonth.value,
       {
         periodType: filterPeriodType.value,
-        rangeStart: filterRangeStart.value,
-        rangeEnd: filterRangeEnd.value,
+        rangeStart: filterPeriodType.value === 'range' ? filterRangeStart.value : null,
+        rangeEnd: filterPeriodType.value === 'range' ? filterRangeEnd.value : null,
         myDeckId: filterMyDeckId.value,
       },
     );

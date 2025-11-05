@@ -35,22 +35,40 @@ def get_all_statistics(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """全ゲームモードの統計情報を一括取得"""
+    """全ゲームモードの統計情報を一括取得
+
+    パフォーマンス最適化 (部分的):
+    - 全デュエルデータを一度に取得し、メモリ内でゲームモード別に分割
+    - 以前: 4回のDB往復（各ゲームモードごと）
+    - 現在: 1回のクエリで全データを取得
+
+    注: 各統計サービス（deck_distribution、matchup等）は依然として
+    個別にクエリを実行しているため、完全な最適化には至っていません。
+    """
     game_modes = ["RANK", "RATE", "EVENT", "DC"]
     result = {}
 
+    # パフォーマンス最適化: 全ゲームモードのデュエルを一度に取得
+    all_duels = duel_service.get_user_duels(
+        db=db,
+        user_id=current_user.id,
+        year=year,
+        month=month,
+        game_mode=None,  # 全ゲームモードを取得
+        range_start=range_start,
+        range_end=range_end,
+        deck_id=my_deck_id,
+        opponent_deck_id=opponent_deck_id,
+    )
+
+    # メモリ内でゲームモード別に分割
+    duels_by_mode: Dict[str, List] = {mode: [] for mode in game_modes}
+    for duel in all_duels:
+        if duel.game_mode in duels_by_mode:
+            duels_by_mode[duel.game_mode].append(duel)
+
     for mode in game_modes:
-        duels = duel_service.get_user_duels(
-            db=db,
-            user_id=current_user.id,
-            year=year,
-            month=month,
-            game_mode=mode,
-            range_start=range_start,
-            range_end=range_end,
-            deck_id=my_deck_id,
-            opponent_deck_id=opponent_deck_id,
-        )
+        duels = duels_by_mode[mode]
         overall_stats = general_stats_service._calculate_general_stats(duels)
 
         # DuelWithDeckNamesスキーマに変換

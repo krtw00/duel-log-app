@@ -4,12 +4,14 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import resend
 from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -29,7 +31,9 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 logger = logging.getLogger(__name__)
 
 # Jinja2テンプレート環境の初期化
-jinja_env = Environment(loader=FileSystemLoader("./app/templates/email"))
+# 現在のファイルからの相対パスでテンプレートディレクトリを指定
+template_dir = Path(__file__).parent.parent.parent / "templates" / "email"
+jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
 
 
 def _is_safari_browser(user_agent: str) -> bool:
@@ -151,13 +155,22 @@ def login(
         },
     }
 
-    # OBS連携サポートのため、レスポンスにアクセストークンを追加
+    # ⚠️ セキュリティ警告: レスポンスボディにトークンを含めることはXSS脆弱性のリスクがあります
+    # OBS連携サポートのため、レスポンスにアクセストークンを追加していますが、
+    # 将来的には /auth/obs-token エンドポイントを使用して、限定スコープの
+    # 短寿命トークンを取得する方式に移行することを推奨します。
+    #
     # NOTE: Vercel/Render環境でHttpOnlyクッキーが正しく機能しないケースがあるため、
-    # localStorageフォールバックとして常に追加する
+    # localStorageフォールバックとして常に追加していますが、セキュリティリスクがあります。
+    #
+    # TODO: フロントエンドを修正して、以下の改善を実施してください：
+    # 1. 通常のログインではトークンをレスポンスに含めない
+    # 2. OBS連携が必要な場合のみ、専用エンドポイントから取得
+    # 3. localStorageではなくHttpOnlyクッキーを優先使用
     response_data["access_token"] = access_token
-    logger.info(
+    logger.warning(
         f"Login successful for {user.email}. "
-        f"access_token of length {len(access_token)} included in response for OBS support."
+        f"access_token included in response (security risk - consider using /auth/obs-token instead)."
     )
 
     return response_data
@@ -309,3 +322,42 @@ def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db))
     logger.info(f"Password for user {user.email} has been reset.")
 
     return {"message": "パスワードが正常にリセットされました。"}
+
+
+@router.post("/obs-token", status_code=status.HTTP_200_OK)
+def get_obs_token(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    OBS連携用の限定スコープトークンを取得する
+
+    このエンドポイントは、OBSオーバーレイなど外部ツール向けに
+    短寿命で統計情報閲覧のみに限定されたトークンを発行します。
+
+    - 有効期限: 24時間
+    - スコープ: obs_overlay（統計情報の読み取りのみ）
+    - セキュリティ: 通常のJWTトークンと異なり、書き込み操作は不可
+
+    Returns:
+        dict: OBS専用トークンと有効期限情報
+    """
+    # OBS専用のトークンデータ（スコープを限定）
+    token_data = {
+        "sub": str(current_user.id),
+        "scope": "obs_overlay",  # 統計情報閲覧のみ
+        "username": current_user.username,
+    }
+
+    # 24時間有効のトークンを生成
+    obs_token = create_access_token(data=token_data, expires_delta=timedelta(hours=24))
+
+    logger.info(
+        f"OBS token generated for user {current_user.email} (ID: {current_user.id})"
+    )
+
+    return {
+        "obs_token": obs_token,
+        "expires_in": 24 * 60 * 60,  # 秒単位
+        "scope": "obs_overlay",
+        "message": "OBS連携用トークンを発行しました。このトークンは24時間有効です。",
+    }
