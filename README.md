@@ -93,11 +93,11 @@ https://your-frontend-domain.com/obs-overlay?token=[あなたのトークン]&pe
 
 ## 開発環境のセットアップ (WSL + Docker)
 
-このガイドでは、Windows Subsystem for Linux (WSL) を使用して、Windows上に開発環境を構築する手順を説明します。Docker Desktop for Windowsは不要です。
+このガイドでは、Windows Subsystem for Linux (WSL) を使用して、Windows上に開発環境を構築する手順を説明します。Docker Desktop for Windowsは原則不要です。
 
 ### 前提条件
 - Windows 11 または Windows 10 (バージョン 2004 以降)
-- Git for Windows
+- Docker Desktop for Windows (Windows 10 の場合 Docker Engine を動かすのに必要)
 
 ### Step 1: WSLとUbuntuのインストール
 
@@ -293,6 +293,21 @@ pre-commit run --all-files
   - 大きなファイルの追加チェック（1MB以上）
 
 チェックに失敗した場合、自動修正可能なものは修正され、再度 `git add` してコミットし直してください。
+
+## バグ報告・機能要望
+
+本プロジェクトでは、GitHub Issues を使った日本語のバグトラッキングシステムを提供しています。
+
+### バグを見つけたら
+
+1. [Issues ページ](https://github.com/krtw00/duel-log-app/issues) にアクセス
+2. **「New issue」** をクリック
+3. **「バグ報告」** または **「機能要望」** を選択
+4. フォームに必要事項を入力して送信
+
+非エンジニアの方でも簡単に報告できるように、選択式のフォームを用意しています。報告されたIssueは自動的にプロジェクトボードに追加され、チーム全体で管理されます。
+
+詳細なセットアップ方法については、[バグトラッキングシステム セットアップガイド](docs/bug-tracking-setup.md) を参照してください。
 
 ## 開発ガイドライン
 
