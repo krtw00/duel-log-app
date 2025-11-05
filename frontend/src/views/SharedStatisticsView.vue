@@ -379,14 +379,15 @@ const fetchSharedStatistics = async () => {
   sharedStatisticsStore.loading = true;
   try {
     // 共有リンクから取得する際は、選択された年月とフィルター設定を使用
+    // periodTypeが'all'の場合はrangeStart/Endをnullにして全データを取得
     const success = await sharedStatisticsStore.getSharedStatistics(
       shareId,
       selectedYear.value,
       selectedMonth.value,
       {
         periodType: filterPeriodType.value,
-        rangeStart: filterRangeStart.value,
-        rangeEnd: filterRangeEnd.value,
+        rangeStart: filterPeriodType.value === 'range' ? filterRangeStart.value : null,
+        rangeEnd: filterPeriodType.value === 'range' ? filterRangeEnd.value : null,
         myDeckId: filterMyDeckId.value,
       },
     );
