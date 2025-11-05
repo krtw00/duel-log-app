@@ -8,6 +8,7 @@ import os
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from unittest.mock import patch, MagicMock
 
 from app.api.deps import get_current_user
 from app.core.security import get_password_hash
@@ -91,3 +92,12 @@ def authenticated_client(db_session, test_user):
 
     # 後処理
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def mock_resend_api():
+    """Resend APIをモックして、テスト環境でメール送信を実行しない"""
+    with patch("app.api.routers.auth.resend.Emails.send") as mock_send:
+        # 成功したメール送信をシミュレート
+        mock_send.return_value = {"id": "mock-email-id-12345"}
+        yield mock_send
