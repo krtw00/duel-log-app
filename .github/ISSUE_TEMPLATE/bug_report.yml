@@ -1,0 +1,123 @@
+name: バグ報告
+description: アプリケーションのバグを報告する
+title: "[バグ] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグ報告ありがとうございます！以下のフォームに情報を入力してください。
+
+  - type: dropdown
+    id: bug-category
+    attributes:
+      label: バグのカテゴリ
+      description: どの機能でバグが発生しましたか？
+      options:
+        - ログイン・認証
+        - デッキ管理
+        - 対戦記録の登録
+        - 統計情報の表示
+        - OBS配信オーバーレイ
+        - プロフィール設定
+        - CSVインポート/エクスポート
+        - その他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 重要度
+      description: このバグの重要度を選択してください
+      options:
+        - 高 - アプリが使えない
+        - 中 - 一部の機能が使えない
+        - 低 - 使えるが不便
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: バグの内容
+      description: どのような問題が発生しましたか？できるだけ詳しく教えてください。
+      placeholder: |
+        例：
+        - 対戦記録を保存しようとすると「エラーが発生しました」と表示される
+        - ログインボタンを押しても何も反応しない
+        - 統計情報のグラフが表示されない
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 再現手順
+      description: バグを再現するための手順を教えてください
+      placeholder: |
+        1. ログインする
+        2. デッキ管理画面を開く
+        3. 新しいデッキを追加する
+        4. エラーが表示される
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期待される動作
+      description: 本来どのように動作すべきでしたか？
+      placeholder: 例：デッキが正常に追加され、デッキ一覧に表示されるはず
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: 使用ブラウザ
+      description: どのブラウザで発生しましたか？
+      options:
+        - Google Chrome
+        - Microsoft Edge
+        - Firefox
+        - Safari
+        - その他
+    validations:
+      required: false
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: 使用デバイス
+      description: どのデバイスで発生しましたか？
+      options:
+        - Windows PC
+        - Mac
+        - スマートフォン (iOS)
+        - スマートフォン (Android)
+        - タブレット
+        - その他
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: スクリーンショット
+      description: スクリーンショットがある場合は貼り付けてください（画像をドラッグ&ドロップできます）
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 補足情報
+      description: その他、参考になりそうな情報があれば教えてください
+      placeholder: |
+        例：
+        - 特定の時間帯だけ発生する
+        - 特定のデッキでのみ発生する
+        - エラーメッセージの内容
+    validations:
+      required: false

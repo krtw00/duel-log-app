@@ -88,6 +88,9 @@ api.interceptors.response.use(
     const requestId = error.config?.metadata?.requestId;
     if (requestId) {
       loadingStore.stop(requestId);
+    } else {
+      // requestIdが取得できない場合（ネットワークエラーなど）は全てのローディングを停止
+      loadingStore.stopAll();
     }
 
     const notificationStore = useNotificationStore();
