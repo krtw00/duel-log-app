@@ -69,6 +69,14 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
         return db_obj
 
     def export_all_data_to_csv(self, db: Session, user_id: int) -> str:
+        # TODO: アーキテクチャ改善 - 循環依存の回避
+        # 現在、循環依存を避けるために動的インポートを使用していますが、
+        # これはテストとメンテナンスを困難にします。
+        #
+        # 推奨される改善:
+        # 1. duel_serviceを依存性注入で受け取る
+        # 2. または、共通の export_service を作成
+        # 3. インターフェース（Protocol）を使用して依存関係を抽象化
         from app.services.duel_service import duel_service
 
         return duel_service.export_duels_to_csv(db=db, user_id=user_id)
@@ -76,6 +84,8 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
     def import_all_data_from_csv(
         self, db: Session, user_id: int, csv_content: str
     ) -> dict:
+        # TODO: アーキテクチャ改善 - 循環依存の回避
+        # export_all_data_to_csv と同様の問題
         from app.models.deck import Deck
         from app.models.duel import Duel
         from app.services.duel_service import duel_service
