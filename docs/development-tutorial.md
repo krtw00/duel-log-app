@@ -33,6 +33,21 @@ git --version
 | `sudo apt install git -y` | Git 本体と依存パッケージをダウンロード＆インストール |
 | `git --version` | gitのバージョン確認 |
 
+## Pythonのリンター/フォーマッターをインストールするぜ
+
+```bash
+pip install ruff black
+```    
+| Command | Description |
+| --- | --- |
+| `pip install ruff black` | リンター/フォーマッターのインストール |
+| `ruff check .` | カレントディレクトリのコードチェック |
+| `ruff check . --fix` | 未使用 import 削除など、細かいものは自動で直す |
+| `black .` | ルート配下の Python ファイル全部が綺麗になる |
+
+VSCodeで使う場合の設定の方法も書くかも
+
+
 ## そして最高の相棒"Google Gemini CLI"とかいうAiちゃんを入れるぜ
 
 ```bash
