@@ -17,8 +17,7 @@ jobs:
           # 例: https://github.com/orgs/ORG_NAME/projects/PROJECT_NUMBER
           # または https://github.com/users/USERNAME/projects/PROJECT_NUMBER
           project-url: https://github.com/users/krtw00/projects/1
-        env:
           # GitHub Personal Access Token (PAT) が必要です
           # Settings > Secrets and variables > Actions で設定してください
           # 必要な権限: project (read/write)
-          GITHUB_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          github-token: ${{ secrets.PROJECT_TOKEN }}
