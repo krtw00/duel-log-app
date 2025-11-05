@@ -59,11 +59,26 @@ def export_duels_csv(
         )
 
         return response
+    except ValueError as e:
+        # 無効なカラム名やフォーマットエラー
+        logger.warning(f"CSV export validation error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSVエクスポートのパラメータが無効です",
+        ) from e
+    except KeyError as e:
+        # 存在しないカラム名が指定された場合
+        logger.warning(f"CSV export column not found: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="指定されたカラムが存在しません",
+        ) from e
     except Exception as e:
-        logger.error(f"CSV export failed: {e}", exc_info=True)
+        # 予期しないエラー（詳細はログのみに記録）
+        logger.error(f"Unexpected CSV export error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"CSV export failed: {str(e)}",
+            detail="CSVエクスポート中にエラーが発生しました",
         ) from e
 
 
@@ -298,8 +313,38 @@ def import_duels_csv(
 
         return response
 
+    except UnicodeDecodeError as e:
+        # CSVファイルのエンコーディングエラー
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSVファイルのエンコーディングが無効です。UTF-8形式のファイルをアップロードしてください",
+        ) from e
+    except ValueError as e:
+        # CSVフォーマットエラー（不正な値、欠損値など）
+        import logging
+
+        logging.getLogger(__name__).warning(f"CSV import validation error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSVファイルのフォーマットが無効です。フォーマットを確認してください",
+        ) from e
+    except KeyError as e:
+        # 必須カラムの欠如
+        import logging
+
+        logging.getLogger(__name__).warning(f"CSV import missing column: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"CSVファイルに必須カラムが含まれていません: {str(e)}",
+        ) from e
     except Exception as e:
+        # 予期しないエラー（詳細はログのみに記録）
+        import logging
+
+        logging.getLogger(__name__).error(
+            f"Unexpected CSV import error: {e}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to import CSV file: {str(e)}",
+            detail="CSVインポート中にエラーが発生しました",
         ) from e
