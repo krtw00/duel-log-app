@@ -16,7 +16,7 @@ jobs:
           # GitHub Project の URL を指定してください
           # 例: https://github.com/orgs/ORG_NAME/projects/PROJECT_NUMBER
           # または https://github.com/users/USERNAME/projects/PROJECT_NUMBER
-          project-url: https://github.com/users/YOUR_USERNAME/projects/YOUR_PROJECT_NUMBER
+          project-url: https://github.com/users/krtw00/projects/1
         env:
           # GitHub Personal Access Token (PAT) が必要です
           # Settings > Secrets and variables > Actions で設定してください
