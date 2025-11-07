@@ -123,7 +123,9 @@ def get_current_db_state():
                     all_versions = cur.fetchall()
                     if all_versions:
                         if len(all_versions) > 1:
-                            logger.warning(f"⚠️  Multiple versions found in alembic_version table: {[v[0] for v in all_versions]}")
+                            logger.warning(
+                                f"⚠️  Multiple versions found in alembic_version table: {[v[0] for v in all_versions]}"
+                            )
                             # 最初のバージョンを返すが、複数あることを記録
                             current_version = all_versions[0][0]
                         else:
@@ -171,7 +173,9 @@ def fix_multiple_alembic_heads():
                     all_versions = cur.fetchall()
 
                     if len(all_versions) > 1:
-                        logger.warning(f"🔧 Found multiple heads in alembic_version: {[v[0] for v in all_versions]}")
+                        logger.warning(
+                            f"🔧 Found multiple heads in alembic_version: {[v[0] for v in all_versions]}"
+                        )
                         logger.info("🔧 Cleaning up alembic_version table...")
 
                         # すべてのバージョンを削除
@@ -179,14 +183,20 @@ def fix_multiple_alembic_heads():
 
                         # 現在の正しいheadバージョンを挿入（4ed32ebe9919）
                         # マイグレーションファイルから確認した最新のhead
-                        cur.execute("INSERT INTO alembic_version (version_num) VALUES ('4ed32ebe9919')")
+                        cur.execute(
+                            "INSERT INTO alembic_version (version_num) VALUES ('4ed32ebe9919')"
+                        )
                         conn.commit()
 
-                        logger.info("✅ Cleaned up alembic_version table, set to head: 4ed32ebe9919")
+                        logger.info(
+                            "✅ Cleaned up alembic_version table, set to head: 4ed32ebe9919"
+                        )
                         sys.stdout.flush()
                         return True
                     else:
-                        logger.info("✅ No multiple heads found, alembic_version is clean")
+                        logger.info(
+                            "✅ No multiple heads found, alembic_version is clean"
+                        )
                         sys.stdout.flush()
                         return True
 
@@ -356,7 +366,9 @@ def run_migrations():
                     text=True,
                 )
                 logger.info(result.stdout)
-                logger.info("✅ Migrations completed successfully after fixing multiple heads!")
+                logger.info(
+                    "✅ Migrations completed successfully after fixing multiple heads!"
+                )
                 sys.stdout.flush()
                 return True
             except subprocess.CalledProcessError as e2:

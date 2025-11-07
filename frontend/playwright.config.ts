@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright E2Eテスト設定
@@ -40,4 +40,4 @@ export default defineConfig({
         url: 'http://localhost:4173',
         reuseExistingServer: !process.env.CI,
       },
-})
+});

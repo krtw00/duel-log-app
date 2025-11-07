@@ -106,10 +106,7 @@ class GeneralStatsService:
                 .first()
             )
 
-        return (
-            query.order_by(Duel.played_date.desc(), Duel.id.desc())
-            .first()
-        )
+        return query.order_by(Duel.played_date.desc(), Duel.id.desc()).first()
 
     def get_overall_stats(
         self,
