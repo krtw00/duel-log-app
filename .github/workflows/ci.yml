@@ -29,8 +29,48 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
-      - name: Run backend tests
-        run: pytest backend/
+      - name: Run backend linting (Ruff)
+        run: ruff check backend/
+        continue-on-error: false
+
+      - name: Run backend formatting check (Black)
+        run: black --check backend/
+        continue-on-error: false
+
+      - name: Run backend type check (mypy)
+        run: |
+          pip install mypy
+          mypy backend/app --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+
+      - name: Run backend security scan (Bandit)
+        run: |
+          pip install bandit
+          bandit -r backend/app -f json -o bandit-report.json || true
+          bandit -r backend/app
+        continue-on-error: true
+
+      - name: Run backend dependency security check (Safety)
+        run: |
+          pip install safety
+          safety check --json --output safety-report.json || true
+          safety check
+        continue-on-error: true
+
+      - name: Validate database migrations
+        run: |
+          cd backend
+          # マイグレーションのドライラン（SQL出力のみ）
+          alembic upgrade head --sql > migration-preview.sql
+          echo "Migration SQL preview generated successfully"
+          # マイグレーション履歴の整合性チェック
+          alembic check || echo "Migration check completed"
+        env:
+          DATABASE_URL: "sqlite:///./test.db"
+        continue-on-error: false
+
+      - name: Run backend tests with coverage
+        run: pytest backend/ --cov=app --cov-report=term-missing --cov-report=html
         env:
           # backendディレクトリをモジュール検索パスに追加
           PYTHONPATH: backend
@@ -43,8 +83,26 @@ jobs:
       - name: Install frontend dependencies
         run: npm install --prefix frontend
 
-      - name: Run frontend tests
-        run: npm run test:unit --prefix frontend
+      - name: Run frontend dependency security audit
+        run: npm audit --audit-level=moderate --prefix frontend
+        continue-on-error: true
+
+      - name: Run frontend linting (ESLint)
+        run: npm run lint --prefix frontend
+
+      - name: Run frontend formatting check (Prettier)
+        run: npx prettier --check frontend/src/
+        working-directory: .
+
+      - name: Run frontend type check (TypeScript)
+        run: npm run build
+        working-directory: frontend
+        env:
+          VITE_API_URL: "http://localhost:8000"
+
+      - name: Run frontend tests with coverage
+        run: npm run test:unit -- --coverage
+        working-directory: frontend
         env:
           VITE_API_URL: "http://localhost:8000"
 
