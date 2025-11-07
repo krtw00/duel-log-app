@@ -323,20 +323,22 @@ def import_duels_csv(
         # CSVフォーマットエラー（不正な値、欠損値など）
         import logging
 
-        logging.getLogger(__name__).warning(f"CSV import validation error: {e}")
+        logging.getLogger(__name__).warning(f"CSV import validation error: {type(e).__name__}")
+        # スタックトレース露出を防ぐため、from e を削除
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="CSVファイルのフォーマットが無効です。フォーマットを確認してください",
-        ) from e
+        )
     except KeyError as e:
         # 必須カラムの欠如
         import logging
 
-        logging.getLogger(__name__).warning(f"CSV import missing column: {e}")
+        logging.getLogger(__name__).warning(f"CSV import missing column")
+        # スタックトレース露出を防ぐため、エラー詳細を含めない
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"CSVファイルに必須カラムが含まれていません: {str(e)}",
-        ) from e
+            detail="CSVファイルに必須カラムが含まれていません",
+        )
     except Exception as e:
         # 予期しないエラー（詳細はログのみに記録）
         import logging

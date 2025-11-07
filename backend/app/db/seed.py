@@ -164,7 +164,7 @@ def seed_data(db: Session):
         logger.info("\n" + "=" * 50)
         logger.info("✅ Dummy data seeding complete!")
         logger.info(f"  Login with Email: {fixed_email}")
-        logger.info(f"  Password:         {password}")
+        # 機密情報（パスワード）はログに出力しない
         logger.info("=" * 50)
 
     except Exception as e:
