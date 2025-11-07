@@ -5,13 +5,18 @@ import { useAuthStore } from '../stores/auth';
 import type { ApiErrorResponse, ValidationErrorDetail } from '../types/api';
 
 // 環境変数からAPIのベースURLを取得
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const RAW_API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // 環境変数が設定されていない場合の警告
-if (!API_BASE_URL) {
+if (!RAW_API_BASE_URL) {
   console.error('VITE_API_URL environment variable is not set');
   throw new Error('API URL is not configured. Please check your .env file.');
 }
+
+// Playwright など一部環境では localhost が IPv6 (::1) に解決され、
+// バックエンドが IPv4 のみで待ち受けていると接続できないケースがある。
+// そのためテスト環境では 127.0.0.1 に正規化して確実に到達させる。
+const API_BASE_URL = RAW_API_BASE_URL.replace('://localhost', '://127.0.0.1');
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -21,8 +26,11 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
-// Safari/MacOS判定ユーティリティ
-// MacOSではCookie制限が厳しいため、Authorizationヘッダーを使用
+/**
+ * Safari/iOS/macOS など Cookie 制限が厳しい環境かどうかを判定し、
+ * その場合は Authorization ヘッダー経由でトークン送信する。
+ * @returns 対象環境かどうか
+ */
 function shouldUseAuthorizationHeader(): boolean {
   const ua = navigator.userAgent.toLowerCase();
   const isSafariBrowser = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
@@ -173,7 +181,11 @@ api.interceptors.response.use(
   },
 );
 
-// TypeScript用の型拡張
+/* eslint-disable jsdoc/require-jsdoc */
+/**
+ * TypeScript用の型拡張
+ * Axios のリクエスト設定に requestId メタデータを保持できるようにする。
+ */
 declare module 'axios' {
   export interface AxiosRequestConfig {
     metadata?: {
@@ -181,5 +193,7 @@ declare module 'axios' {
     };
   }
 }
+/* eslint-enable jsdoc/require-jsdoc */
 
+/** 共通で利用する Axios インスタンス */
 export default api;
