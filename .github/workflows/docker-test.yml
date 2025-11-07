@@ -21,9 +21,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Create .env file for backend
+      - name: Create .env file for Docker Compose
         run: |
-          cat > backend/.env << EOF
+          cat > .env << EOF
+          # Database configuration
+          POSTGRES_USER=user
+          POSTGRES_PASSWORD=password
+          POSTGRES_DB=duel_log_db
+
+          # Backend configuration
           DATABASE_URL=postgresql://user:password@db:5432/duel_log_db
           SECRET_KEY=test_secret_key_for_docker_testing_only_1234567890
           ENVIRONMENT=development
