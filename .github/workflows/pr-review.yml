@@ -50,36 +50,36 @@ jobs:
           FILES_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)
           LINES_CHANGED=$(git diff --stat origin/${{ github.base_ref }}...HEAD | tail -1 | awk '{print $4+$6}')
 
-          echo "Files changed: $FILES_CHANGED"
-          echo "Lines changed: $LINES_CHANGED"
+          echo "変更ファイル数: $FILES_CHANGED"
+          echo "変更行数: $LINES_CHANGED"
 
           if [ "$FILES_CHANGED" -gt 50 ]; then
-            echo "::warning::This PR changes more than 50 files. Consider splitting it into smaller PRs for easier review."
+            echo "::warning::このPRは50個以上のファイルを変更しています。レビューしやすくするため、複数のPRに分割することを検討してください。"
           fi
 
           if [ "$LINES_CHANGED" -gt 1000 ]; then
-            echo "::warning::This PR changes more than 1000 lines. Consider splitting it into smaller PRs for easier review."
+            echo "::warning::このPRは1000行以上を変更しています。レビューしやすくするため、複数のPRに分割することを検討してください。"
           fi
 
       - name: Check for TODO comments
         run: |
           TODO_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD | grep -E "^\+.*TODO|^\+.*FIXME|^\+.*XXX" | wc -l || true)
           if [ "$TODO_COUNT" -gt 0 ]; then
-            echo "::warning::Found $TODO_COUNT new TODO/FIXME/XXX comments in this PR"
+            echo "::warning::このPRに${TODO_COUNT}個の新しいTODO/FIXME/XXXコメントが見つかりました"
           fi
 
       - name: Check for console.log in frontend
         run: |
           CONSOLE_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD -- frontend/ | grep -E "^\+.*console\.(log|debug|info|warn|error)" | wc -l || true)
           if [ "$CONSOLE_COUNT" -gt 0 ]; then
-            echo "::warning::Found $CONSOLE_COUNT new console.log statements in frontend code"
+            echo "::warning::フロントエンドコードに${CONSOLE_COUNT}個の新しいconsole.log文が見つかりました"
           fi
 
       - name: Check for print statements in backend
         run: |
           PRINT_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD -- backend/ | grep -E "^\+.*print\(" | wc -l || true)
           if [ "$PRINT_COUNT" -gt 0 ]; then
-            echo "::warning::Found $PRINT_COUNT new print() statements in backend code. Consider using proper logging."
+            echo "::warning::バックエンドコードに${PRINT_COUNT}個の新しいprint()文が見つかりました。適切なロギングの使用を検討してください。"
           fi
 
       - name: Check for missing tests
@@ -93,11 +93,11 @@ jobs:
           FRONTEND_TEST_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- frontend/ | grep -E '\.spec\.(ts|js)$|\.test\.(ts|js)$' | wc -l || true)
 
           if [ "$BACKEND_FILES" -gt 0 ] && [ "$BACKEND_TEST_FILES" -eq 0 ]; then
-            echo "::warning::Backend code was modified but no test files were changed. Consider adding tests."
+            echo "::warning::バックエンドコードが変更されましたが、テストファイルは変更されていません。テストの追加を検討してください。"
           fi
 
           if [ "$FRONTEND_FILES" -gt 0 ] && [ "$FRONTEND_TEST_FILES" -eq 0 ]; then
-            echo "::warning::Frontend code was modified but no test files were changed. Consider adding tests."
+            echo "::warning::フロントエンドコードが変更されましたが、テストファイルは変更されていません。テストの追加を検討してください。"
           fi
 
       - name: Comment PR with review summary
@@ -115,18 +115,18 @@ jobs:
 
             const botComment = comments.find(comment =>
               comment.user.type === 'Bot' &&
-              comment.body.includes('Automated PR Review')
+              comment.body.includes('自動PRレビュー')
             );
 
-            const body = `## 🤖 Automated PR Review
+            const body = `## 🤖 自動PRレビュー
 
-            ✅ PR title format check completed
-            ✅ PR size analysis completed
-            ✅ Code quality checks completed
+            ✅ PRタイトル形式チェック完了
+            ✅ PRサイズ分析完了
+            ✅ コード品質チェック完了
 
-            Please review any warnings above and address them if necessary.
+            上記の警告がある場合は、必要に応じて対応してください。
 
-            *This is an automated review. Human review is still required.*`;
+            *これは自動レビューです。人間によるレビューも必要です。*`;
 
             if (botComment) {
               await github.rest.issues.updateComment({
