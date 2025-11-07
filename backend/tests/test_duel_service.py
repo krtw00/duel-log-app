@@ -61,7 +61,7 @@ def test_get_user_duels(db_session: Session, test_user: User):
         is_win=True,
         game_mode="RANK",
         rank=10,
-        played_date=datetime(2023, 1, 15),
+        played_date=datetime(2023, 1, 15, tzinfo=ZoneInfo("UTC")),
         won_coin_toss=True,
         is_going_first=True,
     )
@@ -73,7 +73,7 @@ def test_get_user_duels(db_session: Session, test_user: User):
         is_win=False,
         game_mode="RATE",
         rate_value=1500.0,
-        played_date=datetime(2023, 2, 15),
+        played_date=datetime(2023, 2, 15, tzinfo=ZoneInfo("UTC")),
         won_coin_toss=False,
         is_going_first=False,
     )
@@ -119,7 +119,7 @@ def test_export_duels_to_csv(db_session: Session, test_user: User):
         rank=10,
         won_coin_toss=True,
         is_going_first=True,
-        played_date=datetime(2023, 1, 15, 12, 30),
+        played_date=datetime(2023, 1, 15, 12, 30, tzinfo=ZoneInfo("UTC")),
         notes="Test note",
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
