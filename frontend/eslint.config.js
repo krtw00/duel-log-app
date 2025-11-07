@@ -31,6 +31,7 @@ export default [
     },
     rules: {
       'vue/multi-word-component-names': 'off',
+      'vue/valid-v-slot': ['error', { allowModifiers: true }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       // JSDoc rules for documentation quality

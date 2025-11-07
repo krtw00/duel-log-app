@@ -5,10 +5,9 @@
 認証関連エンドポイントのテストを含む
 """
 
-import pytest
 from fastapi import status
 
-from app.core.security import get_password_hash, verify_password
+from app.core.security import verify_password
 from app.models.password_reset_token import PasswordResetToken
 from app.models.user import User
 
@@ -40,7 +39,10 @@ class TestLogin:
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "メールアドレスまたはパスワードが正しくありません" in response.json()["detail"]
+        assert (
+            "メールアドレスまたはパスワードが正しくありません"
+            in response.json()["detail"]
+        )
 
     def test_login_invalid_password(self, client, test_user):
         """誤ったパスワードでのログイン"""
@@ -50,7 +52,10 @@ class TestLogin:
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "メールアドレスまたはパスワードが正しくありません" in response.json()["detail"]
+        assert (
+            "メールアドレスまたはパスワードが正しくありません"
+            in response.json()["detail"]
+        )
 
     def test_login_missing_fields(self, client):
         """必須フィールドが欠けている場合"""
@@ -99,16 +104,17 @@ class TestPasswordReset:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert "パスワード再設定の案内をメールで送信しました" in response.json()["message"]
-
-        # トークンがデータベースに作成されているか確認
-        token_entry = (
-            db_session.query(PasswordResetToken)
-            .filter(PasswordResetToken.user_id == test_user.id)
-            .first()
+        assert (
+            "パスワード再設定の案内をメールで送信しました" in response.json()["message"]
         )
+
         # 注: テスト環境ではメール送信が失敗する可能性があるため、
-        # トークン作成のみを確認
+        # トークン作成の確認はスキップ
+        # token_entry = (
+        #     db_session.query(PasswordResetToken)
+        #     .filter(PasswordResetToken.user_id == test_user.id)
+        #     .first()
+        # )
         # assert token_entry is not None
 
     def test_forgot_password_nonexistent_user(self, client):
@@ -119,7 +125,9 @@ class TestPasswordReset:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert "パスワード再設定の案内をメールで送信しました" in response.json()["message"]
+        assert (
+            "パスワード再設定の案内をメールで送信しました" in response.json()["message"]
+        )
 
     def test_reset_password_success(self, client, test_user, db_session):
         """パスワードリセットの成功"""

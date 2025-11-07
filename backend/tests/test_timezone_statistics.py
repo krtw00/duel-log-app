@@ -35,7 +35,9 @@ def test_statistics_monthly_uses_local_timezone(
 
     _insert_decks_and_duel(db_session, test_user.id)
 
-    response = authenticated_client.get("/statistics", params={"year": 2024, "month": 6})
+    response = authenticated_client.get(
+        "/statistics", params={"year": 2024, "month": 6}
+    )
     assert response.status_code == status.HTTP_200_OK
 
     stats = response.json()
