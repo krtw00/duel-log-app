@@ -39,9 +39,7 @@ export interface OBSStatsResponse extends OBSOverlayStats {
 /**
  * OBS 表示アイテムのフォーマッター関数型
  */
-export type OBSDisplayItemFormatter = (
-  value: string | number | null | undefined,
-) => string;
+export type OBSDisplayItemFormatter = (value: string | number | null | undefined) => string;
 
 /**
  * OBS 表示アイテムの定義

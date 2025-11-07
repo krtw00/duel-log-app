@@ -9,7 +9,7 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt full-upgrade -y
 sudo apt autoremove -y
-```    
+```
 
 | Command | Description |
 | --- | --- |
@@ -25,7 +25,7 @@ sudo add-apt-repository ppa:git-core/ppa -y
 sudo apt update
 sudo apt install git -y
 git --version
-```    
+```
 
 | Command | Description |
 | --- | --- |
@@ -38,13 +38,13 @@ git --version
 ```bash
 npm install -g @google/gemini-cli
 gemini
-```    
+```
 
 そのままだと`gemini`は英語しか話さないので以下の様に命令してくれ。そうすると以降は日本語がデフォルトになるぜ
 
 ```bash
 セーブメモリに今後は日本語で回答するよう記憶しておいてください。
-```    
+```
 
 キーボードの`Ctrl + C`で`gemini`から抜けられるぜ
 
@@ -65,14 +65,14 @@ gemini
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
     && sudo apt update \
     && sudo apt install gh -y
-```  
+```
 
 説明は面倒なので`ChatGPT`に聞いてくれ
 
 ```bash
 sudo apt update
 sudo apt install gh
-``` 
+```
 
 | Command | Description |
 | --- | --- |
@@ -85,13 +85,13 @@ sudo apt install gh
 ```bash
 cd duel-log-app/
 gemini
-```  
+```
 
 の後にターミナル画面で
 
 ```bash
 githubのissuesの一覧をghコマンドで見せてください。
-```  
+```
 
 で`github`の`Issues`が見れるぜ
 
@@ -120,7 +120,7 @@ githubのissuesの一覧をghコマンドで見せてください。
 
 ```bash
  @backend/app/　のファイルでどの順番でソースコードを理解すればいいの？
-```  
+```
 
 ```
 一般的なWebアプリケーションの構造を頼りに、以下の順序で読み進めるのが
@@ -163,9 +163,9 @@ githubのissuesの一覧をghコマンドで見せてください。
 
 ```bash
  @backend/app/main.py の説明をソースコードを比較しながらしてくれ
-```  
+```
 
-``` 
+```
 ✦ backend/app/main.py
   は、FastAPIアプリケーションのエントリーポイントであり、アプリケーション全体の初期設定、ミドルウェ
   アの適用、ルーティングの登録、エラーハンドリングの一元化を行う中心的なファイルです。
@@ -180,7 +180,7 @@ githubのissuesの一覧をghコマンドで見せてください。
    2 import os
    3 # ...
    4 from app.core.logging_config import setup_logging
-   5 
+   5
    6 # ロギング設定
    7 setup_logging(level=settings.LOG_LEVEL)
    8 logger = logging.getLogger(__name__)
@@ -212,11 +212,11 @@ githubのissuesの一覧をghコマンドで見せてください。
     6     origin.strip() for origin in frontend_url.split(",") if origin.strip()
     7 ]
     8 logger.info(f"Allowed CORS origins from FRONTEND_URL: {allowed_origins}")
-    9 
+    9
    10 # Vercelのプレビューデプロイメント用の正規表現パターン
    11 vercel_preview_pattern = r"https://.*\.vercel\.app"
    12 logger.info(f"Allowing CORS for Vercel preview pattern: {vercel_preview_pattern}")
-   13 
+   13
    14 app.add_middleware(
    15     CORSMiddleware,
    16     allow_origins=allowed_origins,
@@ -288,7 +288,7 @@ githubのissuesの一覧をghコマンドで見せてください。
    2 def root():
    3     """ルートエンドポイント"""
    4     return {"message": "Duel Log API", "version": "1.0.0", "docs": "/docs"}
-   5 
+   5
    6 @app.get("/health", tags=["health"])
    7 def health_check():
    8     """ヘルスチェックエンドポイント"""
@@ -304,13 +304,13 @@ githubのissuesの一覧をghコマンドで見せてください。
 
   このように main.py は、FastAPIアプリケーションの「骨格」を形成し、様々な外部モジュールや設定を
   統合して、機能的なWeb APIとして動作させるための基盤を提供しています。
-``` 
+```
 
 らしい。ちなみにbackend/app/main.pyの8～11行目で波線うってるんだけど
 
 ```bash
  @backend/app/main.py の8～11行目で波線うってるんだけどなんで？
-```  
+```
 
 ```
 ✦ ご指摘の箇所に波線が表示されるのは、コードの静的解析ツール（リンター）がimport文の順序に関する警
@@ -334,7 +334,7 @@ githubのissuesの一覧をghコマンドで見せてください。
   問題の箇所を見てみましょう。
 
     1 # --- 8-11行目周辺 ---
-    2 
+    2
     3 # [サードパーティライブラリ]
     4  7: from fastapi import FastAPI
     5  8: from fastapi.exceptions import RequestValidationError
