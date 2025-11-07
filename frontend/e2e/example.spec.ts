@@ -22,8 +22,8 @@ test.describe('Smoke Tests', () => {
     await expect(page).toHaveURL('/login');
 
     // ログインフォームの基本要素が存在することを確認
-    const emailInput = page.locator('input[type="email"], input[name="email"]');
-    const passwordInput = page.locator('input[type="password"], input[name="password"]');
+    const emailInput = page.locator('input[name="email"]');
+    const passwordInput = page.locator('input[name="password"]');
     const submitButton = page.locator('button[type="submit"]');
 
     await expect(emailInput).toBeVisible();
@@ -37,8 +37,8 @@ test.describe('Smoke Tests', () => {
 
     // 登録フォームの基本要素が存在することを確認
     const usernameInput = page.locator('input[name="username"]');
-    const emailInput = page.locator('input[type="email"], input[name="email"]');
-    const passwordInput = page.locator('input[type="password"], input[name="password"]');
+    const emailInput = page.locator('input[name="email"]');
+    const passwordInput = page.locator('input[name="password"]');
     const submitButton = page.locator('button[type="submit"]');
 
     await expect(usernameInput).toBeVisible();
