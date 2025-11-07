@@ -1,8 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Base  # 正しいBaseをインポート
-
 from ..core.config import settings
 
 # DATABASE_URLをpsycopg3用に変換
