@@ -25,6 +25,7 @@
         <v-form ref="formRef" @submit.prevent="handleLogin">
           <v-text-field
             v-model="email"
+            name="email"
             label="メールアドレス"
             prepend-inner-icon="mdi-email-outline"
             type="email"
@@ -40,6 +41,7 @@
 
           <v-text-field
             v-model="password"
+            name="password"
             label="パスワード"
             prepend-inner-icon="mdi-lock-outline"
             :type="showPassword ? 'text' : 'password'"
@@ -92,7 +94,7 @@
             <v-divider class="my-3" />
             <p class="text-caption text-grey">
               ログインすることで
-              <a @click="showTermsDialog = true" class="terms-link">利用規約</a>
+              <a class="terms-link" @click="showTermsDialog = true">利用規約</a>
               に同意したものとみなされます
             </p>
           </div>
