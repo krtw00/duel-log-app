@@ -60,6 +60,7 @@ npx playwright show-report
 テストの設定は `playwright.config.ts` で行います。
 
 主な設定項目：
+
 - **baseURL**: テストのベースURL（デフォルト: `http://localhost:4173`）
 - **projects**: テストするブラウザ（Chromium, Firefox, WebKit）
 - **retries**: CIでのリトライ回数
@@ -70,37 +71,37 @@ npx playwright show-report
 ### 基本的な構造
 
 ```typescript
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@playwright/test';
 
 test.describe('Feature Name', () => {
   test('should do something', async ({ page }) => {
-    await page.goto('/path')
+    await page.goto('/path');
 
     // 要素の操作
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.click('button[type="submit"]')
+    await page.fill('input[name="email"]', 'test@example.com');
+    await page.click('button[type="submit"]');
 
     // アサーション
-    await expect(page).toHaveURL('/dashboard')
-  })
-})
+    await expect(page).toHaveURL('/dashboard');
+  });
+});
 ```
 
 ### ヘルパーの使用
 
 ```typescript
-import { login, generateRandomEmail } from './helpers/auth-helper'
+import { login, generateRandomEmail } from './helpers/auth-helper';
 
 test('should access protected page', async ({ page }) => {
-  const email = generateRandomEmail()
-  const password = 'TestPassword123!'
+  const email = generateRandomEmail();
+  const password = 'TestPassword123!';
 
   // ヘルパーを使用してログイン
-  await login(page, email, password)
+  await login(page, email, password);
 
   // 保護されたページにアクセス
-  await page.goto('/decks')
-})
+  await page.goto('/decks');
+});
 ```
 
 ## 🐛 デバッグ
@@ -114,6 +115,7 @@ npm run test:e2e:ui
 ```
 
 機能：
+
 - ステップバイステップ実行
 - タイムトラベルデバッグ
 - スクリーンショット表示
@@ -158,6 +160,7 @@ npx playwright show-trace test-results/path-to-trace.zip
 GitHub Actionsで自動的に実行されます（`.github/workflows/e2e.yml`）。
 
 テストは以下のタイミングで実行されます：
+
 - mainブランチへのプッシュ時
 - Pull Request作成時
 - 手動実行（workflow_dispatch）

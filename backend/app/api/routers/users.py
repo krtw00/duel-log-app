@@ -94,7 +94,9 @@ def update_user(
 
     db_user = user_service.get_by_id(db=db, id=user_id)
     if not db_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     updated_user = user_service.update_profile(db=db, db_obj=db_user, obj_in=user_in)
     return updated_user
