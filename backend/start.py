@@ -43,10 +43,6 @@ def wait_for_db(max_attempts=60):
     logger.info("⏳ Waiting for database connection...")
     sys.stdout.flush()
 
-    # psycopg3用に変換 (psycopg.connectはpostgresql+psycopg://も解釈できるため、ここでは不要)
-    # if dsn_url.startswith("postgres://"):
-    #     dsn_url = dsn_url.replace("postgres://", "postgresql://", 1)
-
     # DSN URLをパースしてキーワード引数に変換
     parsed_url = urlparse(dsn_url)
     conn_params = {
