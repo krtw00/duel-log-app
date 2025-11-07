@@ -7,11 +7,14 @@ import { randomBytes } from 'crypto';
 
 /**
  * テスト用ユーザーのログイン
+ * @param page Playwrightのページインスタンス
+ * @param email ログインに使用するメールアドレス
+ * @param password ログインに使用するパスワード
  */
 export async function login(page: Page, email: string, password: string) {
   await page.goto('/login');
-  await page.fill('input[name="email"], input[type="email"]', email);
-  await page.fill('input[name="password"], input[type="password"]', password);
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');
 
   // ダッシュボードへのリダイレクトを待つ
@@ -21,14 +24,18 @@ export async function login(page: Page, email: string, password: string) {
 
 /**
  * テスト用ユーザーの登録
+ * @param page Playwrightのページインスタンス
+ * @param username 作成するユーザー名
+ * @param email 登録用メールアドレス
+ * @param password 登録用パスワード
  */
 export async function register(page: Page, username: string, email: string, password: string) {
   await page.goto('/register');
 
   // フォーム入力
   await page.fill('input[name="username"]', username);
-  await page.fill('input[name="email"], input[type="email"]', email);
-  await page.fill('input[name="password"], input[type="password"]', password);
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
 
   // パスワード確認フィールドが存在する場合
   const confirmPasswordField = page.locator(
@@ -47,6 +54,7 @@ export async function register(page: Page, username: string, email: string, pass
 
 /**
  * ログアウト
+ * @param page Playwrightのページインスタンス
  */
 export async function logout(page: Page) {
   // ユーザーメニューまたはログアウトボタンを探す
@@ -72,6 +80,7 @@ export async function logout(page: Page) {
 /**
  * ランダムなメールアドレスを生成
  * 暗号的に安全な乱数生成器を使用
+ * @returns 生成したメールアドレス
  */
 export function generateRandomEmail(): string {
   const randomString = randomBytes(8).toString('hex');
@@ -81,6 +90,7 @@ export function generateRandomEmail(): string {
 /**
  * ランダムなユーザー名を生成
  * 暗号的に安全な乱数生成器を使用
+ * @returns 生成したユーザー名
  */
 export function generateRandomUsername(): string {
   const randomString = randomBytes(8).toString('hex');
