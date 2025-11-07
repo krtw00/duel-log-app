@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/krtw00/duel-log-app/compare/v1.0.0...v1.0.1) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* developブランチからmainへの同期（セキュリティ修正・CI改善・Dependabot設定変更含む） ([#145](https://github.com/krtw00/duel-log-app/issues/145)) ([f49ebda](https://github.com/krtw00/duel-log-app/commit/f49ebdac6f03f06a5422cded6c5ff861e7ee9bc8))
+
 ## 1.0.0 (2025-11-07)
 
 
