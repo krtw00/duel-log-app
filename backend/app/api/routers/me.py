@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, Response, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -80,6 +80,17 @@ def import_my_data(
     CSVファイルからデータをインポートして復元
     （既存のデータはすべて削除されます）
     """
+    try:
+        csv_content = file.decode("utf-8")
+    except UnicodeDecodeError as e:
+        import logging
+        logging.getLogger(__name__).warning("CSV import encoding error")
+        # スタックトレース露出を防ぐため、from e を削除
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSVファイルのエンコーディングが無効です。UTF-8形式のファイルをアップロードしてください",
+        )
+
     return user_service.import_all_data_from_csv(
-        db=db, user_id=current_user.id, csv_content=file.decode("utf-8")
+        db=db, user_id=current_user.id, csv_content=csv_content
     )
