@@ -29,14 +29,17 @@ def wait_for_db(max_attempts=60):
         # フォールバック：個別の環境変数を使用
         dsn_url = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST', 'db')}/{os.getenv('POSTGRES_DB')}"
 
-    # psycopg3用に変換 (psycopg.connectはpostgresql+psycopg://も解釈できるため、ここでは不要)
-    # if dsn_url.startswith("postgres://"):
-    #     dsn_url = dsn_url.replace("postgres://", "postgresql://", 1)
-
     logger.info(f"Full Database DSN: {dsn_url}")
     logger.info(
         f"Database URL: {dsn_url.split('@')[1] if '@' in dsn_url else 'unknown'}"
     )
+
+    # SQLiteの場合は待機をスキップ
+    if dsn_url.startswith("sqlite"):
+        logger.info("✅ Using SQLite database (no connection wait required)")
+        sys.stdout.flush()
+        return True
+
     logger.info("⏳ Waiting for database connection...")
     sys.stdout.flush()
 
@@ -87,6 +90,10 @@ def get_current_db_state():
         if not database_url:
             return None, None
 
+        # SQLiteの場合はスキップ
+        if database_url.startswith("sqlite"):
+            return None, None
+
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
 
@@ -123,7 +130,9 @@ def get_current_db_state():
                     all_versions = cur.fetchall()
                     if all_versions:
                         if len(all_versions) > 1:
-                            logger.warning(f"⚠️  Multiple versions found in alembic_version table: {[v[0] for v in all_versions]}")
+                            logger.warning(
+                                f"⚠️  Multiple versions found in alembic_version table: {[v[0] for v in all_versions]}"
+                            )
                             # 最初のバージョンを返すが、複数あることを記録
                             current_version = all_versions[0][0]
                         else:
@@ -145,6 +154,12 @@ def fix_multiple_alembic_heads():
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
             return False
+
+        # SQLiteの場合はスキップ
+        if database_url.startswith("sqlite"):
+            logger.info("SQLite database detected, skipping alembic heads fix")
+            sys.stdout.flush()
+            return True
 
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -171,7 +186,9 @@ def fix_multiple_alembic_heads():
                     all_versions = cur.fetchall()
 
                     if len(all_versions) > 1:
-                        logger.warning(f"🔧 Found multiple heads in alembic_version: {[v[0] for v in all_versions]}")
+                        logger.warning(
+                            f"🔧 Found multiple heads in alembic_version: {[v[0] for v in all_versions]}"
+                        )
                         logger.info("🔧 Cleaning up alembic_version table...")
 
                         # すべてのバージョンを削除
@@ -179,14 +196,20 @@ def fix_multiple_alembic_heads():
 
                         # 現在の正しいheadバージョンを挿入（4ed32ebe9919）
                         # マイグレーションファイルから確認した最新のhead
-                        cur.execute("INSERT INTO alembic_version (version_num) VALUES ('4ed32ebe9919')")
+                        cur.execute(
+                            "INSERT INTO alembic_version (version_num) VALUES ('4ed32ebe9919')"
+                        )
                         conn.commit()
 
-                        logger.info("✅ Cleaned up alembic_version table, set to head: 4ed32ebe9919")
+                        logger.info(
+                            "✅ Cleaned up alembic_version table, set to head: 4ed32ebe9919"
+                        )
                         sys.stdout.flush()
                         return True
                     else:
-                        logger.info("✅ No multiple heads found, alembic_version is clean")
+                        logger.info(
+                            "✅ No multiple heads found, alembic_version is clean"
+                        )
                         sys.stdout.flush()
                         return True
 
@@ -204,16 +227,22 @@ def fix_multiple_alembic_heads():
 def fix_alembic_version_if_needed():
     """存在しないリビジョンエラーの場合、初期リビジョンを設定してマイグレーション実行"""
     try:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return
+
+        # SQLiteの場合はスキップ
+        if database_url.startswith("sqlite"):
+            logger.info("SQLite database detected, skipping alembic version fix")
+            sys.stdout.flush()
+            return
+
         tables_exist, current_version = get_current_db_state()
 
         logger.info("📊 Current DB state:")
         logger.info(f"   - Tables exist: {tables_exist}")
         logger.info(f"   - Current version: {current_version}")
         sys.stdout.flush()
-
-        database_url = os.getenv("DATABASE_URL")
-        if not database_url:
-            return
 
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -305,6 +334,26 @@ def run_migrations():
     logger.info("=" * 60)
     sys.stdout.flush()
 
+    # SQLiteの場合はマイグレーションをスキップし、直接テーブルを作成
+    database_url = os.getenv("DATABASE_URL")
+    if database_url and database_url.startswith("sqlite"):
+        logger.info("SQLite database detected, skipping migrations")
+        logger.info("Creating tables directly from models...")
+        sys.stdout.flush()
+
+        try:
+            # SQLAlchemyのメタデータからテーブルを作成
+            from app.db.session import Base, engine
+
+            Base.metadata.create_all(bind=engine)
+            logger.info("✅ Tables created successfully from models!")
+            sys.stdout.flush()
+            return True
+        except Exception as e:
+            logger.error(f"❌ Failed to create tables: {e}")
+            sys.stdout.flush()
+            return False
+
     # マイグレーション実行前にDB状態を確認
     tables_exist, current_version = get_current_db_state()
     logger.info(
@@ -356,7 +405,9 @@ def run_migrations():
                     text=True,
                 )
                 logger.info(result.stdout)
-                logger.info("✅ Migrations completed successfully after fixing multiple heads!")
+                logger.info(
+                    "✅ Migrations completed successfully after fixing multiple heads!"
+                )
                 sys.stdout.flush()
                 return True
             except subprocess.CalledProcessError as e2:
