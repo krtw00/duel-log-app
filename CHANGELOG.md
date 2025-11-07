@@ -1,3 +1,26 @@
+## [1.0.5](https://github.com/krtw00/duel-log-app/compare/v1.0.4...v1.0.5) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** allow e2e backend cors for preview port ([707cd48](https://github.com/krtw00/duel-log-app/commit/707cd485fd256ed4d2e1502aa6d6019f5969c43f))
+* **deps:** FastAPI 0.111.1+用にpython-multipartを追加 ([abf99db](https://github.com/krtw00/duel-log-app/commit/abf99db9cbdeb84d3b0bc3a93633b0c91ab6e3c8))
+* make auth e2e selectors deterministic ([8d291bc](https://github.com/krtw00/duel-log-app/commit/8d291bc74bdbe8927da7fdf111c104d49280552f))
+* route e2e api traffic via ipv4 loopback ([0cd4bfb](https://github.com/krtw00/duel-log-app/commit/0cd4bfbf4bbb7fdd5a35ff18786f75f66a1b72ff))
+* stabilize codeql uploads and register form fields ([3c3cdad](https://github.com/krtw00/duel-log-app/commit/3c3cdaddffc6e67f0c7f020bd2408c8d7dd7820e))
+
+
+### ⚡ Performance Improvements
+
+* **ci:** Optimize E2E CI workflow execution time from 20min to 5-7min ([ba423ed](https://github.com/krtw00/duel-log-app/commit/ba423ed5e25aa53cf9a64e03d9f0228285aaec02))
+
+
+### 📝 Documentation
+
+* docs配下の古いコンテキストドキュメントを削除 ([2c9b4a2](https://github.com/krtw00/duel-log-app/commit/2c9b4a2a043f2a15e02a811aeca9aa10de9a878f))
+* ドキュメントを用途別に階層化（案A） ([7cd9a9a](https://github.com/krtw00/duel-log-app/commit/7cd9a9aee7cfdc009df56acfdbf9dcf2a7f4339f))
+* ドキュメント構成を整理・索引を最新化 ([8c9fdee](https://github.com/krtw00/duel-log-app/commit/8c9fdee0ff146ecfb65a1c7f82a8d5160508e317))
+
 ## [1.0.4](https://github.com/krtw00/duel-log-app/compare/v1.0.3...v1.0.4) (2025-11-07)
 
 
