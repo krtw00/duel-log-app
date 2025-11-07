@@ -1,4 +1,5 @@
 import { Page, expect } from '@playwright/test';
+import { randomBytes } from 'crypto';
 
 /**
  * E2Eテスト用の認証ヘルパー
@@ -70,16 +71,18 @@ export async function logout(page: Page) {
 
 /**
  * ランダムなメールアドレスを生成
+ * 暗号的に安全な乱数生成器を使用
  */
 export function generateRandomEmail(): string {
-  const randomString = Math.random().toString(36).substring(2, 15);
+  const randomString = randomBytes(8).toString('hex');
   return `test-${randomString}@example.com`;
 }
 
 /**
  * ランダムなユーザー名を生成
+ * 暗号的に安全な乱数生成器を使用
  */
 export function generateRandomUsername(): string {
-  const randomString = Math.random().toString(36).substring(2, 15);
+  const randomString = randomBytes(8).toString('hex');
   return `testuser-${randomString}`;
 }
