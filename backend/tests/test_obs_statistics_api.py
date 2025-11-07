@@ -171,11 +171,17 @@ def test_get_obs_statistics_with_rank_rate_dc_fields(authenticated_client):
 
     # フィールドが存在する場合、型を確認（Noneの場合は型チェックをスキップ）
     if data["current_rank"] is not None:
-        assert isinstance(data["current_rank"], (int, str)), "current_rank should be int or string"
+        assert isinstance(
+            data["current_rank"], (int, str)
+        ), "current_rank should be int or string"
     if data["current_rate"] is not None:
-        assert isinstance(data["current_rate"], (int, float)), "current_rate should be int or float"
+        assert isinstance(
+            data["current_rate"], (int, float)
+        ), "current_rate should be int or float"
     if data["current_dc"] is not None:
-        assert isinstance(data["current_dc"], (int, float)), "current_dc should be int or float"
+        assert isinstance(
+            data["current_dc"], (int, float)
+        ), "current_dc should be int or float"
 
 
 def test_get_obs_statistics_rank_fallback_with_start_id(

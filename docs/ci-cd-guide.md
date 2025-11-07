@@ -6,11 +6,11 @@
 
 | ワークフロー | ファイル | トリガー | 説明 |
 |------------|---------|---------|------|
-| CI | `ci.yml` | push/PR (main) | メインCI（テスト、リンティング、カバレッジ） |
-| CodeQL | `codeql.yml` | push/PR (main) + 週次 | セキュリティ分析 |
-| E2E Tests | `e2e.yml` | push/PR (main) | Playwright E2Eテスト |
-| Docker Test | `docker-test.yml` | push/PR (main) | Docker統合テスト |
-| Lighthouse | `lighthouse.yml` | push/PR (main) | パフォーマンステスト |
+| CI | `ci.yml` | push/PR (main, develop) | メインCI（テスト、リンティング、カバレッジ） |
+| CodeQL | `codeql.yml` | push/PR (main, develop) + 週次 | セキュリティ分析 |
+| E2E Tests | `e2e.yml` | push/PR (main, develop) | Playwright E2Eテスト |
+| Docker Test | `docker-test.yml` | push/PR (main, develop) | Docker統合テスト |
+| Lighthouse | `lighthouse.yml` | push/PR (main, develop) | パフォーマンステスト |
 | Release | `release.yml` | push (main) | 自動リリース・バージョニング |
 | PR Review | `pr-review.yml` | PR作成/更新 | PR自動レビュー |
 | Add to Project | `add-to-project.yml` | Issue作成 | Issue自動追加 |
@@ -261,13 +261,42 @@ GitHub Actionsのログでカバレッジを確認：
 
 ## 🚀 デプロイフロー
 
-1. **開発**: フィーチャーブランチで開発
-2. **PR作成**: mainブランチへのPR
-3. **CI実行**: 全てのチェックが自動実行
+### ブランチ戦略
+
+本プロジェクトでは以下のブランチ戦略を採用しています：
+
+- **`main`**: 本番環境用ブランチ（保護されており、PRが必要）
+- **`develop`**: 開発統合ブランチ（機能開発の統合先）
+- **`feature/*`**: 機能開発用ブランチ
+- **`fix/*`**: バグ修正用ブランチ
+
+### CI/CDフロー
+
+#### 開発フロー
+1. **フィーチャーブランチで開発**: `feature/*` または `fix/*` ブランチを作成
+2. **developへのPR作成**: 開発完了後、`develop` ブランチへのPRを作成
+3. **CI実行**: 全てのチェックが自動実行（テスト、リンティング、セキュリティスキャン等）
 4. **レビュー**: コードレビュー
-5. **マージ**: mainブランチにマージ
-6. **自動リリース**: Semantic Releaseが自動でバージョニング
-7. **デプロイ**: Vercel（frontend）とRender（backend）が自動デプロイ
+5. **developにマージ**: PRマージ後、`develop` ブランチでもCIが自動実行
+
+#### リリースフロー
+1. **mainへのPR作成**: `develop` → `main` のPRを作成
+2. **CI実行**: 全てのチェックが自動実行
+3. **最終レビュー**: リリース前の最終確認
+4. **mainにマージ**: PRマージ
+5. **自動リリース**: Semantic Releaseが自動でバージョニング
+6. **デプロイ**: Vercel（frontend）とRender（backend）が自動デプロイ
+
+### CI実行タイミング
+
+以下のワークフローは `main` と `develop` ブランチの両方で実行されます：
+- CI (テスト、リンティング、カバレッジ)
+- CodeQL (セキュリティ分析)
+- E2E Tests (Playwright)
+- Docker Test (統合テスト)
+- Lighthouse (パフォーマンステスト)
+
+これにより、`develop` ブランチでも品質が保証され、`main` へのマージ時の問題を最小化できます。
 
 ---
 

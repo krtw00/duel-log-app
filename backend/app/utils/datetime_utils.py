@@ -6,12 +6,13 @@ from datetime import datetime, timezone
 from typing import Tuple
 from zoneinfo import ZoneInfo
 
-
 # TODO: In the future this should be configurable per user. For now we assume JST.
 DEFAULT_TIMEZONE = ZoneInfo("Asia/Tokyo")
 
 
-def month_range_utc(year: int, month: int, tz: ZoneInfo = DEFAULT_TIMEZONE) -> Tuple[datetime, datetime]:
+def month_range_utc(
+    year: int, month: int, tz: ZoneInfo = DEFAULT_TIMEZONE
+) -> Tuple[datetime, datetime]:
     """Return the UTC start (inclusive) and end (exclusive) timestamps for the given month.
 
     Args:
@@ -38,7 +39,9 @@ def month_range_utc(year: int, month: int, tz: ZoneInfo = DEFAULT_TIMEZONE) -> T
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 
-def year_range_utc(year: int, tz: ZoneInfo = DEFAULT_TIMEZONE) -> Tuple[datetime, datetime]:
+def year_range_utc(
+    year: int, tz: ZoneInfo = DEFAULT_TIMEZONE
+) -> Tuple[datetime, datetime]:
     """Return the UTC start (inclusive) and end (exclusive) timestamps for the given year.
 
     Note:
@@ -50,9 +53,10 @@ def year_range_utc(year: int, tz: ZoneInfo = DEFAULT_TIMEZONE) -> Tuple[datetime
     return start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc)
 
 
-def current_month_range_utc(tz: ZoneInfo = DEFAULT_TIMEZONE) -> Tuple[datetime, datetime]:
+def current_month_range_utc(
+    tz: ZoneInfo = DEFAULT_TIMEZONE,
+) -> Tuple[datetime, datetime]:
     """Convenience helper that returns the current month range in UTC for the given timezone."""
 
     now_local = datetime.now(tz)
     return month_range_utc(now_local.year, now_local.month, tz)
-
