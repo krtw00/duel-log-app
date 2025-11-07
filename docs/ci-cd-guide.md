@@ -72,7 +72,9 @@ PRタイトルは **Conventional Commits** 形式に従う必要があります�
 
 ```
 feat(decks): デッキフィルタリング機能を追加
+feat(decks): Add deck filtering feature
 fix(auth): ログイン時のトークンリフレッシュを修正
+fix(auth): Fix token refresh during login
 docs(readme): セットアップ手順を更新
 refactor(api): statistics エンドポイントを整理
 ```
@@ -80,9 +82,9 @@ refactor(api): statistics エンドポイントを整理
 #### 悪い例
 
 ```
-Claude/review cicd requirements  ← ブランチ名そのまま
+Claude/review cicd requirements  ← ブランチ名そのまま（タイプがない）
 Update code  ← タイプがない
-ADD NEW FEATURE  ← 大文字で始まっている
+update code  ← タイプがない
 ```
 
 ### PRタイトルの修正方法
