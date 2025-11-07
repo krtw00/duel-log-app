@@ -70,7 +70,7 @@ jobs:
         continue-on-error: false
 
       - name: Run backend tests with coverage
-        run: pytest backend/ --cov=app --cov-report=xml --cov-report=term-missing
+        run: pytest backend/ --cov=app --cov-report=term-missing --cov-report=html
         env:
           # backendディレクトリをモジュール検索パスに追加
           PYTHONPATH: backend
@@ -79,16 +79,6 @@ jobs:
           SECRET_KEY: "a_very_secret_key_for_testing_purposes_only_1234567890_and_more"
           RESEND_API_KEY: "testing"
           DEBUG: "true"
-
-      - name: Upload backend coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Install frontend dependencies
         run: npm install --prefix frontend
@@ -115,16 +105,6 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_URL: "http://localhost:8000"
-
-      - name: Upload frontend coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./frontend/coverage/coverage-final.json
-          flags: frontend
-          name: frontend-coverage
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Run frontend build check
         run: npm run build --prefix frontend
