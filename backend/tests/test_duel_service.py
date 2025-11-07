@@ -98,7 +98,10 @@ def test_get_user_duels(db_session: Session, test_user: User):
     assert len(rank_duels) == 1
     assert rank_duels[0].game_mode == "RANK"
     assert len(ranged_duels) == 1
-    assert ranged_duels[0].played_date == datetime(2023, 1, 15, tzinfo=ZoneInfo("UTC"))
+    # SQLiteではタイムゾーン情報が保持されないため、日付のみを比較
+    assert ranged_duels[0].played_date.replace(tzinfo=ZoneInfo("UTC")) == datetime(
+        2023, 1, 15, tzinfo=ZoneInfo("UTC")
+    )
 
 
 def test_export_duels_to_csv(db_session: Session, test_user: User):
