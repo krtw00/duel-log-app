@@ -338,6 +338,26 @@ def run_migrations():
     logger.info("=" * 60)
     sys.stdout.flush()
 
+    # SQLiteの場合はマイグレーションをスキップし、直接テーブルを作成
+    database_url = os.getenv("DATABASE_URL")
+    if database_url and database_url.startswith("sqlite"):
+        logger.info("SQLite database detected, skipping migrations")
+        logger.info("Creating tables directly from models...")
+        sys.stdout.flush()
+
+        try:
+            # SQLAlchemyのメタデータからテーブルを作成
+            from app.db.session import Base, engine
+
+            Base.metadata.create_all(bind=engine)
+            logger.info("✅ Tables created successfully from models!")
+            sys.stdout.flush()
+            return True
+        except Exception as e:
+            logger.error(f"❌ Failed to create tables: {e}")
+            sys.stdout.flush()
+            return False
+
     # マイグレーション実行前にDB状態を確認
     tables_exist, current_version = get_current_db_state()
     logger.info(
