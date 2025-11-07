@@ -25,6 +25,7 @@
         <v-form ref="formRef" @submit.prevent="handleRegister">
           <v-text-field
             v-model="username"
+            name="username"
             label="ユーザー名"
             prepend-inner-icon="mdi-account-outline"
             type="text"
@@ -36,6 +37,7 @@
 
           <v-text-field
             v-model="email"
+            name="email"
             label="メールアドレス"
             prepend-inner-icon="mdi-email-outline"
             type="email"
@@ -47,6 +49,7 @@
 
           <v-text-field
             v-model="password"
+            name="password"
             label="パスワード"
             prepend-inner-icon="mdi-lock-outline"
             :type="showPassword ? 'text' : 'password'"
@@ -60,6 +63,7 @@
 
           <v-text-field
             v-model="passwordConfirm"
+            name="password_confirm"
             label="パスワード（確認）"
             prepend-inner-icon="mdi-lock-check-outline"
             :type="showPasswordConfirm ? 'text' : 'password'"
