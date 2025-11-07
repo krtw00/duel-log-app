@@ -126,7 +126,7 @@ def seed_data(db: Session):
                     # ナイーブなdatetimeを生成してJSTタイムゾーンを付与
                     naive_datetime = fake.date_time_between_dates(
                         datetime_start=start_date_month.replace(tzinfo=None),
-                        datetime_end=end_date_month.replace(tzinfo=None)
+                        datetime_end=end_date_month.replace(tzinfo=None),
                     )
                     played_date_jst = naive_datetime.replace(tzinfo=jst)
 

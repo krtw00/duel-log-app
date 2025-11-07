@@ -12,9 +12,12 @@ if database_url.startswith("postgresql://"):
 elif database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
 
-# NeonDB用のSSL設定
+# 接続引数の設定
 connect_args = {}
-if "sslmode=require" in database_url or settings.ENVIRONMENT == "production":
+if "sqlite" in database_url:
+    # SQLiteの場合はcheck_same_threadのみ
+    connect_args = {"check_same_thread": False}
+elif "sslmode=require" in database_url or settings.ENVIRONMENT == "production":
     # NeonDBなど、SSL必須の場合
     # sslmodeパラメータはURLに含まれているので、追加の設定は不要
     # ただし、接続タイムアウトを設定

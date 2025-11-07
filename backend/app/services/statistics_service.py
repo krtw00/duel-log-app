@@ -53,9 +53,8 @@ class StatisticsService:
     ) -> Dict[str, List[Dict[str, Any]]]:
         """指定された期間・範囲に存在するデッキ一覧を取得。"""
         start_utc, end_utc = month_range_utc(year, month)
-        query = (
-            self._build_base_duels_query(db, user_id, game_mode)
-            .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
+        query = self._build_base_duels_query(db, user_id, game_mode).filter(
+            Duel.played_date >= start_utc, Duel.played_date < end_utc
         )
 
         # 範囲指定がある場合
