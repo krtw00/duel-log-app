@@ -29,16 +29,23 @@ def wait_for_db(max_attempts=60):
         # フォールバック：個別の環境変数を使用
         dsn_url = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST', 'db')}/{os.getenv('POSTGRES_DB')}"
 
-    # psycopg3用に変換 (psycopg.connectはpostgresql+psycopg://も解釈できるため、ここでは不要)
-    # if dsn_url.startswith("postgres://"):
-    #     dsn_url = dsn_url.replace("postgres://", "postgresql://", 1)
-
     logger.info(f"Full Database DSN: {dsn_url}")
     logger.info(
         f"Database URL: {dsn_url.split('@')[1] if '@' in dsn_url else 'unknown'}"
     )
+
+    # SQLiteの場合は待機をスキップ
+    if dsn_url.startswith("sqlite"):
+        logger.info("✅ Using SQLite database (no connection wait required)")
+        sys.stdout.flush()
+        return True
+
     logger.info("⏳ Waiting for database connection...")
     sys.stdout.flush()
+
+    # psycopg3用に変換 (psycopg.connectはpostgresql+psycopg://も解釈できるため、ここでは不要)
+    # if dsn_url.startswith("postgres://"):
+    #     dsn_url = dsn_url.replace("postgres://", "postgresql://", 1)
 
     # DSN URLをパースしてキーワード引数に変換
     parsed_url = urlparse(dsn_url)
@@ -85,6 +92,10 @@ def get_current_db_state():
     try:
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
+            return None, None
+
+        # SQLiteの場合はスキップ
+        if database_url.startswith("sqlite"):
             return None, None
 
         if database_url.startswith("postgres://"):
@@ -147,6 +158,12 @@ def fix_multiple_alembic_heads():
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
             return False
+
+        # SQLiteの場合はスキップ
+        if database_url.startswith("sqlite"):
+            logger.info("SQLite database detected, skipping alembic heads fix")
+            sys.stdout.flush()
+            return True
 
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -214,16 +231,22 @@ def fix_multiple_alembic_heads():
 def fix_alembic_version_if_needed():
     """存在しないリビジョンエラーの場合、初期リビジョンを設定してマイグレーション実行"""
     try:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            return
+
+        # SQLiteの場合はスキップ
+        if database_url.startswith("sqlite"):
+            logger.info("SQLite database detected, skipping alembic version fix")
+            sys.stdout.flush()
+            return
+
         tables_exist, current_version = get_current_db_state()
 
         logger.info("📊 Current DB state:")
         logger.info(f"   - Tables exist: {tables_exist}")
         logger.info(f"   - Current version: {current_version}")
         sys.stdout.flush()
-
-        database_url = os.getenv("DATABASE_URL")
-        if not database_url:
-            return
 
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
