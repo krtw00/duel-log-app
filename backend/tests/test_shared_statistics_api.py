@@ -181,17 +181,17 @@ def mock_statistics_service(mocker):
 
     def test_delete_shared_statistics_link_nonexistent(self, authenticated_client):
         """存在しない共有リンクの削除テスト"""
-        response = authenticated_client.delete(
+        _response = authenticated_client.delete(
             "/shared-statistics/nonexistent_share_id"
         )
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert _response.status_code == status.HTTP_404_NOT_FOUND
         assert (
             "共有リンクが見つからないか、削除する権限がありません"
-            in response.json()["detail"]
+            in _response.json()["detail"]
         )
 
     def test_delete_shared_statistics_link_unauthorized_user(
-        self, authenticated_client, client, mock_statistics_service_data
+        self, authenticated_client, client, _mock_statistics_service_data
     ):
         """別ユーザーによる共有リンク削除テスト"""
         current_year = datetime.now(timezone.utc).year
