@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/krtw00/duel-log-app/compare/v1.0.2...v1.0.3) (2025-11-07)
+
+
+### 📝 Documentation
+
+* GitHub通知設定ガイドを追加 ([808ea33](https://github.com/krtw00/duel-log-app/commit/808ea3353e20f9499356c1b4ff3bbf33aa04469a))
+
 ## [1.0.2](https://github.com/krtw00/duel-log-app/compare/v1.0.1...v1.0.2) (2025-11-07)
 
 
