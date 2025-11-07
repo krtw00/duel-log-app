@@ -5,13 +5,13 @@
 
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import desc, extract, func
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
 from app.models.duel import Duel
-from app.utils.query_builders import apply_range_filter, build_base_duels_query
 from app.utils.datetime_utils import month_range_utc
+from app.utils.query_builders import apply_range_filter, build_base_duels_query
 
 
 class DeckDistributionService:

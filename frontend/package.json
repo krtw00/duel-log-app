@@ -9,6 +9,9 @@
     "preview": "vite preview",
     "test": "node --experimental-detect-module node_modules/vitest/vitest.mjs",
     "test:unit": "node node_modules/vitest/vitest.mjs run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
     "lint": "eslint .",
     "format": "prettier --write src/"
   },
@@ -25,6 +28,7 @@
   },
   "devDependencies": {
     "@pinia/testing": "^1.0.2",
+    "@playwright/test": "^1.48.0",
     "@types/node": "^24.6.2",
     "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.46.0",
