@@ -300,9 +300,53 @@ GitHub Actionsのログでカバレッジを確認：
 
 ---
 
+## 🔒 CodeQLセキュリティ分析
+
+CodeQLは自動的にセキュリティ脆弱性を検出します。
+
+### 日本語化された機能
+
+- ✅ ワークフローのステップ名が日本語
+- ✅ PR作成時に日本語でセキュリティ分析結果をコメント
+- ✅ 重要度別（重大/高/中/低）に分類されたサマリー
+
+### 結果の確認方法
+
+1. **PRコメント**: PR作成時に自動的に日本語でサマリーが投稿されます
+2. **Securityタブ**: 詳細な分析結果は [Security → Code scanning alerts] で確認
+
+### スケジュール
+
+- PRごとに自動実行
+- 毎週月曜日 18:00 JST に定期スキャン
+
+---
+
+## 🤖 GitHub Copilot for Pull Requests
+
+GitHub Copilot for Pull Requestsは、AIがPRの説明を自動生成する機能です。
+
+### 有効化方法
+
+1. GitHubリポジトリの Settings → Copilot に移動
+2. "Pull request summaries" を有効化
+3. 言語設定を日本語に変更（GitHubプロフィール設定）
+
+### 機能
+
+- PRタイトルと説明の自動生成
+- 変更内容の要約
+- コードレビューの補助
+
+**注**: この機能を使用するには、GitHub Copilot サブスクリプションが必要です。
+
+---
+
 ## 📚 参考資料
 
 - [Conventional Commits](https://www.conventionalcommits.org/ja/v1.0.0/)
 - [GitHub Actions ドキュメント](https://docs.github.com/ja/actions)
 - [Semantic Release](https://semantic-release.gitbook.io/)
 - [Playwright ドキュメント](https://playwright.dev/)
+- [CodeQL ドキュメント](https://codeql.github.com/docs/)
+- [GitHub Copilot](https://docs.github.com/ja/copilot)
