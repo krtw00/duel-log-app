@@ -1,0 +1,83 @@
+name: Docker Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # 手動実行も可能
+  workflow_dispatch:
+
+jobs:
+  docker-test:
+    name: Test with Docker Compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create .env file for Docker Compose
+        run: |
+          cat > .env << EOF
+          # Database configuration
+          POSTGRES_USER=user
+          POSTGRES_PASSWORD=password
+          POSTGRES_DB=duel_log_db
+
+          # Backend configuration
+          DATABASE_URL=postgresql://user:password@db:5432/duel_log_db
+          SECRET_KEY=test_secret_key_for_docker_testing_only_1234567890
+          ENVIRONMENT=development
+          FRONTEND_URL=http://localhost:5173
+          RESEND_API_KEY=testing
+          DEBUG=true
+          EOF
+
+      - name: Build Docker images
+        run: docker compose build
+        env:
+          DOCKER_BUILDKIT: 1
+          COMPOSE_DOCKER_CLI_BUILD: 1
+
+      - name: Start services with Docker Compose
+        run: docker compose up -d
+
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for database..."
+          timeout 60 bash -c 'until docker compose exec -T db pg_isready -U user; do sleep 2; done'
+
+          echo "Waiting for backend..."
+          timeout 120 bash -c 'until curl -f http://localhost:8000/health 2>/dev/null; do sleep 2; done'
+
+          echo "Waiting for frontend..."
+          timeout 60 bash -c 'until curl -f http://localhost:5173 2>/dev/null; do sleep 2; done'
+
+      - name: Run backend tests in Docker
+        run: |
+          docker compose exec -T backend pytest tests/ -v
+        continue-on-error: false
+
+      - name: Check service logs on failure
+        if: failure()
+        run: |
+          echo "=== Backend Logs ==="
+          docker compose logs backend
+          echo "=== Database Logs ==="
+          docker compose logs db
+          echo "=== Frontend Logs ==="
+          docker compose logs frontend
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
+
+      - name: Cleanup Docker resources
+        if: always()
+        run: |
+          docker system prune -af --volumes
