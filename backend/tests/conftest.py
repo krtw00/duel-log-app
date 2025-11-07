@@ -2,17 +2,17 @@
 テスト用の共通フィクスチャ
 """
 
+import os
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
-import os
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from unittest.mock import patch, MagicMock
 
 from app.api.deps import get_current_user
-from app.core.security import get_password_hash
 from app.core.config import settings
+from app.core.security import get_password_hash
 from app.db.session import Base, get_db
 from app.main import app
 from app.models.user import User
@@ -22,9 +22,22 @@ TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", settings.DATABASE_URL)
 
 SQLALCHEMY_DATABASE_URL = TEST_DATABASE_URL
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# DATABASE_URLをpsycopg3用に変換（PostgreSQLの場合）
+if SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
+        "postgresql://", "postgresql+psycopg://", 1
+    )
+elif SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
+        "postgres://", "postgresql+psycopg://", 1
+    )
+
+# connect_argsはSQLiteの場合のみ設定
+connect_args = {}
+if "sqlite" in SQLALCHEMY_DATABASE_URL:
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

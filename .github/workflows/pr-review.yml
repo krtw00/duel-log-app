@@ -1,0 +1,145 @@
+name: PR Auto Review
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    name: Automated PR Review
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+
+      - name: Check PR size
+        run: |
+          FILES_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)
+          LINES_CHANGED=$(git diff --stat origin/${{ github.base_ref }}...HEAD | tail -1 | awk '{print $4+$6}')
+
+          echo "変更ファイル数: $FILES_CHANGED"
+          echo "変更行数: $LINES_CHANGED"
+
+          if [ "$FILES_CHANGED" -gt 50 ]; then
+            echo "::warning::このPRは50個以上のファイルを変更しています。レビューしやすくするため、複数のPRに分割することを検討してください。"
+          fi
+
+          if [ "$LINES_CHANGED" -gt 1000 ]; then
+            echo "::warning::このPRは1000行以上を変更しています。レビューしやすくするため、複数のPRに分割することを検討してください。"
+          fi
+
+      - name: Check for TODO comments
+        run: |
+          TODO_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD | grep -E "^\+.*TODO|^\+.*FIXME|^\+.*XXX" | wc -l || true)
+          if [ "$TODO_COUNT" -gt 0 ]; then
+            echo "::warning::このPRに${TODO_COUNT}個の新しいTODO/FIXME/XXXコメントが見つかりました"
+          fi
+
+      - name: Check for console.log in frontend
+        run: |
+          CONSOLE_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD -- frontend/ | grep -E "^\+.*console\.(log|debug|info|warn|error)" | wc -l || true)
+          if [ "$CONSOLE_COUNT" -gt 0 ]; then
+            echo "::warning::フロントエンドコードに${CONSOLE_COUNT}個の新しいconsole.log文が見つかりました"
+          fi
+
+      - name: Check for print statements in backend
+        run: |
+          PRINT_COUNT=$(git diff origin/${{ github.base_ref }}...HEAD -- backend/ | grep -E "^\+.*print\(" | wc -l || true)
+          if [ "$PRINT_COUNT" -gt 0 ]; then
+            echo "::warning::バックエンドコードに${PRINT_COUNT}個の新しいprint()文が見つかりました。適切なロギングの使用を検討してください。"
+          fi
+
+      - name: Check for missing tests
+        run: |
+          # バックエンドの変更をチェック
+          BACKEND_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- backend/app/ | grep -v __pycache__ | wc -l || true)
+          BACKEND_TEST_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- backend/tests/ | wc -l || true)
+
+          # フロントエンドの変更をチェック
+          FRONTEND_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- frontend/src/ | grep -E '\.(ts|vue)$' | wc -l || true)
+          FRONTEND_TEST_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- frontend/ | grep -E '\.spec\.(ts|js)$|\.test\.(ts|js)$' | wc -l || true)
+
+          if [ "$BACKEND_FILES" -gt 0 ] && [ "$BACKEND_TEST_FILES" -eq 0 ]; then
+            echo "::warning::バックエンドコードが変更されましたが、テストファイルは変更されていません。テストの追加を検討してください。"
+          fi
+
+          if [ "$FRONTEND_FILES" -gt 0 ] && [ "$FRONTEND_TEST_FILES" -eq 0 ]; then
+            echo "::warning::フロントエンドコードが変更されましたが、テストファイルは変更されていません。テストの追加を検討してください。"
+          fi
+
+      - name: Comment PR with review summary
+        uses: actions/github-script@v7
+        continue-on-error: true
+        if: always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('自動PRレビュー')
+            );
+
+            const body = `## 🤖 自動PRレビュー
+
+            ✅ PRタイトル形式チェック完了
+            ✅ PRサイズ分析完了
+            ✅ コード品質チェック完了
+
+            上記の警告がある場合は、必要に応じて対応してください。
+
+            *これは自動レビューです。人間によるレビューも必要です。*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

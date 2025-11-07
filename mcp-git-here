@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+UVX="$(command -v uvx)"
+exec "$UVX" mcp-server-git --repository "$PWD"
