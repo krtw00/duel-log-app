@@ -1,338 +1,361 @@
-# Duel Log App — コーディング規約まとめ
+# Duel Log App コーディング規約
 
-## 1. 言語別フォーマッタ・リンター・型
+## 1. 言語別フォーマッター・リンター・型チェック
 
-### バックエンド (Python 3.11+)
+### Python (バックエンド)
 
-| 項目 | ツール | 設定ファイル | コマンド |
-|------|--------|------------|---------|
-| **フォーマッター** | Black | `backend/pyproject.toml` | `black .` |
-| **リンター** | Ruff | `backend/pyproject.toml` | `ruff check . --fix` |
-| **型チェック** | 推奨（Mypy等） | — | （手動実行） |
+| ツール | 役割 | 設定ファイル | 主な設定 |
+|--------|------|------------|---------|
+| **Black** | コードフォーマット | `backend/pyproject.toml` | 行長 88字 |
+| **Ruff** | リンター＆フォーマッター | `backend/pyproject.toml` | E, W, F, I, C, B ルール有効 |
+| **mypy** | 型チェック | なし（軽量実行） | `--ignore-missing-imports --no-strict-optional` |
 
-**設定詳細:**
-- 行長: **88文字**
-- Python対象: py311+
-- Ruff選択ルール: `E, W, F, I, C, B`（除外: E501, B008, C901）
+**実行コマンド:**
+```bash
+# 自動修正を含めたリンティング
+ruff check . --fix
 
-### フロントエンド (TypeScript / Vue 3)
+# フォーマット
+black .
 
-| 項目 | ツール | 設定ファイル | コマンド |
-|------|--------|------------|---------|
-| **フォーマッター** | Prettier | `frontend/.prettierrc` | `npm run format` |
-| **リンター** | ESLint | `frontend/eslint.config.js` | `npm run lint` |
-| **型チェック** | TypeScript + vue-tsc | `frontend/tsconfig.json` | `npx vue-tsc --noEmit` |
+# 型チェック
+mypy backend/app --ignore-missing-imports --no-strict-optional
+```
 
-**設定詳細:**
-- 行長: **100文字**
-- 引用符: **シングルクォート** (`'`)
-- 末尾カンマ: **常に付与** (`all`)
-- JSDoc: 関数・クラス・メソッドに `@param`, `@returns` の記載を推奨
+### TypeScript / Vue (フロントエンド)
+
+| ツール | 役割 | 設定ファイル | 主な設定 |
+|--------|------|------------|---------|
+| **Prettier** | コードフォーマッター | `frontend/.prettierrc` | シングルクォート、行長 100字 |
+| **ESLint** | リンター | `frontend/eslint.config.js` | Vue 3 + TypeScript 対応 |
+| **TypeScript** | 型チェック | `frontend/tsconfig.json` | strict モード有効 |
+
+**実行コマンド:**
+```bash
+# リンティング
+npm run lint --prefix frontend
+
+# フォーマット
+npm run format --prefix frontend
+
+# 型チェック
+npm run build --prefix frontend
+```
 
 ---
 
 ## 2. 命名規則
 
-**プロジェクト全体の方針:** `snake_case` への段階的な統一
-
 ### Python (バックエンド)
 
-| 対象 | 規則 | 例 |
-|------|------|-----|
-| **モジュール・ファイル** | `snake_case` | `deck_service.py`, `user_model.py` |
-| **関数・メソッド** | `snake_case` | `get_user_duels()`, `calculate_win_rate()` |
-| **変数** | `snake_case` | `user_id`, `deck_name`, `total_wins` |
-| **クラス** | `PascalCase` | `DeckService`, `User`, `Duel` |
-| **定数** | `UPPER_SNAKE_CASE` | `MAX_DUEL_RECORDS`, `DEFAULT_TIMEOUT` |
-| **プライベート属性** | `_snake_case` | `_db_session` |
+| 対象 | ケース | 例 |
+|------|--------|-----|
+| モジュール・ファイル | `snake_case` | `deck_service.py` |
+| 関数・変数 | `snake_case` | `get_user_duels()`, `user_id` |
+| クラス | `PascalCase` | `DeckService`, `User` |
+| 定数 | `UPPER_SNAKE_CASE` | `MAX_DUEL_RECORDS` |
+
+**アンチパターン:**
+```python
+# ❌ camelCase 関数名は使用禁止
+def getUserDuels():
+    pass
+
+# ✅ snake_case を使用
+def get_user_duels():
+    pass
+```
 
 ### TypeScript / Vue (フロントエンド)
 
-| 対象 | 規則 | 例 |
-|------|------|-----|
-| **ファイル名** | `snake_case` | `use_duel_form.ts`, `duel_store.ts` |
-| **関数・変数** | `snake_case` | `fetch_statistics()`, `duel_data` |
-| **コンポーネント** | `PascalCase.vue` | `DuelFormDialog.vue`, `StatisticsChart.vue` |
-| **型・インターフェース** | `PascalCase` | `DuelStats`, `MatchupData`, `UserProfile` |
-| **定数** | `UPPER_SNAKE_CASE` | `MAX_PAGE_SIZE`, `DEFAULT_PERIOD_TYPE` |
-| **プライベート** | `_snake_case` | `_internal_cache` |
+| 対象 | ケース | 例 |
+|------|--------|-----|
+| ファイル・関数・変数 | `snake_case` | `use_duel_form.ts`, `fetch_statistics()` |
+| Vue コンポーネント | `PascalCase.vue` | `DuelFormDialog.vue` |
+| 型・インターフェース | `PascalCase` | `DuelStats`, `MatchupData` |
 
-**移行戦略:** 既存の `camelCase` コードは機能追加時に段階的に `snake_case` へ置き換え
+**アンチパターン:**
+```typescript
+// ❌ camelCase ファイル名は使用禁止
+// featureName.vue (古い習慣)
+
+// ✅ snake_case ファイル名を使用
+// feature_name.vue
+
+// ❌ camelCase 関数は使用禁止
+function fetchUserData() {}
+
+// ✅ snake_case 関数を使用
+function fetch_user_data() {}
+```
 
 ---
 
 ## 3. 例外処理
 
-### バックエンド (Python / FastAPI)
+### バックエンド (FastAPI)
 
-**原則:**
-1. **具体的な例外から実装** — 広い例外クラスは避ける
-2. **Pydantic例外を活用** — バリデーションエラーは自動処理
-3. **FastAPI例外ハンドラ** — グローバルハンドラで統一応答
-
-**例:**
+**カスタム例外の使用:**
 ```python
-from fastapi import HTTPException, status
-from pydantic import ValidationError
+from app.core.exceptions import AppException
 
-# Bad
-try:
-    result = service.get_user(user_id)
-except Exception:
-    raise HTTPException(status_code=500)
+# ✅ 既知のエラーはカスタム例外で対応
+if not deck:
+    raise AppException(
+        detail="デッキが見つかりません",
+        status_code=404
+    )
 
-# Good
-try:
-    result = service.get_user(user_id)
-except UserNotFoundError:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="User not found"
-    )
-except ValueError as e:
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail=str(e)
-    )
+# ❌ 汎用の Exception は使用禁止
+# raise Exception("An error occurred")
 ```
 
-### フロントエンド (Vue / TypeScript)
+**例外ハンドラの自動処理:**
+- `400 Bad Request`: バリデーションエラー（Pydantic）
+- `401 Unauthorized`: 認証トークン無効
+- `403 Forbidden`: 権限不足
+- `404 Not Found`: リソース存在しない
+- `422 Unprocessable Entity`: スキーマバリデーション失敗
+- `500 Internal Server Error`: 予期しないエラー
 
-**原則:**
-1. **型安全性を優先** — 例外より戻り値型で表現（Result型パターン推奨）
-2. **ユーザーに見える例外のみキャッチ** — 開発者ツール向けはコンソール出力
-3. **API呼び出し時のエラーはインターセプターで処理**
+詳細は `docs/error-handling.md` を参照。
 
-**例:**
+### フロントエンド (Vue)
+
+**API エラーハンドリング:**
 ```typescript
-// Bad
-try {
-  const data = await api.fetchDuels();
-  console.log(data);
-} catch (e) {
-  alert('Error');
-}
+// ✅ Axios インターセプターで自動処理
+// - 401: ログイン画面へリダイレクト
+// - 5xx: トースト通知で表示
 
-// Good
-try {
-  const data = await api.fetchDuels();
-  return { success: true, data };
-} catch (error) {
-  if (error instanceof AxiosError && error.response?.status === 401) {
-    authStore.logout();
-  }
-  return { success: false, error: error.message };
+// ローカルなバリデーションエラー：
+if (!isValidEmail(email)) {
+  errors.email = 'Invalid email format'
 }
 ```
 
 ---
 
-## 4. 依存関係管理方針
+## 4. 依存管理方針
 
 ### バックエンド
 
-- **パッケージマネージャ:** pip / `requirements.txt`
-- **ロック機構:** `docker-compose` で統一環境（バージョン固定）
-- **メジャーバージョン更新:** チーム協議後、`alembic` マイグレーション検証
+- **ロック管理**: `requirements.txt` で固定バージョンを指定
+- **セキュリティ**: `safety` でセキュリティ脆弱性をスキャン
+- **依存削減**: 不要な依存は即座に削除
+- **メジャーバージョン更新**: 事前テスト・リリースノート確認が必須
 
-**主要依存:**
-- `fastapi` (最新安定版)
-- `sqlalchemy 2.0+` (型安全性のため)
-- `pydantic v2` (バリデーション)
-- `pytest` (テスト)
+**例外処理:**
+```bash
+# 依存のアップデート
+pip install --upgrade <package-name>
+
+# セキュリティチェック
+safety check
+```
 
 ### フロントエンド
 
-- **パッケージマネージャ:** npm / `package-lock.json`
-- **更新ポリシー:** 月1回程度のセキュリティ更新
-- **破壊的変更:** メジャーバージョンは慎重に検討
-
-**主要依存:**
-- `vue 3.x` (Composition API)
-- `typescript 5.x+`
-- `vitest` (テスト)
-- `vuetify 3.x` (UI)
-- `pinia` (状態管理)
+- **ロック管理**: `package-lock.json` で固定バージョンを指定
+- **監査**: `npm audit` でセキュリティ脆弱性をスキャン
+- **Dependabot**: 自動更新 PR はレビュー後にマージ
 
 ---
 
 ## 5. テスト方針
 
-### バックエンド (Pytest)
+### テスト必須の場面
 
-**ファイル構成:**
-```
-backend/tests/
-├── test_auth.py
-├── test_deck_service.py
-├── test_statistics_api.py
-└── ...
-```
+| 対象 | テスト種別 | 最小カバレッジ |
+|------|-----------|-------------|
+| ビジネスロジック（サービス層） | ユニット | 80% |
+| API エンドポイント | 統合 | すべてのパターン |
+| Vue コンポーネント | コンポーネント | 主要パス |
 
-**実行:**
+### テスト実行コマンド
+
+**バックエンド:**
 ```bash
-pytest                                    # 全テスト
-pytest --cov=app --cov-report=html       # カバレッジ付き
-pytest tests/test_auth.py::test_login    # 特定テスト
+# 全テスト実行（カバレッジ付き）
+pytest
+
+# 特定ファイルのみ
+pytest tests/test_deck_service.py
+
+# ウォッチモード
+pytest --watch
 ```
 
-**規約:**
-- テストファイル: `test_*.py`
-- テスト関数: `def test_*()`
-- テストクラス: `class Test*()`
-- **目標カバレッジ:** 80% 以上
-
-### フロントエンド (Vitest)
-
-**ファイル構成:**
-```
-frontend/src/
-├── components/
-│   ├── DuelForm.vue
-│   └── DuelForm.test.ts
-└── ...
-```
-
-**実行:**
+**フロントエンド:**
 ```bash
-npm run test              # 全テスト
-npm run test -- --ui      # UI表示
-npm run test:coverage     # カバレッジ
+# ユニットテスト
+npm run test:unit
+
+# ウォッチモード
+npm test
+
+# カバレッジ付き
+npm run test:unit -- --coverage
 ```
 
-**規約:**
-- テストファイル: `*.test.ts` / `*.spec.ts`
-- **目標カバレッジ:** 70% 以上（UI重点の場合は緩和可）
+### テスト記述例
+
+**Python (Pytest):**
+```python
+def test_create_deck_success(db_session, test_user):
+    """デッキ作成成功ケース"""
+    deck_in = DeckCreate(name="Fire Deck", is_opponent=False)
+    deck = deck_service.create_user_deck(db_session, test_user.id, deck_in)
+    
+    assert deck.name == "Fire Deck"
+    assert deck.user_id == test_user.id
+```
+
+**TypeScript (Vitest):**
+```typescript
+describe('DuelForm', () => {
+  it('should validate email format', () => {
+    const form = mount(DuelForm)
+    const input = form.find('input[type="email"]')
+    
+    input.setValue('invalid-email')
+    expect(form.vm.errors.email).toBeTruthy()
+  })
+})
+```
 
 ---
 
 ## 6. ドキュメント化
 
-### バックエンド (Python)
+### Python (バックエンド)
 
-**Docstring形式:** Googleスタイル
-
+**Docstring (Google スタイル):**
 ```python
-def calculate_win_rate(
-    total_wins: int,
-    total_losses: int,
-) -> float:
-    """
-    Calculate win rate from total wins and losses.
-
+def get_user_duels(
+    db: Session, user_id: int, limit: int = 100
+) -> List[Duel]:
+    """ユーザーの対戦履歴を取得します。
+    
     Args:
-        total_wins: Total number of wins.
-        total_losses: Total number of losses.
-
+        db: SQLAlchemy セッション
+        user_id: ユーザー ID
+        limit: 取得する対戦数（デフォルト: 100）
+    
     Returns:
-        Win rate as a decimal (0.0 to 1.0).
-
+        対戦履歴のリスト
+    
     Raises:
-        ValueError: If both wins and losses are zero.
+        ValueError: user_id が 0 以下の場合
     """
-    if total_wins + total_losses == 0:
-        raise ValueError("Cannot calculate rate with zero games")
-    return total_wins / (total_wins + total_losses)
+    if user_id <= 0:
+        raise ValueError("user_id must be positive")
+    return db.query(Duel).filter(Duel.user_id == user_id).limit(limit).all()
 ```
 
-### フロントエンド (TypeScript / Vue)
+### TypeScript / Vue (フロントエンド)
 
-**JSDoc形式:**
-
+**JSDoc:**
 ```typescript
 /**
- * Fetch duel statistics for a given user.
- *
- * @param userId - The ID of the user
- * @param periodType - The period type (monthly, recent, from_start)
- * @returns The duel statistics
- * @throws {AxiosError} If the API request fails
+ * ユーザーの対戦統計を取得します
+ * @param userId - ユーザーID
+ * @param period - 集計期間（'monthly' | 'recent' | 'all'）
+ * @returns 統計情報
+ * @throws APIError - サーバーエラー時
  */
-async function fetch_statistics(
-  userId: string,
-  periodType: 'monthly' | 'recent' | 'from_start',
-): Promise<StatisticsData> {
-  // ...
+export async function fetch_statistics(
+  userId: number,
+  period: 'monthly' | 'recent' | 'all'
+): Promise<Statistics> {
+  // 実装
 }
 ```
 
 ---
 
-## 7. Git・PR運用
+## 7. Git・PR 運用
+
+### コミットメッセージ (Conventional Commits)
+
+**フォーマット:** `<type>(<scope>): <subject>`
+
+```
+feat(backend): add CSV import functionality
+fix(frontend): correct login button styling
+docs(api): update endpoint documentation
+refactor(services): extract duplicate logic
+test(deck-service): add edge case tests
+chore(deps): bump ruff from 0.1.0 to 0.2.0
+```
+
+### PR チェックリスト
+
+- [ ] テストがすべてパスしている
+- [ ] 新規コードのテストが追加されている
+- [ ] コードがフォーマット・リンティングをパスしている
+- [ ] Docstring が記載されている（複雑な関数）
+- [ ] `CHANGELOG.md` が更新されている（機能追加時）
 
 ### ブランチ命名規則
 
-**形式:** `<type>/<issue-id>-<description>`
-
-| type | 用途 | 例 |
-|------|------|-----|
-| `feature` | 新機能 | `feature/GH-456-add-user-profile` |
-| `fix` | バグ修正 | `fix/GH-123-login-error` |
-| `hotfix` | 緊急修正（main から分岐） | `hotfix/GH-999-security-patch` |
-| `refactor` | リファクタリング | `refactor/extract-common-logic` |
-| `docs` | ドキュメント | `docs/update-deployment-guide` |
-| `chore` | 依存更新・ツール変更 | `chore/upgrade-dependencies` |
-
-### コミットメッセージ
-
-**形式:** `<type>(<scope>): <subject>`
-
 ```
-feat(api): add user statistics endpoint
-fix(frontend): correct login button styling
-docs(readme): update setup instructions
-refactor(services): extract common validation logic
-test(backend): add test for deck calculation
-chore(deps): upgrade sqlalchemy to 2.0.24
+feature/GH-123-add-user-profile
+fix/GH-456-correct-login-error
+refactor/extract-common-utilities
+docs/update-deployment-guide
 ```
-
-### PR プロセス
-
-1. **ブランチ作成:** `develop` から機能ブランチを作成
-2. **開発・コミット:** Conventional Commits に従う
-3. **pre-commit フック実行:** 自動でフォーマット・リンティング
-4. **PR作成:** `develop` へのプルリクエスト
-5. **レビュー・CI:** テスト・リンティング通過を確認
-6. **マージ:** Squash or Merge（慣例に従う）
-7. **リリース:** `develop` → `main` へのPR（セマンティックバージョニング）
 
 ---
 
-## 8. 禁止事項・アンチパターン
+## 8. 禁止事項
 
-### 共通
+### 全言語共通
 
-| ❌ 禁止 | ✅ 代替案 |
-|--------|---------|
-| ハードコード化された設定値 | 環境変数 (`.env`) または定数 |
-| グローバル状態の直接操作 | 状態管理パターン (Pinia / サービス層) |
-| 広い except 句 (`except:`) | 具体的な例外クラスの指定 |
-| 関数の副作用（隠れた状態変更） | 純粋関数・明示的な戻り値 |
+- ❌ コミット履歴の改変（`--force-push`）
+- ❌ 本番データベースに対する直接クエリ実行
+- ❌ API キー・シークレットをコミット
+- ❌ `console.log()` / `print()` をプロダクションコードに残す
+- ❌ TODO コメントを残したままマージ（テストコードは除く）
 
-### バックエンド (Python)
+### Python
 
-| ❌ 禁止 | ✅ 代替案 |
-|--------|---------|
-| SQLクエリの文字列連結 | SQLAlchemy ORM / パラメータバインド |
-| `datetime.now()` の直接使用 | `datetime.now(timezone.utc)` |
-| インポート時の副作用 | 遅延ロード・ファクトリパターン |
-| 複数の責務を持つ関数 | 単一責務で関数分割 |
+- ❌ ワイルドカード import（`from module import *`）
+- ❌ `exec()` / `eval()` の使用
+- ❌ 大域変数の変更
 
-### フロントエンド (Vue / TypeScript)
+### TypeScript / Vue
 
-| ❌ 禁止 | ✅ 代替案 |
-|--------|---------|
-| 任意の `any` 型 | `unknown` → 型絞り込み |
-| グローバルスコープへのアクセス | Piniaストア・Props |
-| 直接DOM操作 (`document.querySelector`) | Vue Template参照 / `ref` |
-| Magic Number・String | 名前付き定数 |
+- ❌ `any` 型の使用（`unknown` で型安全を確保）
+- ❌ 副作用のある computed プロパティ
+- ❌ 非同期処理の await 忘れ
 
 ---
 
-## 参考資料
+## 9. pre-commit hooks
 
-- **開発ガイド:** `docs/development-guide.md`
-- **コーディング規約詳細:** `docs/coding-conventions.md`
-- **Pre-commit設定:** `.pre-commit-config.yaml`
-- **バックエンド設定:** `backend/pyproject.toml`
-- **フロントエンド設定:** `frontend/eslint.config.js`, `frontend/.prettierrc`
+本プロジェクトではコミット時に自動チェックが実行されます。
+
+**有効なフック:**
+- Black・Ruff (Python コード)
+- Prettier (フロントエンド)
+- ファイル末尾の改行・空白削除
+- YAML/JSON 構文チェック
+
+**セットアップ:**
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+すべてのチェックをパスしない限り、コミットはブロックされます。
+
+---
+
+## 10. 参考リンク
+
+- [Conventional Commits](https://www.conventionalcommits.org/ja/)
+- [PEP 8 (Python Style Guide)](https://pep8-ja.readthedocs.io/)
+- [Vue.js Style Guide](https://ja.vuejs.org/style-guide/)
+- [error-handling.md](./error-handling.md) - エラーハンドリング設計
+- [development-guide.md](./development-guide.md) - 開発プロセス全般
