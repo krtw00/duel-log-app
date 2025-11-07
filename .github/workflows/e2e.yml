@@ -45,7 +45,7 @@ jobs:
           cd backend
           python start.py &
           # Wait for backend to be ready
-          timeout 60 bash -c 'until curl -f http://localhost:8000/api/health 2>/dev/null; do sleep 2; done'
+          timeout 60 bash -c 'until curl -f http://localhost:8000/health 2>/dev/null; do sleep 2; done'
         env:
           DATABASE_URL: "sqlite:///./test.db"
           SECRET_KEY: "test_secret_key_for_e2e_testing_only"
