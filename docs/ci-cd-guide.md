@@ -324,21 +324,60 @@ CodeQLは自動的にセキュリティ脆弱性を検出します。
 
 ## 🤖 GitHub Copilot for Pull Requests
 
-GitHub Copilot for Pull Requestsは、AIがPRの説明を自動生成する機能です。
+GitHub CopilotのPR機能には、PRサマリー生成と自動レビューの2つがあります。
 
-### 有効化方法
+### 1. PRサマリー生成（手動）
 
-1. GitHubリポジトリの Settings → Copilot に移動
-2. "Pull request summaries" を有効化
-3. 言語設定を日本語に変更（GitHubプロフィール設定）
+**使用方法**:
+1. GitHubでPRを作成
+2. "Add a description"フィールドで **Copilot** → **Summary** をクリック
+3. 自動的に変更内容のサマリーが生成されます
 
-### 機能
+### 2. 自動レビュー機能
 
-- PRタイトルと説明の自動生成
-- 変更内容の要約
-- コードレビューの補助
+**有効化方法**:
+1. リポジトリの **Settings → Rules → Rulesets** に移動
+2. 新しいRulesetを作成または既存のものを編集
+3. **"Request pull request review from Copilot"** を有効化
 
-**注**: この機能を使用するには、GitHub Copilot サブスクリプションが必要です。
+### 日本語化の設定
+
+PR作成時に日本語でレビューしてもらうには、以下のいずれかの方法を使用：
+
+#### 方法1: PULL_REQUEST_TEMPLATE.md を作成
+
+`.github/PULL_REQUEST_TEMPLATE.md` を作成し、以下を追加：
+
+```markdown
+<!-- I want to review in Japanese. -->
+
+## 変更内容
+
+
+## テスト
+
+
+<!-- I want to review in Japanese. -->
+```
+
+#### 方法2: VS Code設定（個人用）
+
+VS Codeの `settings.json` に追加：
+
+```json
+{
+  "github.copilot.chat.pullRequestDescriptionGeneration.instructions": "日本語で説明を生成してください"
+}
+```
+
+### 必要条件
+
+- **GitHub Copilot Individual** または **GitHub Copilot Business** サブスクリプション
+- 自動レビュー機能は **GitHub Copilot Enterprise** が必要な場合があります
+
+### 注意事項
+
+2025年9月にテキスト補完機能が廃止されたため、現在は上記の方法でサマリー生成とレビューを利用します。
 
 ---
 
