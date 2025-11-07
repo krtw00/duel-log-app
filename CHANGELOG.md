@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/krtw00/duel-log-app/compare/v1.0.1...v1.0.2) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* **security:** CodeQLセキュリティアラート4件を修正 ([3b0cdb2](https://github.com/krtw00/duel-log-app/commit/3b0cdb2c3e9b74d26abaeb03d95e4d282520b787))
+
 ## [1.0.1](https://github.com/krtw00/duel-log-app/compare/v1.0.0...v1.0.1) (2025-11-07)
 
 
