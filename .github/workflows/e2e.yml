@@ -73,7 +73,7 @@ jobs:
         run: npm run build
         working-directory: frontend
         env:
-          VITE_API_URL: "http://localhost:8000"
+          VITE_API_URL: "http://127.0.0.1:8000"
 
       - name: Start backend server
         run: |
@@ -95,7 +95,7 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:4173 2>/dev/null; do sleep 2; done'
         working-directory: frontend
         env:
-          VITE_API_URL: "http://localhost:8000"
+          VITE_API_URL: "http://127.0.0.1:8000"
 
       - name: Run Playwright tests
         run: npx playwright test
