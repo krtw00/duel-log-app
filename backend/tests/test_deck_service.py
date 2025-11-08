@@ -161,7 +161,9 @@ class TestDeckService:
         )
 
         # 論理削除
-        delete_result = deck_service.delete(db_session, original_deck.id, user_id=test_user.id)
+        delete_result = deck_service.delete(
+            db_session, original_deck.id, user_id=test_user.id
+        )
         assert delete_result
 
         # 同名デッキを再作成

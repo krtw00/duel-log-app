@@ -343,7 +343,8 @@ def run_migrations():
 
         try:
             # SQLAlchemyのメタデータからテーブルを作成
-            from app.db.session import Base, engine
+            from app.db.session import engine
+            from app.models import Base
 
             Base.metadata.create_all(bind=engine)
             logger.info("✅ Tables created successfully from models!")
