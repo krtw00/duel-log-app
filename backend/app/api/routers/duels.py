@@ -37,7 +37,8 @@ def export_duels_csv(
 
     logger = logging.getLogger(__name__)
     # ログインジェクション対策: ユーザー入力をログに直接出力しない
-    logger.info(f"Exporting CSV with columns (count: {len(columns.split(',')) if columns else 0})")
+    column_count = len(columns.split(',')) if columns else 0
+    logger.info(f"Exporting CSV with columns (count: {column_count})")
 
     try:
         column_list = columns.split(",") if columns else None
@@ -320,26 +321,26 @@ def import_duels_csv(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="CSVファイルのエンコーディングが無効です。UTF-8形式のファイルをアップロードしてください",
         ) from e
-    except ValueError as e:
+    except ValueError:
         # CSVフォーマットエラー（不正な値、欠損値など）
         import logging
 
-        logging.getLogger(__name__).warning(f"CSV import validation error: {type(e).__name__}")
-        # スタックトレース露出を防ぐため、from e を削除
+        logging.getLogger(__name__).warning("CSV import validation error")
+        # スタックトレース露出を防ぐため、from None を使用
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="CSVファイルのフォーマットが無効です。フォーマットを確認してください",
-        )
-    except KeyError as e:
+        ) from None
+    except KeyError:
         # 必須カラムの欠如
         import logging
 
-        logging.getLogger(__name__).warning(f"CSV import missing column")
-        # スタックトレース露出を防ぐため、エラー詳細を含めない
+        logging.getLogger(__name__).warning("CSV import missing column")
+        # スタックトレース露出を防ぐため、from None を使用
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="CSVファイルに必須カラムが含まれていません",
-        )
+        ) from None
     except Exception as e:
         # 予期しないエラー（詳細はログのみに記録）
         import logging
