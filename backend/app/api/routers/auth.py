@@ -90,7 +90,9 @@ def login(
     email_hash = hash(login_data.email) % (10**8)  # 簡易的なハッシュ値を表示
     logger.info(f"Login attempt for email hash: {email_hash}")
     logger.info(f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}")
-    logger.info(f"User-Agent: {user_agent or 'unknown'}")
+    # User-Agentはヘッダーから来るユーザー入力なので、長さのみをログ出力
+    user_agent_length = len(user_agent) if user_agent else 0
+    logger.info(f"User-Agent header length: {user_agent_length}")
 
     user = db.query(User).filter(User.email == login_data.email).first()
 
@@ -206,14 +208,13 @@ def logout(response: Response, user_agent: str | None = Header(None)):
         samesite_value = "lax"
         secure_value = True if is_production else False
         logger.info(
-            "Safari/iOS detected on logout - " "using SameSite=Lax for cookie deletion"
+            "Safari/iOS detected on logout - using SameSite=Lax for cookie deletion"
         )
     else:
         samesite_value = "none" if is_production else "lax"
         secure_value = is_production
         logger.info(
-            f"Non-Safari browser on logout - "
-            f"using SameSite={samesite_value} for cookie deletion"
+            "Non-Safari browser on logout - using SameSite policy for cookie deletion"
         )
 
     cookie_params = {
