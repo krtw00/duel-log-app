@@ -83,9 +83,11 @@ def login(
     is_production = settings.ENVIRONMENT == "production"
 
     # ログインジェクション対策: ユーザー入力をログに直接出力しない
-    email_hash = hash(login_data.email) % (10 ** 8)  # 簡易的なハッシュ値を表示
+    email_hash = hash(login_data.email) % (10**8)  # 簡易的なハッシュ値を表示
     logger.info(f"Login attempt for email hash: {email_hash}")
-    logger.info(f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}")
+    logger.info(
+        f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}"
+    )
     logger.info(f"User-Agent: {user_agent or 'unknown'}")
 
     user = db.query(User).filter(User.email == login_data.email).first()
@@ -136,9 +138,14 @@ def login(
     # Safari対応: productionの場合はdomainを明示的に設定しない（サブドメイン問題を回避）
     # これによりCookieは現在のドメインに対してのみ設定される
 
-    logger.info(
-        f"Setting cookie with params: samesite={cookie_params['samesite']}, secure={cookie_params['secure']}, httponly={cookie_params['httponly']}, path={cookie_params['path']}, max_age={cookie_params['max_age']}"
+    cookie_info = (
+        f"samesite={cookie_params['samesite']}, "
+        f"secure={cookie_params['secure']}, "
+        f"httponly={cookie_params['httponly']}, "
+        f"path={cookie_params['path']}, "
+        f"max_age={cookie_params['max_age']}"
     )
+    logger.info(f"Setting cookie with params: {cookie_info}")
 
     response.set_cookie(**cookie_params)
 
@@ -173,10 +180,12 @@ def login(
     # 2. OBS連携が必要な場合のみ、専用エンドポイントから取得
     # 3. localStorageではなくHttpOnlyクッキーを優先使用
     response_data["access_token"] = access_token
-    logger.warning(
+    warning_msg = (
         f"Login successful for user ID {user.id}. "
-        f"access_token included in response (security risk - consider using /auth/obs-token instead)."
+        "access_token included in response (security risk - "
+        "consider using /auth/obs-token instead)."
     )
+    logger.warning(warning_msg)
 
     return response_data
 
@@ -230,8 +239,10 @@ async def forgot_password(
     if not user:
         # セキュリティのため、ユーザーが存在しない場合でも成功したかのように振る舞う
         # ログインジェクション対策: ユーザー入力をログに直接出力しない
-        email_hash = hash(request.email) % (10 ** 8)
-        logger.info(f"Password reset requested for non-existent email hash: {email_hash}")
+        email_hash = hash(request.email) % (10**8)
+        logger.info(
+            f"Password reset requested for non-existent email hash: {email_hash}"
+        )
         return {"message": "パスワード再設定の案内をメールで送信しました。"}
 
     # 既存のトークンを無効化
@@ -273,12 +284,14 @@ async def forgot_password(
         }
         email = resend.Emails.send(params)
         logger.info(
-            f"Password reset email sent to user ID {user.id} via Resend. Email ID: {email['id']}"
+            f"Password reset email sent to user ID {user.id} via Resend. "
+            f"Email ID: {email['id']}"
         )
 
     except Exception as e:
         logger.error(
-            f"An unexpected error occurred while sending email to user ID {user.id}: {e}"
+            f"An unexpected error occurred while sending email to "
+            f"user ID {user.id}: {e}"
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -358,9 +371,7 @@ def get_obs_token(
     # 24時間有効のトークンを生成
     obs_token = create_access_token(data=token_data, expires_delta=timedelta(hours=24))
 
-    logger.info(
-        f"OBS token generated for user ID {current_user.id}"
-    )
+    logger.info(f"OBS token generated for user ID {current_user.id}")
 
     return {
         "obs_token": obs_token,
