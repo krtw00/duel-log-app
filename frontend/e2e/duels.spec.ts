@@ -167,6 +167,9 @@ test.describe('Duel Management', () => {
     const statsLink = page.getByRole('link', { name: /statistics|統計/i });
 
     if (await statsLink.isVisible({ timeout: 5000 }).catch(() => false)) {
+      // CI環境でスクロール外の要素がクリックできない場合に対応
+      await statsLink.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
       await statsLink.click();
       await expect(page).toHaveURL('/statistics');
 
@@ -204,6 +207,9 @@ test.describe('Dashboard Navigation', () => {
     // デッキページへの移動
     const decksLink = page.getByRole('link', { name: /decks|デッキ/i });
     if (await decksLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+      // CI環境でスクロール外の要素がクリックできない場合に対応
+      await decksLink.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
       await decksLink.click();
       await expect(page).toHaveURL('/decks');
     }
@@ -211,6 +217,9 @@ test.describe('Dashboard Navigation', () => {
     // 統計ページへの移動
     const statsLink = page.getByRole('link', { name: /statistics|統計/i });
     if (await statsLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+      // CI環境でスクロール外の要素がクリックできない場合に対応
+      await statsLink.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
       await statsLink.click();
       await expect(page).toHaveURL('/statistics');
     }
@@ -218,6 +227,9 @@ test.describe('Dashboard Navigation', () => {
     // プロフィールページへの移動
     const profileLink = page.getByRole('link', { name: /profile|プロフィール/i });
     if (await profileLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+      // CI環境でスクロール外の要素がクリックできない場合に対応
+      await profileLink.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
       await profileLink.click();
       await expect(page).toHaveURL('/profile');
     }
@@ -227,6 +239,9 @@ test.describe('Dashboard Navigation', () => {
       name: /dashboard|ダッシュボード|home|ホーム/i,
     });
     if (await dashboardLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+      // CI環境でスクロール外の要素がクリックできない場合に対応
+      await dashboardLink.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(100);
       await dashboardLink.click();
       await expect(page).toHaveURL('/');
     }
