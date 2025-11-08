@@ -204,13 +204,15 @@ def logout(response: Response, user_agent: str | None = Header(None)):
         samesite_value = "lax"
         secure_value = True if is_production else False
         logger.info(
-            "Safari/iOS detected on logout - using SameSite=Lax for cookie deletion"
+            "Safari/iOS detected on logout - "
+            "using SameSite=Lax for cookie deletion"
         )
     else:
         samesite_value = "none" if is_production else "lax"
         secure_value = is_production
         logger.info(
-            f"Non-Safari browser on logout - using SameSite={samesite_value} for cookie deletion"
+            f"Non-Safari browser on logout - "
+            f"using SameSite={samesite_value} for cookie deletion"
         )
 
     cookie_params = {
@@ -369,7 +371,9 @@ def get_obs_token(
     }
 
     # 24時間有効のトークンを生成
-    obs_token = create_access_token(data=token_data, expires_delta=timedelta(hours=24))
+    obs_token = create_access_token(
+        data=token_data, expires_delta=timedelta(hours=24)
+    )
 
     logger.info(f"OBS token generated for user ID {current_user.id}")
 
@@ -377,5 +381,7 @@ def get_obs_token(
         "obs_token": obs_token,
         "expires_in": 24 * 60 * 60,  # 秒単位
         "scope": "obs_overlay",
-        "message": "OBS連携用トークンを発行しました。このトークンは24時間有効です。",
+        "message": (
+            "OBS連携用トークンを発行しました。このトークンは24時間有効です。"
+        ),
     }
