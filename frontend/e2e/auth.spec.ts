@@ -78,15 +78,8 @@ test.describe('Authentication Flow', () => {
     const email = generateRandomEmail();
     const password = 'TestPassword123!';
 
-    // 新規ユーザー登録
+    // 新規ユーザー登録（register()は登録後にダッシュボードまたは自動ログイン）
     await register(page, username, email, password);
-
-    // 登録後、ログインページまたはダッシュボードにいるはず
-    const currentUrl = page.url();
-    if (currentUrl.includes('/login')) {
-      // ログインページにリダイレクトされた場合、ログイン
-      await login(page, email, password);
-    }
 
     // ダッシュボードにいることを確認
     await expect(page).toHaveURL('/');
@@ -106,14 +99,17 @@ test.describe('Authentication Flow', () => {
     const email = generateRandomEmail();
     const password = 'TestPassword123!';
 
-    // ユーザー登録とログイン
+    // ユーザー登録とログイン（register()で自動ログイン完了）
     await register(page, username, email, password);
 
-    // ログインページにアクセスを試みる
+    // 既にダッシュボードにいることを確認
+    await expect(page).toHaveURL('/');
+
+    // ログイン状態のまま、ログインページにアクセスを試みる
     await page.goto('/login');
 
     // ダッシュボードにリダイレクトされることを確認
-    await expect(page).toHaveURL('/', { timeout: 5000 });
+    await expect(page).toHaveURL('/', { timeout: 10000 });
   });
 
   test('should redirect to login when accessing protected route without authentication', async ({

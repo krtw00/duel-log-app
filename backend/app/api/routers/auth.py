@@ -22,7 +22,11 @@ from app.core.security import (
 from app.db.session import get_db
 from app.models.password_reset_token import PasswordResetToken
 from app.models.user import User
-from app.schemas.auth import ForgotPasswordRequest, LoginRequest, ResetPasswordRequest
+from app.schemas.auth import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    ResetPasswordRequest,
+)
 
 # ルーター定義
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -82,14 +86,18 @@ def login(
     """
     is_production = settings.ENVIRONMENT == "production"
 
-    logger.info(f"Login attempt for email: {login_data.email}")
+    # ログインジェクション対策: ユーザー入力をログに直接出力しない
+    email_hash = hash(login_data.email) % (10**8)  # 簡易的なハッシュ値を表示
+    logger.info(f"Login attempt for email hash: {email_hash}")
     logger.info(f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}")
-    logger.info(f"User-Agent: {user_agent}")
+    # User-Agentはヘッダーから来るユーザー入力なので、長さのみをログ出力
+    user_agent_length = len(user_agent) if user_agent else 0
+    logger.info(f"User-Agent header length: {user_agent_length}")
 
     user = db.query(User).filter(User.email == login_data.email).first()
 
     if not user or not verify_password(login_data.password, user.passwordhash):
-        logger.warning(f"Login failed for email: {login_data.email}")
+        logger.warning(f"Login failed for email hash: {email_hash}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="メールアドレスまたはパスワードが正しくありません",
@@ -134,14 +142,19 @@ def login(
     # Safari対応: productionの場合はdomainを明示的に設定しない（サブドメイン問題を回避）
     # これによりCookieは現在のドメインに対してのみ設定される
 
-    logger.info(
-        f"Setting cookie with params: samesite={cookie_params['samesite']}, secure={cookie_params['secure']}, httponly={cookie_params['httponly']}, path={cookie_params['path']}, max_age={cookie_params['max_age']}"
+    cookie_info = (
+        f"samesite={cookie_params['samesite']}, "
+        f"secure={cookie_params['secure']}, "
+        f"httponly={cookie_params['httponly']}, "
+        f"path={cookie_params['path']}, "
+        f"max_age={cookie_params['max_age']}"
     )
+    logger.info(f"Setting cookie with params: {cookie_info}")
 
     response.set_cookie(**cookie_params)
 
-    logger.info(f"User logged in successfully: {user.email} (ID: {user.id})")
-    logger.info(f"Cookie has been set for user: {user.email}")
+    logger.info(f"User logged in successfully (ID: {user.id})")
+    logger.info(f"Cookie has been set for user (ID: {user.id})")
 
     # Safari ITP対策: レスポンスボディにもトークンを含める
     # Safari/iOSではクロスサイトCookieがブロックされるため、
@@ -171,10 +184,12 @@ def login(
     # 2. OBS連携が必要な場合のみ、専用エンドポイントから取得
     # 3. localStorageではなくHttpOnlyクッキーを優先使用
     response_data["access_token"] = access_token
-    logger.warning(
-        f"Login successful for {user.email}. "
-        f"access_token included in response (security risk - consider using /auth/obs-token instead)."
+    warning_msg = (
+        f"Login successful for user ID {user.id}. "
+        "access_token included in response (security risk - "
+        "consider using /auth/obs-token instead)."
     )
+    logger.warning(warning_msg)
 
     return response_data
 
@@ -199,7 +214,7 @@ def logout(response: Response, user_agent: str | None = Header(None)):
         samesite_value = "none" if is_production else "lax"
         secure_value = is_production
         logger.info(
-            f"Non-Safari browser on logout - using SameSite={samesite_value} for cookie deletion"
+            "Non-Safari browser on logout - using SameSite policy for cookie deletion"
         )
 
     cookie_params = {
@@ -227,7 +242,11 @@ async def forgot_password(
     user = db.query(User).filter(User.email == request.email).first()
     if not user:
         # セキュリティのため、ユーザーが存在しない場合でも成功したかのように振る舞う
-        logger.info(f"Password reset requested for non-existent email: {request.email}")
+        # ログインジェクション対策: ユーザー入力をログに直接出力しない
+        email_hash = hash(request.email) % (10**8)
+        logger.info(
+            f"Password reset requested for non-existent email hash: {email_hash}"
+        )
         return {"message": "パスワード再設定の案内をメールで送信しました。"}
 
     # 既存のトークンを無効化
@@ -269,12 +288,14 @@ async def forgot_password(
         }
         email = resend.Emails.send(params)
         logger.info(
-            f"Password reset email sent to {user.email} via Resend. Email ID: {email['id']}"
+            f"Password reset email sent to user ID {user.id} via Resend. "
+            f"Email ID: {email['id']}"
         )
 
     except Exception as e:
         logger.error(
-            f"An unexpected error occurred while sending email to {user.email}: {e}"
+            f"An unexpected error occurred while sending email to "
+            f"user ID {user.id}: {e}"
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -322,7 +343,7 @@ def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db))
     db.delete(reset_token_entry)
     db.commit()
 
-    logger.info(f"Password for user {user.email} has been reset.")
+    logger.info(f"Password for user ID {user.id} has been reset.")
 
     return {"message": "パスワードが正常にリセットされました。"}
 
@@ -354,9 +375,7 @@ def get_obs_token(
     # 24時間有効のトークンを生成
     obs_token = create_access_token(data=token_data, expires_delta=timedelta(hours=24))
 
-    logger.info(
-        f"OBS token generated for user {current_user.email} (ID: {current_user.id})"
-    )
+    logger.info(f"OBS token generated for user ID {current_user.id}")
 
     return {
         "obs_token": obs_token,

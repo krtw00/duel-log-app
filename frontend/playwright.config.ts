@@ -17,6 +17,8 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'http://localhost:4173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // CI環境でのナビゲーション問題を回避するためビューポートを大きく設定
+    viewport: { width: 1400, height: 900 },
   },
 
   // CI環境ではChromiumのみでテスト実行（高速化）
