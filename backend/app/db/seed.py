@@ -163,8 +163,9 @@ def seed_data(db: Session):
         logger.info(f"{total_created_count} duels created in total.")
         logger.info("\n" + "=" * 50)
         logger.info("✅ Dummy data seeding complete!")
-        logger.info(f"  Login with Email: {fixed_email}")
-        logger.info(f"  Password:         {password}")
+        # メールアドレスは test@example.com などのダミーデータなのでマスキング
+        logger.info(f"  Login with Email: {fixed_email[0]}***@example.com")
+        # 機密情報（パスワード）はログに出力しない
         logger.info("=" * 50)
 
     except Exception as e:
