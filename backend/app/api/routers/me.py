@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, File, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
@@ -5,6 +7,8 @@ from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.services.user_service import user_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/me", tags=["current user"])
 
@@ -83,9 +87,7 @@ def import_my_data(
     try:
         csv_content = file.decode("utf-8")
     except UnicodeDecodeError:
-        import logging
-
-        logging.getLogger(__name__).warning("CSV import encoding error")
+        logger.warning("CSV import encoding error")
         # スタックトレース露出を防ぐため、from None を使用
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
