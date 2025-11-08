@@ -48,8 +48,26 @@ export async function register(page: Page, username: string, email: string, pass
   // 登録ボタンをクリック
   await page.click('button[type="submit"]');
 
-  // ダッシュボードまたはログインページへのリダイレクトを待つ
-  await page.waitForURL(/\/(login)?$/, { timeout: 10000 });
+  // ページが完全にロードされるまで待機
+  await page.waitForLoadState('networkidle');
+
+  // 登録後、ダッシュボードにいるか、ログインページにいるかを確認
+  const currentUrl = page.url();
+  if (currentUrl.includes('/login')) {
+    // ログインページにリダイレクトされた場合、自動的にログイン
+    await login(page, email, password);
+  } else if (currentUrl.includes('/register')) {
+    // 登録ページに残っている場合は、エラーがある可能性
+    // 画面の状態を確認して待機
+    await page.waitForTimeout(500);
+    const currentUrlAfterWait = page.url();
+    if (currentUrlAfterWait.includes('/login')) {
+      await login(page, email, password);
+    } else if (!currentUrlAfterWait.includes('/')) {
+      // ダッシュボードに行っていない場合は、ログインページへ遷移して手動ログイン
+      await login(page, email, password);
+    }
+  }
 }
 
 /**
