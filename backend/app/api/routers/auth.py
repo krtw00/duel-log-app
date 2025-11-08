@@ -22,7 +22,11 @@ from app.core.security import (
 from app.db.session import get_db
 from app.models.password_reset_token import PasswordResetToken
 from app.models.user import User
-from app.schemas.auth import ForgotPasswordRequest, LoginRequest, ResetPasswordRequest
+from app.schemas.auth import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    ResetPasswordRequest,
+)
 
 # ルーター定義
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -248,7 +252,9 @@ async def forgot_password(
         return {"message": "パスワード再設定の案内をメールで送信しました。"}
 
     # 既存のトークンを無効化
-    db.query(PasswordResetToken).filter(PasswordResetToken.user_id == user.id).delete()
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id
+    ).delete()
     db.commit()
 
     # 新しいトークンを生成
@@ -381,7 +387,5 @@ def get_obs_token(
         "obs_token": obs_token,
         "expires_in": 24 * 60 * 60,  # 秒単位
         "scope": "obs_overlay",
-        "message": (
-            "OBS連携用トークンを発行しました。このトークンは24時間有効です。"
-        ),
+        "message": "OBS連携用トークンを発行しました。このトークンは24時間有効です。",
     }
