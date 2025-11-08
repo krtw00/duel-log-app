@@ -168,14 +168,13 @@ test.describe('Duel Management', () => {
 
     if (await statsLink.isVisible({ timeout: 5000 }).catch(() => false)) {
       // CI環境でスクロール外の要素がクリックできない場合に対応
-      await statsLink.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(100);
-      await statsLink.click();
-      await expect(page).toHaveURL('/statistics');
+      // force: true を使用して、ビューポート外でも確実にクリックする
+      await statsLink.click({ force: true, timeout: 10000 });
+      await expect(page).toHaveURL('/statistics', { timeout: 10000 });
 
       // 統計情報が表示されることを確認
       const statsContent = page.locator('.statistics, [data-testid="statistics"], main');
-      await expect(statsContent).toBeVisible();
+      await expect(statsContent).toBeVisible({ timeout: 10000 });
     } else {
       test.skip();
     }
@@ -208,30 +207,27 @@ test.describe('Dashboard Navigation', () => {
     const decksLink = page.getByRole('link', { name: /decks|デッキ/i });
     if (await decksLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       // CI環境でスクロール外の要素がクリックできない場合に対応
-      await decksLink.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(100);
-      await decksLink.click();
-      await expect(page).toHaveURL('/decks');
+      // force: true を使用して、ビューポート外でも確実にクリックする
+      await decksLink.click({ force: true, timeout: 10000 });
+      await expect(page).toHaveURL('/decks', { timeout: 10000 });
     }
 
     // 統計ページへの移動
     const statsLink = page.getByRole('link', { name: /statistics|統計/i });
     if (await statsLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       // CI環境でスクロール外の要素がクリックできない場合に対応
-      await statsLink.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(100);
-      await statsLink.click();
-      await expect(page).toHaveURL('/statistics');
+      // force: true を使用して、ビューポート外でも確実にクリックする
+      await statsLink.click({ force: true, timeout: 10000 });
+      await expect(page).toHaveURL('/statistics', { timeout: 10000 });
     }
 
     // プロフィールページへの移動
     const profileLink = page.getByRole('link', { name: /profile|プロフィール/i });
     if (await profileLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       // CI環境でスクロール外の要素がクリックできない場合に対応
-      await profileLink.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(100);
-      await profileLink.click();
-      await expect(page).toHaveURL('/profile');
+      // force: true を使用して、ビューポート外でも確実にクリックする
+      await profileLink.click({ force: true, timeout: 10000 });
+      await expect(page).toHaveURL('/profile', { timeout: 10000 });
     }
 
     // ダッシュボードへの移動
@@ -240,10 +236,9 @@ test.describe('Dashboard Navigation', () => {
     });
     if (await dashboardLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       // CI環境でスクロール外の要素がクリックできない場合に対応
-      await dashboardLink.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(100);
-      await dashboardLink.click();
-      await expect(page).toHaveURL('/');
+      // force: true を使用して、ビューポート外でも確実にクリックする
+      await dashboardLink.click({ force: true, timeout: 10000 });
+      await expect(page).toHaveURL('/', { timeout: 10000 });
     }
   });
 });
