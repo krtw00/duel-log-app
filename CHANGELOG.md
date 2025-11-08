@@ -1,3 +1,52 @@
+## [1.0.6](https://github.com/krtw00/duel-log-app/compare/v1.0.5...v1.0.6) (2025-11-08)
+
+
+### 🐛 Bug Fixes
+
+* **e2e:** E2E テスト安定性向上 - waitForLoadState を追加 ([bd81d51](https://github.com/krtw00/duel-log-app/commit/bd81d5148f163977f3552639499d794a7090ad3c))
+* **e2e:** Playwright CI環境でのナビゲーションリンククリック失敗を解決 ([5b7454f](https://github.com/krtw00/duel-log-app/commit/5b7454f32ce79e85a9faa387e771532d499bad73))
+* **e2e:** ナビゲーション テスト環境依存問題でスキップ ([9e0968e](https://github.com/krtw00/duel-log-app/commit/9e0968e82c416b512051c979dc955e0c04054a5c))
+* **e2e:** ナビゲーション要素のクリック失敗を修正 ([78b9f2e](https://github.com/krtw00/duel-log-app/commit/78b9f2e3a6e659b656bd7bd8e64b8792066e8421))
+* **e2e:** 認証テスト失敗を修正 - 登録後の自動ログイン処理 ([18c8bd9](https://github.com/krtw00/duel-log-app/commit/18c8bd905d63285e2dd9c50a502121afe08ab463))
+* **format:** auth.py の85文字超える行を修正 ([e7ffa6e](https://github.com/krtw00/duel-log-app/commit/e7ffa6ecb111416288dffa8c6b1737853ea45cd2))
+* **format:** auth.py の残りの Black フォーマット違反を修正 ([aa3a025](https://github.com/krtw00/duel-log-app/commit/aa3a0250bb67653f4cbe20a809abad8adde9dbcc))
+* **format:** Black の期待するフォーマットに完全準拠 ([f12dcb8](https://github.com/krtw00/duel-log-app/commit/f12dcb88d54b3285a218056d2804a4ef86f1910e))
+* **format:** Black フォーマット違反を修正 ([5fe41de](https://github.com/krtw00/duel-log-app/commit/5fe41de6c1fe665e823165ddb639d753b01a4a16))
+* **lint:** Ruff F541 エラーを修正 ([05fa100](https://github.com/krtw00/duel-log-app/commit/05fa100542db5544e21032c80f1657e48ffc5046))
+* **security:** Black フォーマッティング エラーを修正 ([e0f9ae3](https://github.com/krtw00/duel-log-app/commit/e0f9ae3223239242689ad8caa9a4637f5af73295))
+* **security:** CodeQL セキュリティアラート 8 件を完全修正 ([d26e1db](https://github.com/krtw00/duel-log-app/commit/d26e1db051abb9d42243eae8ff8dd40679bb85d4))
+* **security:** duels.py のログインジェクション修正（アラート [#14](https://github.com/krtw00/duel-log-app/issues/14)） ([cfd4990](https://github.com/krtw00/duel-log-app/commit/cfd4990891a86b0c7b210813428a4f54bb47f158))
+* **security:** セキュリティアラート8件を修正 ([995b775](https://github.com/krtw00/duel-log-app/commit/995b77594d46a9eeeea5e5f84b8de4bff76e545f))
+* **test:** conftest.py の Base インポート場所を修正 ([aef1cb7](https://github.com/krtw00/duel-log-app/commit/aef1cb77e061917b1de3acba83a4d1b9cbc5e2a0))
+
+
+### 📝 Documentation
+
+* **test:** conftest.py のインポート修正を明確にコメント追加 ([6a09a2f](https://github.com/krtw00/duel-log-app/commit/6a09a2f266f1e7acc2504ae7e502e6648f3dead5))
+
+## [1.0.5](https://github.com/krtw00/duel-log-app/compare/v1.0.4...v1.0.5) (2025-11-07)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** allow e2e backend cors for preview port ([707cd48](https://github.com/krtw00/duel-log-app/commit/707cd485fd256ed4d2e1502aa6d6019f5969c43f))
+* **deps:** FastAPI 0.111.1+用にpython-multipartを追加 ([abf99db](https://github.com/krtw00/duel-log-app/commit/abf99db9cbdeb84d3b0bc3a93633b0c91ab6e3c8))
+* make auth e2e selectors deterministic ([8d291bc](https://github.com/krtw00/duel-log-app/commit/8d291bc74bdbe8927da7fdf111c104d49280552f))
+* route e2e api traffic via ipv4 loopback ([0cd4bfb](https://github.com/krtw00/duel-log-app/commit/0cd4bfbf4bbb7fdd5a35ff18786f75f66a1b72ff))
+* stabilize codeql uploads and register form fields ([3c3cdad](https://github.com/krtw00/duel-log-app/commit/3c3cdaddffc6e67f0c7f020bd2408c8d7dd7820e))
+
+
+### ⚡ Performance Improvements
+
+* **ci:** Optimize E2E CI workflow execution time from 20min to 5-7min ([ba423ed](https://github.com/krtw00/duel-log-app/commit/ba423ed5e25aa53cf9a64e03d9f0228285aaec02))
+
+
+### 📝 Documentation
+
+* docs配下の古いコンテキストドキュメントを削除 ([2c9b4a2](https://github.com/krtw00/duel-log-app/commit/2c9b4a2a043f2a15e02a811aeca9aa10de9a878f))
+* ドキュメントを用途別に階層化（案A） ([7cd9a9a](https://github.com/krtw00/duel-log-app/commit/7cd9a9aee7cfdc009df56acfdbf9dcf2a7f4339f))
+* ドキュメント構成を整理・索引を最新化 ([8c9fdee](https://github.com/krtw00/duel-log-app/commit/8c9fdee0ff146ecfb65a1c7f82a8d5160508e317))
+
 ## [1.0.4](https://github.com/krtw00/duel-log-app/compare/v1.0.3...v1.0.4) (2025-11-07)
 
 
