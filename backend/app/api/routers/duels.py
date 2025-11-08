@@ -36,7 +36,8 @@ def export_duels_csv(
     import logging
 
     logger = logging.getLogger(__name__)
-    logger.info(f"Exporting CSV with columns: {columns}")
+    # ログインジェクション対策: ユーザー入力をログに直接出力しない
+    logger.info(f"Exporting CSV with columns (count: {len(columns.split(',')) if columns else 0})")
 
     try:
         column_list = columns.split(",") if columns else None
