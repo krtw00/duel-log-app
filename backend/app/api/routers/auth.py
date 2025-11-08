@@ -89,9 +89,7 @@ def login(
     # ログインジェクション対策: ユーザー入力をログに直接出力しない
     email_hash = hash(login_data.email) % (10**8)  # 簡易的なハッシュ値を表示
     logger.info(f"Login attempt for email hash: {email_hash}")
-    logger.info(
-        f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}"
-    )
+    logger.info(f"Environment: {settings.ENVIRONMENT}, Is Production: {is_production}")
     logger.info(f"User-Agent: {user_agent or 'unknown'}")
 
     user = db.query(User).filter(User.email == login_data.email).first()
@@ -208,8 +206,7 @@ def logout(response: Response, user_agent: str | None = Header(None)):
         samesite_value = "lax"
         secure_value = True if is_production else False
         logger.info(
-            "Safari/iOS detected on logout - "
-            "using SameSite=Lax for cookie deletion"
+            "Safari/iOS detected on logout - " "using SameSite=Lax for cookie deletion"
         )
     else:
         samesite_value = "none" if is_production else "lax"
@@ -252,9 +249,7 @@ async def forgot_password(
         return {"message": "パスワード再設定の案内をメールで送信しました。"}
 
     # 既存のトークンを無効化
-    db.query(PasswordResetToken).filter(
-        PasswordResetToken.user_id == user.id
-    ).delete()
+    db.query(PasswordResetToken).filter(PasswordResetToken.user_id == user.id).delete()
     db.commit()
 
     # 新しいトークンを生成
@@ -377,9 +372,7 @@ def get_obs_token(
     }
 
     # 24時間有効のトークンを生成
-    obs_token = create_access_token(
-        data=token_data, expires_delta=timedelta(hours=24)
-    )
+    obs_token = create_access_token(data=token_data, expires_delta=timedelta(hours=24))
 
     logger.info(f"OBS token generated for user ID {current_user.id}")
 
