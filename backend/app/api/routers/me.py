@@ -84,6 +84,7 @@ def import_my_data(
         csv_content = file.decode("utf-8")
     except UnicodeDecodeError:
         import logging
+
         logging.getLogger(__name__).warning("CSV import encoding error")
         # スタックトレース露出を防ぐため、from None を使用
         raise HTTPException(
