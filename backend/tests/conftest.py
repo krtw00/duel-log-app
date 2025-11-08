@@ -19,6 +19,7 @@ from app.models import Base
 from app.models.user import User
 
 # テスト用データベースURL
+# Base は app.models から正しくインポートされています
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", settings.DATABASE_URL)
 
 SQLALCHEMY_DATABASE_URL = TEST_DATABASE_URL
