@@ -3,6 +3,7 @@
 デュエルのCRUD操作を提供
 """
 
+import logging
 from datetime import datetime
 from typing import List, Optional
 
@@ -17,6 +18,7 @@ from app.schemas.duel import DuelCreate, DuelRead, DuelUpdate, DuelWithDeckNames
 from app.services.duel_service import duel_service
 
 router = APIRouter(prefix="/duels", tags=["duels"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/export/csv")
@@ -33,12 +35,8 @@ def export_duels_csv(
     """
     ログインユーザーの戦績データをCSV形式でエクスポート
     """
-    import logging
-
-    logger = logging.getLogger(__name__)
     # ログインジェクション対策: ユーザー入力をログに直接出力しない
-    column_count = len(columns.split(",")) if columns else 0
-    logger.info(f"Exporting CSV with columns (count: {column_count})")
+    logger.info("Exporting CSV with user-specified columns")
 
     try:
         column_list = columns.split(",") if columns else None
@@ -323,9 +321,7 @@ def import_duels_csv(
         ) from e
     except ValueError:
         # CSVフォーマットエラー（不正な値、欠損値など）
-        import logging
-
-        logging.getLogger(__name__).warning("CSV import validation error")
+        logger.warning("CSV import validation error")
         # スタックトレース露出を防ぐため、from None を使用
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -333,9 +329,7 @@ def import_duels_csv(
         ) from None
     except KeyError:
         # 必須カラムの欠如
-        import logging
-
-        logging.getLogger(__name__).warning("CSV import missing column")
+        logger.warning("CSV import missing column")
         # スタックトレース露出を防ぐため、from None を使用
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -343,9 +337,7 @@ def import_duels_csv(
         ) from None
     except Exception as e:
         # 予期しないエラー（詳細はログのみに記録）
-        import logging
-
-        logging.getLogger(__name__).error(
+        logger.error(
             f"Unexpected CSV import error: {e}", exc_info=True
         )
         raise HTTPException(
