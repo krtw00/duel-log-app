@@ -122,7 +122,7 @@ api.interceptors.response.use(
               hasAuthHeader: !!error.config?.headers.Authorization,
             });
             message = '認証の有効期限が切れました。再度ログインしてください';
-            
+
             // ⚠️ 重要: isInitialized === false（ページロード直後）の場合は、
             // Cookie設定のタイミング問題の可能性があるため、ログアウトしない
             if (authStore.isInitialized) {
