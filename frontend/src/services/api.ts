@@ -114,19 +114,24 @@ api.interceptors.response.use(
             console.log('[API] 401 from /me - not authenticated yet');
             // このエラーは後続の処理でハンドリングされるため、ここでは何もしない
           } else {
-            // 他のAPIからの401エラーは「セッション切れ」を示す
-            // ⚠️ ただし、ページロード直後のAPI呼び出しはCookieが未設定の可能性があるため、
-            // 直ちにログアウトするのではなく、ログに記録して後続の処理で判断する
-            console.warn('[API] 401 from non-/me endpoint - possible session expiry', {
+            // 他のAPIからの401エラーは「セッション切れ」を示す可能性
+            // ただし、Cookie未反映・タイミング等の一過性要因もあり得るため、
+            // Authorization ヘッダー等の実証的根拠がある場合のみログアウトを実施する。
+            const hadAuthHeader = !!(error.config?.headers as any)?.Authorization;
+            const hadLocalToken = !!localStorage.getItem('access_token');
+
+            console.warn('[API] 401 from non-/me endpoint', {
               url: error.config?.url,
-              hasAuthHeader: !!error.config?.headers.Authorization,
+              hadAuthHeader,
+              hadLocalToken,
+              isInitialized: authStore.isInitialized,
             });
             message = '認証の有効期限が切れました。再度ログインしてください';
 
-            // ⚠️ 重要: isInitialized === false（ページロード直後）の場合は、
-            // Cookie設定のタイミング問題の可能性があるため、ログアウトしない
-            if (authStore.isInitialized) {
-              // 初期化済み（= ログイン後）の401は本当のセッション切れ
+            // 初期化前（=起動直後）はログアウトしない。
+            // また、Authorization ヘッダーも localStorage トークンも無い場合は、
+            // 強制ログアウトせず、ガードに任せて遷移させる（過剰リダイレクト防止）。
+            if (authStore.isInitialized && (hadAuthHeader || hadLocalToken)) {
               authStore.logout();
             }
           }
