@@ -26,19 +26,6 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
-/**
- * Safari/iOS/macOS など Cookie 制限が厳しい環境かどうかを判定し、
- * その場合は Authorization ヘッダー経由でトークン送信する。
- * @returns 対象環境かどうか
- */
-function shouldUseAuthorizationHeader(): boolean {
-  const ua = navigator.userAgent.toLowerCase();
-  const isSafariBrowser = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-  const isMacOS = /macintosh|mac os x/.test(ua);
-  return isSafariBrowser || isIOS || isMacOS;
-}
-
 // リクエストインターセプター
 api.interceptors.request.use(
   (config) => {
