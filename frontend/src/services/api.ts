@@ -48,20 +48,20 @@ api.interceptors.request.use(
     config.metadata = { requestId };
     loadingStore.start(requestId);
 
-    // Safari/MacOS Cookie制限対策: localStorageからトークンを取得してAuthorizationヘッダーに設定
-    if (shouldUseAuthorizationHeader()) {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log('[API] Using Authorization header for Safari/iOS/MacOS');
-      }
+    // localStorage からトークンを取得して Authorization ヘッダーに設定
+    // これにより、Cookie が機能しない環境（Docker でのクロスオリジン など）でも認証が動作する
+    // Safari/iOS/MacOS Cookie 制限環境にも対応
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('[API] Using Authorization header from localStorage');
     }
 
-    // Safari/MacOS対応デバッグログ
+    // リクエスト詳細ログ
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
       withCredentials: config.withCredentials,
       hasAuthHeader: !!config.headers.Authorization,
-      useAuthHeader: shouldUseAuthorizationHeader(),
+      hasCookieFromStorage: !!token,
     });
 
     return config;
