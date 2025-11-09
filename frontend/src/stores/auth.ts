@@ -32,23 +32,24 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('access_token', loginResponse.data.access_token);
       }
 
-      // Safari対応: ログインレスポンスから直接ユーザー情報を取得
-      // これによりCookieのタイミング問題を回避
+      // ログインレスポンスから直接ユーザー情報を取得して設定
+      // サーバーが返したユーザー情報は既に検証済みなので、これを信頼して使用
       if (loginResponse.data?.user) {
         console.log('[Auth] Setting user from login response');
         user.value = loginResponse.data.user;
         isInitialized.value = true;
+        console.log('[Auth] User state is now authenticated');
       }
 
-      // 念のため、少し待ってからユーザー情報を再取得して確認
-      // Safari/iOSではCookie設定に若干の遅延がある場合がある
+      console.log('[Auth] Login successful, navigating to dashboard');
+      // ナビゲーション前に少し待機（Safari/iOS Cookie設定遅延対応）
       await new Promise((resolve) => setTimeout(resolve, 100));
-
-      console.log('[Auth] User authenticated, navigating to dashboard');
       await router.push('/');
     } catch (error) {
       const axiosError = error as AxiosError<{ detail: string }>;
       console.error('[Auth] Login failed:', axiosError.response?.data?.detail || error);
+      user.value = null;
+      isInitialized.value = true;
       throw new Error(axiosError.response?.data?.detail || 'ログインに失敗しました');
     }
   };
@@ -93,11 +94,11 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await api.get('/me');
       console.log('[Auth] User info fetched successfully:', response.data);
       user.value = response.data;
+      isInitialized.value = true;
     } catch (error) {
       // エラー（クッキーがない、または無効）の場合はユーザー情報をクリア
       console.error('[Auth] Failed to fetch user info:', error);
       user.value = null;
-    } finally {
       isInitialized.value = true;
     }
   };
