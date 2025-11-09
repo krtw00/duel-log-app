@@ -60,7 +60,7 @@ api.interceptors.request.use(
     // Safari/MacOS対応デバッグログ
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
       withCredentials: config.withCredentials,
-      headers: config.headers,
+      hasAuthHeader: !!config.headers.Authorization,
       useAuthHeader: shouldUseAuthorizationHeader(),
     });
 
@@ -83,10 +83,7 @@ api.interceptors.response.use(
       loadingStore.stop(requestId);
     }
 
-    // Safari/MacOS対応デバッグログ
-    console.log(`[API Response] ${response.status} ${response.config.url}`, {
-      setCookie: response.headers['set-cookie'],
-    });
+    console.log(`[API Response] ${response.status} ${response.config.url}`);
 
     return response;
   },
@@ -112,6 +109,11 @@ api.interceptors.response.use(
       const status = error.response.status;
       const data = error.response.data as ApiErrorResponse;
 
+      console.error(`[API Error] ${status} ${error.config?.url}`, {
+        detail: data?.detail,
+        isMe: error.config?.url?.endsWith('/me'),
+      });
+
       switch (status) {
         case 400:
           message =
@@ -122,11 +124,24 @@ api.interceptors.response.use(
           // /meエンドポイントからの401エラーは、単に「ログインしていない」状態を示すため、
           // 自動的なログアウト処理を引き起こさないようにする。
           if (error.config?.url?.endsWith('/me')) {
+            console.log('[API] 401 from /me - not authenticated yet');
             // このエラーは後続の処理でハンドリングされるため、ここでは何もしない
           } else {
+            // 他のAPIからの401エラーは「セッション切れ」を示す
+            // ⚠️ ただし、ページロード直後のAPI呼び出しはCookieが未設定の可能性があるため、
+            // 直ちにログアウトするのではなく、ログに記録して後続の処理で判断する
+            console.warn('[API] 401 from non-/me endpoint - possible session expiry', {
+              url: error.config?.url,
+              hasAuthHeader: !!error.config?.headers.Authorization,
+            });
             message = '認証の有効期限が切れました。再度ログインしてください';
-            // 他のAPIからの401エラーはセッション切れとみなし、ログアウト処理を実行
-            authStore.logout();
+            
+            // ⚠️ 重要: isInitialized === false（ページロード直後）の場合は、
+            // Cookie設定のタイミング問題の可能性があるため、ログアウトしない
+            if (authStore.isInitialized) {
+              // 初期化済み（= ログイン後）の401は本当のセッション切れ
+              authStore.logout();
+            }
           }
           break;
         case 403:
@@ -172,8 +187,9 @@ api.interceptors.response.use(
       message = error.message || 'リクエストの作成に失敗しました';
     }
 
-    // 401以外のエラーは通知を表示
-    if (error.response?.status !== 401) {
+    // 401と422エラーは自動通知を表示しない
+    // （フォームバリデーションや認証エラーはコンポーネント側で処理）
+    if (error.response?.status !== 401 && error.response?.status !== 422) {
       notificationStore.error(message);
     }
 
