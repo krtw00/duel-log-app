@@ -35,51 +35,45 @@ export const useAuthStore = defineStore('auth', () => {
       // Safari対応: ログインレスポンスから直接ユーザー情報を取得
       // これによりCookieのタイミング問題を回避
       if (loginResponse.data?.user) {
+        console.log('[Auth] Setting user from login response');
         user.value = loginResponse.data.user;
+        isInitialized.value = true;
       }
 
-      // 念のため、少し待ってからユーザー情報を再取得
+      // 念のため、少し待ってからユーザー情報を再取得して確認
       // Safari/iOSではCookie設定に若干の遅延がある場合がある
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // ユーザー情報を取得してストアを更新
-      await fetchUser();
-
-      router.push('/');
+      console.log('[Auth] User authenticated, navigating to dashboard');
+      await router.push('/');
     } catch (error) {
       const axiosError = error as AxiosError<{ detail: string }>;
+      console.error('[Auth] Login failed:', axiosError.response?.data?.detail || error);
       throw new Error(axiosError.response?.data?.detail || 'ログインに失敗しました');
     }
   };
 
   const logout = async () => {
-    // 1. 最初にクライアント側の状態を完全にクリアする
-    user.value = null;
-    isInitialized.value = true; // ログアウト状態も「初期化済み」として扱う
-    localStorage.removeItem('access_token'); // OBS連携用のトークンを削除
-    sessionStorage.clear(); // セッションストレージも念のためクリア
-
     try {
-      // 1. 最初にサーバーにログアウトを通知する
+      // 1. サーバーにログアウトを通知する
       await api.post('/auth/logout');
       console.log('[Auth] Logout API call successful.');
     } catch (error) {
       // API呼び出しが失敗した場合でも、エラーをログに記録し、
       // クライアント側のログアウト処理を続行する
-      console.error('Logout API call failed, proceeding with client-side cleanup:', error);
+      console.error('[Auth] Logout API call failed, proceeding with client-side cleanup:', error);
+    } finally {
+      // 2. 確実にクライアント側の状態をクリアする
+      user.value = null;
+      isInitialized.value = true; // ログアウト状態も「初期化済み」として扱う
+      localStorage.removeItem('access_token'); // OBS連携用のトークンを削除
+      sessionStorage.clear(); // セッションストレージもクリア
+
+      // 3. 最後にログインページにリダイレクトする
+      // router.pushではVue Routerの状態が残る可能性があるため、
+      // window.location.assignでページを完全に再読み込みさせる
+      window.location.assign('/login');
     }
-
-    // 2. サーバーへの通知後、クライアント側の状態を完全にクリアする
-    user.value = null;
-    isInitialized.value = true; // ログアウトは「未初期化」ではなく「認証済みでない」状態
-    localStorage.removeItem('access_token');
-    // 他のセッション関連データもここでクリア
-    sessionStorage.clear();
-
-    // 3. 最後にログインページにリダイレクトする
-    // router.pushではVue Routerの状態が残る可能性があるため、
-    // window.location.assignでページを完全に再読み込みさせる
-    window.location.assign('/login');
   };
 
   const toggleStreamerMode = (enabled: boolean) => {
