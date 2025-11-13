@@ -7,13 +7,10 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from app.core.config import settings
-
-# パスワードハッシュ化設定
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # bcryptは最大72バイトまでしか扱えない
 MAX_BCRYPT_BYTES = 72
@@ -64,7 +61,19 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     # bcryptの制限に対応（72バイトまで）
     trimmed_password = _truncate_password(plain_password)
-    return pwd_context.verify(trimmed_password, hashed_password)
+
+    # bcryptを直接使用してパスワードを検証
+    try:
+        return bcrypt.checkpw(
+            trimmed_password.encode("utf-8"),
+            (
+                hashed_password.encode("utf-8")
+                if isinstance(hashed_password, str)
+                else hashed_password
+            ),
+        )
+    except (ValueError, AttributeError):
+        return False
 
 
 def get_password_hash(password: str) -> str:
@@ -79,7 +88,13 @@ def get_password_hash(password: str) -> str:
     """
     # bcryptの制限に対応（72バイトまで）
     trimmed_password = _truncate_password(password)
-    return pwd_context.hash(trimmed_password)
+
+    # bcryptを直接使用してパスワードをハッシュ化
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(trimmed_password.encode("utf-8"), salt)
+
+    # 文字列として返す（データベース保存用）
+    return hashed.decode("utf-8")
 
 
 def create_access_token(
