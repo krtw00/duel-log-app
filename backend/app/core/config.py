@@ -128,4 +128,4 @@ class Settings(BaseSettings):
 
 
 # グローバル設定インスタンス
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

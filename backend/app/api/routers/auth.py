@@ -151,7 +151,7 @@ def login(
     )
     logger.info(f"Setting cookie with params: {cookie_info}")
 
-    response.set_cookie(**cookie_params)
+    response.set_cookie(**cookie_params)  # type: ignore[arg-type]
 
     logger.info(f"User logged in successfully (ID: {user.id})")
     logger.info(f"Cookie has been set for user (ID: {user.id})")
@@ -227,7 +227,7 @@ def logout(response: Response, user_agent: str | None = Header(None)):
         "max_age": 0,
     }
 
-    response.set_cookie(**cookie_params)
+    response.set_cookie(**cookie_params)  # type: ignore[arg-type]
 
     return {"message": "Logout successful"}
 
@@ -286,7 +286,7 @@ async def forgot_password(
             "subject": "パスワード再設定のご案内",
             "html": html_content,
         }
-        email = resend.Emails.send(params)
+        email = resend.Emails.send(params)  # type: ignore[arg-type]
         logger.info(
             f"Password reset email sent to user ID {user.id} via Resend. "
             f"Email ID: {email['id']}"
