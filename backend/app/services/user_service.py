@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class UserService(BaseService[User, UserCreate, UserUpdate]):
     """ユーザーサービスクラス"""
 
-    def create(self, db: Session, *, obj_in: UserCreate) -> User:
+    def create(self, db: Session, *, obj_in: UserCreate) -> User:  # type: ignore[override]
         """
         新しいユーザーを作成する（パスワードをハッシュ化）
         """
