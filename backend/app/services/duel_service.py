@@ -103,7 +103,7 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                 .filter(
                     Duel.user_id == user_id,
                     Duel.game_mode == mode,
-                    value_field.isnot(None),
+                    value_field.isnot(None),  # type: ignore[attr-defined]
                 )
                 .order_by(Duel.played_date.desc())
                 .first()
