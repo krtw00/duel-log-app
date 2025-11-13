@@ -3,12 +3,7 @@
     <!-- Simple App Bar for shared view -->
     <v-app-bar app flat color="transparent">
       <v-toolbar-title class="d-flex align-center">
-        <v-btn
-          href="/"
-          variant="text"
-          class="logo-link"
-          :ripple="false"
-        >
+        <v-btn href="/" variant="text" class="logo-link" :ripple="false">
           <v-icon class="mr-2" color="primary">mdi-chart-bar</v-icon>
           <span class="text-h6">Duel Log Shared Statistics</span>
         </v-btn>
@@ -519,7 +514,7 @@ defineExpose({
 .logo-link {
   text-transform: none; /* ボタンの文字が大文字にならないようにする */
   text-decoration: none; /* 下線を消す */
-  
+
   &:hover {
     background-color: rgba(var(--v-theme-primary), 0.1); /* ホバー時に薄い色を表示 */
   }
