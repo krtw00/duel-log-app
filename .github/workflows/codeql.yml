@@ -29,17 +29,17 @@ jobs:
         uses: actions/checkout@v5
 
       - name: CodeQLを初期化
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
 
       - name: 自動ビルド
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: CodeQL分析を実行
         id: codeql-analyze
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{matrix.language}}"
           output: sarif-results
@@ -47,7 +47,7 @@ jobs:
 
       - name: SARIF結果をアップロード
         if: ${{ always() && steps.codeql-analyze.outcome == 'success' && hashFiles(format('sarif-results/{0}.sarif', matrix.language)) != '' }}
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: sarif-results/${{ matrix.language }}.sarif
 
