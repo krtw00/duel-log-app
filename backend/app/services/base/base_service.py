@@ -41,10 +41,10 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             エンティティまたはNone
         """
-        query = db.query(self.model).filter(self.model.id == id)
+        query = db.query(self.model).filter(self.model.id == id)  # type: ignore[attr-defined]
 
         if user_id is not None:
-            query = query.filter(self.model.user_id == user_id)
+            query = query.filter(self.model.user_id == user_id)  # type: ignore[attr-defined]
 
         return query.first()
 
@@ -70,7 +70,7 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         query = db.query(self.model)
 
         if user_id is not None:
-            query = query.filter(self.model.user_id == user_id)
+            query = query.filter(self.model.user_id == user_id)  # type: ignore[attr-defined]
 
         return query.offset(skip).limit(limit).all()
 

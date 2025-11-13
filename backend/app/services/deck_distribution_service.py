@@ -25,7 +25,7 @@ class DeckDistributionService:
         if total_duels == 0:
             return []
 
-        deck_counts_map = {}
+        deck_counts_map: dict[str, int] = {}
         for duel in duels:
             if duel.opponent_deck and duel.opponent_deck.name:
                 deck_name = duel.opponent_deck.name
