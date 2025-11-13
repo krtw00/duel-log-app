@@ -26,6 +26,31 @@ def generate_password_reset_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def _truncate_password(password: str) -> str:
+    """
+    パスワードを72バイトに切り詰める（UTF-8文字境界を考慮）
+
+    Args:
+        password: 元のパスワード
+
+    Returns:
+        72バイト以下に切り詰められたパスワード
+    """
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) <= MAX_BCRYPT_BYTES:
+        return password
+
+    # UTF-8文字境界を考慮して切り詰め
+    truncated_bytes = password_bytes[:MAX_BCRYPT_BYTES]
+    # 不完全な文字を削除するため、デコードエラーが発生しないところまで戻す
+    while truncated_bytes:
+        try:
+            return truncated_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            truncated_bytes = truncated_bytes[:-1]
+    return ""
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     平文パスワードとハッシュ化されたパスワードを照合する
@@ -37,9 +62,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         パスワードが一致すればTrue、そうでなければFalse
     """
-    # bcryptの制限に対応
-    password_bytes = plain_password.encode("utf-8")[:MAX_BCRYPT_BYTES]
-    trimmed_password = password_bytes.decode("utf-8", errors="ignore")
+    # bcryptの制限に対応（72バイトまで）
+    trimmed_password = _truncate_password(plain_password)
     return pwd_context.verify(trimmed_password, hashed_password)
 
 
@@ -54,8 +78,7 @@ def get_password_hash(password: str) -> str:
         ハッシュ化されたパスワード
     """
     # bcryptの制限に対応（72バイトまで）
-    password_bytes = password.encode("utf-8")[:MAX_BCRYPT_BYTES]
-    trimmed_password = password_bytes.decode("utf-8", errors="ignore")
+    trimmed_password = _truncate_password(password)
     return pwd_context.hash(trimmed_password)
 
 
