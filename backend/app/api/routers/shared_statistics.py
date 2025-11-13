@@ -84,8 +84,8 @@ def get_shared_statistics(
     statistics_data = get_all_statistics(
         db=db,
         current_user=shared_link.user,
-        year=shared_link.year,
-        month=shared_link.month,
+        year=shared_link.year,  # type: ignore[arg-type]
+        month=shared_link.month,  # type: ignore[arg-type]
         my_deck_id=my_deck_id,
         opponent_deck_id=opponent_deck_id,
         range_start=range_start,
@@ -93,14 +93,14 @@ def get_shared_statistics(
     )
 
     return SharedStatisticsResponse(
-        id=shared_link.id,
-        share_id=shared_link.share_id,
-        user_id=shared_link.user_id,
-        year=shared_link.year,
-        month=shared_link.month,
-        game_mode=shared_link.game_mode,
-        created_at=shared_link.created_at,
-        expires_at=shared_link.expires_at,
+        id=shared_link.id,  # type: ignore[arg-type]
+        share_id=shared_link.share_id,  # type: ignore[arg-type]
+        user_id=shared_link.user_id,  # type: ignore[arg-type]
+        year=shared_link.year,  # type: ignore[arg-type]
+        month=shared_link.month,  # type: ignore[arg-type]
+        game_mode=shared_link.game_mode,  # type: ignore[arg-type]
+        created_at=shared_link.created_at,  # type: ignore[arg-type]
+        expires_at=shared_link.expires_at,  # type: ignore[arg-type]
         statistics_data=statistics_data,
     )
 
@@ -164,10 +164,10 @@ def export_shared_duels_csv(
     try:
         csv_data = duel_service.export_duels_to_csv(
             db=db,
-            user_id=user_id,
-            year=target_year,
-            month=target_month,
-            game_mode=target_game_mode,
+            user_id=user_id,  # type: ignore[arg-type]
+            year=target_year,  # type: ignore[arg-type]
+            month=target_month,  # type: ignore[arg-type]
+            game_mode=target_game_mode,  # type: ignore[arg-type]
         )
 
         filename = f"duels_{target_year}_{target_month}.csv"
