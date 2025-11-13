@@ -3,8 +3,10 @@
     <!-- Simple App Bar for shared view -->
     <v-app-bar app flat color="transparent">
       <v-toolbar-title class="d-flex align-center">
-        <v-icon class="mr-2" color="primary">mdi-chart-bar</v-icon>
-        <span class="text-h6">Duel Log Shared Statistics</span>
+        <v-btn href="/" variant="text" class="logo-link" :ripple="false">
+          <v-icon class="mr-2" color="primary">mdi-chart-bar</v-icon>
+          <span class="text-h6">Duel Log Shared Statistics</span>
+        </v-btn>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <!-- View Toggle (Dashboard / Statistics) -->
@@ -509,6 +511,14 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
+.logo-link {
+  text-transform: none; /* ボタンの文字が大文字にならないようにする */
+  text-decoration: none; /* 下線を消す */
+
+  &:hover {
+    background-color: rgba(var(--v-theme-primary), 0.1); /* ホバー時に薄い色を表示 */
+  }
+}
 .main-content {
   min-height: 100vh;
   padding-top: 64px; /* Adjust for app bar height */
