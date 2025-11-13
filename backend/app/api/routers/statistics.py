@@ -65,7 +65,7 @@ def get_all_statistics(
     duels_by_mode: Dict[str, List] = {mode: [] for mode in game_modes}
     for duel in all_duels:
         if duel.game_mode in duels_by_mode:
-            duels_by_mode[duel.game_mode].append(duel)
+            duels_by_mode[duel.game_mode].append(duel)  # type: ignore[index]
 
     for mode in game_modes:
         duels = duels_by_mode[mode]
