@@ -83,13 +83,32 @@ const router = createRouter({
   routes,
 });
 
-// ナビゲーションガード
+/**
+ * ナビゲーションガード
+ *
+ * 認証状態を確認し、必要に応じてリダイレクトを実行
+ *
+ * フロー:
+ * 1. アプリケーション初期化時（isInitialized === false）のみ、fetchUser()でサーバーから認証状態を取得
+ * 2. ログイン直後はlogin()でローカルにユーザー情報が既に設定されているため、fetchUser()は不要
+ * 3. その後のナビゲーションではキャッシュされたuser状態を使用
+ * 4. 401エラーはAPIインターセプターで自動的にハンドリングされるため、ここで確認不要
+ */
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
   const requiresAuth = to.meta.requiresAuth !== false;
 
-  // アプリケーションの初期化時に一度だけユーザー情報を取得する
+  console.log('[Router] beforeEach called', {
+    to: to.name,
+    isInitialized: authStore.isInitialized,
+    isAuthenticated: authStore.isAuthenticated,
+    requiresAuth,
+  });
+
+  // アプリケーションの初期化時に一度だけサーバーからユーザー情報を取得する
+  // （ページリロード時に認証状態を復元するため）
   if (!authStore.isInitialized) {
+    console.log('[Router] First navigation - fetching user from server');
     await authStore.fetchUser();
   }
 
@@ -99,13 +118,16 @@ router.beforeEach(async (to, _from, next) => {
   if (requiresAuth && !isAuthenticated) {
     // 認証が必要なページにアクセスしようとしたが、認証されていない
     // -> ログインページにリダイレクト
+    console.log('[Router] Auth required but not authenticated - redirecting to login');
     next({ name: 'Login' });
   } else if ((to.name === 'Login' || to.name === 'Register') && isAuthenticated) {
     // ログイン済みユーザーがログインページや登録ページにアクセスしようとした
     // -> ダッシュボードにリダイレクト
+    console.log('[Router] Already authenticated, redirecting from login to dashboard');
     next({ name: 'Dashboard' });
   } else {
     // 上記以外の場合は、要求されたルートへのナビゲーションを許可
+    console.log('[Router] Allowing navigation');
     next();
   }
 });

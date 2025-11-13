@@ -26,19 +26,6 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
-/**
- * Safari/iOS/macOS など Cookie 制限が厳しい環境かどうかを判定し、
- * その場合は Authorization ヘッダー経由でトークン送信する。
- * @returns 対象環境かどうか
- */
-function shouldUseAuthorizationHeader(): boolean {
-  const ua = navigator.userAgent.toLowerCase();
-  const isSafariBrowser = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg');
-  const isIOS = /iphone|ipad|ipod/.test(ua);
-  const isMacOS = /macintosh|mac os x/.test(ua);
-  return isSafariBrowser || isIOS || isMacOS;
-}
-
 // リクエストインターセプター
 api.interceptors.request.use(
   (config) => {
@@ -48,20 +35,20 @@ api.interceptors.request.use(
     config.metadata = { requestId };
     loadingStore.start(requestId);
 
-    // Safari/MacOS Cookie制限対策: localStorageからトークンを取得してAuthorizationヘッダーに設定
-    if (shouldUseAuthorizationHeader()) {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log('[API] Using Authorization header for Safari/iOS/MacOS');
-      }
+    // localStorage からトークンを取得して Authorization ヘッダーに設定
+    // これにより、Cookie が機能しない環境（Docker でのクロスオリジン など）でも認証が動作する
+    // Safari/iOS/MacOS Cookie 制限環境にも対応
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('[API] Using Authorization header from localStorage');
     }
 
-    // Safari/MacOS対応デバッグログ
+    // リクエスト詳細ログ
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
       withCredentials: config.withCredentials,
-      headers: config.headers,
-      useAuthHeader: shouldUseAuthorizationHeader(),
+      hasAuthHeader: !!config.headers.Authorization,
+      hasCookieFromStorage: !!token,
     });
 
     return config;
@@ -83,10 +70,7 @@ api.interceptors.response.use(
       loadingStore.stop(requestId);
     }
 
-    // Safari/MacOS対応デバッグログ
-    console.log(`[API Response] ${response.status} ${response.config.url}`, {
-      setCookie: response.headers['set-cookie'],
-    });
+    console.log(`[API Response] ${response.status} ${response.config.url}`);
 
     return response;
   },
@@ -112,6 +96,11 @@ api.interceptors.response.use(
       const status = error.response.status;
       const data = error.response.data as ApiErrorResponse;
 
+      console.error(`[API Error] ${status} ${error.config?.url}`, {
+        detail: data?.detail,
+        isMe: error.config?.url?.endsWith('/me'),
+      });
+
       switch (status) {
         case 400:
           message =
@@ -122,11 +111,29 @@ api.interceptors.response.use(
           // /meエンドポイントからの401エラーは、単に「ログインしていない」状態を示すため、
           // 自動的なログアウト処理を引き起こさないようにする。
           if (error.config?.url?.endsWith('/me')) {
+            console.log('[API] 401 from /me - not authenticated yet');
             // このエラーは後続の処理でハンドリングされるため、ここでは何もしない
           } else {
+            // 他のAPIからの401エラーは「セッション切れ」を示す可能性
+            // ただし、Cookie未反映・タイミング等の一過性要因もあり得るため、
+            // Authorization ヘッダー等の実証的根拠がある場合のみログアウトを実施する。
+            const hadAuthHeader = !!(error.config?.headers as any)?.Authorization;
+            const hadLocalToken = !!localStorage.getItem('access_token');
+
+            console.warn('[API] 401 from non-/me endpoint', {
+              url: error.config?.url,
+              hadAuthHeader,
+              hadLocalToken,
+              isInitialized: authStore.isInitialized,
+            });
             message = '認証の有効期限が切れました。再度ログインしてください';
-            // 他のAPIからの401エラーはセッション切れとみなし、ログアウト処理を実行
-            authStore.logout();
+
+            // 初期化前（=起動直後）はログアウトしない。
+            // また、Authorization ヘッダーも localStorage トークンも無い場合は、
+            // 強制ログアウトせず、ガードに任せて遷移させる（過剰リダイレクト防止）。
+            if (authStore.isInitialized && (hadAuthHeader || hadLocalToken)) {
+              authStore.logout();
+            }
           }
           break;
         case 403:
@@ -172,8 +179,9 @@ api.interceptors.response.use(
       message = error.message || 'リクエストの作成に失敗しました';
     }
 
-    // 401以外のエラーは通知を表示
-    if (error.response?.status !== 401) {
+    // 401と422エラーは自動通知を表示しない
+    // （フォームバリデーションや認証エラーはコンポーネント側で処理）
+    if (error.response?.status !== 401 && error.response?.status !== 422) {
       notificationStore.error(message);
     }
 

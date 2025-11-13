@@ -20,7 +20,7 @@ elif "sslmode=require" in database_url or settings.ENVIRONMENT == "production":
     # sslmodeパラメータはURLに含まれているので、追加の設定は不要
     # ただし、接続タイムアウトを設定
     connect_args = {
-        "connect_timeout": 10,
+        "connect_timeout": 10,  # type: ignore[dict-item]
     }
 
 # DBエンジンの作成
