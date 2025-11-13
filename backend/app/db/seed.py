@@ -58,7 +58,7 @@ def seed_data(db: Session):
         logger.info("Creating dummy decks...")
         my_decks = []
         opponent_decks = []
-        deck_names = set()
+        deck_names: set[str] = set()
 
         while len(deck_names) < 10:
             deck_names.add(fake.word().capitalize() + " " + fake.word().capitalize())
@@ -156,7 +156,7 @@ def seed_data(db: Session):
                     elif mode == "DC":
                         duel_data["dc_value"] = round(random.uniform(200.0, 400.0), 2)
 
-                    duel_in = DuelCreate(**duel_data)
+                    duel_in = DuelCreate(**duel_data)  # type: ignore[arg-type]
                     duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)
                     total_created_count += 1
 
