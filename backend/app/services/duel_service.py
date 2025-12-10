@@ -115,6 +115,23 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                     "opponent_deck_id": latest_duel.opponent_deck_id,
                 }
 
+        # EVENTモードの最新デッキ情報を取得
+        latest_event_duel = (
+            db.query(Duel)
+            .filter(
+                Duel.user_id == user_id,
+                Duel.game_mode == "EVENT",
+            )
+            .order_by(Duel.played_date.desc())
+            .first()
+        )
+        if latest_event_duel:
+            latest_values["EVENT"] = {
+                "value": 0,  # EVENTモードには固有の値がないためダミー値
+                "deck_id": latest_event_duel.deck_id,
+                "opponent_deck_id": latest_event_duel.opponent_deck_id,
+            }
+
         return latest_values
 
     def export_duels_to_csv(
