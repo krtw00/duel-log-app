@@ -354,7 +354,11 @@ watch(
         form.value.game_mode = props.defaultGameMode;
 
         // ゲームモードに応じた最新値を適用
-        const applied = applyLatestValuesToGameMode(form.value.game_mode, myDecks.value);
+        const applied = applyLatestValuesToGameMode(
+          form.value.game_mode,
+          myDecks.value,
+          opponentDecks.value,
+        );
         form.value.rank = applied.rank;
         form.value.rate_value = applied.rate_value;
         form.value.dc_value = applied.dc_value;
@@ -377,7 +381,7 @@ watch(
     form.value.dc_value = undefined;
 
     // ゲームモードに応じた最新値を適用
-    const applied = applyLatestValuesToGameMode(newMode, myDecks.value);
+    const applied = applyLatestValuesToGameMode(newMode, myDecks.value, opponentDecks.value);
     form.value.rank = applied.rank;
     form.value.rate_value = applied.rate_value;
     form.value.dc_value = applied.dc_value;

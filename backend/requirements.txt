@@ -1,21 +1,21 @@
-fastapi==0.121.1
+fastapi==0.124.0
 python-multipart==0.0.20
 uvicorn[standard]==0.38.0
 sqlalchemy==2.0.44
 psycopg[binary,compat]
 python-dotenv==1.2.1
-alembic==1.11.1
+alembic==1.17.2
 bcrypt==4.0.1
 python-jose[cryptography]==3.5.0
 pydantic-settings==2.12.0
-pydantic[email]==2.12.4
+pydantic[email]==2.12.5
 resend==2.15.0
 jinja2==3.1.6
 
 # テスト用
-pytest==9.0.1
+pytest==9.0.2
 pytest-cov==6.3.0
 httpx==0.25.2
-Faker==37.12.0
+Faker==38.2.0
 ruff
 black
