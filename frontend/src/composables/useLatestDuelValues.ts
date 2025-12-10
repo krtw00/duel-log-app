@@ -42,11 +42,13 @@ export function useLatestDuelValues() {
    * ゲームモードに応じた最新値をフォームに適用
    * @param gameMode - ゲームモード
    * @param myDecks - 自分のデッキリスト
+   * @param opponentDecks - 相手のデッキリスト
    * @returns 適用された値のオブジェクト
    */
   const applyLatestValuesToGameMode = (
     gameMode: GameMode,
     myDecks: Deck[],
+    opponentDecks: Deck[],
   ): {
     rank?: number;
     rate_value?: number;
@@ -77,6 +79,8 @@ export function useLatestDuelValues() {
         result.dc_value = latest.value ?? DEFAULT_DC;
       }
       result.selectedMyDeck = myDecks.find((d) => d.id === latest.deck_id) || null;
+      result.selectedOpponentDeck =
+        opponentDecks.find((d) => d.id === latest.opponentDeck_id) || null;
     } else {
       // 最新値がない場合はデフォルト値を使用
       if (gameMode === 'RANK') {
