@@ -49,11 +49,19 @@ describe('useLatestDuelValues', () => {
         { id: 1, name: 'デッキA', is_opponent: false, active: true },
         { id: 3, name: 'デッキB', is_opponent: false, active: true },
       ];
+      const opponentDecks: Deck[] = [
+        { id: 2, name: '相手デッキA', is_opponent: true, active: true },
+      ];
 
-      const result = applyLatestValuesToGameMode('RANK', myDecks);
+      const result = applyLatestValuesToGameMode('RANK', myDecks, opponentDecks);
 
       expect(result.rank).toBe(15);
       expect(result.selectedMyDeck).toMatchObject({ id: 1, name: 'デッキA', is_opponent: false });
+      expect(result.selectedOpponentDeck).toMatchObject({
+        id: 2,
+        name: '相手デッキA',
+        is_opponent: true,
+      });
       expect(result.rate_value).toBeUndefined();
       expect(result.dc_value).toBeUndefined();
     });
@@ -64,11 +72,19 @@ describe('useLatestDuelValues', () => {
         RATE: { value: 1700, deck_id: 2, opponentDeck_id: 3 },
       };
       const myDecks: Deck[] = [{ id: 2, name: 'デッキC', is_opponent: false, active: true }];
+      const opponentDecks: Deck[] = [
+        { id: 3, name: '相手デッキB', is_opponent: true, active: true },
+      ];
 
-      const result = applyLatestValuesToGameMode('RATE', myDecks);
+      const result = applyLatestValuesToGameMode('RATE', myDecks, opponentDecks);
 
       expect(result.rate_value).toBe(1700);
       expect(result.selectedMyDeck).toMatchObject({ id: 2, name: 'デッキC', is_opponent: false });
+      expect(result.selectedOpponentDeck).toMatchObject({
+        id: 3,
+        name: '相手デッキB',
+        is_opponent: true,
+      });
       expect(result.rank).toBeUndefined();
     });
 
@@ -78,56 +94,74 @@ describe('useLatestDuelValues', () => {
         DC: { value: 5, deck_id: 4, opponentDeck_id: 5 },
       };
       const myDecks: Deck[] = [{ id: 4, name: 'デッキD', is_opponent: false, active: true }];
+      const opponentDecks: Deck[] = [
+        { id: 5, name: '相手デッキC', is_opponent: true, active: true },
+      ];
 
-      const result = applyLatestValuesToGameMode('DC', myDecks);
+      const result = applyLatestValuesToGameMode('DC', myDecks, opponentDecks);
 
       expect(result.dc_value).toBe(5);
       expect(result.selectedMyDeck).toMatchObject({ id: 4, name: 'デッキD', is_opponent: false });
+      expect(result.selectedOpponentDeck).toMatchObject({
+        id: 5,
+        name: '相手デッキC',
+        is_opponent: true,
+      });
     });
 
     it('最新値がない場合はデフォルト値を使用（RANK）', () => {
       const { latestValues, applyLatestValuesToGameMode, DEFAULT_RANK } = useLatestDuelValues();
       latestValues.value = {};
       const myDecks: Deck[] = [];
+      const opponentDecks: Deck[] = [];
 
-      const result = applyLatestValuesToGameMode('RANK', myDecks);
+      const result = applyLatestValuesToGameMode('RANK', myDecks, opponentDecks);
 
       expect(result.rank).toBe(DEFAULT_RANK);
       expect(result.selectedMyDeck).toBeNull();
+      expect(result.selectedOpponentDeck).toBeNull();
     });
 
     it('最新値がない場合はデフォルト値を使用（RATE）', () => {
       const { latestValues, applyLatestValuesToGameMode, DEFAULT_RATE } = useLatestDuelValues();
       latestValues.value = {};
       const myDecks: Deck[] = [];
+      const opponentDecks: Deck[] = [];
 
-      const result = applyLatestValuesToGameMode('RATE', myDecks);
+      const result = applyLatestValuesToGameMode('RATE', myDecks, opponentDecks);
 
       expect(result.rate_value).toBe(DEFAULT_RATE);
       expect(result.selectedMyDeck).toBeNull();
+      expect(result.selectedOpponentDeck).toBeNull();
     });
 
     it('最新値がない場合はデフォルト値を使用（DC）', () => {
       const { latestValues, applyLatestValuesToGameMode, DEFAULT_DC } = useLatestDuelValues();
       latestValues.value = {};
       const myDecks: Deck[] = [];
+      const opponentDecks: Deck[] = [];
 
-      const result = applyLatestValuesToGameMode('DC', myDecks);
+      const result = applyLatestValuesToGameMode('DC', myDecks, opponentDecks);
 
       expect(result.dc_value).toBe(DEFAULT_DC);
       expect(result.selectedMyDeck).toBeNull();
+      expect(result.selectedOpponentDeck).toBeNull();
     });
 
     it('デッキが見つからない場合はnull', () => {
       const { latestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
       latestValues.value = {
-        RANK: { value: 15, deck_id: 999, opponentDeck_id: 2 },
+        RANK: { value: 15, deck_id: 999, opponentDeck_id: 888 },
       };
       const myDecks: Deck[] = [{ id: 1, name: 'デッキA', is_opponent: false, active: true }];
+      const opponentDecks: Deck[] = [
+        { id: 2, name: '相手デッキA', is_opponent: true, active: true },
+      ];
 
-      const result = applyLatestValuesToGameMode('RANK', myDecks);
+      const result = applyLatestValuesToGameMode('RANK', myDecks, opponentDecks);
 
       expect(result.selectedMyDeck).toBeNull();
+      expect(result.selectedOpponentDeck).toBeNull();
     });
   });
 });
