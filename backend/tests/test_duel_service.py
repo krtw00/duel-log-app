@@ -244,7 +244,9 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         won_coin_toss=True,
         is_going_first=True,
     )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rank_old)
+    duel_service.create_user_duel(
+        db_session, user_id=test_user.id, duel_in=duel_rank_old
+    )
 
     duel_rank_latest = DuelCreate(
         deck_id=my_deck2.id,
@@ -256,7 +258,9 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         won_coin_toss=True,
         is_going_first=True,
     )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rank_latest)
+    duel_service.create_user_duel(
+        db_session, user_id=test_user.id, duel_in=duel_rank_latest
+    )
 
     # RATEモードのDuelを作成（最新レート: 1700）
     duel_rate = DuelCreate(
@@ -294,7 +298,9 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         won_coin_toss=True,
         is_going_first=True,
     )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_event_old)
+    duel_service.create_user_duel(
+        db_session, user_id=test_user.id, duel_in=duel_event_old
+    )
 
     duel_event_latest = DuelCreate(
         deck_id=my_deck2.id,
@@ -305,10 +311,14 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         won_coin_toss=False,
         is_going_first=False,
     )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_event_latest)
+    duel_service.create_user_duel(
+        db_session, user_id=test_user.id, duel_in=duel_event_latest
+    )
 
     # Act
-    latest_values = duel_service.get_latest_duel_values(db_session, user_id=test_user.id)
+    latest_values = duel_service.get_latest_duel_values(
+        db_session, user_id=test_user.id
+    )
 
     # Assert
     # RANKモードの最新値
