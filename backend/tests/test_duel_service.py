@@ -214,3 +214,123 @@ def test_import_duels_from_csv_string_rank(db_session: Session, test_user: User)
     )
     assert my_deck is not None
     assert opponent_deck is not None
+
+
+def test_get_latest_duel_values(db_session: Session, test_user: User):
+    """各ゲームモード（RANK、RATE、DC、EVENT）の最新値取得をテスト"""
+    # Arrange - デッキを作成
+    my_deck1 = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="My Deck 1", is_opponent=False
+    )
+    my_deck2 = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="My Deck 2", is_opponent=False
+    )
+    opponent_deck1 = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="Opponent Deck 1", is_opponent=True
+    )
+    opponent_deck2 = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="Opponent Deck 2", is_opponent=True
+    )
+    db_session.commit()
+
+    # RANKモードのDuelを作成（最新ランク: 15）
+    duel_rank_old = DuelCreate(
+        deck_id=my_deck1.id,
+        opponent_deck_id=opponent_deck1.id,
+        is_win=True,
+        game_mode="RANK",
+        rank=10,
+        played_date=datetime(2023, 1, 1, tzinfo=ZoneInfo("UTC")),
+        won_coin_toss=True,
+        is_going_first=True,
+    )
+    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rank_old)
+
+    duel_rank_latest = DuelCreate(
+        deck_id=my_deck2.id,
+        opponent_deck_id=opponent_deck2.id,
+        is_win=True,
+        game_mode="RANK",
+        rank=15,
+        played_date=datetime(2023, 2, 1, tzinfo=ZoneInfo("UTC")),
+        won_coin_toss=True,
+        is_going_first=True,
+    )
+    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rank_latest)
+
+    # RATEモードのDuelを作成（最新レート: 1700）
+    duel_rate = DuelCreate(
+        deck_id=my_deck1.id,
+        opponent_deck_id=opponent_deck1.id,
+        is_win=False,
+        game_mode="RATE",
+        rate_value=1700.0,
+        played_date=datetime(2023, 3, 1, tzinfo=ZoneInfo("UTC")),
+        won_coin_toss=False,
+        is_going_first=False,
+    )
+    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rate)
+
+    # DCモードのDuelを作成（最新DC: 5000）
+    duel_dc = DuelCreate(
+        deck_id=my_deck2.id,
+        opponent_deck_id=opponent_deck2.id,
+        is_win=True,
+        game_mode="DC",
+        dc_value=5000.0,
+        played_date=datetime(2023, 4, 1, tzinfo=ZoneInfo("UTC")),
+        won_coin_toss=True,
+        is_going_first=True,
+    )
+    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_dc)
+
+    # EVENTモードのDuelを作成（値なし、デッキ情報のみ）
+    duel_event_old = DuelCreate(
+        deck_id=my_deck1.id,
+        opponent_deck_id=opponent_deck1.id,
+        is_win=True,
+        game_mode="EVENT",
+        played_date=datetime(2023, 5, 1, tzinfo=ZoneInfo("UTC")),
+        won_coin_toss=True,
+        is_going_first=True,
+    )
+    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_event_old)
+
+    duel_event_latest = DuelCreate(
+        deck_id=my_deck2.id,
+        opponent_deck_id=opponent_deck2.id,
+        is_win=False,
+        game_mode="EVENT",
+        played_date=datetime(2023, 6, 1, tzinfo=ZoneInfo("UTC")),
+        won_coin_toss=False,
+        is_going_first=False,
+    )
+    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_event_latest)
+
+    # Act
+    latest_values = duel_service.get_latest_duel_values(db_session, user_id=test_user.id)
+
+    # Assert
+    # RANKモードの最新値
+    assert "RANK" in latest_values
+    assert latest_values["RANK"]["value"] == 15
+    assert latest_values["RANK"]["deck_id"] == my_deck2.id
+    assert latest_values["RANK"]["opponent_deck_id"] == opponent_deck2.id
+
+    # RATEモードの最新値
+    assert "RATE" in latest_values
+    assert latest_values["RATE"]["value"] == 1700.0
+    assert latest_values["RATE"]["deck_id"] == my_deck1.id
+    assert latest_values["RATE"]["opponent_deck_id"] == opponent_deck1.id
+
+    # DCモードの最新値
+    assert "DC" in latest_values
+    assert latest_values["DC"]["value"] == 5000.0
+    assert latest_values["DC"]["deck_id"] == my_deck2.id
+    assert latest_values["DC"]["opponent_deck_id"] == opponent_deck2.id
+
+    # EVENTモードの最新デッキ情報
+    assert "EVENT" in latest_values
+    assert latest_values["EVENT"]["value"] == 0  # ダミー値
+    assert latest_values["EVENT"]["deck_id"] == my_deck2.id
+    assert latest_values["EVENT"]["opponent_deck_id"] == opponent_deck2.id
