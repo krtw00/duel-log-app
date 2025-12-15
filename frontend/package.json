@@ -39,7 +39,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsdoc": "^61.1.12",
     "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-vue": "^10.5.0",
+    "eslint-plugin-vue": "^10.6.2",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^27.2.0",
     "prettier": "^3.6.2",
