@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/krtw00/duel-log-app/compare/v1.1.0...v1.1.1) (2025-12-25)
+
+
+### 🐛 Bug Fixes
+
+* **duel:** DCポイントを整数型に変更 ([21baa17](https://github.com/krtw00/duel-log-app/commit/21baa17e1f251cf9aac0cbd60a4d6e21cc456542))
+
 ## [1.1.0](https://github.com/krtw00/duel-log-app/compare/v1.0.6...v1.1.0) (2025-12-19)
 
 
