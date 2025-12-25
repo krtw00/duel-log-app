@@ -24,7 +24,10 @@ export function useDuelFormValidation() {
      * 整数チェック
      */
     integer: (v: unknown): boolean | string =>
-      (v === null || v === undefined || v === '' || Number.isInteger(Number(v))) ||
+      v === null ||
+      v === undefined ||
+      v === '' ||
+      Number.isInteger(Number(v)) ||
       '整数を入力してください',
 
     /**
