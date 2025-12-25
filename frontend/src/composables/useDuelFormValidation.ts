@@ -21,6 +21,16 @@ export function useDuelFormValidation() {
       (!isNaN(Number(v)) && Number(v) >= 0) || '0以上の数値を入力してください',
 
     /**
+     * 整数チェック
+     */
+    integer: (v: unknown): boolean | string =>
+      v === null ||
+      v === undefined ||
+      v === '' ||
+      Number.isInteger(Number(v)) ||
+      '整数を入力してください',
+
+    /**
      * 最大文字数チェック（1000文字）
      */
     maxLength: (v: string): boolean | string =>
