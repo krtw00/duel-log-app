@@ -26,8 +26,8 @@ class DuelBase(CustomBaseModel):
     rate_value: Optional[float] = Field(
         None, ge=0, description="レート数値（RATEモード時のみ、小数点2桁まで）"
     )
-    dc_value: Optional[float] = Field(
-        None, ge=0, description="DC数値（DCモード時のみ、小数点2桁まで）"
+    dc_value: Optional[int] = Field(
+        None, ge=0, description="DC数値（DCモード時のみ、整数）"
     )
     played_date: datetime = Field(..., description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
@@ -64,7 +64,7 @@ class DuelBase(CustomBaseModel):
 
     @field_validator("dc_value")
     @classmethod
-    def validate_dc_value(cls, v: Optional[float], info) -> Optional[float]:
+    def validate_dc_value(cls, v: Optional[int], info) -> Optional[int]:
         """DCモード時はdc_valueが必須"""
         game_mode = info.data.get("game_mode")
         if game_mode == "DC" and v is None:
@@ -98,7 +98,7 @@ class DuelUpdate(BaseModel):
     rate_value: Optional[float] = Field(
         None, ge=0, description="レート数値（小数点2桁まで）"
     )
-    dc_value: Optional[float] = Field(None, ge=0, description="DC数値（小数点2桁まで）")
+    dc_value: Optional[int] = Field(None, ge=0, description="DC数値（整数）")
     played_date: Optional[datetime] = Field(None, description="対戦日時")
     notes: Optional[str] = Field(None, max_length=1000, description="メモ")
 
