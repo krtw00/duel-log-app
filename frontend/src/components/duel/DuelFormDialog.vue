@@ -191,7 +191,9 @@
                 min="0"
                 step="1"
                 placeholder="例: 18500"
-                :rules="form.game_mode === 'DC' ? [rules.required, rules.number, rules.integer] : []"
+                :rules="
+                  form.game_mode === 'DC' ? [rules.required, rules.number, rules.integer] : []
+                "
                 @input="handleDcValueInput"
               />
             </v-col>
