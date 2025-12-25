@@ -137,9 +137,7 @@ class StatisticsService:
 
             # deck_name と opponent_deck_name 属性を必ず追加
             duel.deck_name = duel.deck.name if duel.deck else "不明"  # type: ignore[attr-defined]
-            duel.opponent_deck_name = (
-                duel.opponent_deck.name if duel.opponent_deck else "不明"  # type: ignore[attr-defined]
-            )
+            duel.opponent_deck_name = duel.opponent_deck.name if duel.opponent_deck else "不明"  # type: ignore[attr-defined]
 
         return duels
 
