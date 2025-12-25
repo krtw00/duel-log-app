@@ -39,7 +39,7 @@ class Duel(Base):
     # ゲームモード別の値
     rank = Column(Integer, nullable=True)  # ランクモード時のランク（1-15: B2～M1）
     rate_value = Column(Float, nullable=True)  # レートモード時のレート数値（小数点2桁）
-    dc_value = Column(Float, nullable=True)  # DCモード時のDC数値（小数点2桁）
+    dc_value = Column(Integer, nullable=True)  # DCモード時のDC数値（整数）
 
     # 対戦詳細
     won_coin_toss = Column(Boolean, nullable=False)  # True=コイントス勝利, False=敗北
