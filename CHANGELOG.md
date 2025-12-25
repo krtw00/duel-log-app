@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/krtw00/duel-log-app/compare/v1.1.1...v1.1.2) (2025-12-25)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** DCポイント入力で小数点を入力できないように修正 ([#227](https://github.com/krtw00/duel-log-app/issues/227)) ([ac78c31](https://github.com/krtw00/duel-log-app/commit/ac78c31384e2811f6eb1ced096124313b0dffc85)), closes [#225](https://github.com/krtw00/duel-log-app/issues/225)
+
 ## [1.1.1](https://github.com/krtw00/duel-log-app/compare/v1.1.0...v1.1.1) (2025-12-25)
 
 
