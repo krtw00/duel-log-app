@@ -191,7 +191,10 @@
                 min="0"
                 step="1"
                 placeholder="例: 18500"
-                :rules="form.game_mode === 'DC' ? [rules.required, rules.number] : []"
+                :rules="
+                  form.game_mode === 'DC' ? [rules.required, rules.number, rules.integer] : []
+                "
+                @input="handleDcValueInput"
               />
             </v-col>
 
@@ -389,6 +392,29 @@ watch(
     selectedOpponentDeck.value = applied.selectedOpponentDeck;
   },
 );
+
+// DCポイント入力ハンドラー（小数点入力を防ぐ）
+const handleDcValueInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const value = target.value;
+
+  // 空の場合はそのまま
+  if (value === '' || value === null || value === undefined) {
+    return;
+  }
+
+  // 数値に変換して整数化（小数点以下を切り捨て）
+  const numValue = parseFloat(value);
+  if (!isNaN(numValue)) {
+    const intValue = Math.floor(numValue);
+    if (numValue !== intValue) {
+      // 小数が入力された場合、整数に変換
+      form.value.dc_value = intValue;
+      // 入力フィールドの値も更新
+      target.value = String(intValue);
+    }
+  }
+};
 
 const handleSubmit = async () => {
   const { valid } = await formRef.value.validate();
