@@ -189,8 +189,8 @@
                 color="warning"
                 type="number"
                 min="0"
-                step="0.01"
-                placeholder="例: 18500.75"
+                step="1"
+                placeholder="例: 18500"
                 :rules="form.game_mode === 'DC' ? [rules.required, rules.number] : []"
               />
             </v-col>
