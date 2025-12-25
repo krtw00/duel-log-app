@@ -123,9 +123,12 @@ class StatisticsService:
 
         for duel in duels:
             # deck と opponentDeck オブジェクトを設定
-            duel.deck = deck_map.get(duel.deck_id) if duel.deck_id else None  # type: ignore[assignment]
+            deck_id_value = int(duel.deck_id) if duel.deck_id is not None else None
+            opponent_deck_id_value = int(duel.opponent_deck_id) if duel.opponent_deck_id is not None else None
+
+            duel.deck = deck_map.get(deck_id_value) if deck_id_value else None  # type: ignore[assignment]
             duel.opponent_deck = (
-                deck_map.get(duel.opponent_deck_id) if duel.opponent_deck_id else None  # type: ignore[assignment]
+                deck_map.get(opponent_deck_id_value) if opponent_deck_id_value else None  # type: ignore[assignment]
             )
 
             # deck_name と opponent_deck_name 属性を必ず追加
