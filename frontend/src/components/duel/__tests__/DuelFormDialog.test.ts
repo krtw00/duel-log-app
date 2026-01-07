@@ -245,7 +245,34 @@ describe('DuelFormDialog.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect((wrapper.vm as any).form.coin).toBe(0);
+    // coinの初期値は常に「表」
+    expect((wrapper.vm as any).form.coin).toBe(1);
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
+  });
+
+  it('sets turn order from default when coin is heads and flips on tails', async () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        defaultFirstOrSecond: 0, // default: 後攻
+        duel: null,
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    // 表ならデフォルト（後攻）
+    (wrapper.vm as any).form.coin = 1;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
+
+    // 裏なら反転（先攻）
+    (wrapper.vm as any).form.coin = 0;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(1);
   });
 });

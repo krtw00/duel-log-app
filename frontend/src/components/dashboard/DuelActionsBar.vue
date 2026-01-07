@@ -3,18 +3,18 @@
     <!-- スマホ用: 縦並びボタン -->
     <div class="d-flex d-sm-none flex-column ga-2">
       <div class="default-toggle d-flex align-center ga-2">
-        <span class="text-caption font-weight-medium">デフォルト</span>
-        <span class="text-caption">後攻</span>
-        <v-switch
-          :model-value="defaultFirstOrSecond === 1"
-          class="default-toggle__switch"
-          color="primary"
-          inset
+        <span class="default-toggle__label">デフォルト</span>
+        <v-btn-toggle
+          :model-value="defaultFirstOrSecond"
+          mandatory
+          divided
           density="compact"
-          hide-details
-          @update:model-value="$emit('update:defaultFirstOrSecond', $event ? 1 : 0)"
-        />
-        <span class="text-caption">先攻</span>
+          variant="outlined"
+          @update:model-value="$emit('update:defaultFirstOrSecond', $event)"
+        >
+          <v-btn :value="0" size="small">後攻</v-btn>
+          <v-btn :value="1" size="small">先攻</v-btn>
+        </v-btn-toggle>
       </div>
       <v-btn color="primary" prepend-icon="mdi-plus" block size="large" @click="$emit('add-duel')">
         対戦記録を追加
@@ -63,18 +63,18 @@
         共有リンクを生成
       </v-btn>
       <div class="default-toggle d-flex align-center ga-2">
-        <span class="text-caption font-weight-medium">デフォルト</span>
-        <span class="text-caption">後攻</span>
-        <v-switch
-          :model-value="defaultFirstOrSecond === 1"
-          class="default-toggle__switch"
-          color="primary"
-          inset
+        <span class="default-toggle__label">デフォルト</span>
+        <v-btn-toggle
+          :model-value="defaultFirstOrSecond"
+          mandatory
+          divided
           density="compact"
-          hide-details
-          @update:model-value="$emit('update:defaultFirstOrSecond', $event ? 1 : 0)"
-        />
-        <span class="text-caption">先攻</span>
+          variant="outlined"
+          @update:model-value="$emit('update:defaultFirstOrSecond', $event)"
+        >
+          <v-btn :value="0" size="small">後攻</v-btn>
+          <v-btn :value="1" size="small">先攻</v-btn>
+        </v-btn-toggle>
       </div>
       <v-btn color="primary" prepend-icon="mdi-plus" class="add-btn" @click="$emit('add-duel')">
         対戦記録を追加
@@ -124,7 +124,9 @@ defineExpose({
   font-weight: 600;
 }
 
-.default-toggle__switch {
-  flex: 0 0 auto;
+.default-toggle__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.8;
 }
 </style>
