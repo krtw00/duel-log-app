@@ -256,14 +256,14 @@ interface Props {
   modelValue: boolean;
   duel: Duel | null;
   defaultGameMode?: GameMode;
-  defaultCoin?: 0 | 1;
+  defaultFirstOrSecond?: 0 | 1;
   initialMyDecks?: Deck[];
   initialOpponentDecks?: Deck[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   defaultGameMode: 'RANK',
-  defaultCoin: 1,
+  defaultFirstOrSecond: 1,
 });
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
@@ -288,7 +288,7 @@ const selectedMyDeck = ref<Deck | string | null>(null);
 const selectedOpponentDeck = ref<Deck | string | null>(null);
 
 const defaultForm = (): DuelCreate => {
-  const defaultCoin = props.defaultCoin;
+  const defaultCoin = props.defaultFirstOrSecond === 1 ? 1 : 0;
   return {
     deck_id: null,
     opponent_deck_id: null,
