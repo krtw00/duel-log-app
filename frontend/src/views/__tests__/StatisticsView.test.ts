@@ -98,7 +98,7 @@ describe('StatisticsView.vue', () => {
     await flushPromises();
 
     expect(api.get).toHaveBeenCalledWith('/statistics/available-decks', expect.any(Object));
-    expect(api.get).toHaveBeenCalledWith('/statistics/', expect.any(Object));
+    expect(api.get).toHaveBeenCalledWith('/statistics', expect.any(Object));
     expect(wrapper.text()).toContain('統計情報');
 
     const chips = wrapper.findAllComponents({ name: 'VChip' });
