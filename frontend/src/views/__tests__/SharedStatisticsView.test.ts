@@ -56,8 +56,7 @@ describe('SharedStatisticsView.vue', () => {
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
           VAppBar: {
-            template:
-              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
+            template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
           },
           VContainer: { template: '<div><slot /></div>' },
         },
@@ -153,8 +152,7 @@ describe('SharedStatisticsView.vue', () => {
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
           VAppBar: {
-            template:
-              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
+            template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
           },
           VContainer: { template: '<div><slot /></div>' },
         },
@@ -201,8 +199,7 @@ describe('SharedStatisticsView.vue', () => {
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
           VAppBar: {
-            template:
-              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
+            template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
           },
           VContainer: { template: '<div><slot /></div>' },
         },
