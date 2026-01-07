@@ -7,14 +7,14 @@
         <v-icon class="mr-2" color="primary">mdi-table</v-icon>
         <span class="text-h6">対戦履歴</span>
       </div>
-      <duel-actions-bar
-        ref="actionsBarRef"
-        v-model:default-coin="defaultCoin"
-        @add-duel="openDuelDialog"
-        @export-csv="exportCSV"
-        @import-csv="triggerFileInput"
-        @share-data="shareDialogOpened = true"
-        @file-change="handleFileUpload"
+        <duel-actions-bar
+          ref="actionsBarRef"
+          v-model:default-first-or-second="defaultFirstOrSecond"
+          @add-duel="openDuelDialog"
+          @export-csv="exportCSV"
+          @import-csv="triggerFileInput"
+          @share-data="shareDialogOpened = true"
+          @file-change="handleFileUpload"
       />
     </v-card-title>
 
@@ -35,7 +35,7 @@
       v-model="dialogOpen"
       :duel="selectedDuel"
       :default-game-mode="defaultGameMode"
-      :default-coin="defaultCoin"
+      :default-first-or-second="defaultFirstOrSecond"
       :initial-my-decks="initialMyDecks"
       :initial-opponent-decks="initialOpponentDecks"
       @saved="handleSaved"
@@ -86,23 +86,36 @@ const shareDialogOpened = ref(false);
 const actionsBarRef = ref<InstanceType<typeof DuelActionsBar> | null>(null);
 const initialMyDecks = computed(() => props.decks.filter((deck) => !deck.is_opponent));
 const initialOpponentDecks = computed(() => props.decks.filter((deck) => deck.is_opponent));
-const DEFAULT_COIN_STORAGE_KEY = 'duellog.defaultCoin';
-const defaultCoin = ref<0 | 1>(1);
+const DEFAULT_FIRST_OR_SECOND_STORAGE_KEY = 'duellog.defaultFirstOrSecond';
+const LEGACY_DEFAULT_COIN_STORAGE_KEY = 'duellog.defaultCoin';
+const defaultFirstOrSecond = ref<0 | 1>(1);
 
-const loadDefaultCoin = () => {
+const loadDefaultFirstOrSecond = () => {
   try {
-    const stored = window.localStorage.getItem(DEFAULT_COIN_STORAGE_KEY);
-    defaultCoin.value = stored === '0' ? 0 : 1;
+    const stored = window.localStorage.getItem(DEFAULT_FIRST_OR_SECOND_STORAGE_KEY);
+    if (stored === '0' || stored === '1') {
+      defaultFirstOrSecond.value = stored === '0' ? 0 : 1;
+      return;
+    }
+
+    // backward compat: old key used to store coin default (0/1) which matches turn order mapping
+    const legacyStored = window.localStorage.getItem(LEGACY_DEFAULT_COIN_STORAGE_KEY);
+    if (legacyStored === '0' || legacyStored === '1') {
+      defaultFirstOrSecond.value = legacyStored === '0' ? 0 : 1;
+      return;
+    }
+
+    defaultFirstOrSecond.value = 1;
   } catch {
-    defaultCoin.value = 1;
+    defaultFirstOrSecond.value = 1;
   }
 };
 
-loadDefaultCoin();
+loadDefaultFirstOrSecond();
 
-watch(defaultCoin, (value) => {
+watch(defaultFirstOrSecond, (value) => {
   try {
-    window.localStorage.setItem(DEFAULT_COIN_STORAGE_KEY, String(value));
+    window.localStorage.setItem(DEFAULT_FIRST_OR_SECOND_STORAGE_KEY, String(value));
   } catch {
     // ignore storage errors (private mode etc.)
   }
