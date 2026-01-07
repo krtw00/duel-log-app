@@ -28,10 +28,12 @@ export const normalizeApiBaseUrl = (
   // Docker 内からは backend:8000 で到達できるが、ブラウザからは名前解決できない。
   // 誤設定でも開発が詰まらないように、dev かつブラウザ実行時は現在ホストへ寄せる。
   // 例: http://backend:8000 -> http://localhost:8000
-  const maybeRewrittenForDev =
-    options?.isDev && options.runtimeHostname
-      ? trimmed.replace(/^(https?:\/\/)backend(?=[:/]|$)/, `$1${options.runtimeHostname}`)
-      : trimmed;
+  const shouldRewriteBackendHost =
+    !!options?.runtimeHostname && options.runtimeHostname !== 'backend' && options.runtimeHostname !== '';
+
+  const maybeRewrittenForDev = shouldRewriteBackendHost
+    ? trimmed.replace(/^(https?:\/\/)backend(?=[:/]|$)/, `$1${options.runtimeHostname}`)
+    : trimmed;
 
   // Playwright など一部環境では localhost が IPv6 (::1) に解決され、
   // バックエンドが IPv4 のみで待ち受けていると接続できないケースがある。
