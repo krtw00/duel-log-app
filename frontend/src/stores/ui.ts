@@ -46,4 +46,3 @@ export const useUiStore = defineStore('ui', () => {
     setLastGameMode,
   };
 });
-
