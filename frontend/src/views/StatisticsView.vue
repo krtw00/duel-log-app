@@ -654,11 +654,11 @@ const normalizePercent = (value: number) => {
 
 const formatPercent = (value: number) => `${normalizePercent(value).toFixed(1)}%`;
 
-// 優勢: 赤 / 劣勢: 青（Issue #39 の要件に合わせる）
+// 優勢: 青 / 劣勢: 赤（ユーザー要望により色相を反転）
 const getMatchupColor = (value: number) => {
   const percent = normalizePercent(value);
-  if (percent >= 55) return 'error';
-  if (percent <= 45) return 'info';
+  if (percent >= 55) return 'info';
+  if (percent <= 45) return 'error';
   return undefined;
 };
 
