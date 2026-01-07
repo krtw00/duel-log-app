@@ -151,15 +151,23 @@ defineExpose({
 }
 
 .default-toggle__icon {
-  color: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-surface));
+  opacity: 0.9;
 }
 
 .default-toggle__toggle {
   border-width: 2px;
+  background: rgba(var(--v-theme-surface), 0.9);
+  border-color: rgba(var(--v-theme-on-surface), 0.25) !important;
 }
 
 .default-toggle__selected {
-  background: rgba(var(--v-theme-primary), 0.15) !important;
-  border-color: rgb(var(--v-theme-primary)) !important;
+  background: rgb(var(--v-theme-primary)) !important;
+  color: rgb(var(--v-theme-on-primary)) !important;
+}
+
+.default-toggle__toggle :deep(.v-btn) {
+  color: rgb(var(--v-theme-on-surface)) !important;
+  font-weight: 600;
 }
 </style>
