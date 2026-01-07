@@ -256,6 +256,8 @@ interface Props {
   modelValue: boolean;
   duel: Duel | null;
   defaultGameMode?: GameMode;
+  initialMyDecks?: Deck[];
+  initialOpponentDecks?: Deck[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -326,6 +328,23 @@ const fetchDecks = async (activeOnly: boolean) => {
   }
 };
 
+const seedDecksFromProps = () => {
+  if (decksLoadedTarget.value === 'all') return;
+
+  const hasInitialDecks =
+    (props.initialMyDecks && props.initialMyDecks.length > 0) ||
+    (props.initialOpponentDecks && props.initialOpponentDecks.length > 0);
+
+  if (!hasInitialDecks) return;
+
+  myDecks.value = props.initialMyDecks ? [...props.initialMyDecks] : [];
+  opponentDecks.value = props.initialOpponentDecks ? [...props.initialOpponentDecks] : [];
+
+  if (decksLoadedTarget.value === 'none') {
+    decksLoadedTarget.value = 'active';
+  }
+};
+
 const ensureDecksLoaded = async (target: 'active' | 'all') => {
   if (decksLoadedTarget.value === 'all') return;
   if (target === 'active' && decksLoadedTarget.value === 'active') return;
@@ -353,6 +372,7 @@ watch(
   () => props.modelValue,
   async (newValue) => {
     if (newValue) {
+      seedDecksFromProps();
       if (props.duel) {
         // 編集モード
         void ensureDecksLoaded('all').then(() => {
