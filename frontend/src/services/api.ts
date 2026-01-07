@@ -28,10 +28,9 @@ export const normalizeApiBaseUrl = (
   // Docker 内からは backend:8000 で到達できるが、ブラウザからは名前解決できない。
   // 誤設定でも開発が詰まらないように、dev かつブラウザ実行時は現在ホストへ寄せる。
   // 例: http://backend:8000 -> http://localhost:8000
-  const shouldRewriteBackendHost =
-    !!options?.runtimeHostname && options.runtimeHostname !== 'backend' && options.runtimeHostname !== '';
+  const hasRuntimeHostname = !!options?.runtimeHostname && options.runtimeHostname !== '';
 
-  const maybeRewrittenForDev = shouldRewriteBackendHost
+  const maybeRewrittenForDev = hasRuntimeHostname
     ? trimmed.replace(/^(https?:\/\/)backend(?=[:/]|$)/, `$1${options.runtimeHostname}`)
     : trimmed;
 
@@ -44,6 +43,14 @@ export const normalizeApiBaseUrl = (
 const API_BASE_URL = normalizeApiBaseUrl(RAW_API_BASE_URL, {
   isDev: import.meta.env.DEV,
   runtimeHostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
+});
+
+console.info('[API] baseURL resolved', {
+  raw: RAW_API_BASE_URL,
+  baseURL: API_BASE_URL,
+  mode: import.meta.env.MODE,
+  dev: import.meta.env.DEV,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
 });
 
 export const api = axios.create({
@@ -84,6 +91,7 @@ api.interceptors.request.use(
 
     // リクエスト詳細ログ
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
+      baseURL: config.baseURL,
       withCredentials: config.withCredentials,
       hasAuthHeader: !!config.headers.Authorization,
       hasCookieFromStorage: !!token,
