@@ -151,7 +151,6 @@ defineExpose({
 }
 
 .default-toggle__icon {
-  color: rgb(var(--v-theme-on-surface));
   opacity: 0.9;
 }
 
@@ -162,12 +161,22 @@ defineExpose({
 }
 
 .default-toggle__selected {
-  background: rgb(var(--v-theme-primary)) !important;
-  color: rgb(var(--v-theme-on-primary)) !important;
+  background: rgba(var(--v-theme-primary), 0.25) !important;
+  border-color: rgb(var(--v-theme-primary)) !important;
 }
 
 .default-toggle__toggle :deep(.v-btn) {
-  color: rgb(var(--v-theme-on-surface)) !important;
   font-weight: 600;
+}
+
+/* 読みやすさ優先: ライト=黒 / ダーク=白 */
+:deep(.v-theme--customLightTheme) .default-toggle__toggle :deep(.v-btn),
+:deep(.v-theme--customLightTheme) .default-toggle__icon {
+  color: #000 !important;
+}
+
+:deep(.v-theme--customDarkTheme) .default-toggle__toggle :deep(.v-btn),
+:deep(.v-theme--customDarkTheme) .default-toggle__icon {
+  color: #fff !important;
 }
 </style>
