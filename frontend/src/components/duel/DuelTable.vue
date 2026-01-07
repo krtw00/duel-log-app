@@ -69,6 +69,14 @@
         <v-icon start size="small">mdi-chart-line</v-icon>
         {{ item.rate_value }}
       </v-chip>
+      <v-chip
+        v-else-if="item.game_mode === 'DC' && item.dc_value !== undefined"
+        color="warning"
+        variant="outlined"
+      >
+        <v-icon start size="small">mdi-trophy-variant</v-icon>
+        {{ item.dc_value }}
+      </v-chip>
       <v-chip v-else-if="item.game_mode === 'EVENT'" color="secondary" variant="outlined">
         <v-icon start size="small">mdi-calendar-star</v-icon>
         EVENT
