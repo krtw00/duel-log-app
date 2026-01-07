@@ -14,20 +14,35 @@ if (!RAW_API_BASE_URL) {
   throw new Error('API URL is not configured. Please check your .env file.');
 }
 
-// .env の末尾スペース等でURLが壊れると、ブラウザ側で ERR_EMPTY_RESPONSE などになり得る。
-// ここで安全に正規化しておく。
-const TRIMMED_API_BASE_URL = RAW_API_BASE_URL.trim();
-if (TRIMMED_API_BASE_URL !== RAW_API_BASE_URL) {
-  console.warn('[API] VITE_API_URL contained leading/trailing whitespace; trimmed.');
-}
+export const normalizeApiBaseUrl = (
+  raw: string,
+  options?: { isDev?: boolean; runtimeHostname?: string },
+) => {
+  // .env の末尾スペース等でURLが壊れると、ブラウザ側で ERR_EMPTY_RESPONSE などになり得る。
+  // ここで安全に正規化しておく。
+  const trimmed = raw.trim();
+  if (trimmed !== raw) {
+    console.warn('[API] VITE_API_URL contained leading/trailing whitespace; trimmed.');
+  }
 
-// Playwright など一部環境では localhost が IPv6 (::1) に解決され、
-// バックエンドが IPv4 のみで待ち受けていると接続できないケースがある。
-// そのためテスト環境では 127.0.0.1 に正規化して確実に到達させる。
-const API_BASE_URL = TRIMMED_API_BASE_URL.replace('://localhost', '://127.0.0.1').replace(
-  /\/+$/,
-  '',
-);
+  // Docker 内からは backend:8000 で到達できるが、ブラウザからは名前解決できない。
+  // 誤設定でも開発が詰まらないように、dev かつブラウザ実行時は現在ホストへ寄せる。
+  // 例: http://backend:8000 -> http://localhost:8000
+  const maybeRewrittenForDev =
+    options?.isDev && options.runtimeHostname
+      ? trimmed.replace(/^(https?:\/\/)backend(?=[:/]|$)/, `$1${options.runtimeHostname}`)
+      : trimmed;
+
+  // Playwright など一部環境では localhost が IPv6 (::1) に解決され、
+  // バックエンドが IPv4 のみで待ち受けていると接続できないケースがある。
+  // そのため localhost は 127.0.0.1 に正規化して確実に到達させる。
+  return maybeRewrittenForDev.replace('://localhost', '://127.0.0.1').replace(/\/+$/, '');
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(RAW_API_BASE_URL, {
+  isDev: import.meta.env.DEV,
+  runtimeHostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
+});
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
