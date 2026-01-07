@@ -575,7 +575,7 @@ const fetchStatistics = async () => {
       params.opponent_deck_id = filterOpponentDeckId.value;
     }
 
-    const response = await api.get('/statistics/', { params });
+    const response = await api.get('/statistics', { params });
     const data = response.data;
 
     const modes = ['RANK', 'RATE', 'EVENT', 'DC'];
