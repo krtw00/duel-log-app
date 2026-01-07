@@ -1,3 +1,16 @@
+## [1.1.3](https://github.com/krtw00/duel-log-app/compare/v1.1.2...v1.1.3) (2026-01-07)
+
+
+### 🐛 Bug Fixes
+
+* reduce duel edit dialog lag ([50b9e0b](https://github.com/krtw00/duel-log-app/commit/50b9e0b446fcbecb82530e0568ce515fc6c65699))
+
+
+### ⚡ Performance Improvements
+
+* avoid full refresh after duel save ([eb19600](https://github.com/krtw00/duel-log-app/commit/eb196007bdc5e65baa31b9d5931d3b985e424509))
+* reuse deck list to speed duel edit ([a129e68](https://github.com/krtw00/duel-log-app/commit/a129e68441bbcf6b1cb548f57d63bc822a710ad4))
+
 ## [1.1.2](https://github.com/krtw00/duel-log-app/compare/v1.1.1...v1.1.2) (2025-12-25)
 
 
