@@ -457,6 +457,16 @@ watch(
   },
 );
 
+// コイン結果に連動して先攻/後攻を自動設定
+watch(
+  () => form.value.coin,
+  (newCoin) => {
+    // 編集モードでは自動変更しない（意図しない書き換え防止）
+    if (isEdit.value) return;
+    form.value.first_or_second = newCoin === 1 ? 1 : 0;
+  },
+);
+
 // DCポイント入力ハンドラー（小数点入力を防ぐ）
 const handleDcValueInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
