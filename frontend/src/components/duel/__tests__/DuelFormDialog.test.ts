@@ -229,4 +229,23 @@ describe('DuelFormDialog.vue', () => {
     await wrapper.vm.$nextTick();
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
   });
+
+  it('uses defaultCoin as initial coin value in create mode', async () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        defaultCoin: 0,
+        duel: null,
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect((wrapper.vm as any).form.coin).toBe(0);
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
+  });
 });
