@@ -34,6 +34,8 @@
       v-model="dialogOpen"
       :duel="selectedDuel"
       :default-game-mode="defaultGameMode"
+      :initial-my-decks="initialMyDecks"
+      :initial-opponent-decks="initialOpponentDecks"
       @saved="handleSaved"
     />
 
@@ -79,6 +81,8 @@ const emit = defineEmits<{
 
 const shareDialogOpened = ref(false);
 const actionsBarRef = ref<InstanceType<typeof DuelActionsBar> | null>(null);
+const initialMyDecks = computed(() => props.decks.filter((deck) => !deck.is_opponent));
+const initialOpponentDecks = computed(() => props.decks.filter((deck) => deck.is_opponent));
 
 // CSV operations composable
 const { handleFileUpload: handleFileUploadBase, exportCSV } = useCSVOperations({
