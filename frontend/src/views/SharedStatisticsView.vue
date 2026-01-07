@@ -4,7 +4,14 @@
     <v-app-bar app flat color="transparent">
       <v-toolbar-title class="d-flex align-center">
         <v-btn href="/" variant="text" class="logo-link" :ripple="false">
-          <v-icon class="mr-2" color="primary">mdi-chart-bar</v-icon>
+          <v-img
+            src="/favicon.svg"
+            alt="Duel Log"
+            width="28"
+            height="28"
+            class="mr-2"
+            contain
+          />
           <span class="text-h6">Duel Log Shared Statistics</span>
         </v-btn>
       </v-toolbar-title>
