@@ -26,6 +26,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       console.log('[Auth] Login response:', loginResponse.data);
 
+      // 想定外のレスポンスの場合は「ログイン成功」と扱わない
+      if (!loginResponse.data?.user) {
+        throw new Error('ログインレスポンスが不正です');
+      }
+
       // OBS連携のため、すべてのブラウザでトークンをlocalStorageに保存
       if (loginResponse.data?.access_token) {
         console.log('[Auth] Saving token to localStorage for OBS integration');
@@ -34,12 +39,10 @@ export const useAuthStore = defineStore('auth', () => {
 
       // ログインレスポンスから直接ユーザー情報を取得して設定
       // サーバーが返したユーザー情報は既に検証済みなので、これを信頼して使用
-      if (loginResponse.data?.user) {
-        console.log('[Auth] Setting user from login response');
-        user.value = loginResponse.data.user;
-        isInitialized.value = true;
-        console.log('[Auth] User state is now authenticated');
-      }
+      console.log('[Auth] Setting user from login response');
+      user.value = loginResponse.data.user;
+      isInitialized.value = true;
+      console.log('[Auth] User state is now authenticated');
 
       console.log('[Auth] Login successful, navigating to dashboard');
       // ナビゲーション前に少し待機（Safari/iOS Cookie設定遅延対応）
@@ -50,6 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('[Auth] Login failed:', axiosError.response?.data?.detail || error);
       user.value = null;
       isInitialized.value = true;
+      localStorage.removeItem('access_token');
       throw new Error(axiosError.response?.data?.detail || 'ログインに失敗しました');
     }
   };
