@@ -159,7 +159,9 @@
                           :color="getMatchupColor(item.win_rate)"
                           :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
                         >
-                          {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+                          {{ item.wins }} / {{ item.total_duels }} ({{
+                            formatPercent(item.win_rate)
+                          }})
                         </v-chip>
                       </template>
                       <template #no-data>
@@ -191,7 +193,9 @@
                           :color="getMatchupColor(item.win_rate)"
                           :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
                         >
-                          {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+                          {{ item.wins }} / {{ item.total_duels }} ({{
+                            formatPercent(item.win_rate)
+                          }})
                         </v-chip>
                       </template>
                       <template #[`item.win_rate_first`]="{ item }">
