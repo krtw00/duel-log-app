@@ -97,7 +97,11 @@ export const useAuthStore = defineStore('auth', () => {
       // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
       const response = await api.get('/me');
       console.log('[Auth] User info fetched successfully:', response.data);
-      user.value = response.data;
+      const data = response.data;
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid /me response');
+      }
+      user.value = data as any;
       isInitialized.value = true;
     } catch (error) {
       // エラー（クッキーがない、または無効）の場合はユーザー情報をクリア
