@@ -18,7 +18,26 @@ describe('StatisticsView.vue', () => {
       RANK: {
         monthly_deck_distribution: [],
         recent_deck_distribution: [],
-        matchup_data: [],
+        matchup_data: [
+          {
+            deck_name: 'A',
+            opponent_deck_name: 'B',
+            total_duels: 10,
+            wins: 6,
+            win_rate: 60,
+            win_rate_first: 70,
+            win_rate_second: 40,
+          },
+          {
+            deck_name: 'C',
+            opponent_deck_name: 'D',
+            total_duels: 10,
+            wins: 5,
+            win_rate: 50,
+            win_rate_first: 50,
+            win_rate_second: 50,
+          },
+        ],
         value_sequence_data: [],
       },
       RATE: {
@@ -67,5 +86,20 @@ describe('StatisticsView.vue', () => {
     expect(api.get).toHaveBeenCalledWith('/statistics/available-decks', expect.any(Object));
     expect(api.get).toHaveBeenCalledWith('/statistics/', expect.any(Object));
     expect(wrapper.text()).toContain('統計情報');
+
+    const chips = wrapper.findAllComponents({ name: 'VChip' });
+    const percentChips = chips.filter((chip) => chip.text().includes('%'));
+
+    const winRateChip = percentChips.find((chip) => chip.text().includes('60.0%'));
+    expect(winRateChip?.props('color')).toBe('error');
+
+    const firstChip = percentChips.find((chip) => chip.text().includes('70.0%'));
+    expect(firstChip?.props('color')).toBe('error');
+
+    const secondChip = percentChips.find((chip) => chip.text().includes('40.0%'));
+    expect(secondChip?.props('color')).toBe('info');
+
+    const neutralChip = percentChips.find((chip) => chip.text().includes('50.0%'));
+    expect(neutralChip?.props('color')).toBeUndefined();
   });
 });
