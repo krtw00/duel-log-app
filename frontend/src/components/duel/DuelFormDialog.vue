@@ -256,12 +256,14 @@ interface Props {
   modelValue: boolean;
   duel: Duel | null;
   defaultGameMode?: GameMode;
+  defaultCoin?: 0 | 1;
   initialMyDecks?: Deck[];
   initialOpponentDecks?: Deck[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   defaultGameMode: 'RANK',
+  defaultCoin: 1,
 });
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
@@ -286,6 +288,7 @@ const selectedMyDeck = ref<Deck | string | null>(null);
 const selectedOpponentDeck = ref<Deck | string | null>(null);
 
 const defaultForm = (): DuelCreate => {
+  const defaultCoin = props.defaultCoin;
   return {
     deck_id: null,
     opponent_deck_id: null,
@@ -294,8 +297,8 @@ const defaultForm = (): DuelCreate => {
     rank: undefined,
     rate_value: undefined,
     dc_value: undefined,
-    coin: 1,
-    first_or_second: 1,
+    coin: defaultCoin,
+    first_or_second: defaultCoin === 1 ? 1 : 0,
     played_date: getCurrentLocalDateTime(),
     notes: '',
   };
@@ -418,6 +421,7 @@ watch(
         await ensureDecksLoaded('active');
         await fetchLatestValues();
         form.value = defaultForm();
+        form.value.first_or_second = form.value.coin === 1 ? 1 : 0;
         form.value.game_mode = props.defaultGameMode;
 
         // ゲームモードに応じた最新値を適用
