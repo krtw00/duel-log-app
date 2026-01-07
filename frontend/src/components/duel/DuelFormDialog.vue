@@ -263,7 +263,10 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   defaultGameMode: 'RANK',
 });
-const emit = defineEmits(['update:modelValue', 'saved']);
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean];
+  saved: [payload: { duel: Duel; upsertDecks: Deck[] }];
+}>();
 
 const notificationStore = useNotificationStore();
 const { rules } = useDuelFormValidation();
@@ -518,15 +521,55 @@ const handleSubmit = async () => {
       notes: form.value.notes,
     };
 
+    const deckPayload: Deck =
+      typeof selectedMyDeck.value === 'object' && selectedMyDeck.value
+        ? selectedMyDeck.value
+        : {
+            id: myDeckId,
+            name: typeof selectedMyDeck.value === 'string' ? selectedMyDeck.value.trim() : '不明',
+            is_opponent: false,
+            active: true,
+          };
+    const opponentDeckPayload: Deck =
+      typeof selectedOpponentDeck.value === 'object' && selectedOpponentDeck.value
+        ? selectedOpponentDeck.value
+        : {
+            id: opponentDeckId,
+            name:
+              typeof selectedOpponentDeck.value === 'string'
+                ? selectedOpponentDeck.value.trim()
+                : '不明',
+            is_opponent: true,
+            active: true,
+          };
+
+    let savedDuel: Duel | null = null;
+
     if (isEdit.value && props.duel) {
-      await api.put(`/duels/${props.duel.id}`, submitData);
+      const response = await api.put(`/duels/${props.duel.id}`, submitData);
       notificationStore.success('対戦記録を更新しました');
+      savedDuel = {
+        ...(props.duel as Duel),
+        ...(response.data as Partial<Duel>),
+        ...submitData,
+        id: props.duel.id,
+        deck: deckPayload,
+        opponent_deck: opponentDeckPayload,
+      };
     } else {
-      await api.post('/duels/', submitData);
+      const response = await api.post('/duels/', submitData);
       notificationStore.success('対戦記録を登録しました');
+      savedDuel = {
+        ...(response.data as Duel),
+        ...submitData,
+        deck: deckPayload,
+        opponent_deck: opponentDeckPayload,
+      };
     }
 
-    emit('saved');
+    if (savedDuel) {
+      emit('saved', { duel: savedDuel, upsertDecks: [deckPayload, opponentDeckPayload] });
+    }
     closeDialog();
   } catch (error) {
     console.error('Failed to save duel:', error);
