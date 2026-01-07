@@ -4,7 +4,7 @@ from app.models.deck import Deck
 from app.models.duel import Duel
 
 
-def test_available_decks_are_sorted_by_name(authenticated_client, db_session, test_user):
+def test_available_decks_are_sorted_by_total_duels(authenticated_client, db_session, test_user):
     my_deck = Deck(user_id=test_user.id, name="Zoo", is_opponent=False, active=True)
     opp_a = Deck(user_id=test_user.id, name="Beta", is_opponent=True, active=True)
     opp_b = Deck(user_id=test_user.id, name="Alpha", is_opponent=True, active=True)
@@ -35,7 +35,19 @@ def test_available_decks_are_sorted_by_name(authenticated_client, db_session, te
         played_date=datetime(2026, 1, 16, tzinfo=timezone.utc),
         notes=None,
     )
-    db_session.add_all([duel, duel2])
+    duel3 = Duel(
+        user_id=test_user.id,
+        deck_id=my_deck.id,
+        opponent_deck_id=opp_a.id,
+        is_win=False,
+        game_mode="RANK",
+        rank=1,
+        won_coin_toss=False,
+        is_going_first=False,
+        played_date=datetime(2026, 1, 17, tzinfo=timezone.utc),
+        notes=None,
+    )
+    db_session.add_all([duel, duel2, duel3])
     db_session.commit()
 
     res = authenticated_client.get(
@@ -46,5 +58,4 @@ def test_available_decks_are_sorted_by_name(authenticated_client, db_session, te
     payload = res.json()
 
     assert payload["my_decks"] == [{"id": my_deck.id, "name": "Zoo"}]
-    assert [d["name"] for d in payload["opponent_decks"]] == ["Alpha", "Beta"]
-
+    assert [d["name"] for d in payload["opponent_decks"]] == ["Beta", "Alpha"]
