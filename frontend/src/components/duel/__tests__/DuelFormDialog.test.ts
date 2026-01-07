@@ -238,7 +238,7 @@ describe('DuelFormDialog.vue', () => {
       props: {
         modelValue: true,
         defaultGameMode: 'RANK',
-        defaultCoin: 0,
+        defaultFirstOrSecond: 0,
         duel: null,
       },
     });
