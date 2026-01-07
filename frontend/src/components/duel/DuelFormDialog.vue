@@ -43,7 +43,7 @@
             <v-col cols="12" md="6">
               <v-combobox
                 v-model="selectedMyDeck"
-                :items="myDecks"
+                :items="myDeckItems"
                 item-title="name"
                 item-value="id"
                 label="使用デッキ"
@@ -68,7 +68,7 @@
             <v-col cols="12" md="6">
               <v-combobox
                 v-model="selectedOpponentDeck"
-                :items="opponentDecks"
+                :items="opponentDeckItems"
                 item-title="name"
                 item-value="id"
                 label="相手デッキ"
@@ -256,12 +256,17 @@ interface Props {
   modelValue: boolean;
   duel: Duel | null;
   defaultGameMode?: GameMode;
+  initialMyDecks?: Deck[];
+  initialOpponentDecks?: Deck[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   defaultGameMode: 'RANK',
 });
-const emit = defineEmits(['update:modelValue', 'saved']);
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean];
+  saved: [payload: { duel: Duel; upsertDecks: Deck[] }];
+}>();
 
 const notificationStore = useNotificationStore();
 const { rules } = useDuelFormValidation();
@@ -273,6 +278,8 @@ const formRef = ref();
 const loading = ref(false);
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
+const decksLoadedTarget = ref<'none' | 'active' | 'all'>('none');
+let decksFetchPromise: Promise<void> | null = null;
 
 // コンボボックス用の選択値
 const selectedMyDeck = ref<Deck | string | null>(null);
@@ -300,11 +307,16 @@ const isEdit = computed(() => !!props.duel);
 
 // バリデーションルールと日時変換関数はcomposableから取得
 
+const myDeckItems = computed(() =>
+  isEdit.value ? myDecks.value : myDecks.value.filter((deck) => deck.active),
+);
+const opponentDeckItems = computed(() =>
+  isEdit.value ? opponentDecks.value : opponentDecks.value.filter((deck) => deck.active),
+);
+
 // デッキ一覧を取得
-const fetchDecks = async () => {
+const fetchDecks = async (activeOnly: boolean) => {
   try {
-    // 編集モードの場合はアーカイブされたデッキも含める
-    const activeOnly = !isEdit.value;
     const params = `active_only=${activeOnly}`;
 
     const [myDecksResponse, opponentDecksResponse] = await Promise.all([
@@ -319,6 +331,43 @@ const fetchDecks = async () => {
   }
 };
 
+const seedDecksFromProps = () => {
+  if (decksLoadedTarget.value === 'all') return;
+
+  const hasInitialDecks =
+    (props.initialMyDecks && props.initialMyDecks.length > 0) ||
+    (props.initialOpponentDecks && props.initialOpponentDecks.length > 0);
+
+  if (!hasInitialDecks) return;
+
+  myDecks.value = props.initialMyDecks ? [...props.initialMyDecks] : [];
+  opponentDecks.value = props.initialOpponentDecks ? [...props.initialOpponentDecks] : [];
+
+  if (decksLoadedTarget.value === 'none') {
+    decksLoadedTarget.value = 'active';
+  }
+};
+
+const ensureDecksLoaded = async (target: 'active' | 'all') => {
+  if (decksLoadedTarget.value === 'all') return;
+  if (target === 'active' && decksLoadedTarget.value === 'active') return;
+
+  if (decksFetchPromise) {
+    await decksFetchPromise;
+    if (decksLoadedTarget.value === 'all') return;
+    if (target === 'active' && decksLoadedTarget.value === 'active') return;
+  }
+
+  decksFetchPromise = (async () => {
+    await fetchDecks(target === 'active');
+    decksLoadedTarget.value = target;
+  })().finally(() => {
+    decksFetchPromise = null;
+  });
+
+  await decksFetchPromise;
+};
+
 // fetchLatestValues, createDeckIfNeeded, resolveDeckId はcomposableから取得
 
 // ダイアログが開いたらデッキを取得
@@ -326,9 +375,20 @@ watch(
   () => props.modelValue,
   async (newValue) => {
     if (newValue) {
-      await fetchDecks();
+      seedDecksFromProps();
       if (props.duel) {
         // 編集モード
+        void ensureDecksLoaded('all').then(() => {
+          if (!props.duel) return;
+          if (selectedMyDeck.value === null) {
+            selectedMyDeck.value = myDecks.value.find((d) => d.id === props.duel?.deck_id) || null;
+          }
+          if (selectedOpponentDeck.value === null) {
+            selectedOpponentDeck.value =
+              opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) || null;
+          }
+        });
+
         // ISO文字列をdatetime-local形式に変換
         const localDateTime = isoToLocalDateTime(props.duel.played_date);
 
@@ -347,11 +407,15 @@ watch(
         };
 
         // 選択されたデッキを設定
-        selectedMyDeck.value = myDecks.value.find((d) => d.id === props.duel?.deck_id) || null;
+        selectedMyDeck.value =
+          props.duel.deck ?? myDecks.value.find((d) => d.id === props.duel?.deck_id) ?? null;
         selectedOpponentDeck.value =
-          opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) || null;
+          props.duel.opponent_deck ??
+          opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) ??
+          null;
       } else {
         // 新規作成モード
+        await ensureDecksLoaded('active');
         await fetchLatestValues();
         form.value = defaultForm();
         form.value.game_mode = props.defaultGameMode;
@@ -457,15 +521,55 @@ const handleSubmit = async () => {
       notes: form.value.notes,
     };
 
+    const deckPayload: Deck =
+      typeof selectedMyDeck.value === 'object' && selectedMyDeck.value
+        ? selectedMyDeck.value
+        : {
+            id: myDeckId,
+            name: typeof selectedMyDeck.value === 'string' ? selectedMyDeck.value.trim() : '不明',
+            is_opponent: false,
+            active: true,
+          };
+    const opponentDeckPayload: Deck =
+      typeof selectedOpponentDeck.value === 'object' && selectedOpponentDeck.value
+        ? selectedOpponentDeck.value
+        : {
+            id: opponentDeckId,
+            name:
+              typeof selectedOpponentDeck.value === 'string'
+                ? selectedOpponentDeck.value.trim()
+                : '不明',
+            is_opponent: true,
+            active: true,
+          };
+
+    let savedDuel: Duel | null = null;
+
     if (isEdit.value && props.duel) {
-      await api.put(`/duels/${props.duel.id}`, submitData);
+      const response = await api.put(`/duels/${props.duel.id}`, submitData);
       notificationStore.success('対戦記録を更新しました');
+      savedDuel = {
+        ...(props.duel as Duel),
+        ...(response.data as Partial<Duel>),
+        ...submitData,
+        id: props.duel.id,
+        deck: deckPayload,
+        opponent_deck: opponentDeckPayload,
+      };
     } else {
-      await api.post('/duels/', submitData);
+      const response = await api.post('/duels/', submitData);
       notificationStore.success('対戦記録を登録しました');
+      savedDuel = {
+        ...(response.data as Duel),
+        ...submitData,
+        deck: deckPayload,
+        opponent_deck: opponentDeckPayload,
+      };
     }
 
-    emit('saved');
+    if (savedDuel) {
+      emit('saved', { duel: savedDuel, upsertDecks: [deckPayload, opponentDeckPayload] });
+    }
     closeDialog();
   } catch (error) {
     console.error('Failed to save duel:', error);
