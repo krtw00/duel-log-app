@@ -3,7 +3,17 @@
     <!-- スマホ用: 縦並びボタン -->
     <div class="d-flex d-sm-none flex-column ga-2">
       <div class="default-toggle d-flex align-center ga-2">
-        <span class="default-toggle__label">デフォルト</span>
+        <v-tooltip text="新規追加時の初期値（先攻/後攻）" location="top">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon="mdi-tune-variant"
+              variant="text"
+              density="compact"
+              class="default-toggle__icon"
+            />
+          </template>
+        </v-tooltip>
         <v-btn-toggle
           :model-value="defaultFirstOrSecond"
           mandatory
@@ -66,7 +76,17 @@
         共有リンクを生成
       </v-btn>
       <div class="default-toggle d-flex align-center ga-2">
-        <span class="default-toggle__label">デフォルト</span>
+        <v-tooltip text="新規追加時の初期値（先攻/後攻）" location="top">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon="mdi-tune-variant"
+              variant="text"
+              density="compact"
+              class="default-toggle__icon"
+            />
+          </template>
+        </v-tooltip>
         <v-btn-toggle
           :model-value="defaultFirstOrSecond"
           mandatory
@@ -130,10 +150,8 @@ defineExpose({
   font-weight: 600;
 }
 
-.default-toggle__label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  opacity: 0.8;
+.default-toggle__icon {
+  color: rgb(var(--v-theme-primary));
 }
 
 .default-toggle__toggle {
