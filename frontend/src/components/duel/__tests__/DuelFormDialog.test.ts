@@ -204,4 +204,29 @@ describe('DuelFormDialog.vue', () => {
 
     expect(api.get).toHaveBeenCalledTimes(2);
   });
+
+  it('auto-sets turn order based on coin in create mode', async () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        duel: null,
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    // coin=1 -> first=1
+    (wrapper.vm as any).form.coin = 1;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(1);
+
+    // coin=0 -> first=0
+    (wrapper.vm as any).form.coin = 0;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
+  });
 });
