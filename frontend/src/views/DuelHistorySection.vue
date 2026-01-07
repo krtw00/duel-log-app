@@ -77,6 +77,7 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: 'refresh'): void;
+  (e: 'duel-saved', payload: { duel: Duel; upsertDecks: Deck[] }): void;
 }>();
 
 const shareDialogOpened = ref(false);
@@ -108,12 +109,15 @@ const handleFileUpload = async (event: Event) => {
 };
 
 // Duel management composable
-const { selectedDuel, dialogOpen, openDuelDialog, editDuel, deleteDuel, handleSaved } =
-  useDuelManagement({
-    duels: computed(() => props.duels),
-    decks: computed(() => props.decks),
-    fetchDuels: async () => emit('refresh'),
-  });
+const { selectedDuel, dialogOpen, openDuelDialog, editDuel, deleteDuel } = useDuelManagement({
+  duels: computed(() => props.duels),
+  decks: computed(() => props.decks),
+  fetchDuels: async () => emit('refresh'),
+});
+
+const handleSaved = (payload: { duel: Duel; upsertDecks: Deck[] }) => {
+  emit('duel-saved', payload);
+};
 
 const onRefresh = () => {
   emit('refresh');
