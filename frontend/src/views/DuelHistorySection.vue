@@ -2,20 +2,21 @@
   <div>
     <!-- 対戦履歴 -->
     <v-card class="duel-table-card">
-      <v-card-title class="pa-4">
-        <div class="d-flex align-center mb-3">
-          <v-icon class="mr-2" color="primary">mdi-table</v-icon>
-          <span class="text-h6">対戦履歴</span>
-        </div>
-        <duel-actions-bar
-          ref="actionsBarRef"
-          @add-duel="openDuelDialog"
-          @export-csv="exportCSV"
-          @import-csv="triggerFileInput"
-          @share-data="shareDialogOpened = true"
-          @file-change="handleFileUpload"
-        />
-      </v-card-title>
+    <v-card-title class="pa-4">
+      <div class="d-flex align-center mb-3">
+        <v-icon class="mr-2" color="primary">mdi-table</v-icon>
+        <span class="text-h6">対戦履歴</span>
+      </div>
+      <duel-actions-bar
+        ref="actionsBarRef"
+        v-model:default-coin="defaultCoin"
+        @add-duel="openDuelDialog"
+        @export-csv="exportCSV"
+        @import-csv="triggerFileInput"
+        @share-data="shareDialogOpened = true"
+        @file-change="handleFileUpload"
+      />
+    </v-card-title>
 
       <v-divider />
 
@@ -34,6 +35,7 @@
       v-model="dialogOpen"
       :duel="selectedDuel"
       :default-game-mode="defaultGameMode"
+      :default-coin="defaultCoin"
       :initial-my-decks="initialMyDecks"
       :initial-opponent-decks="initialOpponentDecks"
       @saved="handleSaved"
@@ -50,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { Duel, Deck, GameMode } from '@/types';
 
 // Components
@@ -84,6 +86,27 @@ const shareDialogOpened = ref(false);
 const actionsBarRef = ref<InstanceType<typeof DuelActionsBar> | null>(null);
 const initialMyDecks = computed(() => props.decks.filter((deck) => !deck.is_opponent));
 const initialOpponentDecks = computed(() => props.decks.filter((deck) => deck.is_opponent));
+const DEFAULT_COIN_STORAGE_KEY = 'duellog.defaultCoin';
+const defaultCoin = ref<0 | 1>(1);
+
+const loadDefaultCoin = () => {
+  try {
+    const stored = window.localStorage.getItem(DEFAULT_COIN_STORAGE_KEY);
+    defaultCoin.value = stored === '0' ? 0 : 1;
+  } catch {
+    defaultCoin.value = 1;
+  }
+};
+
+loadDefaultCoin();
+
+watch(defaultCoin, (value) => {
+  try {
+    window.localStorage.setItem(DEFAULT_COIN_STORAGE_KEY, String(value));
+  } catch {
+    // ignore storage errors (private mode etc.)
+  }
+});
 
 // CSV operations composable
 const { handleFileUpload: handleFileUploadBase, exportCSV } = useCSVOperations({

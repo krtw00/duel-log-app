@@ -5,6 +5,16 @@
       <v-btn color="primary" prepend-icon="mdi-plus" block size="large" @click="$emit('add-duel')">
         対戦記録を追加
       </v-btn>
+      <v-switch
+        :model-value="defaultCoin === 1"
+        class="coin-default-switch"
+        color="warning"
+        inset
+        density="compact"
+        hide-details
+        label="コイン初期値: 表"
+        @update:model-value="$emit('update:defaultCoin', $event ? 1 : 0)"
+      />
       <div class="d-flex ga-2">
         <v-btn
           color="secondary"
@@ -48,6 +58,16 @@
       <v-btn color="info" prepend-icon="mdi-share-variant" @click="$emit('share-data')">
         共有リンクを生成
       </v-btn>
+      <v-switch
+        :model-value="defaultCoin === 1"
+        class="coin-default-switch"
+        color="warning"
+        inset
+        density="compact"
+        hide-details
+        label="表"
+        @update:model-value="$emit('update:defaultCoin', $event ? 1 : 0)"
+      />
       <v-btn color="primary" prepend-icon="mdi-plus" class="add-btn" @click="$emit('add-duel')">
         対戦記録を追加
       </v-btn>
@@ -68,12 +88,22 @@ import { ref } from 'vue';
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
+withDefaults(
+  defineProps<{
+    defaultCoin?: 0 | 1;
+  }>(),
+  {
+    defaultCoin: 1,
+  },
+);
+
 defineEmits<{
   'add-duel': [];
   'export-csv': [];
   'import-csv': [];
   'share-data': [];
   'file-change': [event: Event];
+  'update:defaultCoin': [value: 0 | 1];
 }>();
 
 defineExpose({
@@ -84,5 +114,9 @@ defineExpose({
 <style scoped>
 .add-btn {
   font-weight: 600;
+}
+
+.coin-default-switch {
+  max-width: 140px;
 }
 </style>
