@@ -9,7 +9,7 @@ import StatisticsContent from '../StatisticsContent.vue';
 const vuetify = createVuetify({ components, directives });
 
 describe('StatisticsContent.vue', () => {
-  it('colors matchup win rates (advantage=red, disadvantage=blue)', async () => {
+  it('colors matchup win rates (advantage=blue, disadvantage=red)', async () => {
     const wrapper = mount(StatisticsContent, {
       global: {
         plugins: [vuetify, createTestingPinia({ createSpy: vi.fn })],
@@ -70,21 +70,21 @@ describe('StatisticsContent.vue', () => {
     const percentChips = chips.filter((chip) => chip.text().includes('%'));
 
     const winRateChip = percentChips.find((chip) => chip.text().includes('60.0%'));
-    expect(winRateChip?.props('color')).toBe('error');
+    expect(winRateChip?.props('color')).toBe('info');
 
     const firstChip = percentChips.find((chip) => chip.text().includes('70.0%'));
-    expect(firstChip?.props('color')).toBe('error');
+    expect(firstChip?.props('color')).toBe('info');
 
     const secondChip = percentChips.find((chip) => chip.text().includes('40.0%'));
-    expect(secondChip?.props('color')).toBe('info');
+    expect(secondChip?.props('color')).toBe('error');
 
     const neutralChip = percentChips.find((chip) => chip.text().includes('50.0%'));
     expect(neutralChip?.props('color')).toBeUndefined();
 
     const myDeckChip = percentChips.find((chip) => chip.text().includes('12 / 20'));
-    expect(myDeckChip?.props('color')).toBe('error');
+    expect(myDeckChip?.props('color')).toBe('info');
 
     const myDeckChip2 = percentChips.find((chip) => chip.text().includes('4 / 10'));
-    expect(myDeckChip2?.props('color')).toBe('info');
+    expect(myDeckChip2?.props('color')).toBe('error');
   });
 });
