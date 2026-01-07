@@ -2,11 +2,11 @@
   <div>
     <!-- 対戦履歴 -->
     <v-card class="duel-table-card">
-    <v-card-title class="pa-4">
-      <div class="d-flex align-center mb-3">
-        <v-icon class="mr-2" color="primary">mdi-table</v-icon>
-        <span class="text-h6">対戦履歴</span>
-      </div>
+      <v-card-title class="pa-4">
+        <div class="d-flex align-center mb-3">
+          <v-icon class="mr-2" color="primary">mdi-table</v-icon>
+          <span class="text-h6">対戦履歴</span>
+        </div>
         <duel-actions-bar
           ref="actionsBarRef"
           v-model:default-first-or-second="defaultFirstOrSecond"
@@ -15,8 +15,8 @@
           @import-csv="triggerFileInput"
           @share-data="shareDialogOpened = true"
           @file-change="handleFileUpload"
-      />
-    </v-card-title>
+        />
+      </v-card-title>
 
       <v-divider />
 
