@@ -352,8 +352,9 @@ const seedDecksFromProps = () => {
 };
 
 const ensureDecksLoaded = async (target: 'active' | 'all') => {
-  if (decksLoadedTarget.value === 'all') return;
-  if (target === 'active' && decksLoadedTarget.value === 'active') return;
+  const loadedTarget = decksLoadedTarget.value;
+  if (loadedTarget === 'all') return;
+  if (target === 'active' && loadedTarget === 'active') return;
 
   if (decksFetchPromise) {
     await decksFetchPromise;
