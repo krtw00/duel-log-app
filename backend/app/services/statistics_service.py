@@ -5,6 +5,7 @@
 
 from typing import Any, Dict, List, Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
@@ -77,7 +78,12 @@ class StatisticsService:
         if my_deck_ids:
             my_decks_query = (
                 db.query(Deck)
-                .filter(Deck.id.in_(my_deck_ids), Deck.is_opponent.is_(False))
+                .filter(
+                    Deck.user_id == user_id,
+                    Deck.id.in_(my_deck_ids),
+                    Deck.is_opponent.is_(False),
+                )
+                .order_by(func.lower(Deck.name))
                 .all()
             )
             my_decks = [{"id": deck.id, "name": deck.name} for deck in my_decks_query]
@@ -86,7 +92,12 @@ class StatisticsService:
         if opponent_deck_ids:
             opponent_decks_query = (
                 db.query(Deck)
-                .filter(Deck.id.in_(opponent_deck_ids), Deck.is_opponent.is_(True))
+                .filter(
+                    Deck.user_id == user_id,
+                    Deck.id.in_(opponent_deck_ids),
+                    Deck.is_opponent.is_(True),
+                )
+                .order_by(func.lower(Deck.name))
                 .all()
             )
             opponent_decks = [
