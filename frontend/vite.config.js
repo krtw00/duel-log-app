@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath } from 'node:url';
 
+const proxyTarget = process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:8000';
+
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -19,7 +21,7 @@ export default defineConfig({
     // その場合でも、ブラウザはfrontend(5173)へ接続し、Viteのプロキシ経由でbackendへ中継する。
     proxy: {
       '/api': {
-        target: 'http://backend:8000',
+        target: proxyTarget,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
