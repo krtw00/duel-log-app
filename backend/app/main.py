@@ -40,6 +40,17 @@ allowed_origins = [
     origin.strip() for origin in frontend_url.split(",") if origin.strip()
 ]
 
+# 開発環境では localhost と 127.0.0.1 のどちらでもアクセスされ得るため、
+# 片方だけ許可しているとCORSプリフライトで失敗することがある。
+if settings.ENVIRONMENT != "production":
+    expanded: list[str] = []
+    for origin in allowed_origins:
+        expanded.append(origin)
+        expanded.append(origin.replace("://localhost", "://127.0.0.1"))
+        expanded.append(origin.replace("://127.0.0.1", "://localhost"))
+    # 重複排除（順序は保持）
+    allowed_origins = list(dict.fromkeys([o for o in expanded if o]))
+
 logger.info(f"Allowed CORS origins from FRONTEND_URL: {allowed_origins}")
 
 # Vercelのプレビューデプロイメント用の正規表現パターン
