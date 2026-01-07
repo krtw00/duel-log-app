@@ -84,13 +84,31 @@
             density="compact"
           >
             <template #item.win_rate="{ item }">
-              {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
+              <v-chip
+                size="small"
+                :color="getMatchupColor(item.win_rate)"
+                :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
+              >
+                {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+              </v-chip>
             </template>
             <template #item.win_rate_first="{ item }">
-              {{ item.win_rate_first.toFixed(1) }}%
+              <v-chip
+                size="small"
+                :color="getMatchupColor(item.win_rate_first)"
+                :variant="getMatchupColor(item.win_rate_first) ? 'tonal' : 'outlined'"
+              >
+                {{ formatPercent(item.win_rate_first) }}
+              </v-chip>
             </template>
             <template #item.win_rate_second="{ item }">
-              {{ item.win_rate_second.toFixed(1) }}%
+              <v-chip
+                size="small"
+                :color="getMatchupColor(item.win_rate_second)"
+                :variant="getMatchupColor(item.win_rate_second) ? 'tonal' : 'outlined'"
+              >
+                {{ formatPercent(item.win_rate_second) }}
+              </v-chip>
             </template>
             <template #no-data>
               <div class="no-data-placeholder py-8">
@@ -193,6 +211,22 @@ withDefaults(defineProps<Props>(), {
 });
 
 const themeStore = useThemeStore();
+
+const normalizePercent = (value: number) => {
+  if (!Number.isFinite(value)) return 0;
+  // Some APIs might send ratios (0-1). Convert to percent for consistent UI.
+  return value <= 1 ? value * 100 : value;
+};
+
+const formatPercent = (value: number) => `${normalizePercent(value).toFixed(1)}%`;
+
+// 優勢: 赤 / 劣勢: 青（Issue #39 の要件に合わせる）
+const getMatchupColor = (value: number) => {
+  const percent = normalizePercent(value);
+  if (percent >= 55) return 'error';
+  if (percent <= 45) return 'info';
+  return undefined;
+};
 
 const statsCardClass = computed(() => [
   'stats-card',
