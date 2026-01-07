@@ -4,7 +4,9 @@ from app.models.deck import Deck
 from app.models.duel import Duel
 
 
-def test_available_decks_are_sorted_by_total_duels(authenticated_client, db_session, test_user):
+def test_available_decks_are_sorted_by_total_duels(
+    authenticated_client, db_session, test_user
+):
     my_deck = Deck(user_id=test_user.id, name="Zoo", is_opponent=False, active=True)
     opp_a = Deck(user_id=test_user.id, name="Beta", is_opponent=True, active=True)
     opp_b = Deck(user_id=test_user.id, name="Alpha", is_opponent=True, active=True)
