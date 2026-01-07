@@ -3,7 +3,11 @@
     <!-- スマホ用: 縦並びボタン -->
     <div class="d-flex d-sm-none flex-column ga-2">
       <div class="default-toggle d-flex align-center ga-2">
-        <v-tooltip text="新規追加時の初期値（先攻/後攻）" location="top">
+        <v-tooltip
+          text="新規追加時の初期値（先攻/後攻）"
+          location="top"
+          content-class="default-turn-tooltip"
+        >
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
@@ -76,7 +80,11 @@
         共有リンクを生成
       </v-btn>
       <div class="default-toggle d-flex align-center ga-2">
-        <v-tooltip text="新規追加時の初期値（先攻/後攻）" location="top">
+        <v-tooltip
+          text="新規追加時の初期値（先攻/後攻）"
+          location="top"
+          content-class="default-turn-tooltip"
+        >
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
@@ -178,5 +186,24 @@ defineExpose({
 :deep(.v-theme--customDarkTheme) .default-toggle__toggle :deep(.v-btn),
 :deep(.v-theme--customDarkTheme) .default-toggle__icon {
   color: #fff !important;
+}
+
+/* Tooltip（teleport先でも効くようにglobal指定） */
+:global(.default-turn-tooltip) {
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+:global(.v-theme--customLightTheme .default-turn-tooltip) {
+  color: #000;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+:global(.v-theme--customDarkTheme .default-turn-tooltip) {
+  color: #fff;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 </style>
