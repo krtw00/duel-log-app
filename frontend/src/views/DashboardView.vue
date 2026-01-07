@@ -44,6 +44,7 @@
           :game-mode="currentMode"
           :default-game-mode="currentMode"
           @refresh="fetchDuels"
+          @duel-saved="handleDuelSaved"
         />
       </v-container>
     </v-main>
@@ -110,6 +111,43 @@ const currentDuels = computed(() => {
       return [];
   }
 });
+
+const upsertDeck = (deck: Deck) => {
+  if (!deck?.id) return;
+  const existingIndex = decks.value.findIndex((d) => d.id === deck.id);
+  if (existingIndex >= 0) {
+    decks.value[existingIndex] = { ...decks.value[existingIndex], ...deck };
+  } else {
+    decks.value.unshift(deck);
+  }
+};
+
+const upsertDuel = (duel: Duel) => {
+  const existingIndex = duels.value.findIndex((d) => d.id === duel.id);
+  if (existingIndex >= 0) {
+    const previous = duels.value[existingIndex];
+    duels.value[existingIndex] = {
+      ...previous,
+      ...duel,
+      deck: duel.deck ?? previous.deck,
+      opponent_deck: duel.opponent_deck ?? previous.opponent_deck,
+    };
+  } else {
+    duels.value.unshift(duel);
+  }
+
+  duels.value.sort((a, b) => {
+    const aTime = Date.parse(a.played_date ?? '');
+    const bTime = Date.parse(b.played_date ?? '');
+    if (Number.isNaN(aTime) || Number.isNaN(bTime)) return 0;
+    return bTime - aTime;
+  });
+};
+
+const handleDuelSaved = (payload: { duel: Duel; upsertDecks: Deck[] }) => {
+  payload.upsertDecks.forEach(upsertDeck);
+  upsertDuel(payload.duel);
+};
 
 // Data fetching - declare before using in composables
 const fetchDuels = async () => {
