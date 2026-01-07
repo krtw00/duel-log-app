@@ -5,6 +5,7 @@ import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import { createTestingPinia } from '@pinia/testing';
+import { api } from '@/services/api';
 
 const vuetify = createVuetify({
   components,
@@ -101,6 +102,8 @@ describe('DuelFormDialog.vue', () => {
       create_date: '2023-01-01T12:00:00Z',
       update_date: '2023-01-01T12:00:00Z',
       user_id: 1,
+      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 1 },
+      opponent_deck: { id: 2, name: 'Opponent Deck', is_opponent: true, active: true, user_id: 1 },
     };
 
     const wrapper = mount(DuelFormDialog, {
@@ -115,5 +118,90 @@ describe('DuelFormDialog.vue', () => {
     });
 
     expect(wrapper.props('duel')).toEqual(mockDuel);
+  });
+
+  it('prefills edit form without waiting for deck fetch', async () => {
+    // Deck fetch never resolves, but edit prefill should still happen immediately.
+    (api.get as any).mockImplementation(() => new Promise(() => {}));
+
+    const mockDuel = {
+      id: 1,
+      deck_id: 1,
+      opponent_deck_id: 2,
+      is_win: true,
+      game_mode: 'RANK' as const,
+      rank: 18,
+      won_coin_toss: true,
+      is_going_first: true,
+      played_date: '2023-01-01T12:00:00Z',
+      notes: 'Test notes',
+      create_date: '2023-01-01T12:00:00Z',
+      update_date: '2023-01-01T12:00:00Z',
+      user_id: 1,
+      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 1 },
+      opponent_deck: { id: 2, name: 'Opponent Deck', is_opponent: true, active: true, user_id: 1 },
+    };
+
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: false,
+        defaultGameMode: 'RANK',
+        duel: mockDuel,
+      },
+    });
+
+    await wrapper.setProps({ modelValue: true });
+    await wrapper.vm.$nextTick();
+
+    expect((wrapper.vm as any).form.deck_id).toBe(1);
+    expect((wrapper.vm as any).form.opponent_deck_id).toBe(2);
+    expect((wrapper.vm as any).selectedMyDeck).toEqual(mockDuel.deck);
+    expect((wrapper.vm as any).selectedOpponentDeck).toEqual(mockDuel.opponent_deck);
+  });
+
+  it('does not refetch decks on re-open once loaded', async () => {
+    (api.get as any).mockResolvedValue({ data: [] });
+
+    const mockDuel = {
+      id: 1,
+      deck_id: 1,
+      opponent_deck_id: 2,
+      is_win: true,
+      game_mode: 'RANK' as const,
+      rank: 18,
+      won_coin_toss: true,
+      is_going_first: true,
+      played_date: '2023-01-01T12:00:00Z',
+      notes: 'Test notes',
+      create_date: '2023-01-01T12:00:00Z',
+      update_date: '2023-01-01T12:00:00Z',
+      user_id: 1,
+    };
+
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: false,
+        defaultGameMode: 'RANK',
+        duel: mockDuel,
+      },
+    });
+
+    await wrapper.setProps({ modelValue: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(api.get).toHaveBeenCalledTimes(2);
+
+    await wrapper.setProps({ modelValue: false });
+    await wrapper.vm.$nextTick();
+    await wrapper.setProps({ modelValue: true });
+    await wrapper.vm.$nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(api.get).toHaveBeenCalledTimes(2);
   });
 });
