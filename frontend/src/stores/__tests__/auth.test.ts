@@ -44,6 +44,7 @@ describe('authStore', () => {
 
   it('clears user on failed fetchUser', async () => {
     vi.mocked(api.get).mockRejectedValue(new Error('Unauthorized'));
+    localStorage.setItem('access_token', 'stale');
 
     const authStore = useAuthStore();
     await authStore.fetchUser();
@@ -51,6 +52,7 @@ describe('authStore', () => {
     expect(authStore.user).toBeNull();
     expect(authStore.isAuthenticated).toBe(false);
     expect(authStore.isInitialized).toBe(true);
+    expect(localStorage.getItem('access_token')).toBeNull();
   });
 
   it('toggles streamer mode', () => {
