@@ -13,6 +13,9 @@ describe('api service', () => {
     expect(
       normalizeApiBaseUrl('http://backend:8000/', { isDev: true, runtimeHostname: 'localhost' }),
     ).toBe('http://127.0.0.1:8000');
+    expect(normalizeApiBaseUrl('http://backend:8000/', { runtimeHostname: 'localhost' })).toBe(
+      'http://127.0.0.1:8000',
+    );
     expect(normalizeApiBaseUrl('/api/')).toBe('/api');
   });
 
