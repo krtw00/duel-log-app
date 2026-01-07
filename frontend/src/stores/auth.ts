@@ -104,6 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('[Auth] Failed to fetch user info:', error);
       user.value = null;
       isInitialized.value = true;
+      localStorage.removeItem('access_token');
     }
   };
 
