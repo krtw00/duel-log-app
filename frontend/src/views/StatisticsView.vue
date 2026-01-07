@@ -266,12 +266,14 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import AppBar from '@/components/layout/AppBar.vue';
 import { useThemeStore } from '@/stores/theme';
+import { useUiStore } from '@/stores/ui';
 import { useChartOptions } from '@/composables/useChartOptions';
 import DuelTable from '@/components/duel/DuelTable.vue';
 import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
 import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 
 const themeStore = useThemeStore();
+const uiStore = useUiStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 
 const determineStep = (count: number) => {
@@ -342,7 +344,7 @@ interface AllStatisticsData {
 }
 
 const loading = ref(true);
-const currentTab = ref('RANK');
+const currentTab = ref<GameMode>(uiStore.lastGameMode);
 const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 
 // --- Date Selection ---
@@ -624,7 +626,8 @@ onMounted(() => {
   refreshStatisticsWithDecks();
 });
 
-watch(currentTab, () => {
+watch(currentTab, (newMode) => {
+  uiStore.setLastGameMode(newMode);
   refreshStatisticsWithDecks();
 });
 
