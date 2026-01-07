@@ -38,6 +38,20 @@ describe('StatisticsView.vue', () => {
             win_rate_second: 50,
           },
         ],
+        my_deck_win_rates: [
+          {
+            deck_name: 'MyDeck',
+            total_duels: 20,
+            wins: 12,
+            win_rate: 60,
+          },
+          {
+            deck_name: 'MyDeck2',
+            total_duels: 10,
+            wins: 4,
+            win_rate: 40,
+          },
+        ],
         value_sequence_data: [],
       },
       RATE: {
@@ -101,5 +115,11 @@ describe('StatisticsView.vue', () => {
 
     const neutralChip = percentChips.find((chip) => chip.text().includes('50.0%'));
     expect(neutralChip?.props('color')).toBeUndefined();
+
+    const myDeckChip = percentChips.find((chip) => chip.text().includes('12 / 20'));
+    expect(myDeckChip?.props('color')).toBe('error');
+
+    const myDeckChip2 = percentChips.find((chip) => chip.text().includes('4 / 10'));
+    expect(myDeckChip2?.props('color')).toBe('info');
   });
 });
