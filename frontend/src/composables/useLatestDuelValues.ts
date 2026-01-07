@@ -10,7 +10,7 @@ import type { Deck, GameMode } from '@/types';
 interface LatestValue {
   value: number;
   deck_id: number;
-  opponentDeck_id: number;
+  opponent_deck_id: number;
 }
 
 interface LatestValues {
@@ -80,7 +80,7 @@ export function useLatestDuelValues() {
       }
       result.selectedMyDeck = myDecks.find((d) => d.id === latest.deck_id) || null;
       result.selectedOpponentDeck =
-        opponentDecks.find((d) => d.id === latest.opponentDeck_id) || null;
+        opponentDecks.find((d) => d.id === latest.opponent_deck_id) || null;
     } else {
       // 最新値がない場合はデフォルト値を使用
       if (gameMode === 'RANK') {

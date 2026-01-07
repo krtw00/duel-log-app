@@ -1,3 +1,45 @@
+## [1.1.2](https://github.com/krtw00/duel-log-app/compare/v1.1.1...v1.1.2) (2025-12-25)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** DCポイント入力で小数点を入力できないように修正 ([#227](https://github.com/krtw00/duel-log-app/issues/227)) ([ac78c31](https://github.com/krtw00/duel-log-app/commit/ac78c31384e2811f6eb1ced096124313b0dffc85)), closes [#225](https://github.com/krtw00/duel-log-app/issues/225)
+
+## [1.1.1](https://github.com/krtw00/duel-log-app/compare/v1.1.0...v1.1.1) (2025-12-25)
+
+
+### 🐛 Bug Fixes
+
+* **duel:** DCポイントを整数型に変更 ([21baa17](https://github.com/krtw00/duel-log-app/commit/21baa17e1f251cf9aac0cbd60a4d6e21cc456542))
+
+## [1.1.0](https://github.com/krtw00/duel-log-app/compare/v1.0.6...v1.1.0) (2025-12-19)
+
+
+### ✨ Features
+
+* **shared:** add link to main app from shared statistics page ([#162](https://github.com/krtw00/duel-log-app/issues/162)) ([192babd](https://github.com/krtw00/duel-log-app/commit/192babdd413a078895bde13a99253d0b40a75713))
+
+
+### 🐛 Bug Fixes
+
+* **auth:** すべてのリクエストで localStorage のトークンを Authorization ヘッダーに追加 ([f5e31f3](https://github.com/krtw00/duel-log-app/commit/f5e31f34d4b506846f073c2a1de74ecb74b68406))
+* **auth:** ページロード時の Cookie タイミング問題で 401 が発生した際の自動ログアウト回避 ([b94b500](https://github.com/krtw00/duel-log-app/commit/b94b500f2d5cdc53451bc65c1ca4f0c5453deaba))
+* **auth:** 未使用の shouldUseAuthorizationHeader 関数を削除 ([c006ff6](https://github.com/krtw00/duel-log-app/commit/c006ff6317d9bc96d14575d24abb976f61dc117e))
+* **backend:** bcrypt 5.0.0のパスワード長制限に対応 ([#184](https://github.com/krtw00/duel-log-app/issues/184)) ([419183a](https://github.com/krtw00/duel-log-app/commit/419183a10f2d75aa90d2d33ffb583f71e9ad923f)), closes [#163](https://github.com/krtw00/duel-log-app/issues/163)
+* **backend:** mypy型チェックエラーを修正 ([#183](https://github.com/krtw00/duel-log-app/issues/183)) ([285ac76](https://github.com/krtw00/duel-log-app/commit/285ac762a31219d904df4f88d838d086834e7739)), closes [#163](https://github.com/krtw00/duel-log-app/issues/163) [#162](https://github.com/krtw00/duel-log-app/issues/162)
+* **duel:** DCタブでDCポイントが表示されない問題を修正 ([4b84689](https://github.com/krtw00/duel-log-app/commit/4b84689ccf9e2609cdc8d74612e71aa601ff101d))
+* **duel:** EVENTモードの最新デッキ情報取得に対応 ([92b9ec3](https://github.com/krtw00/duel-log-app/commit/92b9ec339286c8e79045a07718471f4c65fad99a)), closes [#205](https://github.com/krtw00/duel-log-app/issues/205) [#205](https://github.com/krtw00/duel-log-app/issues/205)
+* **frontend:** prevent login → error → redirect loop by making 401 logout conditional\n\n- Only logout on 401 if initialized AND either Authorization header or local token existed\n- Avoids over-eager logout on transient post-login requests (cookie timing)\n\nRefs: router guard + /auth/login flow ([1170bd1](https://github.com/krtw00/duel-log-app/commit/1170bd19026fd688c2f889213586321828b4e6e6))
+* **frontend:** イベントタブでの対戦記録追加時にデッキが固定されない問題を修正 ([#205](https://github.com/krtw00/duel-log-app/issues/205)) ([10a644f](https://github.com/krtw00/duel-log-app/commit/10a644f82842ef1d64e860a64de1817f2c228dd1)), closes [#46](https://github.com/krtw00/duel-log-app/issues/46) [#46](https://github.com/krtw00/duel-log-app/issues/46)
+* **frontend:** ログイン後にログイン画面に戻る不具合を修正 ([8b32239](https://github.com/krtw00/duel-log-app/commit/8b322397f7eaf7a679bd69f6bef7a0d32b441937))
+* **frontend:** ログイン画面遷移不具合の修正 ([e1b0153](https://github.com/krtw00/duel-log-app/commit/e1b0153666600d7bb97b0e018033247c2aee51bb))
+* **test:** useLatestDuelValues テストを修正 ([024fdb0](https://github.com/krtw00/duel-log-app/commit/024fdb0ddf377510a5cd421d3d25c77612263f27))
+
+
+### ♻️ Code Refactoring
+
+* **backend:** remove passlib dependency and use bcrypt directly ([#185](https://github.com/krtw00/duel-log-app/issues/185)) ([f7114e7](https://github.com/krtw00/duel-log-app/commit/f7114e7b047b3563f2bd6125b3f807629ea55341))
+
 ## [1.0.6](https://github.com/krtw00/duel-log-app/compare/v1.0.5...v1.0.6) (2025-11-08)
 
 
