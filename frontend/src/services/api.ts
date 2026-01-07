@@ -13,10 +13,20 @@ if (!RAW_API_BASE_URL) {
   throw new Error('API URL is not configured. Please check your .env file.');
 }
 
+// .env の末尾スペース等でURLが壊れると、ブラウザ側で ERR_EMPTY_RESPONSE などになり得る。
+// ここで安全に正規化しておく。
+const TRIMMED_API_BASE_URL = RAW_API_BASE_URL.trim();
+if (TRIMMED_API_BASE_URL !== RAW_API_BASE_URL) {
+  console.warn('[API] VITE_API_URL contained leading/trailing whitespace; trimmed.');
+}
+
 // Playwright など一部環境では localhost が IPv6 (::1) に解決され、
 // バックエンドが IPv4 のみで待ち受けていると接続できないケースがある。
 // そのためテスト環境では 127.0.0.1 に正規化して確実に到達させる。
-const API_BASE_URL = RAW_API_BASE_URL.replace('://localhost', '://127.0.0.1');
+const API_BASE_URL = TRIMMED_API_BASE_URL.replace('://localhost', '://127.0.0.1').replace(
+  /\/+$/,
+  '',
+);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -26,9 +36,19 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
+export const normalizeApiRequestUrl = (baseURL: string | undefined, url: unknown) => {
+  if (!baseURL || typeof url !== 'string') return url;
+  // axios は url が "/" 始まりだと baseURL のパス部分を無視する（/api + /me => /me になる）。
+  // Docker dev では baseURL に "/api" を使うため、ここで先頭の "/" を落として常に baseURL を効かせる。
+  if (/^https?:\/\//.test(url)) return url;
+  return url.replace(/^\/+/, '');
+};
+
 // リクエストインターセプター
 api.interceptors.request.use(
   (config) => {
+    config.url = normalizeApiRequestUrl(config.baseURL, config.url);
+
     // ローディング開始
     const loadingStore = useLoadingStore();
     const requestId = `${config.method}-${config.url}`;
