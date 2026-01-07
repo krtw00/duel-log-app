@@ -288,7 +288,6 @@ const selectedMyDeck = ref<Deck | string | null>(null);
 const selectedOpponentDeck = ref<Deck | string | null>(null);
 
 const defaultForm = (): DuelCreate => {
-  const defaultCoin = props.defaultFirstOrSecond === 1 ? 1 : 0;
   return {
     deck_id: null,
     opponent_deck_id: null,
@@ -297,8 +296,9 @@ const defaultForm = (): DuelCreate => {
     rank: undefined,
     rate_value: undefined,
     dc_value: undefined,
-    coin: defaultCoin,
-    first_or_second: defaultCoin === 1 ? 1 : 0,
+    // コインは「表」を基準に、先攻/後攻のデフォルトは別で持つ
+    coin: 1,
+    first_or_second: props.defaultFirstOrSecond,
     played_date: getCurrentLocalDateTime(),
     notes: '',
   };
@@ -421,7 +421,6 @@ watch(
         await ensureDecksLoaded('active');
         await fetchLatestValues();
         form.value = defaultForm();
-        form.value.first_or_second = form.value.coin === 1 ? 1 : 0;
         form.value.game_mode = props.defaultGameMode;
 
         // ゲームモードに応じた最新値を適用
@@ -467,7 +466,9 @@ watch(
   (newCoin) => {
     // 編集モードでは自動変更しない（意図しない書き換え防止）
     if (isEdit.value) return;
-    form.value.first_or_second = newCoin === 1 ? 1 : 0;
+    // コインが表のときはセグメントで指定した値、裏のときは反転
+    const base = props.defaultFirstOrSecond;
+    form.value.first_or_second = newCoin === 1 ? base : base === 1 ? 0 : 1;
   },
 );
 
