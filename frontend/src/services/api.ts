@@ -5,7 +5,8 @@ import { useAuthStore } from '../stores/auth';
 import type { ApiErrorResponse, ValidationErrorDetail } from '../types/api';
 
 // 環境変数からAPIのベースURLを取得
-const RAW_API_BASE_URL = import.meta.env.VITE_API_URL;
+const IS_TEST = import.meta.env.MODE === 'test';
+const RAW_API_BASE_URL = import.meta.env.VITE_API_URL ?? (IS_TEST ? 'http://127.0.0.1' : undefined);
 
 // 環境変数が設定されていない場合の警告
 if (!RAW_API_BASE_URL) {
