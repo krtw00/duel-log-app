@@ -60,9 +60,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import type { Duel, Deck, GameMode } from '@/types';
+import { useUiStore } from '@/stores/ui';
 
 // Components
 import AppBar from '@/components/layout/AppBar.vue';
@@ -86,6 +87,7 @@ const decks = ref<Deck[]>([]);
 const loading = ref(false);
 const currentMode = ref<GameMode>('RANK');
 const shareDialogOpened = ref(false);
+const uiStore = useUiStore();
 
 // 年月選択
 const selectedYear = ref(new Date().getFullYear());
@@ -176,6 +178,14 @@ const fetchDuels = async () => {
 onMounted(() => {
   fetchDuels();
 });
+
+watch(
+  currentMode,
+  (mode) => {
+    uiStore.setLastGameMode(mode);
+  },
+  { immediate: true },
+);
 
 // Expose for testing
 defineExpose({
