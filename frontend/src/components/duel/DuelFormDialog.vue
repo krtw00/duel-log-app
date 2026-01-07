@@ -256,12 +256,14 @@ interface Props {
   modelValue: boolean;
   duel: Duel | null;
   defaultGameMode?: GameMode;
+  defaultFirstOrSecond?: 0 | 1;
   initialMyDecks?: Deck[];
   initialOpponentDecks?: Deck[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   defaultGameMode: 'RANK',
+  defaultFirstOrSecond: 1,
 });
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
@@ -294,8 +296,9 @@ const defaultForm = (): DuelCreate => {
     rank: undefined,
     rate_value: undefined,
     dc_value: undefined,
+    // コインは「表」を基準に、先攻/後攻のデフォルトは別で持つ
     coin: 1,
-    first_or_second: 1,
+    first_or_second: props.defaultFirstOrSecond,
     played_date: getCurrentLocalDateTime(),
     notes: '',
   };
@@ -454,6 +457,18 @@ watch(
     form.value.dc_value = applied.dc_value;
     selectedMyDeck.value = applied.selectedMyDeck;
     selectedOpponentDeck.value = applied.selectedOpponentDeck;
+  },
+);
+
+// コイン結果に連動して先攻/後攻を自動設定
+watch(
+  () => form.value.coin,
+  (newCoin) => {
+    // 編集モードでは自動変更しない（意図しない書き換え防止）
+    if (isEdit.value) return;
+    // コインが表のときはセグメントで指定した値、裏のときは反転
+    const base = props.defaultFirstOrSecond;
+    form.value.first_or_second = newCoin === 1 ? base : base === 1 ? 0 : 1;
   },
 );
 
