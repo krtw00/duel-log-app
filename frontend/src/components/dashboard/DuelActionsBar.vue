@@ -193,17 +193,20 @@ defineExpose({
   font-weight: 600;
   padding: 8px 10px;
   border-radius: 8px;
+  opacity: 1 !important;
 }
 
-:global(.v-theme--customLightTheme .default-turn-tooltip) {
-  color: #000;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.25);
+:global(.v-theme--customLightTheme .default-turn-tooltip),
+:global(.v-theme--customLightTheme.default-turn-tooltip) {
+  color: #000 !important;
+  background: #fff !important;
+  border: 1px solid rgba(0, 0, 0, 0.25) !important;
 }
 
-:global(.v-theme--customDarkTheme .default-turn-tooltip) {
-  color: #fff;
-  background: #111;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+:global(.v-theme--customDarkTheme .default-turn-tooltip),
+:global(.v-theme--customDarkTheme.default-turn-tooltip) {
+  color: #fff !important;
+  background: #111 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 </style>
