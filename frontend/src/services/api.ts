@@ -61,8 +61,11 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
-export const normalizeApiRequestUrl = (baseURL: string | undefined, url: unknown) => {
-  if (!baseURL || typeof url !== 'string') return url;
+export const normalizeApiRequestUrl = (
+  baseURL: string | undefined,
+  url: string | undefined,
+): string | undefined => {
+  if (!baseURL || !url) return url;
   // axios は url が "/" 始まりだと baseURL のパス部分を無視する（/api + /me => /me になる）。
   // Docker dev では baseURL に "/api" を使うため、ここで先頭の "/" を落として常に baseURL を効かせる。
   if (/^https?:\/\//.test(url)) return url;
