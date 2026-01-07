@@ -10,6 +10,9 @@
           divided
           density="compact"
           variant="outlined"
+          color="primary"
+          selected-class="default-toggle__selected"
+          class="default-toggle__toggle"
           @update:model-value="$emit('update:defaultFirstOrSecond', $event)"
         >
           <v-btn :value="0" size="small">後攻</v-btn>
@@ -70,6 +73,9 @@
           divided
           density="compact"
           variant="outlined"
+          color="primary"
+          selected-class="default-toggle__selected"
+          class="default-toggle__toggle"
           @update:model-value="$emit('update:defaultFirstOrSecond', $event)"
         >
           <v-btn :value="0" size="small">後攻</v-btn>
@@ -128,5 +134,14 @@ defineExpose({
   font-size: 0.875rem;
   font-weight: 600;
   opacity: 0.8;
+}
+
+.default-toggle__toggle {
+  border-width: 2px;
+}
+
+.default-toggle__selected {
+  background: rgba(var(--v-theme-primary), 0.15) !important;
+  border-color: rgb(var(--v-theme-primary)) !important;
 }
 </style>
