@@ -1,84 +1,59 @@
 <template>
-  <div>
-    <!-- ナビゲーションバー -->
-    <app-bar current-view="dashboard" @toggle-drawer="drawer = !drawer" />
+  <app-layout current-view="dashboard" main-class="dashboard-main">
+    <v-container fluid class="pa-6 pa-sm-6 pa-xs-3">
+      <DashboardHeader
+        v-model:game-mode="currentMode"
+        v-model:year="selectedYear"
+        v-model:month="selectedMonth"
+        :rank-count="rankDuels.length"
+        :rate-count="rateDuels.length"
+        :event-count="eventDuels.length"
+        :dc-count="dcDuels.length"
+        @update:year="fetchDuels"
+        @update:month="fetchDuels"
+      />
 
-    <!-- レスポンシブ対応のナビゲーションドロワー -->
-    <v-navigation-drawer v-model="drawer" temporary>
-      <v-list nav dense>
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.view"
-          :prepend-icon="item.icon"
-          :to="item.path"
-          :title="item.name"
-        />
-      </v-list>
-    </v-navigation-drawer>
+      <StatisticsSection :duels="duels" :decks="decks" :current-mode="currentMode" />
 
-    <!-- メインコンテンツ -->
-    <v-main class="main-content">
-      <v-container fluid class="pa-6 pa-sm-6 pa-xs-3">
-        <DashboardHeader
-          v-model:game-mode="currentMode"
-          v-model:year="selectedYear"
-          v-model:month="selectedMonth"
-          :rank-count="rankDuels.length"
-          :rate-count="rateDuels.length"
-          :event-count="eventDuels.length"
-          :dc-count="dcDuels.length"
-          @update:year="fetchDuels"
-          @update:month="fetchDuels"
-        />
+      <OBSSection />
 
-        <StatisticsSection :duels="duels" :decks="decks" :current-mode="currentMode" />
+      <DuelHistorySection
+        :duels="currentDuels"
+        :decks="decks"
+        :loading="loading"
+        :year="selectedYear"
+        :month="selectedMonth"
+        :game-mode="currentMode"
+        :default-game-mode="currentMode"
+        @refresh="fetchDuels"
+        @duel-saved="handleDuelSaved"
+      />
+    </v-container>
 
-        <OBSSection />
-
-        <DuelHistorySection
-          :duels="currentDuels"
-          :decks="decks"
-          :loading="loading"
-          :year="selectedYear"
-          :month="selectedMonth"
-          :game-mode="currentMode"
-          :default-game-mode="currentMode"
-          @refresh="fetchDuels"
-          @duel-saved="handleDuelSaved"
-        />
-      </v-container>
-    </v-main>
-
-    <!-- 共有リンク生成ダイアログ -->
-    <share-stats-dialog
-      v-model="shareDialogOpened"
-      :initial-year="selectedYear"
-      :initial-month="selectedMonth"
-      :initial-game-mode="currentMode"
-    />
-  </div>
+    <template #overlay>
+      <share-stats-dialog
+        v-model="shareDialogOpened"
+        :initial-year="selectedYear"
+        :initial-month="selectedMonth"
+        :initial-game-mode="currentMode"
+      />
+    </template>
+  </app-layout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
 import type { Duel, Deck, GameMode } from '@/types';
+import { useUiStore } from '@/stores/ui';
 
 // Components
-import AppBar from '@/components/layout/AppBar.vue';
+import AppLayout from '@/components/layout/AppLayout.vue';
 import DashboardHeader from './DashboardHeader.vue';
 import StatisticsSection from './StatisticsSection.vue';
 import OBSSection from './OBSSection.vue';
 import DuelHistorySection from './DuelHistorySection.vue';
 import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue';
-
-// Navigation
-const drawer = ref(false);
-const navItems = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
 
 // Shared state
 const duels = ref<Duel[]>([]);
@@ -86,6 +61,7 @@ const decks = ref<Deck[]>([]);
 const loading = ref(false);
 const currentMode = ref<GameMode>('RANK');
 const shareDialogOpened = ref(false);
+const uiStore = useUiStore();
 
 // 年月選択
 const selectedYear = ref(new Date().getFullYear());
@@ -177,6 +153,14 @@ onMounted(() => {
   fetchDuels();
 });
 
+watch(
+  currentMode,
+  (mode) => {
+    uiStore.setLastGameMode(mode);
+  },
+  { immediate: true },
+);
+
 // Expose for testing
 defineExpose({
   shareDialogOpened,
@@ -184,7 +168,7 @@ defineExpose({
 </script>
 
 <style scoped>
-.main-content {
+:deep(.dashboard-main) {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }

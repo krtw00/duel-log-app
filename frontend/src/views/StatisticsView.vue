@@ -1,237 +1,88 @@
 <template>
-  <div>
-    <!-- ナビゲーションバー -->
-    <app-bar current-view="statistics" @toggle-drawer="drawer = !drawer" />
+  <app-layout current-view="statistics">
+    <v-container fluid class="pa-6">
+      <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
 
-    <!-- レスポンシブ対応のナビゲーションドロワー -->
-    <v-navigation-drawer v-model="drawer" temporary>
-      <v-list nav dense>
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.view"
-          :prepend-icon="item.icon"
-          :to="item.path"
-          :title="item.name"
-        />
-      </v-list>
-    </v-navigation-drawer>
+      <!-- 年月選択 -->
+      <v-row class="mb-4">
+        <v-col cols="6" sm="3">
+          <v-select
+            v-model="selectedYear"
+            :items="years"
+            label="年"
+            variant="outlined"
+            density="compact"
+            hide-details
+            @update:model-value="refreshStatisticsWithDecks"
+          ></v-select>
+        </v-col>
+        <v-col cols="6" sm="3">
+          <v-select
+            v-model="selectedMonth"
+            :items="months"
+            label="月"
+            variant="outlined"
+            density="compact"
+            hide-details
+            @update:model-value="refreshStatisticsWithDecks"
+          ></v-select>
+        </v-col>
+      </v-row>
 
-    <!-- メインコンテンツ -->
-    <v-main class="main-content">
-      <v-container fluid class="pa-6">
-        <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
+      <!-- 統計フィルター -->
+      <statistics-filter
+        v-model:period-type="filterPeriodType"
+        v-model:range-start="filterRangeStart"
+        v-model:range-end="filterRangeEnd"
+        v-model:my-deck-id="filterMyDeckId"
+        :available-my-decks="availableMyDecks"
+        @update:period-type="refreshStatisticsWithDecks"
+        @update:range-start="refreshStatisticsWithDecks"
+        @update:range-end="refreshStatisticsWithDecks"
+        @update:my-deck-id="handleMyDeckFilterChange"
+        @reset="resetFilters"
+      />
 
-        <!-- 年月選択 -->
-        <v-row class="mb-4">
-          <v-col cols="6" sm="3">
-            <v-select
-              v-model="selectedYear"
-              :items="years"
-              label="年"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @update:model-value="refreshStatisticsWithDecks"
-            ></v-select>
-          </v-col>
-          <v-col cols="6" sm="3">
-            <v-select
-              v-model="selectedMonth"
-              :items="months"
-              label="月"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @update:model-value="refreshStatisticsWithDecks"
-            ></v-select>
-          </v-col>
-        </v-row>
+      <!-- ゲームモード切り替えタブ -->
+      <v-card class="mode-tab-card mb-4">
+        <v-tabs v-model="currentTab" color="primary" align-tabs="center" height="64">
+          <v-tab value="RANK" class="custom-tab">
+            <v-icon start>mdi-crown</v-icon>
+            ランク
+          </v-tab>
+          <v-tab value="RATE" class="custom-tab">
+            <v-icon start>mdi-chart-line</v-icon>
+            レート
+          </v-tab>
+          <v-tab value="EVENT" class="custom-tab">
+            <v-icon start>mdi-calendar-star</v-icon>
+            イベント
+          </v-tab>
+          <v-tab value="DC" class="custom-tab">
+            <v-icon start>mdi-trophy-variant</v-icon>
+            DC
+          </v-tab>
+        </v-tabs>
+      </v-card>
 
-        <!-- 統計フィルター -->
-        <statistics-filter
-          v-model:period-type="filterPeriodType"
-          v-model:range-start="filterRangeStart"
-          v-model:range-end="filterRangeEnd"
-          v-model:my-deck-id="filterMyDeckId"
-          :available-my-decks="availableMyDecks"
-          @update:period-type="refreshStatisticsWithDecks"
-          @update:range-start="refreshStatisticsWithDecks"
-          @update:range-end="refreshStatisticsWithDecks"
-          @update:my-deck-id="handleMyDeckFilterChange"
-          @reset="resetFilters"
-        />
-
-        <!-- ゲームモード切り替えタブ -->
-        <v-card class="mode-tab-card mb-4">
-          <v-tabs v-model="currentTab" color="primary" align-tabs="center" height="64">
-            <v-tab value="RANK" class="custom-tab">
-              <v-icon start>mdi-crown</v-icon>
-              ランク
-            </v-tab>
-            <v-tab value="RATE" class="custom-tab">
-              <v-icon start>mdi-chart-line</v-icon>
-              レート
-            </v-tab>
-            <v-tab value="EVENT" class="custom-tab">
-              <v-icon start>mdi-calendar-star</v-icon>
-              イベント
-            </v-tab>
-            <v-tab value="DC" class="custom-tab">
-              <v-icon start>mdi-trophy-variant</v-icon>
-              DC
-            </v-tab>
-          </v-tabs>
-        </v-card>
-
-        <v-window v-model="currentTab">
-          <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
-            <statistics-content
-              :statistics="{
-                monthlyDistribution: statisticsByMode[mode].monthlyDistribution,
-                duels: monthlyDuelsByMode[mode],
-                myDeckWinRates: statisticsByMode[mode].myDeckWinRates,
-                matchupData: statisticsByMode[mode].matchupData,
-                valueSequence: statisticsByMode[mode].valueSequence,
-              }"
-              :game-mode="mode"
-              :display-month="currentMonth"
-              :loading="loading"
-            />
-            <!-- Keeping old code below for reference, can be removed later -->
-            <v-row v-if="false">
-              <!-- 月間デッキ分布 -->
-              <v-col cols="12" lg="6">
-                <v-card class="stats-card">
-                  <v-card-title>月間デッキ分布 ({{ currentMonth }})</v-card-title>
-                  <v-card-text>
-                    <apexchart
-                      v-if="
-                        !loading && statisticsByMode[mode].monthlyDistribution.series.length > 0
-                      "
-                      type="pie"
-                      height="350"
-                      :options="statisticsByMode[mode].monthlyDistribution.chartOptions"
-                      :series="statisticsByMode[mode].monthlyDistribution.series"
-                    ></apexchart>
-                    <div v-else class="no-data-placeholder">
-                      <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
-                      <p class="text-body-1 text-grey mt-4">データがありません</p>
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <!-- 月間対戦リスト -->
-              <v-col cols="12" lg="6">
-                <v-card class="stats-card">
-                  <v-card-title class="d-flex align-center justify-space-between">
-                    <span>月間対戦一覧 ({{ currentMonth }})</span>
-                    <v-chip size="small" variant="outlined">
-                      全 {{ monthlyDuelsByMode[mode].length }} 件
-                    </v-chip>
-                  </v-card-title>
-                  <v-card-text>
-                    <duel-table
-                      :duels="monthlyDuelsByMode[mode]"
-                      :loading="monthlyDuelsLoading"
-                      :show-actions="false"
-                      :hidden-columns="monthlyHiddenColumns"
-                      table-height="480px"
-                    />
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <!-- 自分のデッキ勝率 -->
-              <v-col cols="12">
-                <v-card class="stats-card">
-                  <v-card-title>自分のデッキ勝率</v-card-title>
-                  <v-card-text>
-                    <v-data-table
-                      :headers="myDeckWinRatesHeaders"
-                      :items="statisticsByMode[mode].myDeckWinRates"
-                      :loading="loading"
-                      class="matchup-table"
-                      density="compact"
-                    >
-                      <template #[`item.win_rate`]="{ item }">
-                        {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
-                      </template>
-                      <template #no-data>
-                        <div class="no-data-placeholder py-8">
-                          <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
-                          <p class="text-body-1 text-grey mt-4">データがありません</p>
-                        </div>
-                      </template>
-                    </v-data-table>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <!-- 相性表 -->
-              <v-col cols="12">
-                <v-card class="stats-card">
-                  <v-card-title>デッキ相性表</v-card-title>
-                  <v-card-text>
-                    <v-data-table
-                      :headers="matchupHeaders"
-                      :items="statisticsByMode[mode].matchupData"
-                      :loading="loading"
-                      class="matchup-table"
-                      density="compact"
-                    >
-                      <template #[`item.win_rate`]="{ item }">
-                        {{ item.wins }} / {{ item.total_duels }} ({{ item.win_rate.toFixed(1) }}%)
-                      </template>
-                      <template #[`item.win_rate_first`]="{ item }">
-                        {{ item.win_rate_first.toFixed(1) }}%
-                      </template>
-                      <template #[`item.win_rate_second`]="{ item }">
-                        {{ item.win_rate_second.toFixed(1) }}%
-                      </template>
-                      <template #no-data>
-                        <div class="no-data-placeholder py-8">
-                          <v-icon size="64" color="grey">mdi-table-off</v-icon>
-                          <p class="text-body-1 text-grey mt-4">相性データがありません</p>
-                        </div>
-                      </template>
-                    </v-data-table>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
-              <v-col v-if="mode === 'RATE' || mode === 'DC'" cols="12">
-                <v-card class="stats-card">
-                  <v-card-title
-                    >{{ mode === 'RATE' ? 'レート変動' : 'DC変動' }} ({{
-                      currentMonth
-                    }})</v-card-title
-                  >
-                  <v-card-text>
-                    <apexchart
-                      v-if="
-                        !loading && statisticsByMode[mode].valueSequence.series[0].data.length > 0
-                      "
-                      type="line"
-                      height="350"
-                      :options="statisticsByMode[mode].valueSequence.chartOptions"
-                      :series="statisticsByMode[mode].valueSequence.series"
-                    ></apexchart>
-                    <div v-else class="no-data-placeholder">
-                      <v-icon size="64" color="grey">{{
-                        mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
-                      }}</v-icon>
-                      <p class="text-body-1 text-grey mt-4">データがありません</p>
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-window-item>
-        </v-window>
-      </v-container>
-    </v-main>
-  </div>
+      <v-window v-model="currentTab">
+        <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
+          <statistics-content
+            :statistics="{
+              monthlyDistribution: statisticsByMode[mode].monthlyDistribution,
+              duels: monthlyDuelsByMode[mode],
+              myDeckWinRates: statisticsByMode[mode].myDeckWinRates,
+              matchupData: statisticsByMode[mode].matchupData,
+              valueSequence: statisticsByMode[mode].valueSequence,
+            }"
+            :game-mode="mode"
+            :display-month="currentMonth"
+            :loading="loading"
+          />
+        </v-window-item>
+      </v-window>
+    </v-container>
+  </app-layout>
 </template>
 
 <script setup lang="ts">
@@ -264,14 +115,15 @@
  */
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
-import AppBar from '@/components/layout/AppBar.vue';
+import AppLayout from '@/components/layout/AppLayout.vue';
 import { useThemeStore } from '@/stores/theme';
+import { useUiStore } from '@/stores/ui';
 import { useChartOptions } from '@/composables/useChartOptions';
-import DuelTable from '@/components/duel/DuelTable.vue';
 import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
 import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 
 const themeStore = useThemeStore();
+const uiStore = useUiStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 
 const determineStep = (count: number) => {
@@ -294,12 +146,15 @@ const createLabelFormatter = (step: number, total: number) => {
   };
 };
 
-const drawer = ref(false);
-const navItems = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
+const createPiePercentFormatter = (series: number[]) => {
+  return (value: number) => {
+    const total = series.reduce((sum, v) => sum + (Number(v) || 0), 0);
+    const numericValue = Number(value) || 0;
+    if (total <= 0) return '0.0%';
+    const percent = (numericValue / total) * 100;
+    return `${percent.toFixed(1)}%`;
+  };
+};
 
 // --- Types ---
 import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
@@ -342,7 +197,7 @@ interface AllStatisticsData {
 }
 
 const loading = ref(true);
-const currentTab = ref('RANK');
+const currentTab = ref<GameMode>(uiStore.lastGameMode);
 const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 
 // --- Date Selection ---
@@ -410,8 +265,6 @@ const monthlyDuelsByMode = ref<Record<GameMode, ExtendedDuel[]>>({
   EVENT: [],
   DC: [],
 });
-const monthlyDuelsLoading = ref(false);
-const monthlyHiddenColumns = ['opponentdeck', 'coin', 'first_or_second', 'notes'];
 
 const fetchAvailableDecks = async () => {
   try {
@@ -479,7 +332,6 @@ const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: nu
 });
 
 const fetchMonthlyDuels = async (mode: GameMode) => {
-  monthlyDuelsLoading.value = true;
   try {
     monthlyDuelsByMode.value[mode] = [];
     const params: Record<string, any> = {
@@ -521,8 +373,6 @@ const fetchMonthlyDuels = async (mode: GameMode) => {
   } catch (error) {
     console.error('Failed to fetch monthly duels:', error);
     monthlyDuelsByMode.value[mode] = [];
-  } finally {
-    monthlyDuelsLoading.value = false;
   }
 };
 
@@ -549,7 +399,7 @@ const fetchStatistics = async () => {
       params.opponent_deck_id = filterOpponentDeckId.value;
     }
 
-    const response = await api.get('/statistics/', { params });
+    const response = await api.get('/statistics', { params });
     const data = response.data;
 
     const modes = ['RANK', 'RATE', 'EVENT', 'DC'];
@@ -565,6 +415,10 @@ const fetchStatistics = async () => {
         chartOptions: {
           ...basePieChartOptions.value,
           labels: monthlyLabels,
+          tooltip: {
+            ...(basePieChartOptions.value.tooltip || {}),
+            y: { formatter: createPiePercentFormatter(monthlySeries) },
+          },
         } as ApexPieChartOptions,
       };
 
@@ -604,27 +458,12 @@ const fetchStatistics = async () => {
   }
 };
 
-// --- Data Table ---
-const matchupHeaders = [
-  { title: '使用デッキ', key: 'deck_name', sortable: false },
-  { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
-  { title: '対戦数', key: 'total_duels', sortable: true },
-  { title: '勝率', key: 'win_rate', sortable: true },
-  { title: '先攻勝率', key: 'win_rate_first', sortable: true },
-  { title: '後攻勝率', key: 'win_rate_second', sortable: true },
-];
-
-const myDeckWinRatesHeaders = [
-  { title: 'デッキ名', key: 'deck_name', sortable: true },
-  { title: '対戦数', key: 'total_duels', sortable: true },
-  { title: '勝率', key: 'win_rate', sortable: true },
-];
-
 onMounted(() => {
   refreshStatisticsWithDecks();
 });
 
-watch(currentTab, () => {
+watch(currentTab, (newMode) => {
+  uiStore.setLastGameMode(newMode);
   refreshStatisticsWithDecks();
 });
 
@@ -639,10 +478,6 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.main-content {
-  min-height: 100vh;
-}
-
 .statistics-title {
   color: rgb(var(--v-theme-on-surface));
 }

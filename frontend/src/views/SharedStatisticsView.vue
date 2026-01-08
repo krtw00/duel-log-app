@@ -4,7 +4,7 @@
     <v-app-bar app flat color="transparent">
       <v-toolbar-title class="d-flex align-center">
         <v-btn href="/" variant="text" class="logo-link" :ripple="false">
-          <v-icon class="mr-2" color="primary">mdi-chart-bar</v-icon>
+          <v-img src="/favicon.svg" alt="Duel Log" width="28" height="28" class="mr-2" contain />
           <span class="text-h6">Duel Log Shared Statistics</span>
         </v-btn>
       </v-toolbar-title>
@@ -168,6 +168,16 @@ const createLabelFormatter = (step: number, total: number) => {
       return value;
     }
     return numeric % step === 0 ? value : '';
+  };
+};
+
+const createPiePercentFormatter = (series: number[]) => {
+  return (value: number) => {
+    const total = series.reduce((sum, v) => sum + (Number(v) || 0), 0);
+    const numericValue = Number(value) || 0;
+    if (total <= 0) return '0.0%';
+    const percent = (numericValue / total) * 100;
+    return `${percent.toFixed(1)}%`;
   };
 };
 
@@ -422,6 +432,15 @@ const fetchSharedStatistics = async () => {
                 rawStats.monthly_deck_distribution?.map(
                   (d: { deck_name: string }) => d.deck_name,
                 ) || [],
+              tooltip: {
+                ...(basePieChartOptions.value.tooltip || {}),
+                y: {
+                  formatter: createPiePercentFormatter(
+                    rawStats.monthly_deck_distribution?.map((d: { count: number }) => d.count) ||
+                      [],
+                  ),
+                },
+              },
             } as ApexPieChartOptions,
           },
           recentDistribution: {
@@ -431,6 +450,14 @@ const fetchSharedStatistics = async () => {
               labels:
                 rawStats.recent_deck_distribution?.map((d: { deck_name: string }) => d.deck_name) ||
                 [],
+              tooltip: {
+                ...(basePieChartOptions.value.tooltip || {}),
+                y: {
+                  formatter: createPiePercentFormatter(
+                    rawStats.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
+                  ),
+                },
+              },
             } as ApexPieChartOptions,
           },
           myDeckWinRates: rawStats.my_deck_win_rates || [],

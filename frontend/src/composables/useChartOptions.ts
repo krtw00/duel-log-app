@@ -41,6 +41,9 @@ export function useChartOptions() {
         colors: themeStore.isDark ? '#fff' : '#000',
       },
     },
+    tooltip: {
+      theme: themeStore.isDark ? ('dark' as const) : ('light' as const),
+    },
     dataLabels: {
       enabled: false,
     },
