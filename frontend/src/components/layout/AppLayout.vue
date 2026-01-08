@@ -26,15 +26,17 @@
 import { computed, ref } from 'vue';
 import AppBar from '@/components/layout/AppBar.vue';
 
+type CurrentView = 'dashboard' | 'decks' | 'statistics' | 'profile';
+
 interface NavItem {
   name: string;
   path: string;
-  view: string;
+  view: CurrentView;
   icon: string;
 }
 
 interface Props {
-  currentView: string;
+  currentView: CurrentView;
   navItems?: NavItem[];
   mainClass?: string | string[];
 }
