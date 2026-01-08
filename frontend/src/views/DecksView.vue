@@ -1,161 +1,149 @@
 <template>
   <app-layout current-view="decks">
     <v-container fluid class="pa-6">
-        <!-- アーカイブボタン -->
-        <v-row class="mb-4">
-          <v-col cols="12">
-            <v-alert type="info" variant="tonal" prominent border="start" class="archive-alert">
-              <template #prepend>
-                <v-icon size="large">mdi-archive</v-icon>
-              </template>
-              <div class="d-flex align-center justify-space-between flex-wrap ga-4">
-                <div>
-                  <div class="text-h6 mb-1">月次リセット機能</div>
-                  <div class="text-body-2">
-                    新弾リリース時など、全デッキを一括アーカイブできます。アーカイブしても過去の対戦記録は保持されます。
-                  </div>
+      <!-- アーカイブボタン -->
+      <v-row class="mb-4">
+        <v-col cols="12">
+          <v-alert type="info" variant="tonal" prominent border="start" class="archive-alert">
+            <template #prepend>
+              <v-icon size="large">mdi-archive</v-icon>
+            </template>
+            <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+              <div>
+                <div class="text-h6 mb-1">月次リセット機能</div>
+                <div class="text-body-2">
+                  新弾リリース時など、全デッキを一括アーカイブできます。アーカイブしても過去の対戦記録は保持されます。
                 </div>
-                <v-btn
-                  color="warning"
-                  prepend-icon="mdi-archive"
-                  variant="elevated"
-                  size="large"
-                  @click="confirmArchiveAll"
-                >
-                  全デッキをアーカイブ
-                </v-btn>
               </div>
-            </v-alert>
-          </v-col>
-        </v-row>
+              <v-btn
+                color="warning"
+                prepend-icon="mdi-archive"
+                variant="elevated"
+                size="large"
+                @click="confirmArchiveAll"
+              >
+                全デッキをアーカイブ
+              </v-btn>
+            </div>
+          </v-alert>
+        </v-col>
+      </v-row>
 
-        <v-row>
-          <!-- 自分のデッキ -->
-          <v-col cols="12" md="6">
-            <v-card class="deck-card">
-              <v-card-title class="d-flex align-center pa-4">
-                <v-icon class="mr-2" color="primary">mdi-cards</v-icon>
-                <span class="text-h6">自分のデッキ</span>
-                <v-spacer />
-                <v-btn
-                  color="primary"
-                  prepend-icon="mdi-plus"
-                  class="add-btn"
-                  @click="openDeckDialog(false)"
-                >
-                  追加
-                </v-btn>
-              </v-card-title>
+      <v-row>
+        <!-- 自分のデッキ -->
+        <v-col cols="12" md="6">
+          <v-card class="deck-card">
+            <v-card-title class="d-flex align-center pa-4">
+              <v-icon class="mr-2" color="primary">mdi-cards</v-icon>
+              <span class="text-h6">自分のデッキ</span>
+              <v-spacer />
+              <v-btn
+                color="primary"
+                prepend-icon="mdi-plus"
+                class="add-btn"
+                @click="openDeckDialog(false)"
+              >
+                追加
+              </v-btn>
+            </v-card-title>
 
-              <v-divider />
+            <v-divider />
 
-              <v-card-text class="pa-4">
-                <v-list v-if="myDecks.length > 0" class="deck-list">
-                  <v-list-item v-for="deck in myDecks" :key="deck.id" class="deck-list-item">
-                    <template #prepend>
-                      <v-avatar color="primary" size="40">
-                        <v-icon>mdi-cards-playing</v-icon>
-                      </v-avatar>
-                    </template>
+            <v-card-text class="pa-4">
+              <v-list v-if="myDecks.length > 0" class="deck-list">
+                <v-list-item v-for="deck in myDecks" :key="deck.id" class="deck-list-item">
+                  <template #prepend>
+                    <v-avatar color="primary" size="40">
+                      <v-icon>mdi-cards-playing</v-icon>
+                    </v-avatar>
+                  </template>
 
-                    <v-list-item-title class="font-weight-bold">
-                      {{ deck.name }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle class="text-caption">
-                      登録日: {{ formatDate(deck.createdat) }}
-                    </v-list-item-subtitle>
+                  <v-list-item-title class="font-weight-bold">
+                    {{ deck.name }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle class="text-caption">
+                    登録日: {{ formatDate(deck.createdat) }}
+                  </v-list-item-subtitle>
 
-                    <template #append>
-                      <v-btn
-                        icon="mdi-pencil"
-                        size="small"
-                        variant="text"
-                        @click="editDeck(deck)"
-                      />
-                      <v-btn
-                        icon="mdi-delete"
-                        size="small"
-                        variant="text"
-                        color="error"
-                        @click="deleteDeck(deck.id)"
-                      />
-                    </template>
-                  </v-list-item>
-                </v-list>
+                  <template #append>
+                    <v-btn icon="mdi-pencil" size="small" variant="text" @click="editDeck(deck)" />
+                    <v-btn
+                      icon="mdi-delete"
+                      size="small"
+                      variant="text"
+                      color="error"
+                      @click="deleteDeck(deck.id)"
+                    />
+                  </template>
+                </v-list-item>
+              </v-list>
 
-                <div v-else class="text-center pa-8">
-                  <v-icon size="64" color="grey">mdi-cards-outline</v-icon>
-                  <p class="text-body-1 text-grey mt-4">デッキが登録されていません</p>
-                  <p class="text-caption text-grey">「追加」ボタンからデッキを登録しましょう</p>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
+              <div v-else class="text-center pa-8">
+                <v-icon size="64" color="grey">mdi-cards-outline</v-icon>
+                <p class="text-body-1 text-grey mt-4">デッキが登録されていません</p>
+                <p class="text-caption text-grey">「追加」ボタンからデッキを登録しましょう</p>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
 
-          <!-- 相手のデッキ -->
-          <v-col cols="12" md="6">
-            <v-card class="deck-card">
-              <v-card-title class="d-flex align-center pa-4">
-                <v-icon class="mr-2" color="secondary">mdi-account</v-icon>
-                <span class="text-h6">相手のデッキ</span>
-                <v-spacer />
-                <v-btn
-                  color="secondary"
-                  prepend-icon="mdi-plus"
-                  class="add-btn"
-                  @click="openDeckDialog(true)"
-                >
-                  追加
-                </v-btn>
-              </v-card-title>
+        <!-- 相手のデッキ -->
+        <v-col cols="12" md="6">
+          <v-card class="deck-card">
+            <v-card-title class="d-flex align-center pa-4">
+              <v-icon class="mr-2" color="secondary">mdi-account</v-icon>
+              <span class="text-h6">相手のデッキ</span>
+              <v-spacer />
+              <v-btn
+                color="secondary"
+                prepend-icon="mdi-plus"
+                class="add-btn"
+                @click="openDeckDialog(true)"
+              >
+                追加
+              </v-btn>
+            </v-card-title>
 
-              <v-divider />
+            <v-divider />
 
-              <v-card-text class="pa-4">
-                <v-list v-if="opponentDecks.length > 0" class="deck-list">
-                  <v-list-item v-for="deck in opponentDecks" :key="deck.id" class="deck-list-item">
-                    <template #prepend>
-                      <v-avatar color="secondary" size="40">
-                        <v-icon>mdi-account-circle</v-icon>
-                      </v-avatar>
-                    </template>
+            <v-card-text class="pa-4">
+              <v-list v-if="opponentDecks.length > 0" class="deck-list">
+                <v-list-item v-for="deck in opponentDecks" :key="deck.id" class="deck-list-item">
+                  <template #prepend>
+                    <v-avatar color="secondary" size="40">
+                      <v-icon>mdi-account-circle</v-icon>
+                    </v-avatar>
+                  </template>
 
-                    <v-list-item-title class="font-weight-bold">
-                      {{ deck.name }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle class="text-caption">
-                      登録日: {{ formatDate(deck.createdat) }}
-                    </v-list-item-subtitle>
+                  <v-list-item-title class="font-weight-bold">
+                    {{ deck.name }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle class="text-caption">
+                    登録日: {{ formatDate(deck.createdat) }}
+                  </v-list-item-subtitle>
 
-                    <template #append>
-                      <v-btn
-                        icon="mdi-pencil"
-                        size="small"
-                        variant="text"
-                        @click="editDeck(deck)"
-                      />
-                      <v-btn
-                        icon="mdi-delete"
-                        size="small"
-                        variant="text"
-                        color="error"
-                        @click="deleteDeck(deck.id)"
-                      />
-                    </template>
-                  </v-list-item>
-                </v-list>
+                  <template #append>
+                    <v-btn icon="mdi-pencil" size="small" variant="text" @click="editDeck(deck)" />
+                    <v-btn
+                      icon="mdi-delete"
+                      size="small"
+                      variant="text"
+                      color="error"
+                      @click="deleteDeck(deck.id)"
+                    />
+                  </template>
+                </v-list-item>
+              </v-list>
 
-                <div v-else class="text-center pa-8">
-                  <v-icon size="64" color="grey">mdi-account-outline</v-icon>
-                  <p class="text-body-1 text-grey mt-4">相手のデッキが登録されていません</p>
-                  <p class="text-caption text-grey">
-                    「追加」ボタンから相手のデッキを登録しましょう
-                  </p>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+              <div v-else class="text-center pa-8">
+                <v-icon size="64" color="grey">mdi-account-outline</v-icon>
+                <p class="text-body-1 text-grey mt-4">相手のデッキが登録されていません</p>
+                <p class="text-caption text-grey">「追加」ボタンから相手のデッキを登録しましょう</p>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-container>
 
     <!-- デッキ登録/編集ダイアログ -->
