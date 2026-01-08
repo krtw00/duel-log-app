@@ -1,3 +1,50 @@
+## [1.2.0](https://github.com/krtw00/duel-log-app/compare/v1.1.3...v1.2.0) (2026-01-08)
+
+
+### ✨ Features
+
+* add app logo link to shared statistics ([ac66947](https://github.com/krtw00/duel-log-app/commit/ac66947ab0689fd84eae45d0fd4cbce51df05682))
+* add app logo link to shared statistics ([69796af](https://github.com/krtw00/duel-log-app/commit/69796af6d05d987e10914ebacca413bd74adaa2f))
+* auto set turn order from coin ([6121117](https://github.com/krtw00/duel-log-app/commit/612111778b12d3f8ad80a1ec0e0e617071d1ef4f))
+* coin default toggle near add duel ([7576bb0](https://github.com/krtw00/duel-log-app/commit/7576bb0fc49616746af152d32512290f05fc29c7))
+* colorize matchup win rates ([551d5a7](https://github.com/krtw00/duel-log-app/commit/551d5a73bc026c21abbc3e04df06290b75c6a25d))
+* colorize matchup win rates in statistics view ([5a04fff](https://github.com/krtw00/duel-log-app/commit/5a04fffaae5118965c3889fb10eb6ce8bf8900c9))
+* colorize my deck win rates ([de4a8ee](https://github.com/krtw00/duel-log-app/commit/de4a8ee093020d73448916f9546616c6ae692274))
+* improve win-rate color coding ([876a482](https://github.com/krtw00/duel-log-app/commit/876a482425d733884e31bda6cc2fae80eeb06a88))
+* invert win-rate colors (advantage=blue) ([4d75264](https://github.com/krtw00/duel-log-app/commit/4d75264ce53c2575526eecb937088dcf350ed40a))
+* keep statistics tab across navigation ([3857890](https://github.com/krtw00/duel-log-app/commit/385789093fa9d179eed24b13eef468a1bcbf78e3))
+* show percentage in pie tooltip ([dae83af](https://github.com/krtw00/duel-log-app/commit/dae83af375eae5a3056391034045bff9e1fb905f))
+
+
+### 🐛 Bug Fixes
+
+* clear stale token when /me fails ([cdfdac4](https://github.com/krtw00/duel-log-app/commit/cdfdac45fdeb1fcd173287f22eedb3a0b21baee0))
+* **deps:** FastAPI 0.127.0アップグレードに伴う修正 ([38d099c](https://github.com/krtw00/duel-log-app/commit/38d099c38a08f6de889fb9a0b493a7750b1c0a63))
+* **deps:** vitest/coverage-v8を3.x系に戻し、型エラーを修正 ([1ac1892](https://github.com/krtw00/duel-log-app/commit/1ac1892479f7c3f27b459108b9511ce70bc00cbe))
+* **dev:** make Vite proxy target configurable ([aee6f09](https://github.com/krtw00/duel-log-app/commit/aee6f09ee8c74d097bf8497f38eb2a4764cbecd0))
+* enable /api proxy by using vite.config.js ([8c8e52d](https://github.com/krtw00/duel-log-app/commit/8c8e52d98d8667234c56f728fd87c122f6756671))
+* ensure /api baseURL works with leading-slash paths ([a847b29](https://github.com/krtw00/duel-log-app/commit/a847b29557079265703eda1d13fb4f321d8e130b))
+* **frontend:** avoid backend:8000 in browser dev ([ffe27ee](https://github.com/krtw00/duel-log-app/commit/ffe27ee42196776e86da4849a1d82adb233b4232))
+* **frontend:** call /statistics without trailing slash ([bd07a8f](https://github.com/krtw00/duel-log-app/commit/bd07a8f0dc31621a997eb28d56ab61356b21ac8d))
+* **frontend:** DCポイント入力で小数点を入力できないように修正 ([2975ab7](https://github.com/krtw00/duel-log-app/commit/2975ab7c430740464155a52a22f65dc5cb607ea8))
+* **frontend:** default VITE_API_URL for tests ([0e380cf](https://github.com/krtw00/duel-log-app/commit/0e380cfbfb232e51fa25c97a5d9e2fe445445deb))
+* **frontend:** resolve vue-tsc type errors ([926190e](https://github.com/krtw00/duel-log-app/commit/926190eeb075575089673b62882fc7ed870fd692))
+* **frontend:** rewrite backend host in browser ([26f2b74](https://github.com/krtw00/duel-log-app/commit/26f2b74cada6449865057fb084a7c173c12609f9))
+* harden dev login against bad API URL and CORS ([75257fc](https://github.com/krtw00/duel-log-app/commit/75257fcdcf20fa54c49dd5dbf252eaaa58dd1624))
+* keep available decks sorted by name ([c074b50](https://github.com/krtw00/duel-log-app/commit/c074b50ca7b15784c1cb368418ae6a3a4c16bd92))
+* make seed dc_value integer ([fcf7920](https://github.com/krtw00/duel-log-app/commit/fcf792027859c44b62381bab0e9b1994f42d4f49))
+* prevent false login and proxy API in docker dev ([67f2c7d](https://github.com/krtw00/duel-log-app/commit/67f2c7dd9ed3142954b6bcc69e0c9f1c3899682b))
+* show percent in pie hover ([14869d5](https://github.com/krtw00/duel-log-app/commit/14869d5feba1a6abfea657177b07d9044b9a0e4d))
+* sort available decks by total duels ([0b47e78](https://github.com/krtw00/duel-log-app/commit/0b47e78bb3155509084174ef0c42bd02e8ef40a8))
+* sort available decks by total duels ([c7790c2](https://github.com/krtw00/duel-log-app/commit/c7790c2cd0b8035e7ca56e5e59e0ffbbb6971af2))
+* stabilize ci and build config ([1eeb56c](https://github.com/krtw00/duel-log-app/commit/1eeb56ce425b2d8fe30c7ab25e79030791aed718))
+* stabilize dev auth via /api proxy ([4829421](https://github.com/krtw00/duel-log-app/commit/48294214082aa13bfd4fdc9e9aca43206685b23b))
+
+
+### ♻️ Code Refactoring
+
+* cleanup stats, auth, and layout ([375125e](https://github.com/krtw00/duel-log-app/commit/375125e979eb1f6848bde43beef43ce76d218bfe))
+
 ## [1.1.3](https://github.com/krtw00/duel-log-app/compare/v1.1.2...v1.1.3) (2026-01-07)
 
 
