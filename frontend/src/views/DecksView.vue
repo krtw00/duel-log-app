@@ -1,24 +1,6 @@
 <template>
-  <div>
-    <!-- ナビゲーションバー -->
-    <app-bar current-view="decks" @toggle-drawer="drawer = !drawer" />
-
-    <!-- レスポンシブ対応のナビゲーションドロワー -->
-    <v-navigation-drawer v-model="drawer" temporary>
-      <v-list nav dense>
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.view"
-          :prepend-icon="item.icon"
-          :to="item.path"
-          :title="item.name"
-        />
-      </v-list>
-    </v-navigation-drawer>
-
-    <!-- メインコンテンツ -->
-    <v-main class="main-content">
-      <v-container fluid class="pa-6">
+  <app-layout current-view="decks">
+    <v-container fluid class="pa-6">
         <!-- アーカイブボタン -->
         <v-row class="mb-4">
           <v-col cols="12">
@@ -174,8 +156,7 @@
             </v-card>
           </v-col>
         </v-row>
-      </v-container>
-    </v-main>
+    </v-container>
 
     <!-- デッキ登録/編集ダイアログ -->
     <v-dialog v-model="dialogOpen" max-width="500" persistent>
@@ -226,22 +207,15 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </div>
+  </app-layout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { api } from '@/services/api';
 import { Deck } from '@/types';
-import AppBar from '@/components/layout/AppBar.vue';
+import AppLayout from '@/components/layout/AppLayout.vue';
 import { useNotificationStore } from '@/stores/notification';
-
-const drawer = ref(false);
-const navItems = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
 
 const notificationStore = useNotificationStore();
 
@@ -416,10 +390,6 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.main-content {
-  min-height: 100vh;
-}
-
 .deck-card {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(128, 128, 128, 0.2);

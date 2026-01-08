@@ -1,25 +1,7 @@
 <template>
-  <div>
-    <!-- ナビゲーションバー -->
-    <app-bar current-view="statistics" @toggle-drawer="drawer = !drawer" />
-
-    <!-- レスポンシブ対応のナビゲーションドロワー -->
-    <v-navigation-drawer v-model="drawer" temporary>
-      <v-list nav dense>
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.view"
-          :prepend-icon="item.icon"
-          :to="item.path"
-          :title="item.name"
-        />
-      </v-list>
-    </v-navigation-drawer>
-
-    <!-- メインコンテンツ -->
-    <v-main class="main-content">
-      <v-container fluid class="pa-6">
-        <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
+  <app-layout current-view="statistics">
+    <v-container fluid class="pa-6">
+      <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
 
         <!-- 年月選択 -->
         <v-row class="mb-4">
@@ -97,169 +79,10 @@
               :display-month="currentMonth"
               :loading="loading"
             />
-            <!-- Keeping old code below for reference, can be removed later -->
-            <v-row v-if="false">
-              <!-- 月間デッキ分布 -->
-              <v-col cols="12" lg="6">
-                <v-card class="stats-card">
-                  <v-card-title>月間デッキ分布 ({{ currentMonth }})</v-card-title>
-                  <v-card-text>
-                    <apexchart
-                      v-if="
-                        !loading && statisticsByMode[mode].monthlyDistribution.series.length > 0
-                      "
-                      type="pie"
-                      height="350"
-                      :options="statisticsByMode[mode].monthlyDistribution.chartOptions"
-                      :series="statisticsByMode[mode].monthlyDistribution.series"
-                    ></apexchart>
-                    <div v-else class="no-data-placeholder">
-                      <v-icon size="64" color="grey">mdi-chart-pie</v-icon>
-                      <p class="text-body-1 text-grey mt-4">データがありません</p>
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <!-- 月間対戦リスト -->
-              <v-col cols="12" lg="6">
-                <v-card class="stats-card">
-                  <v-card-title class="d-flex align-center justify-space-between">
-                    <span>月間対戦一覧 ({{ currentMonth }})</span>
-                    <v-chip size="small" variant="outlined">
-                      全 {{ monthlyDuelsByMode[mode].length }} 件
-                    </v-chip>
-                  </v-card-title>
-                  <v-card-text>
-                    <duel-table
-                      :duels="monthlyDuelsByMode[mode]"
-                      :loading="monthlyDuelsLoading"
-                      :show-actions="false"
-                      :hidden-columns="monthlyHiddenColumns"
-                      table-height="480px"
-                    />
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <!-- 自分のデッキ勝率 -->
-              <v-col cols="12">
-                <v-card class="stats-card">
-                  <v-card-title>自分のデッキ勝率</v-card-title>
-                  <v-card-text>
-                    <v-data-table
-                      :headers="myDeckWinRatesHeaders"
-                      :items="statisticsByMode[mode].myDeckWinRates"
-                      :loading="loading"
-                      class="matchup-table"
-                      density="compact"
-                    >
-                      <template #[`item.win_rate`]="{ item }">
-                        <v-chip
-                          size="small"
-                          :color="getMatchupColor(item.win_rate)"
-                          :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
-                        >
-                          {{ item.wins }} / {{ item.total_duels }} ({{
-                            formatPercent(item.win_rate)
-                          }})
-                        </v-chip>
-                      </template>
-                      <template #no-data>
-                        <div class="no-data-placeholder py-8">
-                          <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
-                          <p class="text-body-1 text-grey mt-4">データがありません</p>
-                        </div>
-                      </template>
-                    </v-data-table>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <!-- 相性表 -->
-              <v-col cols="12">
-                <v-card class="stats-card">
-                  <v-card-title>デッキ相性表</v-card-title>
-                  <v-card-text>
-                    <v-data-table
-                      :headers="matchupHeaders"
-                      :items="statisticsByMode[mode].matchupData"
-                      :loading="loading"
-                      class="matchup-table"
-                      density="compact"
-                    >
-                      <template #[`item.win_rate`]="{ item }">
-                        <v-chip
-                          size="small"
-                          :color="getMatchupColor(item.win_rate)"
-                          :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
-                        >
-                          {{ item.wins }} / {{ item.total_duels }} ({{
-                            formatPercent(item.win_rate)
-                          }})
-                        </v-chip>
-                      </template>
-                      <template #[`item.win_rate_first`]="{ item }">
-                        <v-chip
-                          size="small"
-                          :color="getMatchupColor(item.win_rate_first)"
-                          :variant="getMatchupColor(item.win_rate_first) ? 'tonal' : 'outlined'"
-                        >
-                          {{ formatPercent(item.win_rate_first) }}
-                        </v-chip>
-                      </template>
-                      <template #[`item.win_rate_second`]="{ item }">
-                        <v-chip
-                          size="small"
-                          :color="getMatchupColor(item.win_rate_second)"
-                          :variant="getMatchupColor(item.win_rate_second) ? 'tonal' : 'outlined'"
-                        >
-                          {{ formatPercent(item.win_rate_second) }}
-                        </v-chip>
-                      </template>
-                      <template #no-data>
-                        <div class="no-data-placeholder py-8">
-                          <v-icon size="64" color="grey">mdi-table-off</v-icon>
-                          <p class="text-body-1 text-grey mt-4">相性データがありません</p>
-                        </div>
-                      </template>
-                    </v-data-table>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <!-- レート/DC変動グラフ (RATEとDCタブのみ) -->
-              <v-col v-if="mode === 'RATE' || mode === 'DC'" cols="12">
-                <v-card class="stats-card">
-                  <v-card-title
-                    >{{ mode === 'RATE' ? 'レート変動' : 'DC変動' }} ({{
-                      currentMonth
-                    }})</v-card-title
-                  >
-                  <v-card-text>
-                    <apexchart
-                      v-if="
-                        !loading && statisticsByMode[mode].valueSequence.series[0].data.length > 0
-                      "
-                      type="line"
-                      height="350"
-                      :options="statisticsByMode[mode].valueSequence.chartOptions"
-                      :series="statisticsByMode[mode].valueSequence.series"
-                    ></apexchart>
-                    <div v-else class="no-data-placeholder">
-                      <v-icon size="64" color="grey">{{
-                        mode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
-                      }}</v-icon>
-                      <p class="text-body-1 text-grey mt-4">データがありません</p>
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
           </v-window-item>
-        </v-window>
-      </v-container>
-    </v-main>
-  </div>
+      </v-window>
+    </v-container>
+  </app-layout>
 </template>
 
 <script setup lang="ts">
@@ -292,11 +115,10 @@
  */
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
-import AppBar from '@/components/layout/AppBar.vue';
+import AppLayout from '@/components/layout/AppLayout.vue';
 import { useThemeStore } from '@/stores/theme';
 import { useUiStore } from '@/stores/ui';
 import { useChartOptions } from '@/composables/useChartOptions';
-import DuelTable from '@/components/duel/DuelTable.vue';
 import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
 import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 
@@ -323,13 +145,6 @@ const createLabelFormatter = (step: number, total: number) => {
     return numeric % step === 0 ? value : '';
   };
 };
-
-const drawer = ref(false);
-const navItems = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
 
 // --- Types ---
 import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
@@ -440,8 +255,6 @@ const monthlyDuelsByMode = ref<Record<GameMode, ExtendedDuel[]>>({
   EVENT: [],
   DC: [],
 });
-const monthlyDuelsLoading = ref(false);
-const monthlyHiddenColumns = ['opponentdeck', 'coin', 'first_or_second', 'notes'];
 
 const fetchAvailableDecks = async () => {
   try {
@@ -509,7 +322,6 @@ const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: nu
 });
 
 const fetchMonthlyDuels = async (mode: GameMode) => {
-  monthlyDuelsLoading.value = true;
   try {
     monthlyDuelsByMode.value[mode] = [];
     const params: Record<string, any> = {
@@ -551,8 +363,6 @@ const fetchMonthlyDuels = async (mode: GameMode) => {
   } catch (error) {
     console.error('Failed to fetch monthly duels:', error);
     monthlyDuelsByMode.value[mode] = [];
-  } finally {
-    monthlyDuelsLoading.value = false;
   }
 };
 
@@ -634,38 +444,6 @@ const fetchStatistics = async () => {
   }
 };
 
-// --- Data Table ---
-const matchupHeaders = [
-  { title: '使用デッキ', key: 'deck_name', sortable: false },
-  { title: '相手デッキ', key: 'opponent_deck_name', sortable: false },
-  { title: '対戦数', key: 'total_duels', sortable: true },
-  { title: '勝率', key: 'win_rate', sortable: true },
-  { title: '先攻勝率', key: 'win_rate_first', sortable: true },
-  { title: '後攻勝率', key: 'win_rate_second', sortable: true },
-];
-
-const myDeckWinRatesHeaders = [
-  { title: 'デッキ名', key: 'deck_name', sortable: true },
-  { title: '対戦数', key: 'total_duels', sortable: true },
-  { title: '勝率', key: 'win_rate', sortable: true },
-];
-
-const normalizePercent = (value: number) => {
-  if (!Number.isFinite(value)) return 0;
-  // Some APIs might send ratios (0-1). Convert to percent for consistent UI.
-  return value <= 1 ? value * 100 : value;
-};
-
-const formatPercent = (value: number) => `${normalizePercent(value).toFixed(1)}%`;
-
-// 優勢: 青 / 劣勢: 赤（ユーザー要望により色相を反転）
-const getMatchupColor = (value: number) => {
-  const percent = normalizePercent(value);
-  if (percent >= 55) return 'info';
-  if (percent <= 45) return 'error';
-  return undefined;
-};
-
 onMounted(() => {
   refreshStatisticsWithDecks();
 });
@@ -686,10 +464,6 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.main-content {
-  min-height: 100vh;
-}
-
 .statistics-title {
   color: rgb(var(--v-theme-on-surface));
 }
