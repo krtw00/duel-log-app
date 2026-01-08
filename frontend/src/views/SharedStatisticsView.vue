@@ -436,9 +436,8 @@ const fetchSharedStatistics = async () => {
                 ...(basePieChartOptions.value.tooltip || {}),
                 y: {
                   formatter: createPiePercentFormatter(
-                    rawStats.monthly_deck_distribution?.map(
-                      (d: { count: number }) => d.count,
-                    ) || [],
+                    rawStats.monthly_deck_distribution?.map((d: { count: number }) => d.count) ||
+                      [],
                   ),
                 },
               },
@@ -455,9 +454,7 @@ const fetchSharedStatistics = async () => {
                 ...(basePieChartOptions.value.tooltip || {}),
                 y: {
                   formatter: createPiePercentFormatter(
-                    rawStats.recent_deck_distribution?.map(
-                      (d: { count: number }) => d.count,
-                    ) || [],
+                    rawStats.recent_deck_distribution?.map((d: { count: number }) => d.count) || [],
                   ),
                 },
               },
