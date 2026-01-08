@@ -43,24 +43,6 @@ export function useChartOptions() {
     },
     tooltip: {
       theme: themeStore.isDark ? ('dark' as const) : ('light' as const),
-      y: {
-        formatter: (value: number, opts: any) => {
-          const seriesIndex = Number(opts?.seriesIndex);
-          const series = opts?.w?.globals?.series;
-          const total = Array.isArray(series)
-            ? series.reduce((sum: number, v: unknown) => sum + (Number(v) || 0), 0)
-            : 0;
-          const numericValue = Number.isFinite(value)
-            ? value
-            : Number(series?.[Number.isFinite(seriesIndex) ? seriesIndex : 0]);
-
-          if (!Number.isFinite(numericValue)) return '0.0%';
-          if (total <= 0) return numericValue > 0 ? '100.0%' : '0.0%';
-
-          const percent = (numericValue / total) * 100;
-          return `${percent.toFixed(1)}%`;
-        },
-      },
     },
     dataLabels: {
       enabled: false,
