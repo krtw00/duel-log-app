@@ -13,7 +13,7 @@ from app.utils.datetime_utils import month_range_utc
 class GeneralStatsService:
     """総合統計サービスクラス"""
 
-    def _calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:
+    def calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:
         """デュエルのリストから基本的な統計情報を計算する。"""
         total_duels = len(duels)
         if total_duels == 0:
@@ -64,6 +64,10 @@ class GeneralStatsService:
             "coin_win_rate": coin_win_rate,
             "go_first_rate": go_first_rate,
         }
+
+    def _calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:
+        """Backwards compatible wrapper. Prefer calculate_general_stats."""
+        return self.calculate_general_stats(duels)
 
     def _get_latest_metric_duel(
         self,
@@ -130,7 +134,7 @@ class GeneralStatsService:
             query = query.filter(Duel.id > start_id)
 
         duels = query.all()
-        stats = self._calculate_general_stats(duels)
+        stats = self.calculate_general_stats(duels)
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
         latest_duel = query.order_by(Duel.played_date.desc()).first()
@@ -200,7 +204,7 @@ class GeneralStatsService:
             query = query.filter(Duel.id > start_id)
 
         duels = query.all()
-        stats = self._calculate_general_stats(duels)
+        stats = self.calculate_general_stats(duels)
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
         latest_duel = query.order_by(Duel.played_date.desc()).first()
@@ -265,7 +269,7 @@ class GeneralStatsService:
 
         # 日時順で並び替えて直近N戦を取得
         duels = query.order_by(Duel.played_date.desc()).limit(limit).all()
-        stats = self._calculate_general_stats(duels)
+        stats = self.calculate_general_stats(duels)
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
         current_deck = None
