@@ -5,6 +5,7 @@
 
 from typing import Any, Dict, List, Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.deck import Deck
@@ -72,26 +73,63 @@ class StatisticsService:
             if duel.opponent_deck_id:
                 opponent_deck_ids.add(duel.opponent_deck_id)
 
-        # デッキ情報を取得
+        # デッキ情報を取得（並び順は「月ではなく全期間の対戦数」を基準にする）
         my_decks = []
         if my_deck_ids:
+            my_deck_count_query = db.query(Duel.deck_id, func.count(Duel.id)).filter(
+                Duel.user_id == user_id, Duel.deck_id.in_(my_deck_ids)
+            )
+            if game_mode is not None:
+                my_deck_count_query = my_deck_count_query.filter(
+                    Duel.game_mode == game_mode
+                )
+            my_deck_counts = dict(my_deck_count_query.group_by(Duel.deck_id).all())
+
             my_decks_query = (
                 db.query(Deck)
-                .filter(Deck.id.in_(my_deck_ids), Deck.is_opponent.is_(False))
+                .filter(
+                    Deck.user_id == user_id,
+                    Deck.id.in_(my_deck_ids),
+                    Deck.is_opponent.is_(False),
+                )
                 .all()
             )
             my_decks = [{"id": deck.id, "name": deck.name} for deck in my_decks_query]
+            my_decks.sort(
+                key=lambda d: (-my_deck_counts.get(d["id"], 0), d["name"].lower())
+            )
 
         opponent_decks = []
         if opponent_deck_ids:
+            opponent_deck_count_query = db.query(
+                Duel.opponent_deck_id, func.count(Duel.id)
+            ).filter(
+                Duel.user_id == user_id,
+                Duel.opponent_deck_id.in_(opponent_deck_ids),
+            )
+            if game_mode is not None:
+                opponent_deck_count_query = opponent_deck_count_query.filter(
+                    Duel.game_mode == game_mode
+                )
+            opponent_deck_counts = dict(
+                opponent_deck_count_query.group_by(Duel.opponent_deck_id).all()
+            )
+
             opponent_decks_query = (
                 db.query(Deck)
-                .filter(Deck.id.in_(opponent_deck_ids), Deck.is_opponent.is_(True))
+                .filter(
+                    Deck.user_id == user_id,
+                    Deck.id.in_(opponent_deck_ids),
+                    Deck.is_opponent.is_(True),
+                )
                 .all()
             )
             opponent_decks = [
                 {"id": deck.id, "name": deck.name} for deck in opponent_decks_query
             ]
+            opponent_decks.sort(
+                key=lambda d: (-opponent_deck_counts.get(d["id"], 0), d["name"].lower())
+            )
 
         return {"my_decks": my_decks, "opponent_decks": opponent_decks}
 
