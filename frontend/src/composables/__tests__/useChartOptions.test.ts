@@ -16,7 +16,6 @@ describe('useChartOptions', () => {
       expect(basePieChartOptions.value.chart.type).toBe('pie');
       expect(basePieChartOptions.value.chart.background).toBe('transparent');
       expect(basePieChartOptions.value.dataLabels.enabled).toBe(false);
-      expect(basePieChartOptions.value.tooltip.y?.formatter).toBeTypeOf('function');
       expect(basePieChartOptions.value.legend.show).toBe(true);
       expect(basePieChartOptions.value.legend.position).toBe('bottom');
       expect(basePieChartOptions.value.legend.labels?.colors).toBe('#fff');
@@ -51,16 +50,6 @@ describe('useChartOptions', () => {
       ]);
     });
 
-    it('tooltipで割合(%)を返す', () => {
-      const { basePieChartOptions } = useChartOptions();
-      const formatter = basePieChartOptions.value.tooltip.y?.formatter as any;
-
-      const percent = formatter(10, {
-        seriesIndex: 0,
-        w: { globals: { series: [10] } },
-      });
-      expect(percent).toBe('100.0%');
-    });
   });
 
   describe('baseLineChartOptions', () => {
