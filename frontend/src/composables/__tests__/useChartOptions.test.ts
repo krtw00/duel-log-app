@@ -49,7 +49,6 @@ describe('useChartOptions', () => {
         '#FFC107',
       ]);
     });
-
   });
 
   describe('baseLineChartOptions', () => {

@@ -3,83 +3,83 @@
     <v-container fluid class="pa-6">
       <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
 
-        <!-- 年月選択 -->
-        <v-row class="mb-4">
-          <v-col cols="6" sm="3">
-            <v-select
-              v-model="selectedYear"
-              :items="years"
-              label="年"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @update:model-value="refreshStatisticsWithDecks"
-            ></v-select>
-          </v-col>
-          <v-col cols="6" sm="3">
-            <v-select
-              v-model="selectedMonth"
-              :items="months"
-              label="月"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @update:model-value="refreshStatisticsWithDecks"
-            ></v-select>
-          </v-col>
-        </v-row>
+      <!-- 年月選択 -->
+      <v-row class="mb-4">
+        <v-col cols="6" sm="3">
+          <v-select
+            v-model="selectedYear"
+            :items="years"
+            label="年"
+            variant="outlined"
+            density="compact"
+            hide-details
+            @update:model-value="refreshStatisticsWithDecks"
+          ></v-select>
+        </v-col>
+        <v-col cols="6" sm="3">
+          <v-select
+            v-model="selectedMonth"
+            :items="months"
+            label="月"
+            variant="outlined"
+            density="compact"
+            hide-details
+            @update:model-value="refreshStatisticsWithDecks"
+          ></v-select>
+        </v-col>
+      </v-row>
 
-        <!-- 統計フィルター -->
-        <statistics-filter
-          v-model:period-type="filterPeriodType"
-          v-model:range-start="filterRangeStart"
-          v-model:range-end="filterRangeEnd"
-          v-model:my-deck-id="filterMyDeckId"
-          :available-my-decks="availableMyDecks"
-          @update:period-type="refreshStatisticsWithDecks"
-          @update:range-start="refreshStatisticsWithDecks"
-          @update:range-end="refreshStatisticsWithDecks"
-          @update:my-deck-id="handleMyDeckFilterChange"
-          @reset="resetFilters"
-        />
+      <!-- 統計フィルター -->
+      <statistics-filter
+        v-model:period-type="filterPeriodType"
+        v-model:range-start="filterRangeStart"
+        v-model:range-end="filterRangeEnd"
+        v-model:my-deck-id="filterMyDeckId"
+        :available-my-decks="availableMyDecks"
+        @update:period-type="refreshStatisticsWithDecks"
+        @update:range-start="refreshStatisticsWithDecks"
+        @update:range-end="refreshStatisticsWithDecks"
+        @update:my-deck-id="handleMyDeckFilterChange"
+        @reset="resetFilters"
+      />
 
-        <!-- ゲームモード切り替えタブ -->
-        <v-card class="mode-tab-card mb-4">
-          <v-tabs v-model="currentTab" color="primary" align-tabs="center" height="64">
-            <v-tab value="RANK" class="custom-tab">
-              <v-icon start>mdi-crown</v-icon>
-              ランク
-            </v-tab>
-            <v-tab value="RATE" class="custom-tab">
-              <v-icon start>mdi-chart-line</v-icon>
-              レート
-            </v-tab>
-            <v-tab value="EVENT" class="custom-tab">
-              <v-icon start>mdi-calendar-star</v-icon>
-              イベント
-            </v-tab>
-            <v-tab value="DC" class="custom-tab">
-              <v-icon start>mdi-trophy-variant</v-icon>
-              DC
-            </v-tab>
-          </v-tabs>
-        </v-card>
+      <!-- ゲームモード切り替えタブ -->
+      <v-card class="mode-tab-card mb-4">
+        <v-tabs v-model="currentTab" color="primary" align-tabs="center" height="64">
+          <v-tab value="RANK" class="custom-tab">
+            <v-icon start>mdi-crown</v-icon>
+            ランク
+          </v-tab>
+          <v-tab value="RATE" class="custom-tab">
+            <v-icon start>mdi-chart-line</v-icon>
+            レート
+          </v-tab>
+          <v-tab value="EVENT" class="custom-tab">
+            <v-icon start>mdi-calendar-star</v-icon>
+            イベント
+          </v-tab>
+          <v-tab value="DC" class="custom-tab">
+            <v-icon start>mdi-trophy-variant</v-icon>
+            DC
+          </v-tab>
+        </v-tabs>
+      </v-card>
 
-        <v-window v-model="currentTab">
-          <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
-            <statistics-content
-              :statistics="{
-                monthlyDistribution: statisticsByMode[mode].monthlyDistribution,
-                duels: monthlyDuelsByMode[mode],
-                myDeckWinRates: statisticsByMode[mode].myDeckWinRates,
-                matchupData: statisticsByMode[mode].matchupData,
-                valueSequence: statisticsByMode[mode].valueSequence,
-              }"
-              :game-mode="mode"
-              :display-month="currentMonth"
-              :loading="loading"
-            />
-          </v-window-item>
+      <v-window v-model="currentTab">
+        <v-window-item v-for="mode in gameModes" :key="mode" :value="mode">
+          <statistics-content
+            :statistics="{
+              monthlyDistribution: statisticsByMode[mode].monthlyDistribution,
+              duels: monthlyDuelsByMode[mode],
+              myDeckWinRates: statisticsByMode[mode].myDeckWinRates,
+              matchupData: statisticsByMode[mode].matchupData,
+              valueSequence: statisticsByMode[mode].valueSequence,
+            }"
+            :game-mode="mode"
+            :display-month="currentMonth"
+            :loading="loading"
+          />
+        </v-window-item>
       </v-window>
     </v-container>
   </app-layout>
