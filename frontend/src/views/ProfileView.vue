@@ -1,23 +1,7 @@
 <template>
-  <div>
-    <app-bar current-view="profile" @toggle-drawer="drawer = !drawer" />
-
-    <!-- レスポンシブ対応のナビゲーションドロワー -->
-    <v-navigation-drawer v-model="drawer" temporary>
-      <v-list nav dense>
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.view"
-          :prepend-icon="item.icon"
-          :to="item.path"
-          :title="item.name"
-        />
-      </v-list>
-    </v-navigation-drawer>
-
-    <v-main class="main-content">
-      <v-container class="d-flex justify-center align-center fill-height">
-        <div style="width: 100%; max-width: 600px">
+  <app-layout current-view="profile">
+    <v-container class="d-flex justify-center align-center fill-height">
+      <div style="width: 100%; max-width: 600px">
           <v-card class="profile-card mb-6">
             <div class="card-glow"></div>
             <v-card-title class="pa-6">
@@ -166,8 +150,7 @@
             </v-card-text>
           </v-card>
         </div>
-      </v-container>
-    </v-main>
+    </v-container>
 
     <!-- Deletion Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="500" persistent>
@@ -200,7 +183,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </div>
+  </app-layout>
 </template>
 
 <script setup lang="ts">
@@ -208,15 +191,8 @@ import { ref, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { api } from '@/services/api';
-import AppBar from '@/components/layout/AppBar.vue';
+import AppLayout from '@/components/layout/AppLayout.vue';
 import { maskEmail } from '@/utils/maskEmail';
-
-const drawer = ref(false);
-const navItems = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
@@ -413,9 +389,6 @@ const handleDeleteAccount = async () => {
 </script>
 
 <style scoped lang="scss">
-.main-content {
-}
-
 .profile-card,
 .delete-card,
 .delete-dialog-card {

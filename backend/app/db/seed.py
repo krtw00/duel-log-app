@@ -154,7 +154,7 @@ def seed_data(db: Session):
                         duel_data["notes"] = "イベント300"
 
                     elif mode == "DC":
-                        duel_data["dc_value"] = round(random.uniform(200.0, 400.0), 2)
+                        duel_data["dc_value"] = random.randint(200, 400)
 
                     duel_in = DuelCreate(**duel_data)  # type: ignore[arg-type]
                     duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)
