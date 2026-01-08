@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { useNotificationStore } from '../stores/notification';
 import { useLoadingStore } from '../stores/loading';
 import { useAuthStore } from '../stores/auth';
+import { getAccessToken } from './authTokens';
 import type { ApiErrorResponse, ValidationErrorDetail } from '../types/api';
 
 // 環境変数からAPIのベースURLを取得
@@ -86,7 +87,7 @@ api.interceptors.request.use(
     // localStorage からトークンを取得して Authorization ヘッダーに設定
     // これにより、Cookie が機能しない環境（Docker でのクロスオリジン など）でも認証が動作する
     // Safari/iOS/MacOS Cookie 制限環境にも対応
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       console.log('[API] Using Authorization header from localStorage');
@@ -167,7 +168,7 @@ api.interceptors.response.use(
             // ただし、Cookie未反映・タイミング等の一過性要因もあり得るため、
             // Authorization ヘッダー等の実証的根拠がある場合のみログアウトを実施する。
             const hadAuthHeader = !!(error.config?.headers as any)?.Authorization;
-            const hadLocalToken = !!localStorage.getItem('access_token');
+            const hadLocalToken = !!getAccessToken();
 
             console.warn('[API] 401 from non-/me endpoint', {
               url: error.config?.url,

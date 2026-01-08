@@ -14,6 +14,7 @@ from app.schemas.shared_statistics import (
     SharedStatisticsRead,
     SharedStatisticsResponse,
 )
+from app.schemas.statistics import StatisticsFilters
 from app.services.deck_distribution_service import deck_distribution_service
 from app.services.duel_service import duel_service
 from app.services.shared_statistics_service import shared_statistics_service
@@ -81,15 +82,16 @@ def get_shared_statistics(
                 detail="共有リンクの有効期限が切れています",
             )
 
-    statistics_data = get_all_statistics(
-        db=db,
-        current_user=shared_link.user,
+    filters = StatisticsFilters(
         year=shared_link.year,  # type: ignore[arg-type]
         month=shared_link.month,  # type: ignore[arg-type]
         my_deck_id=my_deck_id,
         opponent_deck_id=opponent_deck_id,
         range_start=range_start,
         range_end=range_end,
+    )
+    statistics_data = get_all_statistics(
+        db=db, current_user=shared_link.user, filters=filters
     )
 
     return SharedStatisticsResponse(
