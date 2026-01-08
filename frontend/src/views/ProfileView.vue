@@ -1,173 +1,156 @@
 <template>
-  <div>
-    <app-bar current-view="profile" @toggle-drawer="drawer = !drawer" />
+  <app-layout current-view="profile">
+    <v-container class="d-flex justify-center align-center fill-height">
+      <div style="width: 100%; max-width: 600px">
+        <v-card class="profile-card mb-6">
+          <div class="card-glow"></div>
+          <v-card-title class="pa-6">
+            <v-icon class="mr-2" color="primary">mdi-account-edit</v-icon>
+            <span class="text-h5">プロフィール編集</span>
+          </v-card-title>
 
-    <!-- レスポンシブ対応のナビゲーションドロワー -->
-    <v-navigation-drawer v-model="drawer" temporary>
-      <v-list nav dense>
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.view"
-          :prepend-icon="item.icon"
-          :to="item.path"
-          :title="item.name"
-        />
-      </v-list>
-    </v-navigation-drawer>
+          <v-divider />
 
-    <v-main class="main-content">
-      <v-container class="d-flex justify-center align-center fill-height">
-        <div style="width: 100%; max-width: 600px">
-          <v-card class="profile-card mb-6">
-            <div class="card-glow"></div>
-            <v-card-title class="pa-6">
-              <v-icon class="mr-2" color="primary">mdi-account-edit</v-icon>
-              <span class="text-h5">プロフィール編集</span>
-            </v-card-title>
+          <v-card-text class="pa-6">
+            <v-form ref="formRef" @submit.prevent="handleUpdate">
+              <v-text-field
+                v-model="form.username"
+                label="ユーザー名"
+                prepend-inner-icon="mdi-account"
+                variant="outlined"
+                color="primary"
+                :rules="[rules.required]"
+                class="mb-4"
+              ></v-text-field>
 
-            <v-divider />
+              <v-text-field
+                v-model="form.email"
+                label="メールアドレス"
+                prepend-inner-icon="mdi-email"
+                variant="outlined"
+                color="primary"
+                type="email"
+                :rules="[rules.required, rules.email]"
+                class="mb-4"
+                :readonly="form.streamerMode"
+                :hint="
+                  form.streamerMode
+                    ? '配信者モードが有効なため、メールアドレスはマスクされています'
+                    : ''
+                "
+                persistent-hint
+              ></v-text-field>
 
-            <v-card-text class="pa-6">
-              <v-form ref="formRef" @submit.prevent="handleUpdate">
-                <v-text-field
-                  v-model="form.username"
-                  label="ユーザー名"
-                  prepend-inner-icon="mdi-account"
-                  variant="outlined"
-                  color="primary"
-                  :rules="[rules.required]"
-                  class="mb-4"
-                ></v-text-field>
+              <v-text-field
+                v-model="form.password"
+                label="新しいパスワード (変更する場合のみ)"
+                prepend-inner-icon="mdi-lock"
+                variant="outlined"
+                color="primary"
+                type="password"
+                :rules="[rules.password]"
+                placeholder="8文字以上、72文字以下"
+                class="mb-4"
+                clearable
+              ></v-text-field>
 
-                <v-text-field
-                  v-model="form.email"
-                  label="メールアドレス"
-                  prepend-inner-icon="mdi-email"
-                  variant="outlined"
-                  color="primary"
-                  type="email"
-                  :rules="[rules.required, rules.email]"
-                  class="mb-4"
-                  :readonly="form.streamerMode"
-                  :hint="
-                    form.streamerMode
-                      ? '配信者モードが有効なため、メールアドレスはマスクされています'
-                      : ''
-                  "
-                  persistent-hint
-                ></v-text-field>
+              <v-text-field
+                v-model="form.passwordConfirm"
+                label="新しいパスワードの確認"
+                prepend-inner-icon="mdi-lock-check"
+                variant="outlined"
+                color="primary"
+                type="password"
+                :rules="[rules.passwordConfirm]"
+                class="mb-4"
+                clearable
+              ></v-text-field>
 
-                <v-text-field
-                  v-model="form.password"
-                  label="新しいパスワード (変更する場合のみ)"
-                  prepend-inner-icon="mdi-lock"
-                  variant="outlined"
-                  color="primary"
-                  type="password"
-                  :rules="[rules.password]"
-                  placeholder="8文字以上、72文字以下"
-                  class="mb-4"
-                  clearable
-                ></v-text-field>
+              <v-divider class="my-4" />
 
-                <v-text-field
-                  v-model="form.passwordConfirm"
-                  label="新しいパスワードの確認"
-                  prepend-inner-icon="mdi-lock-check"
-                  variant="outlined"
-                  color="primary"
-                  type="password"
-                  :rules="[rules.passwordConfirm]"
-                  class="mb-4"
-                  clearable
-                ></v-text-field>
-
-                <v-divider class="my-4" />
-
-                <div class="streamer-mode-section">
-                  <div class="d-flex align-center mb-2">
-                    <v-icon color="purple" class="mr-2">mdi-video</v-icon>
-                    <span class="text-h6">配信者モード</span>
-                  </div>
-                  <p class="text-caption text-grey mb-3">
-                    有効にすると、アプリ内のメールアドレスが自動的にマスクされます。配信や録画時のプライバシー保護に便利です。
-                  </p>
-                  <v-switch
-                    v-model="form.streamerMode"
-                    color="purple"
-                    label="配信者モードを有効にする"
-                    hide-details
-                  ></v-switch>
+              <div class="streamer-mode-section">
+                <div class="d-flex align-center mb-2">
+                  <v-icon color="purple" class="mr-2">mdi-video</v-icon>
+                  <span class="text-h6">配信者モード</span>
                 </div>
-              </v-form>
-            </v-card-text>
+                <p class="text-caption text-grey mb-3">
+                  有効にすると、アプリ内のメールアドレスが自動的にマスクされます。配信や録画時のプライバシー保護に便利です。
+                </p>
+                <v-switch
+                  v-model="form.streamerMode"
+                  color="purple"
+                  label="配信者モードを有効にする"
+                  hide-details
+                ></v-switch>
+              </div>
+            </v-form>
+          </v-card-text>
 
-            <v-divider />
+          <v-divider />
 
-            <v-card-actions class="pa-4">
-              <v-spacer />
-              <v-btn color="primary" :loading="loading" size="large" @click="handleUpdate">
-                <v-icon start>mdi-content-save</v-icon>
-                更新
-              </v-btn>
-            </v-card-actions>
-          </v-card>
+          <v-card-actions class="pa-4">
+            <v-spacer />
+            <v-btn color="primary" :loading="loading" size="large" @click="handleUpdate">
+              <v-icon start>mdi-content-save</v-icon>
+              更新
+            </v-btn>
+          </v-card-actions>
+        </v-card>
 
-          <!-- Account Deletion Card -->
-          <v-card class="delete-card">
-            <v-card-title class="pa-6">
-              <v-icon class="mr-2" color="error">mdi-alert-octagon</v-icon>
-              <span class="text-h5">アカウント削除</span>
-            </v-card-title>
-            <v-divider />
-            <v-card-text class="pa-6">
-              <p class="text-body-1 mb-4">
-                この操作は元に戻せません。アカウントを削除すると、すべてのデッキと対戦履歴が完全に削除されます。
-              </p>
-              <v-btn color="error" block size="large" @click="deleteDialog = true">
-                <v-icon start>mdi-delete-forever</v-icon>
-                アカウントを削除する
-              </v-btn>
-            </v-card-text>
-          </v-card>
+        <!-- Account Deletion Card -->
+        <v-card class="delete-card">
+          <v-card-title class="pa-6">
+            <v-icon class="mr-2" color="error">mdi-alert-octagon</v-icon>
+            <span class="text-h5">アカウント削除</span>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-6">
+            <p class="text-body-1 mb-4">
+              この操作は元に戻せません。アカウントを削除すると、すべてのデッキと対戦履歴が完全に削除されます。
+            </p>
+            <v-btn color="error" block size="large" @click="deleteDialog = true">
+              <v-icon start>mdi-delete-forever</v-icon>
+              アカウントを削除する
+            </v-btn>
+          </v-card-text>
+        </v-card>
 
-          <!-- Data Management Card -->
-          <v-card class="data-management-card mt-6">
-            <v-card-title class="pa-6">
-              <v-icon class="mr-2" color="primary">mdi-database</v-icon>
-              <span class="text-h5">データ管理</span>
-            </v-card-title>
-            <v-divider />
-            <v-card-text class="pa-6">
-              <p class="text-body-1 mb-4">
-                全データをCSVファイルとしてエクスポート（バックアップ）したり、インポート（復元）したりできます。
-              </p>
-              <v-row>
-                <v-col cols="6">
-                  <v-btn color="primary" block size="large" @click="exportAllData">
-                    <v-icon start>mdi-export</v-icon>
-                    エクスポート
-                  </v-btn>
-                </v-col>
-                <v-col cols="6">
-                  <v-btn color="secondary" block size="large" @click="triggerImportFileInput">
-                    <v-icon start>mdi-import</v-icon>
-                    インポート
-                  </v-btn>
-                </v-col>
-              </v-row>
-              <input
-                ref="importFileInput"
-                type="file"
-                accept=".csv"
-                style="display: none"
-                @change="importBackup"
-              />
-            </v-card-text>
-          </v-card>
-        </div>
-      </v-container>
-    </v-main>
+        <!-- Data Management Card -->
+        <v-card class="data-management-card mt-6">
+          <v-card-title class="pa-6">
+            <v-icon class="mr-2" color="primary">mdi-database</v-icon>
+            <span class="text-h5">データ管理</span>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-6">
+            <p class="text-body-1 mb-4">
+              全データをCSVファイルとしてエクスポート（バックアップ）したり、インポート（復元）したりできます。
+            </p>
+            <v-row>
+              <v-col cols="6">
+                <v-btn color="primary" block size="large" @click="exportAllData">
+                  <v-icon start>mdi-export</v-icon>
+                  エクスポート
+                </v-btn>
+              </v-col>
+              <v-col cols="6">
+                <v-btn color="secondary" block size="large" @click="triggerImportFileInput">
+                  <v-icon start>mdi-import</v-icon>
+                  インポート
+                </v-btn>
+              </v-col>
+            </v-row>
+            <input
+              ref="importFileInput"
+              type="file"
+              accept=".csv"
+              style="display: none"
+              @change="importBackup"
+            />
+          </v-card-text>
+        </v-card>
+      </div>
+    </v-container>
 
     <!-- Deletion Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="500" persistent>
@@ -200,7 +183,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </div>
+  </app-layout>
 </template>
 
 <script setup lang="ts">
@@ -208,15 +191,8 @@ import { ref, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { api } from '@/services/api';
-import AppBar from '@/components/layout/AppBar.vue';
+import AppLayout from '@/components/layout/AppLayout.vue';
 import { maskEmail } from '@/utils/maskEmail';
-
-const drawer = ref(false);
-const navItems = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
@@ -413,9 +389,6 @@ const handleDeleteAccount = async () => {
 </script>
 
 <style scoped lang="scss">
-.main-content {
-}
-
 .profile-card,
 .delete-card,
 .delete-dialog-card {

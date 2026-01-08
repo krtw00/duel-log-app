@@ -13,6 +13,7 @@ from app.auth import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.duel import DuelWithDeckNames
+from app.schemas.statistics import AvailableDecksFilters, StatisticsFilters
 from app.services.deck_distribution_service import deck_distribution_service
 from app.services.duel_service import duel_service
 from app.services.general_stats_service import general_stats_service
@@ -24,14 +25,43 @@ from app.services.win_rate_service import win_rate_service
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 
 
-@router.get("", response_model=Dict[str, Any])
-def get_all_statistics(
+def get_statistics_filters(
     year: int = Query(datetime.now().year, description="年"),
     month: int = Query(datetime.now().month, description="月"),
     range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
     range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
     my_deck_id: Optional[int] = Query(None, description="使用デッキでフィルター"),
     opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
+) -> StatisticsFilters:
+    return StatisticsFilters(
+        year=year,
+        month=month,
+        range_start=range_start,
+        range_end=range_end,
+        my_deck_id=my_deck_id,
+        opponent_deck_id=opponent_deck_id,
+    )
+
+
+def get_available_decks_filters(
+    year: int = Query(datetime.now().year, description="年"),
+    month: int = Query(datetime.now().month, description="月"),
+    range_start: Optional[int] = Query(None, description="範囲指定:開始試合数"),
+    range_end: Optional[int] = Query(None, description="範囲指定:終了試合数"),
+    game_mode: Optional[str] = Query(None, description="ゲームモード"),
+) -> AvailableDecksFilters:
+    return AvailableDecksFilters(
+        year=year,
+        month=month,
+        range_start=range_start,
+        range_end=range_end,
+        game_mode=game_mode,
+    )
+
+
+@router.get("", response_model=Dict[str, Any])
+def get_all_statistics(
+    filters: StatisticsFilters = Depends(get_statistics_filters),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -52,13 +82,13 @@ def get_all_statistics(
     all_duels = duel_service.get_user_duels(
         db=db,
         user_id=current_user.id,
-        year=year,
-        month=month,
+        year=filters.year,
+        month=filters.month,
         game_mode=None,  # 全ゲームモードを取得
-        range_start=range_start,
-        range_end=range_end,
-        deck_id=my_deck_id,
-        opponent_deck_id=opponent_deck_id,
+        range_start=filters.range_start,
+        range_end=filters.range_end,
+        deck_id=filters.my_deck_id,
+        opponent_deck_id=filters.opponent_deck_id,
     )
 
     # メモリ内でゲームモード別に分割
@@ -69,7 +99,7 @@ def get_all_statistics(
 
     for mode in game_modes:
         duels = duels_by_mode[mode]
-        overall_stats = general_stats_service._calculate_general_stats(duels)
+        overall_stats = general_stats_service.calculate_general_stats(duels)
 
         # DuelWithDeckNamesスキーマに変換
         duels_with_names = [DuelWithDeckNames.model_validate(d) for d in duels]
@@ -80,44 +110,44 @@ def get_all_statistics(
             "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
                 db=db,
                 user_id=current_user.id,
-                year=year,
-                month=month,
+                year=filters.year,
+                month=filters.month,
                 game_mode=mode,
-                range_start=range_start,
-                range_end=range_end,
-                my_deck_id=my_deck_id,
-                opponent_deck_id=opponent_deck_id,
+                range_start=filters.range_start,
+                range_end=filters.range_end,
+                my_deck_id=filters.my_deck_id,
+                opponent_deck_id=filters.opponent_deck_id,
             ),
             "recent_deck_distribution": deck_distribution_service.get_deck_distribution_recent(
                 db=db,
                 user_id=current_user.id,
                 game_mode=mode,
-                range_start=range_start,
-                range_end=range_end,
-                my_deck_id=my_deck_id,
-                opponent_deck_id=opponent_deck_id,
+                range_start=filters.range_start,
+                range_end=filters.range_end,
+                my_deck_id=filters.my_deck_id,
+                opponent_deck_id=filters.opponent_deck_id,
             ),
             "matchup_data": matchup_service.get_matchup_chart(
                 db=db,
                 user_id=current_user.id,
-                year=year,
-                month=month,
+                year=filters.year,
+                month=filters.month,
                 game_mode=mode,
-                range_start=range_start,
-                range_end=range_end,
-                my_deck_id=my_deck_id,
-                opponent_deck_id=opponent_deck_id,
+                range_start=filters.range_start,
+                range_end=filters.range_end,
+                my_deck_id=filters.my_deck_id,
+                opponent_deck_id=filters.opponent_deck_id,
             ),
             "my_deck_win_rates": win_rate_service.get_my_deck_win_rates(
                 db=db,
                 user_id=current_user.id,
-                year=year,
-                month=month,
+                year=filters.year,
+                month=filters.month,
                 game_mode=mode,
-                range_start=range_start,
-                range_end=range_end,
-                my_deck_id=my_deck_id,
-                opponent_deck_id=opponent_deck_id,
+                range_start=filters.range_start,
+                range_end=filters.range_end,
+                my_deck_id=filters.my_deck_id,
+                opponent_deck_id=filters.opponent_deck_id,
             ),
         }
 
@@ -128,12 +158,12 @@ def get_all_statistics(
                     db=db,
                     user_id=current_user.id,
                     game_mode=mode,
-                    year=year,
-                    month=month,
-                    range_start=range_start,
-                    range_end=range_end,
-                    my_deck_id=my_deck_id,
-                    opponent_deck_id=opponent_deck_id,
+                    year=filters.year,
+                    month=filters.month,
+                    range_start=filters.range_start,
+                    range_end=filters.range_end,
+                    my_deck_id=filters.my_deck_id,
+                    opponent_deck_id=filters.opponent_deck_id,
                 )
             )
         else:
@@ -215,11 +245,7 @@ def get_value_sequence_data(
 
 @router.get("/available-decks", response_model=Dict[str, Any])
 def get_available_decks(
-    year: int = Query(datetime.now().year, description="年"),
-    month: int = Query(datetime.now().month, description="月"),
-    range_start: Optional[int] = Query(None, description="範囲指定:開始試合数"),
-    range_end: Optional[int] = Query(None, description="範囲指定:終了試合数"),
-    game_mode: Optional[str] = Query(None, description="ゲームモード"),
+    filters: AvailableDecksFilters = Depends(get_available_decks_filters),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -227,11 +253,11 @@ def get_available_decks(
     return statistics_service.get_available_decks(
         db=db,
         user_id=current_user.id,
-        year=year,
-        month=month,
-        range_start=range_start,
-        range_end=range_end,
-        game_mode=game_mode,
+        year=filters.year,
+        month=filters.month,
+        range_start=filters.range_start,
+        range_end=filters.range_end,
+        game_mode=filters.game_mode,
     )
 
 

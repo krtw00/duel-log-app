@@ -2,10 +2,12 @@ import axios, { AxiosError } from 'axios';
 import { useNotificationStore } from '../stores/notification';
 import { useLoadingStore } from '../stores/loading';
 import { useAuthStore } from '../stores/auth';
+import { getAccessToken } from './authTokens';
 import type { ApiErrorResponse, ValidationErrorDetail } from '../types/api';
 
 // 環境変数からAPIのベースURLを取得
-const RAW_API_BASE_URL = import.meta.env.VITE_API_URL;
+const IS_TEST = import.meta.env.MODE === 'test';
+const RAW_API_BASE_URL = import.meta.env.VITE_API_URL ?? (IS_TEST ? 'http://127.0.0.1' : undefined);
 
 // 環境変数が設定されていない場合の警告
 if (!RAW_API_BASE_URL) {
@@ -13,10 +15,44 @@ if (!RAW_API_BASE_URL) {
   throw new Error('API URL is not configured. Please check your .env file.');
 }
 
-// Playwright など一部環境では localhost が IPv6 (::1) に解決され、
-// バックエンドが IPv4 のみで待ち受けていると接続できないケースがある。
-// そのためテスト環境では 127.0.0.1 に正規化して確実に到達させる。
-const API_BASE_URL = RAW_API_BASE_URL.replace('://localhost', '://127.0.0.1');
+export const normalizeApiBaseUrl = (
+  raw: string,
+  options?: { isDev?: boolean; runtimeHostname?: string },
+) => {
+  // .env の末尾スペース等でURLが壊れると、ブラウザ側で ERR_EMPTY_RESPONSE などになり得る。
+  // ここで安全に正規化しておく。
+  const trimmed = raw.trim();
+  if (trimmed !== raw) {
+    console.warn('[API] VITE_API_URL contained leading/trailing whitespace; trimmed.');
+  }
+
+  // Docker 内からは backend:8000 で到達できるが、ブラウザからは名前解決できない。
+  // 誤設定でも開発が詰まらないように、dev かつブラウザ実行時は現在ホストへ寄せる。
+  // 例: http://backend:8000 -> http://localhost:8000
+  const hasRuntimeHostname = !!options?.runtimeHostname && options.runtimeHostname !== '';
+
+  const maybeRewrittenForDev = hasRuntimeHostname
+    ? trimmed.replace(/^(https?:\/\/)backend(?=[:/]|$)/, `$1${options.runtimeHostname}`)
+    : trimmed;
+
+  // Playwright など一部環境では localhost が IPv6 (::1) に解決され、
+  // バックエンドが IPv4 のみで待ち受けていると接続できないケースがある。
+  // そのため localhost は 127.0.0.1 に正規化して確実に到達させる。
+  return maybeRewrittenForDev.replace('://localhost', '://127.0.0.1').replace(/\/+$/, '');
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(RAW_API_BASE_URL, {
+  isDev: import.meta.env.DEV,
+  runtimeHostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
+});
+
+console.info('[API] baseURL resolved', {
+  raw: RAW_API_BASE_URL,
+  baseURL: API_BASE_URL,
+  mode: import.meta.env.MODE,
+  dev: import.meta.env.DEV,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
+});
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -26,9 +62,22 @@ export const api = axios.create({
   withCredentials: true, // クロスオリジンリクエストでクッキーを送信するために必要
 });
 
+export const normalizeApiRequestUrl = (
+  baseURL: string | undefined,
+  url: string | undefined,
+): string | undefined => {
+  if (!baseURL || !url) return url;
+  // axios は url が "/" 始まりだと baseURL のパス部分を無視する（/api + /me => /me になる）。
+  // Docker dev では baseURL に "/api" を使うため、ここで先頭の "/" を落として常に baseURL を効かせる。
+  if (/^https?:\/\//.test(url)) return url;
+  return url.replace(/^\/+/, '');
+};
+
 // リクエストインターセプター
 api.interceptors.request.use(
   (config) => {
+    config.url = normalizeApiRequestUrl(config.baseURL, config.url);
+
     // ローディング開始
     const loadingStore = useLoadingStore();
     const requestId = `${config.method}-${config.url}`;
@@ -38,7 +87,7 @@ api.interceptors.request.use(
     // localStorage からトークンを取得して Authorization ヘッダーに設定
     // これにより、Cookie が機能しない環境（Docker でのクロスオリジン など）でも認証が動作する
     // Safari/iOS/MacOS Cookie 制限環境にも対応
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       console.log('[API] Using Authorization header from localStorage');
@@ -46,6 +95,7 @@ api.interceptors.request.use(
 
     // リクエスト詳細ログ
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
+      baseURL: config.baseURL,
       withCredentials: config.withCredentials,
       hasAuthHeader: !!config.headers.Authorization,
       hasCookieFromStorage: !!token,
@@ -118,7 +168,7 @@ api.interceptors.response.use(
             // ただし、Cookie未反映・タイミング等の一過性要因もあり得るため、
             // Authorization ヘッダー等の実証的根拠がある場合のみログアウトを実施する。
             const hadAuthHeader = !!(error.config?.headers as any)?.Authorization;
-            const hadLocalToken = !!localStorage.getItem('access_token');
+            const hadLocalToken = !!getAccessToken();
 
             console.warn('[API] 401 from non-/me endpoint', {
               url: error.config?.url,

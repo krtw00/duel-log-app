@@ -56,14 +56,14 @@ describe('SharedStatisticsView.vue', () => {
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
           VAppBar: {
-            template:
-              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>',
+            template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
           },
           VContainer: { template: '<div><slot /></div>' },
         },
       },
     });
     expect(wrapper.find('.v-app-bar').exists()).toBe(true);
+    expect(wrapper.find('.logo-link').attributes('href')).toBe('/');
     expect(wrapper.find('.v-toolbar-title').text()).toContain('Duel Log Shared Statistics');
   });
 
@@ -152,8 +152,7 @@ describe('SharedStatisticsView.vue', () => {
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
           VAppBar: {
-            template:
-              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>',
+            template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
           },
           VContainer: { template: '<div><slot /></div>' },
         },
@@ -200,8 +199,7 @@ describe('SharedStatisticsView.vue', () => {
           VNavigationDrawer: true,
           VMain: { template: '<div><slot /></div>' },
           VAppBar: {
-            template:
-              '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></slot></div></div>',
+            template: '<div class="v-app-bar"><div class="v-toolbar-title"><slot /></div></div>',
           },
           VContainer: { template: '<div><slot /></div>' },
         },
