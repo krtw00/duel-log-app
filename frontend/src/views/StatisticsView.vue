@@ -146,6 +146,16 @@ const createLabelFormatter = (step: number, total: number) => {
   };
 };
 
+const createPiePercentFormatter = (series: number[]) => {
+  return (value: number) => {
+    const total = series.reduce((sum, v) => sum + (Number(v) || 0), 0);
+    const numericValue = Number(value) || 0;
+    if (total <= 0) return '0.0%';
+    const percent = (numericValue / total) * 100;
+    return `${percent.toFixed(1)}%`;
+  };
+};
+
 // --- Types ---
 import type { ApexPieChartOptions, ApexLineChartOptions } from '@/types/chart';
 import type { MatchupData, GameMode, Duel, Deck } from '@/types';
@@ -405,6 +415,10 @@ const fetchStatistics = async () => {
         chartOptions: {
           ...basePieChartOptions.value,
           labels: monthlyLabels,
+          tooltip: {
+            ...(basePieChartOptions.value.tooltip || {}),
+            y: { formatter: createPiePercentFormatter(monthlySeries) },
+          },
         } as ApexPieChartOptions,
       };
 
