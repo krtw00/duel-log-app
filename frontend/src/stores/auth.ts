@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '../services/api';
+import { clearAccessToken, setAccessToken } from '../services/authTokens';
 import router from '../router';
 import type { AxiosError } from 'axios';
 
@@ -26,20 +27,23 @@ export const useAuthStore = defineStore('auth', () => {
 
       console.log('[Auth] Login response:', loginResponse.data);
 
+      // 想定外のレスポンスの場合は「ログイン成功」と扱わない
+      if (!loginResponse.data?.user) {
+        throw new Error('ログインレスポンスが不正です');
+      }
+
       // OBS連携のため、すべてのブラウザでトークンをlocalStorageに保存
       if (loginResponse.data?.access_token) {
         console.log('[Auth] Saving token to localStorage for OBS integration');
-        localStorage.setItem('access_token', loginResponse.data.access_token);
+        setAccessToken(loginResponse.data.access_token);
       }
 
       // ログインレスポンスから直接ユーザー情報を取得して設定
       // サーバーが返したユーザー情報は既に検証済みなので、これを信頼して使用
-      if (loginResponse.data?.user) {
-        console.log('[Auth] Setting user from login response');
-        user.value = loginResponse.data.user;
-        isInitialized.value = true;
-        console.log('[Auth] User state is now authenticated');
-      }
+      console.log('[Auth] Setting user from login response');
+      user.value = loginResponse.data.user;
+      isInitialized.value = true;
+      console.log('[Auth] User state is now authenticated');
 
       console.log('[Auth] Login successful, navigating to dashboard');
       // ナビゲーション前に少し待機（Safari/iOS Cookie設定遅延対応）
@@ -50,6 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('[Auth] Login failed:', axiosError.response?.data?.detail || error);
       user.value = null;
       isInitialized.value = true;
+      clearAccessToken();
       throw new Error(axiosError.response?.data?.detail || 'ログインに失敗しました');
     }
   };
@@ -67,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       // 2. 確実にクライアント側の状態をクリアする
       user.value = null;
       isInitialized.value = true; // ログアウト状態も「初期化済み」として扱う
-      localStorage.removeItem('access_token'); // OBS連携用のトークンを削除
+      clearAccessToken(); // OBS連携用のトークンを削除
       sessionStorage.clear(); // セッションストレージもクリア
 
       // 3. 最後にログインページにリダイレクトする
@@ -93,13 +98,18 @@ export const useAuthStore = defineStore('auth', () => {
       // /meエンドポイントにアクセス（ブラウザがクッキーを自動送信）
       const response = await api.get('/me');
       console.log('[Auth] User info fetched successfully:', response.data);
-      user.value = response.data;
+      const data = response.data;
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid /me response');
+      }
+      user.value = data as any;
       isInitialized.value = true;
     } catch (error) {
       // エラー（クッキーがない、または無効）の場合はユーザー情報をクリア
       console.error('[Auth] Failed to fetch user info:', error);
       user.value = null;
       isInitialized.value = true;
+      clearAccessToken();
     }
   };
 
