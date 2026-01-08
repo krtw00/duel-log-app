@@ -43,35 +43,6 @@ jinja_env = Environment(
 )
 
 
-def _is_safari_browser(user_agent: str) -> bool:
-    """
-    User-AgentからSafariブラウザを判定
-
-    Safari（特にiOS/iPadOS）はSameSite=Noneのクッキーを厳しく制限するため、
-    SameSite=Laxを使用する必要がある
-    """
-    if not user_agent:
-        return False
-
-    user_agent_lower = user_agent.lower()
-
-    # Safariの判定（ChromeやEdgeではない純粋なSafari）
-    is_safari = (
-        "safari" in user_agent_lower
-        and "chrome" not in user_agent_lower
-        and "edg" not in user_agent_lower
-    )
-
-    # iOSデバイスの判定
-    is_ios = (
-        "iphone" in user_agent_lower
-        or "ipad" in user_agent_lower
-        or "ipod" in user_agent_lower
-    )
-
-    return is_safari or is_ios
-
-
 @router.post("/login")
 def login(
     response: Response,
@@ -113,21 +84,14 @@ def login(
 
     is_production = settings.ENVIRONMENT == "production"
 
-    # Safari/iOS判定
-    is_safari = _is_safari_browser(user_agent or "")
-
-    # Safari ITP対策: SafariではSameSite=Laxを使用
-    # クロスサイトCookieはSafariでブロックされるため、同一サイトとして扱う
-    # 注意: この対策はフロントエンドとバックエンドが異なるドメインの場合は完全には機能しない
-    # 理想的にはバックエンドをサブパス（/api）に配置するか、同一ドメインに配置する
-    if is_safari:
-        samesite_value = "lax"
-        secure_value = True if is_production else False
-        logger.info("Safari/iOS detected - using SameSite=Lax")
-    else:
-        samesite_value = "none" if is_production else "lax"
-        secure_value = is_production
-        logger.info(f"Non-Safari browser - using SameSite={samesite_value}")
+    samesite_value, secure_value, is_safari = resolve_cookie_policy(
+        user_agent, is_production
+    )
+    logger.info(
+        "Safari/iOS detected - using SameSite=Lax"
+        if is_safari
+        else f"Non-Safari browser - using SameSite={samesite_value}"
+    )
 
     cookie_params = {
         "key": "access_token",
@@ -202,20 +166,14 @@ def logout(response: Response, user_agent: str | None = Header(None)):
     HttpOnlyクッキーをクリアしてログアウトする
     """
     is_production = settings.ENVIRONMENT == "production"
-    is_safari = _is_safari_browser(user_agent or "")
-
-    if is_safari:
-        samesite_value = "lax"
-        secure_value = True if is_production else False
-        logger.info(
-            "Safari/iOS detected on logout - using SameSite=Lax for cookie deletion"
-        )
-    else:
-        samesite_value = "none" if is_production else "lax"
-        secure_value = is_production
-        logger.info(
-            "Non-Safari browser on logout - using SameSite policy for cookie deletion"
-        )
+    samesite_value, secure_value, is_safari = resolve_cookie_policy(
+        user_agent, is_production
+    )
+    logger.info(
+        "Safari/iOS detected on logout - using SameSite=Lax for cookie deletion"
+        if is_safari
+        else "Non-Safari browser on logout - using SameSite policy for cookie deletion"
+    )
 
     cookie_params = {
         "key": "access_token",
@@ -383,3 +341,4 @@ def get_obs_token(
         "scope": "obs_overlay",
         "message": "OBS連携用トークンを発行しました。このトークンは24時間有効です。",
     }
+from app.utils.auth_cookies import resolve_cookie_policy

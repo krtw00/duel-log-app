@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '../services/api';
+import { clearAccessToken, setAccessToken } from '../services/authTokens';
 import router from '../router';
 import type { AxiosError } from 'axios';
 
@@ -34,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
       // OBS連携のため、すべてのブラウザでトークンをlocalStorageに保存
       if (loginResponse.data?.access_token) {
         console.log('[Auth] Saving token to localStorage for OBS integration');
-        localStorage.setItem('access_token', loginResponse.data.access_token);
+        setAccessToken(loginResponse.data.access_token);
       }
 
       // ログインレスポンスから直接ユーザー情報を取得して設定
@@ -53,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('[Auth] Login failed:', axiosError.response?.data?.detail || error);
       user.value = null;
       isInitialized.value = true;
-      localStorage.removeItem('access_token');
+      clearAccessToken();
       throw new Error(axiosError.response?.data?.detail || 'ログインに失敗しました');
     }
   };
@@ -71,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       // 2. 確実にクライアント側の状態をクリアする
       user.value = null;
       isInitialized.value = true; // ログアウト状態も「初期化済み」として扱う
-      localStorage.removeItem('access_token'); // OBS連携用のトークンを削除
+      clearAccessToken(); // OBS連携用のトークンを削除
       sessionStorage.clear(); // セッションストレージもクリア
 
       // 3. 最後にログインページにリダイレクトする
@@ -108,7 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('[Auth] Failed to fetch user info:', error);
       user.value = null;
       isInitialized.value = true;
-      localStorage.removeItem('access_token');
+      clearAccessToken();
     }
   };
 
