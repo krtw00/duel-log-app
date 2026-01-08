@@ -204,4 +204,75 @@ describe('DuelFormDialog.vue', () => {
 
     expect(api.get).toHaveBeenCalledTimes(2);
   });
+
+  it('auto-sets turn order based on coin in create mode', async () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        duel: null,
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    // coin=1 -> first=1
+    (wrapper.vm as any).form.coin = 1;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(1);
+
+    // coin=0 -> first=0
+    (wrapper.vm as any).form.coin = 0;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
+  });
+
+  it('uses defaultCoin as initial coin value in create mode', async () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        defaultFirstOrSecond: 0,
+        duel: null,
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    // coinの初期値は常に「表」
+    expect((wrapper.vm as any).form.coin).toBe(1);
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
+  });
+
+  it('sets turn order from default when coin is heads and flips on tails', async () => {
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        defaultFirstOrSecond: 0, // default: 後攻
+        duel: null,
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    // 表ならデフォルト（後攻）
+    (wrapper.vm as any).form.coin = 1;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
+
+    // 裏なら反転（先攻）
+    (wrapper.vm as any).form.coin = 0;
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).form.first_or_second).toBe(1);
+  });
 });
