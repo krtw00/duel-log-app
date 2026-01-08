@@ -80,14 +80,30 @@ def seed_data(db: Session):
         )
 
         # --- 3. ダミーデュエルの作成 (各モード300戦ずつ) ---
-        logger.info("Creating dummy duels: 300 for each game mode...")
+        logger.info("Creating dummy duels: 900 for each game mode (last 3 months)...")
         total_created_count = 0
         now = datetime.now(jst)  # JSTタイムゾーン付きの現在時刻
+        period_start = now - timedelta(days=92)
         game_modes = ["RANK", "RATE", "EVENT", "DC"]
 
         for mode in game_modes:
+            existing_duels_count = (
+                db.query(duel_service.model)
+                .filter(
+                    duel_service.model.user_id == user.id,
+                    duel_service.model.game_mode == mode,
+                    duel_service.model.played_date >= period_start,
+                )
+                .count()
+            )
+            if existing_duels_count > 0:
+                logger.info(
+                    f"  Skipping '{mode}' mode: {existing_duels_count} duels already exist (>= {period_start:%Y-%m-%d})."
+                )
+                continue
+
             logger.info(
-                f"  Creating 300 duels for '{mode}' mode over the last 3 months..."
+                f"  Creating 900 duels for '{mode}' mode over the last 3 months..."
             )
 
             # 各月300戦ずつ作成（3ヶ月で合計900戦）
@@ -154,7 +170,7 @@ def seed_data(db: Session):
                         duel_data["notes"] = "イベント300"
 
                     elif mode == "DC":
-                        duel_data["dc_value"] = round(random.uniform(200.0, 400.0), 2)
+                        duel_data["dc_value"] = random.randint(200, 400)
 
                     duel_in = DuelCreate(**duel_data)  # type: ignore[arg-type]
                     duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)
