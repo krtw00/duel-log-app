@@ -1,7 +1,7 @@
-fastapi==0.128.0
+fastapi==0.127.0
 python-multipart==0.0.21
 uvicorn[standard]==0.40.0
-sqlalchemy==2.0.45
+sqlalchemy==2.0.44
 psycopg[binary,compat]
 python-dotenv==1.2.1
 alembic==1.17.2
@@ -16,6 +16,6 @@ jinja2==3.1.6
 pytest==9.0.2
 pytest-cov==6.3.0
 httpx==0.25.2
-Faker==40.1.0
+Faker==39.0.0
 ruff
 black
