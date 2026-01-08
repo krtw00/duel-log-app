@@ -27,6 +27,7 @@ from app.schemas.auth import (
     LoginRequest,
     ResetPasswordRequest,
 )
+from app.utils.auth_cookies import resolve_cookie_policy
 
 # ルーター定義
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -341,4 +342,3 @@ def get_obs_token(
         "scope": "obs_overlay",
         "message": "OBS連携用トークンを発行しました。このトークンは24時間有効です。",
     }
-from app.utils.auth_cookies import resolve_cookie_policy
