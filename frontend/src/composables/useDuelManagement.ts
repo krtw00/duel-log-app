@@ -1,6 +1,6 @@
 /**
  * デュエル管理用 Composable
- * デュエルの追加・編集・削除機能
+ * デュエルの編集・削除機能
  */
 
 import { ref, type Ref } from 'vue';
@@ -23,14 +23,6 @@ export function useDuelManagement(props: UseDuelManagementProps) {
 
   const selectedDuel = ref<Duel | null>(null);
   const dialogOpen = ref(false);
-
-  /**
-   * 新規デュエル追加ダイアログを開く
-   */
-  const openDuelDialog = () => {
-    selectedDuel.value = null;
-    dialogOpen.value = true;
-  };
 
   /**
    * デュエル編集ダイアログを開く
@@ -57,14 +49,6 @@ export function useDuelManagement(props: UseDuelManagementProps) {
     }
   };
 
-  /**
-   * デュエル保存後のハンドラー
-   */
-  const handleSaved = () => {
-    dialogOpen.value = false;
-    fetchDuels();
-  };
-
   return {
     // State
     duels,
@@ -73,9 +57,7 @@ export function useDuelManagement(props: UseDuelManagementProps) {
     dialogOpen,
 
     // Functions
-    openDuelDialog,
     editDuel,
     deleteDuel,
-    handleSaved,
   };
 }

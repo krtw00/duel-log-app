@@ -11,7 +11,8 @@ docs/
 ├── architecture/           📐 アーキテクチャ・設計
 │   ├── backend-architecture.md
 │   ├── frontend-architecture.md
-│   └── db-schema.md
+│   ├── db-schema.md
+│   └── screen-recording-analysis.md
 │
 ├── api/                    🔌 API・統合
 │   └── api-reference.md
