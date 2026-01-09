@@ -157,15 +157,16 @@
             <!-- 画面解析 -->
             <v-col cols="12">
               <div class="screen-analysis-panel">
-                <div class="analysis-header">
-                  <div class="analysis-title">
-                    <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
-                    <span class="text-subtitle-2">画面解析</span>
-                  </div>
-                  <v-spacer />
-                  <v-btn
-                    size="small"
-                    :color="autoRegisterEnabled ? 'success' : 'grey'"
+	                <div class="analysis-header">
+	                  <div class="analysis-title">
+	                    <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
+	                    <span class="text-subtitle-2">画面解析</span>
+	                    <span class="text-caption text-error ml-2">※テスト機能</span>
+	                  </div>
+	                  <v-spacer />
+	                  <v-btn
+	                    size="small"
+	                    :color="autoRegisterEnabled ? 'success' : 'grey'"
                     variant="tonal"
                     class="mr-2"
                     @click="autoRegisterEnabled = !autoRegisterEnabled"
@@ -672,7 +673,7 @@ watch(
       suppressCoinSync.value = false;
       return;
     }
-    // コインが表のときはセグメントで指定した値、裏のときは反転
+    // コインが表のときはセグメントで指定した値、裏のときは後攻をデフォルトとする
     const base = props.defaultFirstOrSecond;
     form.value.first_or_second = applyCoinDefault(newCoin as 0 | 1, base);
   },
