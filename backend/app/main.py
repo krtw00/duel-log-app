@@ -10,7 +10,16 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.routers import auth, decks, duels, me, shared_statistics, statistics, users
+from app.api.routers import (
+    admin,
+    auth,
+    decks,
+    duels,
+    me,
+    shared_statistics,
+    statistics,
+    users,
+)
 from app.core.config import settings
 from app.core.exception_handlers import (
     app_exception_handler,
@@ -82,6 +91,7 @@ app.include_router(decks.router)
 app.include_router(duels.router)
 app.include_router(statistics.router)
 app.include_router(shared_statistics.router)
+app.include_router(admin.router)
 
 
 @app.get("/", tags=["root"])
