@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.duel import Duel
 from app.schemas.duel import DuelCreate, DuelUpdate
-from app.services.deck_service import deck_service
 from app.services.base import BaseService
+from app.services.deck_service import deck_service
 from app.utils.query_builders import apply_duel_filters
 
 
