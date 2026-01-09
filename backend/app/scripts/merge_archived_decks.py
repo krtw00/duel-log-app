@@ -79,11 +79,10 @@ def run_merge(db: Session):
                 )
 
                 # 2. Update duels where the opponent's deck was the duplicate
-                # Note: 'opponentDeck_id' is the current column name from the schema.
                 duels_as_opponent_deck_count = (
                     db.query(Duel)
-                    .filter(Duel.opponentDeck_id == duplicate_deck.id)
-                    .update({"opponentDeck_id": primary_deck.id})
+                    .filter(Duel.opponent_deck_id == duplicate_deck.id)
+                    .update({"opponent_deck_id": primary_deck.id})
                 )
                 logger.info(
                     f"    - Updated {duels_as_opponent_deck_count} duel(s) (as opponent deck)."
