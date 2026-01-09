@@ -1,12 +1,12 @@
 <template>
-  <v-dialog
-    :model-value="modelValue"
-    max-width="700"
-    persistent
-    :fullscreen="$vuetify.display.xs"
-    @update:model-value="$emit('update:modelValue', $event)"
+  <component
+    :is="inline ? 'div' : 'v-dialog'"
+    v-bind="inline ? {} : dialogProps"
+    :fullscreen="inline ? undefined : $vuetify.display.xs"
+    class="duel-form-wrapper"
+    @update:model-value="inline ? undefined : $emit('update:modelValue', $event)"
   >
-    <v-card class="duel-form-card">
+    <v-card v-if="isActive" class="duel-form-card">
       <div class="card-glow"></div>
 
       <v-card-title class="pa-6">
@@ -17,26 +17,6 @@
       <v-divider />
 
       <v-card-text class="pa-6">
-        <!-- ゲームモード選択タブ -->
-        <v-tabs v-model="form.game_mode" color="primary" class="mb-4 mode-tabs-dialog" show-arrows>
-          <v-tab value="RANK">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-crown</v-icon>
-            <span class="d-none d-sm-inline">ランク</span>
-          </v-tab>
-          <v-tab value="RATE">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-chart-line</v-icon>
-            <span class="d-none d-sm-inline">レート</span>
-          </v-tab>
-          <v-tab value="EVENT">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-calendar-star</v-icon>
-            <span class="d-none d-sm-inline">イベント</span>
-          </v-tab>
-          <v-tab value="DC">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-trophy-variant</v-icon>
-            <span class="d-none d-sm-inline">DC</span>
-          </v-tab>
-        </v-tabs>
-
         <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-row>
             <!-- 使用デッキ -->
@@ -148,6 +128,98 @@
               </div>
             </v-col>
 
+            <!-- 画面解析（新規作成時のみ） -->
+            <v-col v-if="!isEdit" cols="12">
+              <div class="screen-analysis-panel">
+                <div class="analysis-header">
+                  <div class="analysis-title">
+                    <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
+                    <span class="text-subtitle-2">画面解析</span>
+	                    <span class="text-caption text-error ml-2">※テスト機能</span>
+	                  </div>
+	                  <v-spacer />
+	                  <v-btn
+	                    size="small"
+	                    :color="autoRegisterEnabled ? 'success' : 'grey'"
+                    variant="tonal"
+                    class="mr-2"
+                    @click="autoRegisterEnabled = !autoRegisterEnabled"
+                  >
+                    <v-icon start>
+                      {{ autoRegisterEnabled ? 'mdi-robot' : 'mdi-robot-off' }}
+                    </v-icon>
+                    自動登録{{ autoRegisterEnabled ? 'ON' : 'OFF' }}
+                  </v-btn>
+                  <v-btn
+                    size="small"
+                    :color="analysisRunning ? 'error' : 'primary'"
+                    variant="tonal"
+                    @click="toggleScreenAnalysis"
+                  >
+                    <v-icon start>
+                      {{ analysisRunning ? 'mdi-stop-circle-outline' : 'mdi-monitor-screenshot' }}
+                    </v-icon>
+                    {{ analysisRunning ? '停止' : '開始' }}
+                  </v-btn>
+                </div>
+
+                <div class="analysis-status">
+                  <v-chip
+                    size="small"
+                    :color="analysisRunning ? 'success' : undefined"
+                    variant="tonal"
+                  >
+                    {{ analysisRunning ? '解析中' : '停止中' }}
+                  </v-chip>
+                  <v-chip
+                    size="small"
+                    :color="turnChoiceAvailable ? 'info' : undefined"
+                    variant="tonal"
+                  >
+                    {{ turnChoiceAvailable ? '選択権: 検出' : '選択権: 未検出' }}
+                  </v-chip>
+                  <v-chip
+                    size="small"
+                    :color="okButtonAvailable ? 'info' : undefined"
+                    variant="tonal"
+                  >
+                    {{ okButtonAvailable ? 'OK: 検出' : 'OK: 未検出' }}
+                  </v-chip>
+                  <v-chip
+                    size="small"
+                    :color="analysisResultLabel.color ?? undefined"
+                    variant="tonal"
+                  >
+                    勝敗: {{ analysisResultLabel.text }}
+                  </v-chip>
+                  <v-chip
+                    v-if="missingTemplateLabel"
+                    size="small"
+                    color="warning"
+                    variant="tonal"
+                  >
+                    {{ missingTemplateLabel }}
+                  </v-chip>
+                  <span v-if="analysisScoreLabel" class="analysis-scores">
+                    {{ analysisScoreLabel }}
+                  </span>
+                </div>
+
+                <div class="analysis-actions" v-if="turnChoiceAvailable && !isEdit">
+                  <v-btn size="small" color="secondary" variant="outlined" @click="setSecondTurn">
+                    後攻に切替
+                  </v-btn>
+                </div>
+
+                <div v-if="analysisError" class="analysis-error">
+                  {{ analysisError }}
+                </div>
+                <div v-else-if="templateErrorLabel" class="analysis-error">
+                  {{ templateErrorLabel }}
+                </div>
+              </div>
+            </v-col>
+
             <!-- ランク（RANKモード時のみ） -->
             <v-col v-if="form.game_mode === 'RANK'" cols="12" md="6">
               <v-select
@@ -231,14 +303,16 @@
 
       <v-card-actions class="pa-4">
         <v-spacer />
-        <v-btn variant="text" @click="closeDialog"> キャンセル </v-btn>
+        <v-btn variant="text" @click="closeDialog">
+          {{ inline ? 'リセット' : 'キャンセル' }}
+        </v-btn>
         <v-btn color="primary" :loading="loading" @click="handleSubmit">
           <v-icon start>mdi-content-save</v-icon>
           {{ isEdit ? '更新' : '登録' }}
         </v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -251,10 +325,12 @@ import { useDuelFormValidation } from '@/composables/useDuelFormValidation';
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat';
 import { useDeckResolution } from '@/composables/useDeckResolution';
 import { useLatestDuelValues } from '@/composables/useLatestDuelValues';
+import { useScreenCaptureAnalysis } from '@/composables/useScreenCaptureAnalysis';
 
 interface Props {
   modelValue: boolean;
   duel: Duel | null;
+  inline?: boolean;
   defaultGameMode?: GameMode;
   defaultFirstOrSecond?: 0 | 1;
   initialMyDecks?: Deck[];
@@ -264,6 +340,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   defaultGameMode: 'RANK',
   defaultFirstOrSecond: 1,
+  inline: false,
 });
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
@@ -274,7 +351,8 @@ const notificationStore = useNotificationStore();
 const { rules } = useDuelFormValidation();
 const { getCurrentLocalDateTime, localDateTimeToISO, isoToLocalDateTime } = useDateTimeFormat();
 const { resolveDeckId } = useDeckResolution();
-const { fetchLatestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
+const { fetchLatestValues, applyLatestValuesToGameMode, saveLastUsedValues } =
+  useLatestDuelValues();
 
 const formRef = ref();
 const loading = ref(false);
@@ -282,6 +360,79 @@ const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
 const decksLoadedTarget = ref<'none' | 'active' | 'all'>('none');
 let decksFetchPromise: Promise<void> | null = null;
+const suppressCoinSync = ref(false);
+const dialogProps = computed(() => ({
+  modelValue: props.modelValue,
+  maxWidth: 700,
+  persistent: true,
+}));
+const isActive = computed(() => (props.inline ? true : props.modelValue));
+
+const {
+  isRunning: analysisRunning,
+  errorMessage: analysisError,
+  lastResult,
+  lastCoinResult,
+  turnChoiceAvailable,
+  okButtonAvailable,
+  turnChoiceEventId,
+  resultEventId,
+  lastScores,
+  missingTemplates,
+  templateErrors,
+  startCapture,
+  stopCapture,
+  resetState: resetScreenAnalysis,
+} = useScreenCaptureAnalysis();
+
+// 自動登録機能
+const autoRegisterEnabled = ref(true);
+const autoRegisterTimeoutId = ref<number | null>(null);
+
+const missingTemplateLabel = computed(() => {
+  if (missingTemplates.value.length === 0) return '';
+  return `テンプレ未設定: ${missingTemplates.value.join(', ')}`;
+});
+
+const analysisResultLabel = computed(() => {
+  if (lastResult.value === 'win') {
+    return { text: '勝ち', color: 'success' };
+  }
+  if (lastResult.value === 'lose') {
+    return { text: '負け', color: 'error' };
+  }
+  return { text: '未検出', color: undefined };
+});
+
+const analysisScoreLabel = computed(() => {
+  if (!analysisRunning.value) return '';
+  const scores = lastScores.value;
+  return `score: ${scores.coinWin.toFixed(2)} / ${scores.coinLose.toFixed(2)} / ${scores.okButton.toFixed(2)} / ${scores.win.toFixed(2)} / ${scores.lose.toFixed(2)}`;
+});
+
+const templateErrorLabel = computed(() => {
+  const entries = [
+    ['coin-win', templateErrors.value.coinWin],
+    ['coin-lose', templateErrors.value.coinLose],
+    ['ok-button', templateErrors.value.okButton],
+    ['result-win', templateErrors.value.win],
+    ['result-lose', templateErrors.value.lose],
+  ].filter((entry) => entry[1]);
+  if (entries.length === 0) return '';
+  return entries.map(([key, value]) => `${key}: ${value}`).join(' / ');
+});
+
+const toggleScreenAnalysis = async () => {
+  if (analysisRunning.value) {
+    stopCapture();
+    return;
+  }
+  await startCapture();
+};
+
+const setSecondTurn = () => {
+  form.value.first_or_second = 0;
+};
 
 // コンボボックス用の選択値
 const selectedMyDeck = ref<Deck | string | null>(null);
@@ -307,6 +458,14 @@ const defaultForm = (): DuelCreate => {
 const form = ref<DuelCreate>(defaultForm());
 
 const isEdit = computed(() => !!props.duel);
+const applyCoinDefault = (coin: 0 | 1, base: 0 | 1) => {
+  // 後攻をデフォルトにしている場合、コインの結果に関わらず後攻を維持
+  if (base === 0) {
+    return 0;
+  }
+  // 先攻をデフォルトにしている場合、コインが表なら先攻、裏なら後攻
+  return coin === 1 ? base : (base === 1 ? 0 : 1);
+};
 
 // バリデーションルールと日時変換関数はcomposableから取得
 
@@ -372,94 +531,91 @@ const ensureDecksLoaded = async (target: 'active' | 'all') => {
   await decksFetchPromise;
 };
 
+const applyModeDefaults = (mode: GameMode) => {
+  form.value.rank = undefined;
+  form.value.rate_value = undefined;
+  form.value.dc_value = undefined;
+
+  const applied = applyLatestValuesToGameMode(mode, myDecks.value, opponentDecks.value);
+  form.value.rank = applied.rank;
+  form.value.rate_value = applied.rate_value;
+  form.value.dc_value = applied.dc_value;
+  selectedMyDeck.value = applied.selectedMyDeck;
+  // 新規追加時は相手デッキを自動設定しない
+  selectedOpponentDeck.value = null;
+};
+
+const initializeForm = async () => {
+  seedDecksFromProps();
+  if (props.duel) {
+    void ensureDecksLoaded('all').then(() => {
+      if (!props.duel) return;
+      if (selectedMyDeck.value === null) {
+        selectedMyDeck.value = myDecks.value.find((d) => d.id === props.duel?.deck_id) || null;
+      }
+      if (selectedOpponentDeck.value === null) {
+        selectedOpponentDeck.value =
+          opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) || null;
+      }
+    });
+
+    const localDateTime = isoToLocalDateTime(props.duel.played_date);
+
+    form.value = {
+      deck_id: props.duel.deck_id,
+      opponent_deck_id: props.duel.opponent_deck_id,
+      result: props.duel.is_win ? 1 : 0,
+      game_mode: props.duel.game_mode,
+      rank: props.duel.rank,
+      rate_value: props.duel.rate_value,
+      dc_value: props.duel.dc_value,
+      coin: props.duel.won_coin_toss ? 1 : 0,
+      first_or_second: props.duel.is_going_first ? 1 : 0,
+      played_date: localDateTime,
+      notes: props.duel.notes || '',
+    };
+
+    selectedMyDeck.value =
+      props.duel.deck ?? myDecks.value.find((d) => d.id === props.duel?.deck_id) ?? null;
+    selectedOpponentDeck.value =
+      props.duel.opponent_deck ??
+      opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) ??
+      null;
+    return;
+  }
+
+  await ensureDecksLoaded('active');
+  await fetchLatestValues();
+  form.value = defaultForm();
+  form.value.game_mode = props.defaultGameMode;
+  applyModeDefaults(form.value.game_mode);
+};
+
 // fetchLatestValues, createDeckIfNeeded, resolveDeckId はcomposableから取得
 
 // ダイアログが開いたらデッキを取得
 watch(
-  () => props.modelValue,
+  () => isActive.value,
   async (newValue) => {
     if (newValue) {
-      seedDecksFromProps();
-      if (props.duel) {
-        // 編集モード
-        void ensureDecksLoaded('all').then(() => {
-          if (!props.duel) return;
-          if (selectedMyDeck.value === null) {
-            selectedMyDeck.value = myDecks.value.find((d) => d.id === props.duel?.deck_id) || null;
-          }
-          if (selectedOpponentDeck.value === null) {
-            selectedOpponentDeck.value =
-              opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) || null;
-          }
-        });
-
-        // ISO文字列をdatetime-local形式に変換
-        const localDateTime = isoToLocalDateTime(props.duel.played_date);
-
-        form.value = {
-          deck_id: props.duel.deck_id,
-          opponent_deck_id: props.duel.opponent_deck_id,
-          result: props.duel.is_win ? 1 : 0,
-          game_mode: props.duel.game_mode,
-          rank: props.duel.rank,
-          rate_value: props.duel.rate_value,
-          dc_value: props.duel.dc_value,
-          coin: props.duel.won_coin_toss ? 1 : 0,
-          first_or_second: props.duel.is_going_first ? 1 : 0,
-          played_date: localDateTime,
-          notes: props.duel.notes || '',
-        };
-
-        // 選択されたデッキを設定
-        selectedMyDeck.value =
-          props.duel.deck ?? myDecks.value.find((d) => d.id === props.duel?.deck_id) ?? null;
-        selectedOpponentDeck.value =
-          props.duel.opponent_deck ??
-          opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) ??
-          null;
-      } else {
-        // 新規作成モード
-        await ensureDecksLoaded('active');
-        await fetchLatestValues();
-        form.value = defaultForm();
-        form.value.game_mode = props.defaultGameMode;
-
-        // ゲームモードに応じた最新値を適用
-        const applied = applyLatestValuesToGameMode(
-          form.value.game_mode,
-          myDecks.value,
-          opponentDecks.value,
-        );
-        form.value.rank = applied.rank;
-        form.value.rate_value = applied.rate_value;
-        form.value.dc_value = applied.dc_value;
-        selectedMyDeck.value = applied.selectedMyDeck;
-        // 相手デッキは前回値から自動設定しない（常に空欄）
-        selectedOpponentDeck.value = null;
+      await initializeForm();
+    } else {
+      if (!props.inline) {
+        stopCapture();
+        resetScreenAnalysis();
       }
     }
   },
+  { immediate: true },
 );
 
-// ゲームモードが変わったらrank/rate_value/dc_valueをクリア
 watch(
-  () => form.value.game_mode,
+  () => props.defaultGameMode,
   (newMode) => {
-    // 編集モードでは値を変更しない
-    if (isEdit.value) return;
-
-    form.value.rank = undefined;
-    form.value.rate_value = undefined;
-    form.value.dc_value = undefined;
-
-    // ゲームモードに応じた最新値を適用
-    const applied = applyLatestValuesToGameMode(newMode, myDecks.value, opponentDecks.value);
-    form.value.rank = applied.rank;
-    form.value.rate_value = applied.rate_value;
-    form.value.dc_value = applied.dc_value;
-    selectedMyDeck.value = applied.selectedMyDeck;
-    // 相手デッキは前回値から自動設定しない（常に空欄）
-    selectedOpponentDeck.value = null;
+    if (!props.inline || isEdit.value) return;
+    if (form.value.game_mode === newMode) return;
+    form.value.game_mode = newMode;
+    applyModeDefaults(newMode);
   },
 );
 
@@ -469,11 +625,162 @@ watch(
   (newCoin) => {
     // 編集モードでは自動変更しない（意図しない書き換え防止）
     if (isEdit.value) return;
-    // コインが表のときはセグメントで指定した値、裏のときも後攻をデフォルトとする
+    if (suppressCoinSync.value) {
+      suppressCoinSync.value = false;
+      return;
+    }
+    // コインが表のときはセグメントで指定した値、裏のときは後攻をデフォルトとする
     const base = props.defaultFirstOrSecond;
-    form.value.first_or_second = newCoin === 1 ? base : 0;
+    form.value.first_or_second = applyCoinDefault(newCoin as 0 | 1, base);
   },
 );
+
+watch(
+  () => props.defaultFirstOrSecond,
+  (newBase) => {
+    if (isEdit.value) return;
+    if (turnChoiceEventId.value > 0) return;
+    form.value.first_or_second = applyCoinDefault(form.value.coin as 0 | 1, newBase);
+  },
+);
+
+watch(turnChoiceEventId, () => {
+  if (isEdit.value) return;
+  suppressCoinSync.value = true;
+
+  // コイン判定結果に基づいて設定
+  if (lastCoinResult.value === 'win') {
+    // コイン表（勝ち）: 自分が選択権を持つ
+    form.value.coin = 1;
+    form.value.first_or_second = props.defaultFirstOrSecond;
+  } else if (lastCoinResult.value === 'lose') {
+    // コイン裏（負け）: 相手が選択権を持つ
+    form.value.coin = 0;
+    // 相手が選んだ結果、自分は逆になる（通常は後攻になることが多い）
+    form.value.first_or_second = props.defaultFirstOrSecond === 1 ? 0 : 1;
+  }
+});
+
+watch(resultEventId, () => {
+  if (isEdit.value || !lastResult.value) return;
+  form.value.result = lastResult.value === 'win' ? 1 : 0;
+
+  // 自動登録機能
+  if (autoRegisterEnabled.value && !isEdit.value) {
+    // 既存のタイマーをクリア
+    if (autoRegisterTimeoutId.value !== null) {
+      window.clearTimeout(autoRegisterTimeoutId.value);
+    }
+
+    // 0.5秒後に自動登録
+    autoRegisterTimeoutId.value = window.setTimeout(() => {
+      autoRegisterDuel();
+    }, 500);
+  }
+});
+
+// 連続登録用にフォームをリセット
+const resetFormForNextDuel = async () => {
+  if (autoRegisterTimeoutId.value !== null) {
+    window.clearTimeout(autoRegisterTimeoutId.value);
+    autoRegisterTimeoutId.value = null;
+  }
+  formRef.value?.resetValidation();
+
+  // 最新の値を取得してフォームを再初期化
+  await initializeForm();
+  resetScreenAnalysis();
+  notificationStore.success('次の対戦を待機中...');
+};
+
+// 自動登録処理
+const autoRegisterDuel = async () => {
+  // 編集モードでは自動登録しない
+  if (isEdit.value) return;
+
+  // 使用デッキが設定されていない場合は登録しない
+  if (!selectedMyDeck.value) {
+    notificationStore.warning('自動登録: 使用デッキが設定されていません');
+    return;
+  }
+
+  // 相手デッキが空欄の場合は「不明」に自動設定
+  if (!selectedOpponentDeck.value) {
+    const unknownDeck = opponentDecks.value.find(
+      (d) => d.name === '不明' && d.is_opponent,
+    );
+    selectedOpponentDeck.value = unknownDeck ?? '不明';
+  }
+
+  // フォームのバリデーション
+  const { valid } = await formRef.value.validate();
+  if (!valid) {
+    const errorMessages = formRef.value.errors.map((e: any) => e.errorMessages).flat();
+    notificationStore.warning(
+      `自動登録: ${errorMessages.join(', ') || '入力内容に不備があります'}`,
+    );
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecks.value);
+    const opponentDeckId = await resolveDeckId(
+      selectedOpponentDeck.value,
+      true,
+      opponentDecks.value,
+    );
+    if (!myDeckId || !opponentDeckId) {
+      notificationStore.error('自動登録: デッキの解決に失敗しました');
+      return;
+    }
+
+    const submitData = {
+      deck_id: myDeckId,
+      opponent_deck_id: opponentDeckId,
+      played_date: localDateTimeToISO(getCurrentLocalDateTime()),
+      is_win: form.value.result === 1,
+      won_coin_toss: form.value.coin === 1,
+      is_going_first: form.value.first_or_second === 1,
+      game_mode: form.value.game_mode,
+      rank: form.value.rank,
+      rate_value: form.value.rate_value,
+      dc_value: form.value.dc_value,
+      notes: form.value.notes,
+    };
+
+    const response = await api.post('/duels/', submitData);
+    notificationStore.success('対戦記録を自動登録しました');
+    const savedDuel = response.data as Duel;
+
+    const deckPayload =
+      typeof selectedMyDeck.value === 'object' && selectedMyDeck.value
+        ? selectedMyDeck.value
+        : { id: myDeckId, name: String(selectedMyDeck.value), is_opponent: false, active: true };
+    const opponentDeckPayload =
+      typeof selectedOpponentDeck.value === 'object' && selectedOpponentDeck.value
+        ? selectedOpponentDeck.value
+        : {
+            id: opponentDeckId,
+            name: String(selectedOpponentDeck.value),
+            is_opponent: true,
+            active: true,
+          };
+
+    emit('saved', {
+      duel: { ...savedDuel, deck: deckPayload, opponent_deck: opponentDeckPayload },
+      upsertDecks: [deckPayload, opponentDeckPayload],
+    });
+
+    // 次の試合のためにフォームをリセット
+    await resetFormForNextDuel();
+  } catch (error) {
+    console.error('Failed to auto-register duel:', error);
+    notificationStore.error('自動登録に失敗しました');
+  } finally {
+    loading.value = false;
+  }
+};
 
 // DCポイント入力ハンドラー（小数点入力を防ぐ）
 const handleDcValueInput = (event: Event) => {
@@ -499,6 +806,12 @@ const handleDcValueInput = (event: Event) => {
 };
 
 const handleSubmit = async () => {
+  // 自動登録がスケジュールされている場合はキャンセル
+  if (autoRegisterTimeoutId.value !== null) {
+    window.clearTimeout(autoRegisterTimeoutId.value);
+    autoRegisterTimeoutId.value = null;
+  }
+
   const { valid } = await formRef.value.validate();
   if (!valid) return;
 
@@ -597,10 +910,22 @@ const handleSubmit = async () => {
 };
 
 const closeDialog = () => {
+  if (props.inline) {
+    formRef.value?.resetValidation();
+    selectedMyDeck.value = null;
+    selectedOpponentDeck.value = null;
+    stopCapture();
+    resetScreenAnalysis();
+    void initializeForm();
+    return;
+  }
+
   emit('update:modelValue', false);
   formRef.value?.resetValidation();
   selectedMyDeck.value = null;
   selectedOpponentDeck.value = null;
+  stopCapture();
+  resetScreenAnalysis();
 };
 </script>
 
@@ -658,11 +983,59 @@ const closeDialog = () => {
   }
 }
 
+.duel-form-wrapper {
+  width: 100%;
+}
+
+.screen-analysis-panel {
+  padding: 12px 16px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 6px;
+  background-color: rgba(128, 128, 128, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analysis-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-title {
+  display: flex;
+  align-items: center;
+  color: rgba(128, 128, 128, 0.8);
+}
+
+.analysis-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.analysis-scores {
+  font-size: 0.75rem;
+  color: rgba(128, 128, 128, 0.85);
+}
+
+.analysis-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-error {
+  color: rgba(220, 38, 38, 0.9);
+  font-size: 0.875rem;
+}
+
 // スマホ対応
-@media (max-width: 599px) {
-  .duel-form-card {
-    .v-card-title {
-      padding: 16px !important;
+	@media (max-width: 599px) {
+	  .duel-form-card {
+	    .v-card-title {
+	      padding: 16px !important;
 
       .text-h5 {
         font-size: 1.25rem !important;
@@ -671,21 +1044,13 @@ const closeDialog = () => {
 
     .v-card-text {
       padding: 16px !important;
-    }
-  }
+	    }
+	  }
 
-  .mode-tabs-dialog {
-    .v-tab {
-      min-width: 60px;
-      padding: 0 12px;
-      font-size: 0.875rem;
-    }
-  }
-
-  .radio-group-wrapper {
-    :deep(.v-selection-control-group) {
-      gap: 8px;
-    }
+	  .radio-group-wrapper {
+	    :deep(.v-selection-control-group) {
+	      gap: 8px;
+	    }
   }
 }
 </style>

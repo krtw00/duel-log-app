@@ -64,6 +64,24 @@ describe('useDeckResolution', () => {
 
       expect(result).toBe(1);
     });
+
+    it('重複エラー時に取得したデッキからIDを解決する', async () => {
+      const { createDeckIfNeeded } = useDeckResolution();
+      const existingDecks: Deck[] = [];
+      const decksResponse: Deck[] = [
+        { id: 5, name: 'イベントデッキ', is_opponent: false, active: true },
+      ];
+
+      vi.mocked(api.post).mockRejectedValue({ response: { status: 400 } });
+      vi.mocked(api.get).mockResolvedValue({ data: decksResponse });
+
+      const result = await createDeckIfNeeded('イベントデッキ', false, existingDecks);
+
+      expect(result).toBe(5);
+      expect(api.get).toHaveBeenCalledWith('/decks/', {
+        params: { is_opponent: false, active_only: false },
+      });
+    });
   });
 
   describe('resolveDeckId', () => {
