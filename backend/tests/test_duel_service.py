@@ -13,10 +13,16 @@ from app.services.duel_service import duel_service
 def test_create_user_duel(db_session: Session, test_user: User):
     # Arrange
     my_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="My Test Deck",
+        is_opponent=False,
     )
     opponent_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True
+        db_session,
+        user_id=test_user.id,
+        name="Opponent Test Deck",
+        is_opponent=True,
     )
     db_session.commit()
 
@@ -33,7 +39,9 @@ def test_create_user_duel(db_session: Session, test_user: User):
 
     # Act
     created_duel = duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_in
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_in,
     )
 
     # Assert
@@ -46,17 +54,30 @@ def test_create_user_duel(db_session: Session, test_user: User):
     assert created_duel.rank == 10
 
 
-def test_create_user_duel_rejects_other_users_decks(db_session: Session, test_user: User):
-    other_user = User(username="otheruser", email="other@example.com", passwordhash="dummy")
+def test_create_user_duel_rejects_other_users_decks(
+    db_session: Session,
+    test_user: User,
+):
+    other_user = User(
+        username="otheruser",
+        email="other@example.com",
+        passwordhash="dummy",
+    )
     db_session.add(other_user)
     db_session.commit()
     db_session.refresh(other_user)
 
     my_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="My Test Deck",
+        is_opponent=False,
     )
     other_users_opponent_deck = deck_service.get_or_create(
-        db_session, user_id=other_user.id, name="Other Opponent Deck", is_opponent=True
+        db_session,
+        user_id=other_user.id,
+        name="Other Opponent Deck",
+        is_opponent=True,
     )
     db_session.commit()
 
@@ -72,16 +93,26 @@ def test_create_user_duel_rejects_other_users_decks(db_session: Session, test_us
     )
 
     with pytest.raises(ValueError, match="相手デッキ"):
-        duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
+        duel_service.create_user_duel(
+            db_session,
+            user_id=test_user.id,
+            duel_in=duel_in,
+        )
 
 
 def test_get_user_duels(db_session: Session, test_user: User):
     # Arrange
     my_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="My Test Deck",
+        is_opponent=False,
     )
     opponent_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True
+        db_session,
+        user_id=test_user.id,
+        name="Opponent Test Deck",
+        is_opponent=True,
     )
     db_session.commit()
 
@@ -112,13 +143,20 @@ def test_get_user_duels(db_session: Session, test_user: User):
     # Act
     all_duels = duel_service.get_user_duels(db_session, user_id=test_user.id)
     jan_duels = duel_service.get_user_duels(
-        db_session, user_id=test_user.id, year=2023, month=1
+        db_session,
+        user_id=test_user.id,
+        year=2023,
+        month=1,
     )
     rank_duels = duel_service.get_user_duels(
-        db_session, user_id=test_user.id, game_mode="RANK"
+        db_session,
+        user_id=test_user.id,
+        game_mode="RANK",
     )
     ranged_duels = duel_service.get_user_duels(
-        db_session, user_id=test_user.id, range_start=2
+        db_session,
+        user_id=test_user.id,
+        range_start=2,
     )
 
     # Assert
@@ -130,17 +168,26 @@ def test_get_user_duels(db_session: Session, test_user: User):
     assert len(ranged_duels) == 1
     # SQLiteではタイムゾーン情報が保持されないため、日付のみを比較
     assert ranged_duels[0].played_date.replace(tzinfo=ZoneInfo("UTC")) == datetime(
-        2023, 1, 15, tzinfo=ZoneInfo("UTC")
+        2023,
+        1,
+        15,
+        tzinfo=ZoneInfo("UTC"),
     )
 
 
 def test_export_duels_to_csv(db_session: Session, test_user: User):
     # Arrange
     my_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="My Test Deck",
+        is_opponent=False,
     )
     opponent_deck = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Opponent Test Deck", is_opponent=True
+        db_session,
+        user_id=test_user.id,
+        name="Opponent Test Deck",
+        is_opponent=True,
     )
     db_session.commit()
 
@@ -155,7 +202,11 @@ def test_export_duels_to_csv(db_session: Session, test_user: User):
         played_date=datetime(2023, 1, 15, 12, 30, tzinfo=ZoneInfo("UTC")),
         notes="Test note",
     )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
+    duel_service.create_user_duel(
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_in,
+    )
 
     # Act
     csv_output = duel_service.export_duels_to_csv(db_session, user_id=test_user.id)
@@ -184,7 +235,9 @@ def test_import_duels_from_csv_numeric_rank(db_session: Session, test_user: User
 
     # Act
     result = duel_service.import_duels_from_csv(
-        db_session, user_id=test_user.id, csv_content=csv_content
+        db_session,
+        user_id=test_user.id,
+        csv_content=csv_content,
     )
 
     # Assert
@@ -194,7 +247,10 @@ def test_import_duels_from_csv_numeric_rank(db_session: Session, test_user: User
 
     # Verify that the duel was created
     duels = duel_service.get_user_duels(
-        db_session, user_id=test_user.id, year=2023, month=3
+        db_session,
+        user_id=test_user.id,
+        year=2023,
+        month=3,
     )
     assert len(duels) == 1
     assert duels[0].notes == "Import test note"
@@ -202,10 +258,16 @@ def test_import_duels_from_csv_numeric_rank(db_session: Session, test_user: User
 
     # Verify that the decks were created
     my_deck = deck_service.get_by_name(
-        db_session, user_id=test_user.id, name="New Deck", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="New Deck",
+        is_opponent=False,
     )
     opponent_deck = deck_service.get_by_name(
-        db_session, user_id=test_user.id, name="New Opponent Deck", is_opponent=True
+        db_session,
+        user_id=test_user.id,
+        name="New Opponent Deck",
+        is_opponent=True,
     )
     assert my_deck is not None
     assert opponent_deck is not None
@@ -220,7 +282,9 @@ def test_import_duels_from_csv_string_rank(db_session: Session, test_user: User)
 
     # Act
     result = duel_service.import_duels_from_csv(
-        db_session, user_id=test_user.id, csv_content=csv_content
+        db_session,
+        user_id=test_user.id,
+        csv_content=csv_content,
     )
 
     # Assert
@@ -229,7 +293,10 @@ def test_import_duels_from_csv_string_rank(db_session: Session, test_user: User)
 
     # Verify that the duel was created
     duels = duel_service.get_user_duels(
-        db_session, user_id=test_user.id, year=2023, month=4
+        db_session,
+        user_id=test_user.id,
+        year=2023,
+        month=4,
     )
     assert len(duels) == 1
     assert duels[0].notes == "Import test note 2"
@@ -237,10 +304,16 @@ def test_import_duels_from_csv_string_rank(db_session: Session, test_user: User)
 
     # Verify that the decks were created
     my_deck = deck_service.get_by_name(
-        db_session, user_id=test_user.id, name="New Deck 2", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="New Deck 2",
+        is_opponent=False,
     )
     opponent_deck = deck_service.get_by_name(
-        db_session, user_id=test_user.id, name="New Opponent Deck 2", is_opponent=True
+        db_session,
+        user_id=test_user.id,
+        name="New Opponent Deck 2",
+        is_opponent=True,
     )
     assert my_deck is not None
     assert opponent_deck is not None
@@ -250,16 +323,28 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
     """各ゲームモード（RANK、RATE、DC、EVENT）の最新値取得をテスト"""
     # Arrange - デッキを作成
     my_deck1 = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="My Deck 1", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="My Deck 1",
+        is_opponent=False,
     )
     my_deck2 = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="My Deck 2", is_opponent=False
+        db_session,
+        user_id=test_user.id,
+        name="My Deck 2",
+        is_opponent=False,
     )
     opponent_deck1 = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Opponent Deck 1", is_opponent=True
+        db_session,
+        user_id=test_user.id,
+        name="Opponent Deck 1",
+        is_opponent=True,
     )
     opponent_deck2 = deck_service.get_or_create(
-        db_session, user_id=test_user.id, name="Opponent Deck 2", is_opponent=True
+        db_session,
+        user_id=test_user.id,
+        name="Opponent Deck 2",
+        is_opponent=True,
     )
     db_session.commit()
 
@@ -275,7 +360,9 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         is_going_first=True,
     )
     duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_rank_old
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_rank_old,
     )
 
     duel_rank_latest = DuelCreate(
@@ -289,7 +376,9 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         is_going_first=True,
     )
     duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_rank_latest
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_rank_latest,
     )
 
     # RATEモードのDuelを作成（最新レート: 1700）
@@ -303,7 +392,11 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         won_coin_toss=False,
         is_going_first=False,
     )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rate)
+    duel_service.create_user_duel(
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_rate,
+    )
 
     # DCモードのDuelを作成（最新DC: 5000）
     duel_dc = DuelCreate(
@@ -316,7 +409,11 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         won_coin_toss=True,
         is_going_first=True,
     )
-    duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_dc)
+    duel_service.create_user_duel(
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_dc,
+    )
 
     # EVENTモードのDuelを作成（値なし、デッキ情報のみ）
     duel_event_old = DuelCreate(
@@ -329,7 +426,9 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         is_going_first=True,
     )
     duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_event_old
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_event_old,
     )
 
     duel_event_latest = DuelCreate(
@@ -342,12 +441,15 @@ def test_get_latest_duel_values(db_session: Session, test_user: User):
         is_going_first=False,
     )
     duel_service.create_user_duel(
-        db_session, user_id=test_user.id, duel_in=duel_event_latest
+        db_session,
+        user_id=test_user.id,
+        duel_in=duel_event_latest,
     )
 
     # Act
     latest_values = duel_service.get_latest_duel_values(
-        db_session, user_id=test_user.id
+        db_session,
+        user_id=test_user.id,
     )
 
     # Assert
