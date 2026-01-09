@@ -49,9 +49,21 @@ export function useDeckResolution() {
       // 重複エラーの場合は既存のデッキを検索
       const axiosError = error as { response?: { status?: number } };
       if (axiosError.response?.status === 400) {
-        const existingDeck = existingDecks.find((d) => d.name === name.trim());
-        if (existingDeck) {
-          return existingDeck.id;
+        const trimmedName = name.trim();
+        const existingDeck = existingDecks.find((d) => d.name === trimmedName);
+        if (existingDeck) return existingDeck.id;
+        try {
+          const response = await api.get('/decks/', {
+            params: {
+              is_opponent: isOpponent,
+              active_only: false,
+            },
+          });
+          const decks: Deck[] = response.data;
+          const matched = decks.find((deck) => deck.name === trimmedName);
+          if (matched) return matched.id;
+        } catch (fetchError) {
+          console.error('Failed to fetch decks after duplicate error:', fetchError);
         }
       }
       console.error('Failed to create deck:', error);

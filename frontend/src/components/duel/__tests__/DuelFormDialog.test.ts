@@ -66,6 +66,7 @@ describe('DuelFormDialog.vue', () => {
     expect(dialog.exists()).toBe(true);
     // fullscreen プロパティが存在することを確認
     expect(dialog.props()).toHaveProperty('fullscreen');
+    expect(wrapper.findComponent({ name: 'VTabs' }).exists()).toBe(false);
   });
 
   it('emits update:modelValue when closing', async () => {
@@ -118,6 +119,7 @@ describe('DuelFormDialog.vue', () => {
     });
 
     expect(wrapper.props('duel')).toEqual(mockDuel);
+    expect(wrapper.findComponent({ name: 'VTabs' }).exists()).toBe(false);
   });
 
   it('prefills edit form without waiting for deck fetch', async () => {
@@ -291,7 +293,6 @@ describe('DuelFormDialog.vue', () => {
     expect((wrapper.vm as any).selectedMyDeck).toEqual(myDeck);
     expect((wrapper.vm as any).selectedOpponentDeck).toBe(null);
   });
-
   it('sets turn order from default when coin is heads and uses second on tails', async () => {
     const wrapper = mount(DuelFormDialog, {
       global: {
