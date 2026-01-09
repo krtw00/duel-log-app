@@ -287,19 +287,27 @@ def fix_alembic_version_if_needed():
                         sys.stdout.flush()
                     except Exception as e:
                         logger.warning(f"   Could not check version: {e}")
-                        logger.info("   'alembic_version' table not found or is empty. Stamping database to head...")
+                        logger.info(
+                            "   'alembic_version' table not found or is empty. Stamping database to head..."
+                        )
                         sys.stdout.flush()
                         try:
                             # alembic stamp headコマンドを実行
                             subprocess.run(
                                 ["alembic", "stamp", "head"],
-                                check=True, capture_output=True, text=True
+                                check=True,
+                                capture_output=True,
+                                text=True,
                             )
                             logger.info("   ✅ Database stamped successfully to head.")
                         except subprocess.CalledProcessError as stamp_e:
-                            logger.error(f"   ❌ Failed to stamp database: {stamp_e.stderr}")
+                            logger.error(
+                                f"   ❌ Failed to stamp database: {stamp_e.stderr}"
+                            )
                         except FileNotFoundError:
-                            logger.error("   ❌ 'alembic' command not found. Make sure it's installed and in PATH.")
+                            logger.error(
+                                "   ❌ 'alembic' command not found. Make sure it's installed and in PATH."
+                            )
                         sys.stdout.flush()
         else:
             # テーブルが存在しない場合、履歴をクリア
