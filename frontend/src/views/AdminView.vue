@@ -60,12 +60,8 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="confirmDialog = false">
-              キャンセル
-            </v-btn>
-            <v-btn color="primary" variant="text" @click="executeMerge">
-              実行
-            </v-btn>
+            <v-btn color="grey" variant="text" @click="confirmDialog = false"> キャンセル </v-btn>
+            <v-btn color="primary" variant="text" @click="executeMerge"> 実行 </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -101,10 +97,7 @@ const executeMerge = async () => {
     console.error('Merge failed:', error);
     console.error('Error response:', error.response);
     console.error('Error data:', error.response?.data);
-    errorMessage.value =
-      error.response?.data?.detail ||
-      error.message ||
-      'マージに失敗しました';
+    errorMessage.value = error.response?.data?.detail || error.message || 'マージに失敗しました';
     errorSnackbar.value = true;
   } finally {
     merging.value = false;
