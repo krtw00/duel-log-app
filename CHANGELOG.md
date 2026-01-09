@@ -1,3 +1,16 @@
+## [1.4.0](https://github.com/krtw00/duel-log-app/compare/v1.3.3...v1.4.0) (2026-01-09)
+
+
+### ✨ Features
+
+* **frontend:** persist new decks from edit dialog ([b9109c5](https://github.com/krtw00/duel-log-app/commit/b9109c58af35d13b2285d104c4b85f5dd5277569))
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** remove unused saveLastUsedValues ([64565f6](https://github.com/krtw00/duel-log-app/commit/64565f6fadf7a858b0012a19add8a5be3593b4aa))
+* **frontend:** restore saveLastUsedValues ([0f7bcfb](https://github.com/krtw00/duel-log-app/commit/0f7bcfbd1181c435e895ad507d03efb7d4b8d4c6))
+
 ## [1.3.3](https://github.com/krtw00/duel-log-app/compare/v1.3.2...v1.3.3) (2026-01-09)
 
 
