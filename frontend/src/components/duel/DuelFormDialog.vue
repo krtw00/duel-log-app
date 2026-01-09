@@ -491,6 +491,30 @@ const opponentDeckItems = computed(() => {
   return mergeArchivedSelectedDeck(activeDecks, selectedOpponentDeck.value);
 });
 
+const buildDeckPayload = (
+  resolvedDeck: Deck | null,
+  selected: Deck | string | null,
+  deckId: number | null,
+  isOpponent: boolean,
+): Deck => {
+  if (resolvedDeck) return resolvedDeck;
+  let name = '不明';
+
+  if (typeof selected === 'object' && selected?.name) {
+    name = selected.name;
+  } else if (typeof selected === 'string' && selected.trim()) {
+    name = selected.trim();
+  }
+
+  return {
+    id: deckId ?? 0,
+    name,
+    is_opponent: isOpponent,
+    active: true,
+    user_id: currentUserId.value ?? undefined,
+  };
+};
+
 // デッキ一覧を取得
 const fetchDecks = async (activeOnly: boolean) => {
   try {
@@ -743,12 +767,14 @@ const autoRegisterDuel = async () => {
 
   loading.value = true;
   try {
-    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecksForUser.value);
-    const opponentDeckId = await resolveDeckId(
+    const resolvedMyDeck = await resolveDeckId(selectedMyDeck.value, false, myDecksForUser.value);
+    const resolvedOpponentDeck = await resolveDeckId(
       selectedOpponentDeck.value,
       true,
       opponentDecksForUser.value,
     );
+    const myDeckId = resolvedMyDeck?.id ?? null;
+    const opponentDeckId = resolvedOpponentDeck?.id ?? null;
     if (!myDeckId || !opponentDeckId) {
       notificationStore.error('自動登録: デッキの解決に失敗しました');
       return;
@@ -772,19 +798,13 @@ const autoRegisterDuel = async () => {
     notificationStore.success('対戦記録を自動登録しました');
     const savedDuel = response.data as Duel;
 
-    const deckPayload =
-      typeof selectedMyDeck.value === 'object' && selectedMyDeck.value
-        ? selectedMyDeck.value
-        : { id: myDeckId, name: String(selectedMyDeck.value), is_opponent: false, active: true };
-    const opponentDeckPayload =
-      typeof selectedOpponentDeck.value === 'object' && selectedOpponentDeck.value
-        ? selectedOpponentDeck.value
-        : {
-            id: opponentDeckId,
-            name: String(selectedOpponentDeck.value),
-            is_opponent: true,
-            active: true,
-          };
+    const deckPayload = buildDeckPayload(resolvedMyDeck, selectedMyDeck.value, myDeckId, false);
+    const opponentDeckPayload = buildDeckPayload(
+      resolvedOpponentDeck,
+      selectedOpponentDeck.value,
+      opponentDeckId,
+      true,
+    );
 
     emit('saved', {
       duel: { ...savedDuel, deck: deckPayload, opponent_deck: opponentDeckPayload },
@@ -844,12 +864,14 @@ const handleSubmit = async () => {
 
   try {
     // デッキIDを解決（必要に応じて新規作成）
-    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecksForUser.value);
-    const opponentDeckId = await resolveDeckId(
+    const resolvedMyDeck = await resolveDeckId(selectedMyDeck.value, false, myDecksForUser.value);
+    const resolvedOpponentDeck = await resolveDeckId(
       selectedOpponentDeck.value,
       true,
       opponentDecksForUser.value,
     );
+    const myDeckId = resolvedMyDeck?.id ?? null;
+    const opponentDeckId = resolvedOpponentDeck?.id ?? null;
 
     if (!myDeckId || !opponentDeckId) {
       notificationStore.error('デッキの登録に失敗しました');
@@ -877,27 +899,13 @@ const handleSubmit = async () => {
       notes: form.value.notes,
     };
 
-    const deckPayload: Deck =
-      typeof selectedMyDeck.value === 'object' && selectedMyDeck.value
-        ? selectedMyDeck.value
-        : {
-            id: myDeckId,
-            name: typeof selectedMyDeck.value === 'string' ? selectedMyDeck.value.trim() : '不明',
-            is_opponent: false,
-            active: true,
-          };
-    const opponentDeckPayload: Deck =
-      typeof selectedOpponentDeck.value === 'object' && selectedOpponentDeck.value
-        ? selectedOpponentDeck.value
-        : {
-            id: opponentDeckId,
-            name:
-              typeof selectedOpponentDeck.value === 'string'
-                ? selectedOpponentDeck.value.trim()
-                : '不明',
-            is_opponent: true,
-            active: true,
-          };
+    const deckPayload = buildDeckPayload(resolvedMyDeck, selectedMyDeck.value, myDeckId, false);
+    const opponentDeckPayload = buildDeckPayload(
+      resolvedOpponentDeck,
+      selectedOpponentDeck.value,
+      opponentDeckId,
+      true,
+    );
 
     let savedDuel: Duel | null = null;
 
