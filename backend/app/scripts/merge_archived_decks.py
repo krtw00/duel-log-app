@@ -117,3 +117,4 @@ if __name__ == "__main__":
     finally:
         db.close()
         logger.info("Database session closed.")
+# Force re-evaluation by CI
