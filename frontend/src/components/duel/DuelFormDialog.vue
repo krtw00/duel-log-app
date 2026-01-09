@@ -135,12 +135,12 @@
                   <div class="analysis-title">
                     <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
                     <span class="text-subtitle-2">画面解析</span>
-	                    <span class="text-caption text-error ml-2">※テスト機能</span>
-	                  </div>
-	                  <v-spacer />
-	                  <v-btn
-	                    size="small"
-	                    :color="autoRegisterEnabled ? 'success' : 'grey'"
+                    <span class="text-caption text-error ml-2">※テスト機能</span>
+                  </div>
+                  <v-spacer />
+                  <v-btn
+                    size="small"
+                    :color="autoRegisterEnabled ? 'success' : 'grey'"
                     variant="tonal"
                     class="mr-2"
                     @click="autoRegisterEnabled = !autoRegisterEnabled"
@@ -192,12 +192,7 @@
                   >
                     勝敗: {{ analysisResultLabel.text }}
                   </v-chip>
-                  <v-chip
-                    v-if="missingTemplateLabel"
-                    size="small"
-                    color="warning"
-                    variant="tonal"
-                  >
+                  <v-chip v-if="missingTemplateLabel" size="small" color="warning" variant="tonal">
                     {{ missingTemplateLabel }}
                   </v-chip>
                   <span v-if="analysisScoreLabel" class="analysis-scores">
@@ -326,6 +321,7 @@ import { useDateTimeFormat } from '@/composables/useDateTimeFormat';
 import { useDeckResolution } from '@/composables/useDeckResolution';
 import { useLatestDuelValues } from '@/composables/useLatestDuelValues';
 import { useScreenCaptureAnalysis } from '@/composables/useScreenCaptureAnalysis';
+import { useAuthStore } from '@/stores/auth';
 
 interface Props {
   modelValue: boolean;
@@ -348,15 +344,25 @@ const emit = defineEmits<{
 }>();
 
 const notificationStore = useNotificationStore();
+const authStore = useAuthStore();
 const { rules } = useDuelFormValidation();
 const { getCurrentLocalDateTime, localDateTimeToISO, isoToLocalDateTime } = useDateTimeFormat();
 const { resolveDeckId } = useDeckResolution();
-const { fetchLatestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
+const { fetchLatestValues, applyLatestValuesToGameMode, saveLastUsedValues } =
+  useLatestDuelValues();
 
 const formRef = ref();
 const loading = ref(false);
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
+const currentUserId = computed(() => authStore.user?.id ?? props.duel?.user_id ?? null);
+const filterDecksForUser = (decks: Deck[]) => {
+  const userId = currentUserId.value;
+  if (!userId) return decks;
+  return decks.filter((deck) => deck.user_id === userId);
+};
+const myDecksForUser = computed(() => filterDecksForUser(myDecks.value));
+const opponentDecksForUser = computed(() => filterDecksForUser(opponentDecks.value));
 const decksLoadedTarget = ref<'none' | 'active' | 'all'>('none');
 let decksFetchPromise: Promise<void> | null = null;
 const suppressCoinSync = ref(false);
@@ -463,16 +469,18 @@ const applyCoinDefault = (coin: 0 | 1, base: 0 | 1) => {
     return 0;
   }
   // 先攻をデフォルトにしている場合、コインが表なら先攻、裏なら後攻
-  return coin === 1 ? base : (base === 1 ? 0 : 1);
+  return coin === 1 ? base : base === 1 ? 0 : 1;
 };
 
 // バリデーションルールと日時変換関数はcomposableから取得
 
 const myDeckItems = computed(() =>
-  isEdit.value ? myDecks.value : myDecks.value.filter((deck) => deck.active),
+  isEdit.value ? myDecksForUser.value : myDecksForUser.value.filter((deck) => deck.active),
 );
 const opponentDeckItems = computed(() =>
-  isEdit.value ? opponentDecks.value : opponentDecks.value.filter((deck) => deck.active),
+  isEdit.value
+    ? opponentDecksForUser.value
+    : opponentDecksForUser.value.filter((deck) => deck.active),
 );
 
 // デッキ一覧を取得
@@ -485,8 +493,8 @@ const fetchDecks = async (activeOnly: boolean) => {
       api.get(`/decks/?is_opponent=true&${params}`),
     ]);
 
-    myDecks.value = myDecksResponse.data;
-    opponentDecks.value = opponentDecksResponse.data;
+    myDecks.value = filterDecksForUser(myDecksResponse.data);
+    opponentDecks.value = filterDecksForUser(opponentDecksResponse.data);
   } catch (error) {
     console.error('Failed to fetch decks:', error);
   }
@@ -501,8 +509,10 @@ const seedDecksFromProps = () => {
 
   if (!hasInitialDecks) return;
 
-  myDecks.value = props.initialMyDecks ? [...props.initialMyDecks] : [];
-  opponentDecks.value = props.initialOpponentDecks ? [...props.initialOpponentDecks] : [];
+  myDecks.value = filterDecksForUser(props.initialMyDecks ? [...props.initialMyDecks] : []);
+  opponentDecks.value = filterDecksForUser(
+    props.initialOpponentDecks ? [...props.initialOpponentDecks] : [],
+  );
 
   if (decksLoadedTarget.value === 'none') {
     decksLoadedTarget.value = 'active';
@@ -535,13 +545,16 @@ const applyModeDefaults = (mode: GameMode) => {
   form.value.rate_value = undefined;
   form.value.dc_value = undefined;
 
-  const applied = applyLatestValuesToGameMode(mode, myDecks.value, opponentDecks.value);
+  const applied = applyLatestValuesToGameMode(
+    mode,
+    myDecksForUser.value,
+    opponentDecksForUser.value,
+  );
   form.value.rank = applied.rank;
   form.value.rate_value = applied.rate_value;
   form.value.dc_value = applied.dc_value;
   selectedMyDeck.value = applied.selectedMyDeck;
-  // 新規追加時は相手デッキを自動設定しない
-  selectedOpponentDeck.value = null;
+  selectedOpponentDeck.value = applied.selectedOpponentDeck;
 };
 
 const initializeForm = async () => {
@@ -550,11 +563,12 @@ const initializeForm = async () => {
     void ensureDecksLoaded('all').then(() => {
       if (!props.duel) return;
       if (selectedMyDeck.value === null) {
-        selectedMyDeck.value = myDecks.value.find((d) => d.id === props.duel?.deck_id) || null;
+        selectedMyDeck.value =
+          myDecksForUser.value.find((d) => d.id === props.duel?.deck_id) || null;
       }
       if (selectedOpponentDeck.value === null) {
         selectedOpponentDeck.value =
-          opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) || null;
+          opponentDecksForUser.value.find((d) => d.id === props.duel?.opponent_deck_id) || null;
       }
     });
 
@@ -575,10 +589,10 @@ const initializeForm = async () => {
     };
 
     selectedMyDeck.value =
-      props.duel.deck ?? myDecks.value.find((d) => d.id === props.duel?.deck_id) ?? null;
+      props.duel.deck ?? myDecksForUser.value.find((d) => d.id === props.duel?.deck_id) ?? null;
     selectedOpponentDeck.value =
       props.duel.opponent_deck ??
-      opponentDecks.value.find((d) => d.id === props.duel?.opponent_deck_id) ??
+      opponentDecksForUser.value.find((d) => d.id === props.duel?.opponent_deck_id) ??
       null;
     return;
   }
@@ -705,9 +719,7 @@ const autoRegisterDuel = async () => {
 
   // 相手デッキが空欄の場合は「不明」に自動設定
   if (!selectedOpponentDeck.value) {
-    const unknownDeck = opponentDecks.value.find(
-      (d) => d.name === '不明' && d.is_opponent,
-    );
+    const unknownDeck = opponentDecksForUser.value.find((d) => d.name === '不明' && d.is_opponent);
     selectedOpponentDeck.value = unknownDeck ?? '不明';
   }
 
@@ -723,11 +735,11 @@ const autoRegisterDuel = async () => {
 
   loading.value = true;
   try {
-    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecks.value);
+    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecksForUser.value);
     const opponentDeckId = await resolveDeckId(
       selectedOpponentDeck.value,
       true,
-      opponentDecks.value,
+      opponentDecksForUser.value,
     );
     if (!myDeckId || !opponentDeckId) {
       notificationStore.error('自動登録: デッキの解決に失敗しました');
@@ -769,6 +781,12 @@ const autoRegisterDuel = async () => {
     emit('saved', {
       duel: { ...savedDuel, deck: deckPayload, opponent_deck: opponentDeckPayload },
       upsertDecks: [deckPayload, opponentDeckPayload],
+    });
+    saveLastUsedValues({
+      myDeckId,
+      opponentDeckId,
+      rank: form.value.rank,
+      gameMode: form.value.game_mode,
     });
 
     // 次の試合のためにフォームをリセット
@@ -818,11 +836,11 @@ const handleSubmit = async () => {
 
   try {
     // デッキIDを解決（必要に応じて新規作成）
-    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecks.value);
+    const myDeckId = await resolveDeckId(selectedMyDeck.value, false, myDecksForUser.value);
     const opponentDeckId = await resolveDeckId(
       selectedOpponentDeck.value,
       true,
-      opponentDecks.value,
+      opponentDecksForUser.value,
     );
 
     if (!myDeckId || !opponentDeckId) {
@@ -900,6 +918,12 @@ const handleSubmit = async () => {
     if (savedDuel) {
       emit('saved', { duel: savedDuel, upsertDecks: [deckPayload, opponentDeckPayload] });
     }
+    saveLastUsedValues({
+      myDeckId,
+      opponentDeckId,
+      rank: form.value.rank,
+      gameMode: form.value.game_mode,
+    });
     closeDialog();
   } catch (error) {
     console.error('Failed to save duel:', error);
@@ -1031,10 +1055,10 @@ const closeDialog = () => {
 }
 
 // スマホ対応
-	@media (max-width: 599px) {
-	  .duel-form-card {
-	    .v-card-title {
-	      padding: 16px !important;
+@media (max-width: 599px) {
+  .duel-form-card {
+    .v-card-title {
+      padding: 16px !important;
 
       .text-h5 {
         font-size: 1.25rem !important;
@@ -1043,13 +1067,13 @@ const closeDialog = () => {
 
     .v-card-text {
       padding: 16px !important;
-	    }
-	  }
+    }
+  }
 
-	  .radio-group-wrapper {
-	    :deep(.v-selection-control-group) {
-	      gap: 8px;
-	    }
+  .radio-group-wrapper {
+    :deep(.v-selection-control-group) {
+      gap: 8px;
+    }
   }
 }
 </style>
