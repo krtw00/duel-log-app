@@ -351,8 +351,7 @@ const notificationStore = useNotificationStore();
 const { rules } = useDuelFormValidation();
 const { getCurrentLocalDateTime, localDateTimeToISO, isoToLocalDateTime } = useDateTimeFormat();
 const { resolveDeckId } = useDeckResolution();
-const { fetchLatestValues, applyLatestValuesToGameMode, saveLastUsedValues } =
-  useLatestDuelValues();
+const { fetchLatestValues, applyLatestValuesToGameMode } = useLatestDuelValues();
 
 const formRef = ref();
 const loading = ref(false);
