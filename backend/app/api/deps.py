@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import Cookie, Depends, Header
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import UnauthorizedException
+from app.core.exceptions import ForbiddenException, UnauthorizedException
 from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.user import User
@@ -114,8 +114,27 @@ def get_current_user_optional(
         return None
 
 
+def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
+    """
+    現在のユーザーが管理者であるかを確認する
+
+    Args:
+        current_user: 現在の認証済みユーザー
+
+    Returns:
+        管理者ユーザーオブジェクト
+
+    Raises:
+        ForbiddenException: ユーザーが管理者でない場合
+    """
+    if not current_user.is_admin:
+        raise ForbiddenException(message="管理者権限が必要です")
+    return current_user
+
+
 __all__ = [
     "get_db",
     "get_current_user",
     "get_current_user_optional",
+    "get_admin_user",
 ]
