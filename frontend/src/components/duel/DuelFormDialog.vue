@@ -17,32 +17,6 @@
       <v-divider />
 
       <v-card-text class="pa-6">
-        <!-- ゲームモード選択タブ（新規作成ダイアログのみ） -->
-        <v-tabs
-          v-if="showGameModeTabs"
-          v-model="form.game_mode"
-          color="primary"
-          class="mb-4 mode-tabs-dialog"
-          show-arrows
-        >
-          <v-tab value="RANK">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-crown</v-icon>
-            <span class="d-none d-sm-inline">ランク</span>
-          </v-tab>
-          <v-tab value="RATE">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-chart-line</v-icon>
-            <span class="d-none d-sm-inline">レート</span>
-          </v-tab>
-          <v-tab value="EVENT">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-calendar-star</v-icon>
-            <span class="d-none d-sm-inline">イベント</span>
-          </v-tab>
-          <v-tab value="DC">
-            <v-icon :start="$vuetify.display.smAndUp">mdi-trophy-variant</v-icon>
-            <span class="d-none d-sm-inline">DC</span>
-          </v-tab>
-        </v-tabs>
-
         <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-row>
             <!-- 使用デッキ -->
@@ -393,7 +367,6 @@ const dialogProps = computed(() => ({
   persistent: true,
 }));
 const isActive = computed(() => (props.inline ? true : props.modelValue));
-const showGameModeTabs = computed(() => !props.inline && !isEdit.value);
 
 const {
   isRunning: analysisRunning,
@@ -558,6 +531,20 @@ const ensureDecksLoaded = async (target: 'active' | 'all') => {
   await decksFetchPromise;
 };
 
+const applyModeDefaults = (mode: GameMode) => {
+  form.value.rank = undefined;
+  form.value.rate_value = undefined;
+  form.value.dc_value = undefined;
+
+  const applied = applyLatestValuesToGameMode(mode, myDecks.value, opponentDecks.value);
+  form.value.rank = applied.rank;
+  form.value.rate_value = applied.rate_value;
+  form.value.dc_value = applied.dc_value;
+  selectedMyDeck.value = applied.selectedMyDeck;
+  // 新規追加時は相手デッキを自動設定しない
+  selectedOpponentDeck.value = null;
+};
+
 const initializeForm = async () => {
   seedDecksFromProps();
   if (props.duel) {
@@ -601,18 +588,7 @@ const initializeForm = async () => {
   await fetchLatestValues();
   form.value = defaultForm();
   form.value.game_mode = props.defaultGameMode;
-
-  const applied = applyLatestValuesToGameMode(
-    form.value.game_mode,
-    myDecks.value,
-    opponentDecks.value,
-  );
-  form.value.rank = applied.rank;
-  form.value.rate_value = applied.rate_value;
-  form.value.dc_value = applied.dc_value;
-  selectedMyDeck.value = applied.selectedMyDeck;
-  // 新規追加時は相手デッキを自動設定しない
-  selectedOpponentDeck.value = null;
+  applyModeDefaults(form.value.game_mode);
 };
 
 // fetchLatestValues, createDeckIfNeeded, resolveDeckId はcomposableから取得
@@ -633,33 +609,13 @@ watch(
   { immediate: true },
 );
 
-// ゲームモードが変わったらrank/rate_value/dc_valueをクリア
-watch(
-  () => form.value.game_mode,
-  (newMode) => {
-    // 編集モードでは値を変更しない
-    if (isEdit.value) return;
-
-    form.value.rank = undefined;
-    form.value.rate_value = undefined;
-    form.value.dc_value = undefined;
-
-    // ゲームモードに応じた最新値を適用
-    const applied = applyLatestValuesToGameMode(newMode, myDecks.value, opponentDecks.value);
-    form.value.rank = applied.rank;
-    form.value.rate_value = applied.rate_value;
-    form.value.dc_value = applied.dc_value;
-    selectedMyDeck.value = applied.selectedMyDeck;
-    selectedOpponentDeck.value = applied.selectedOpponentDeck;
-  },
-);
-
 watch(
   () => props.defaultGameMode,
   (newMode) => {
     if (!props.inline || isEdit.value) return;
     if (form.value.game_mode === newMode) return;
     form.value.game_mode = newMode;
+    applyModeDefaults(newMode);
   },
 );
 
@@ -1076,10 +1032,10 @@ const closeDialog = () => {
 }
 
 // スマホ対応
-@media (max-width: 599px) {
-  .duel-form-card {
-    .v-card-title {
-      padding: 16px !important;
+	@media (max-width: 599px) {
+	  .duel-form-card {
+	    .v-card-title {
+	      padding: 16px !important;
 
       .text-h5 {
         font-size: 1.25rem !important;
@@ -1088,21 +1044,13 @@ const closeDialog = () => {
 
     .v-card-text {
       padding: 16px !important;
-    }
-  }
+	    }
+	  }
 
-  .mode-tabs-dialog {
-    .v-tab {
-      min-width: 60px;
-      padding: 0 12px;
-      font-size: 0.875rem;
-    }
-  }
-
-  .radio-group-wrapper {
-    :deep(.v-selection-control-group) {
-      gap: 8px;
-    }
+	  .radio-group-wrapper {
+	    :deep(.v-selection-control-group) {
+	      gap: 8px;
+	    }
   }
 }
 </style>
