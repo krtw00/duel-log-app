@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/krtw00/duel-log-app/compare/v1.4.0...v1.4.1) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* allow archived decks ([cf0b421](https://github.com/krtw00/duel-log-app/commit/cf0b421e341f64c154968713eca8b895fb9b6206))
+
 ## [1.4.0](https://github.com/krtw00/duel-log-app/compare/v1.3.3...v1.4.0) (2026-01-09)
 
 
