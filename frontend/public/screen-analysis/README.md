@@ -4,10 +4,14 @@ Place the normalized template images here so the screen analysis feature can
 detect turn-choice and match results.
 
 Required files:
-- turn-choice.png
+- coin-win.png
+- coin-lose.png
 - ok-button.png
 - result-win.png
 - result-lose.png
+
+Non-required (dev only):
+- *_raw.png / *-raw.png (not bundled / not committed)
 
 Notes:
 - Templates should be captured from a 16:9 frame normalized to 1280px width.
