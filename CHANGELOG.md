@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/krtw00/duel-log-app/compare/v1.3.2...v1.3.3) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** hide archived deck options ([85a7341](https://github.com/krtw00/duel-log-app/commit/85a734148ad073f6ea6e66a941781c3cc1a99f0e))
+
 ## [1.3.2](https://github.com/krtw00/duel-log-app/compare/v1.3.1...v1.3.2) (2026-01-09)
 
 
