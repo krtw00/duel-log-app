@@ -17,6 +17,7 @@ const createUser = () => ({
   username: 'tester',
   streamer_mode: false,
   theme_preference: 'dark',
+  is_admin: false,
 });
 
 describe('theme store', () => {
