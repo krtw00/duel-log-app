@@ -434,7 +434,8 @@ watch(
         form.value.rate_value = applied.rate_value;
         form.value.dc_value = applied.dc_value;
         selectedMyDeck.value = applied.selectedMyDeck;
-        selectedOpponentDeck.value = applied.selectedOpponentDeck;
+        // 相手デッキは前回値から自動設定しない（常に空欄）
+        selectedOpponentDeck.value = null;
       }
     }
   },
@@ -457,7 +458,8 @@ watch(
     form.value.rate_value = applied.rate_value;
     form.value.dc_value = applied.dc_value;
     selectedMyDeck.value = applied.selectedMyDeck;
-    selectedOpponentDeck.value = applied.selectedOpponentDeck;
+    // 相手デッキは前回値から自動設定しない（常に空欄）
+    selectedOpponentDeck.value = null;
   },
 );
 
@@ -467,9 +469,9 @@ watch(
   (newCoin) => {
     // 編集モードでは自動変更しない（意図しない書き換え防止）
     if (isEdit.value) return;
-    // コインが表のときはセグメントで指定した値、裏のときは反転
+    // コインが表のときはセグメントで指定した値、裏のときも後攻をデフォルトとする
     const base = props.defaultFirstOrSecond;
-    form.value.first_or_second = newCoin === 1 ? base : base === 1 ? 0 : 1;
+    form.value.first_or_second = newCoin === 1 ? base : 0;
   },
 );
 
