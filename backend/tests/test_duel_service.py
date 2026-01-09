@@ -1,6 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import pytest
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -43,6 +44,35 @@ def test_create_user_duel(db_session: Session, test_user: User):
     assert created_duel.is_win is True
     assert created_duel.game_mode == "RANK"
     assert created_duel.rank == 10
+
+
+def test_create_user_duel_rejects_other_users_decks(db_session: Session, test_user: User):
+    other_user = User(username="otheruser", email="other@example.com", passwordhash="dummy")
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    my_deck = deck_service.get_or_create(
+        db_session, user_id=test_user.id, name="My Test Deck", is_opponent=False
+    )
+    other_users_opponent_deck = deck_service.get_or_create(
+        db_session, user_id=other_user.id, name="Other Opponent Deck", is_opponent=True
+    )
+    db_session.commit()
+
+    duel_in = DuelCreate(
+        deck_id=my_deck.id,
+        opponent_deck_id=other_users_opponent_deck.id,
+        is_win=True,
+        game_mode="RANK",
+        rank=10,
+        won_coin_toss=True,
+        is_going_first=True,
+        played_date=datetime.utcnow(),
+    )
+
+    with pytest.raises(ValueError, match="相手デッキ"):
+        duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_in)
 
 
 def test_get_user_duels(db_session: Session, test_user: User):
