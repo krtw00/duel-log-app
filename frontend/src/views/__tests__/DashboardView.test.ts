@@ -21,6 +21,7 @@ const stubs = {
   AppBar: true,
   DashboardHeader: true,
   StatisticsSection: true,
+  DuelEntrySection: true,
   DuelHistorySection: true,
   OBSSection: true,
   ShareStatsDialog: true,
@@ -82,6 +83,7 @@ describe('DashboardView.vue', () => {
 
     expect(wrapper.findComponent({ name: 'DashboardHeader' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'StatisticsSection' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'DuelEntrySection' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'DuelHistorySection' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'OBSSection' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'ShareStatsDialog' }).exists()).toBe(true);
@@ -126,6 +128,11 @@ describe('DashboardView.vue', () => {
     expect(statisticsSection.props('duels')).toEqual(expectedDuels);
     expect(statisticsSection.props('decks')).toEqual(mockDecks);
     expect(statisticsSection.props('currentMode')).toBe('RANK');
+
+    const duelEntrySection = wrapper.findComponent({ name: 'DuelEntrySection' });
+    expect(duelEntrySection.props('decks')).toEqual(mockDecks);
+    expect(duelEntrySection.props('defaultGameMode')).toBe('RANK');
+    expect(duelEntrySection.props('defaultFirstOrSecond')).toBe(1);
 
     const duelHistorySection = wrapper.findComponent({ name: 'DuelHistorySection' });
     expect(duelHistorySection.props('duels')).toEqual(expectedDuels); // Initially, currentDuels will be the same as duels
