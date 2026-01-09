@@ -66,6 +66,9 @@ describe('DuelFormDialog.vue', () => {
     expect(dialog.exists()).toBe(true);
     // fullscreen プロパティが存在することを確認
     expect(dialog.props()).toHaveProperty('fullscreen');
+
+    const tabs = wrapper.findComponent({ name: 'VTabs' });
+    expect(tabs.exists()).toBe(true);
   });
 
   it('emits update:modelValue when closing', async () => {
@@ -118,6 +121,9 @@ describe('DuelFormDialog.vue', () => {
     });
 
     expect(wrapper.props('duel')).toEqual(mockDuel);
+
+    const tabs = wrapper.findComponent({ name: 'VTabs' });
+    expect(tabs.exists()).toBe(false);
   });
 
   it('prefills edit form without waiting for deck fetch', async () => {
