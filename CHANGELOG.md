@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/krtw00/duel-log-app/compare/v1.7.0...v1.7.1) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** add missing is_admin field in tests and types ([7d86bbb](https://github.com/krtw00/duel-log-app/commit/7d86bbb6d61a301d5be97fb7901c0ee476115e9f))
+
 ## [1.7.0](https://github.com/krtw00/duel-log-app/compare/v1.6.0...v1.7.0) (2026-01-09)
 
 
