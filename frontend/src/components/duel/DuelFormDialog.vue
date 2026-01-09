@@ -154,13 +154,13 @@
               </div>
             </v-col>
 
-            <!-- 画面解析 -->
-            <v-col cols="12">
+            <!-- 画面解析（新規作成時のみ） -->
+            <v-col v-if="!isEdit" cols="12">
               <div class="screen-analysis-panel">
-	                <div class="analysis-header">
-	                  <div class="analysis-title">
-	                    <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
-	                    <span class="text-subtitle-2">画面解析</span>
+                <div class="analysis-header">
+                  <div class="analysis-title">
+                    <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
+                    <span class="text-subtitle-2">画面解析</span>
 	                    <span class="text-caption text-error ml-2">※テスト機能</span>
 	                  </div>
 	                  <v-spacer />
