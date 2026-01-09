@@ -264,7 +264,8 @@ describe('DuelFormDialog.vue', () => {
 
     (api.get as any).mockImplementation((url: string) => {
       if (url.includes('/decks/?is_opponent=false')) return Promise.resolve({ data: [myDeck] });
-      if (url.includes('/decks/?is_opponent=true')) return Promise.resolve({ data: [opponentDeck] });
+      if (url.includes('/decks/?is_opponent=true'))
+        return Promise.resolve({ data: [opponentDeck] });
       if (url === '/duels/latest-values/') {
         return Promise.resolve({
           data: {
