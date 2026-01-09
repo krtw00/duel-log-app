@@ -159,13 +159,57 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         return self.update(db=db, id=deck_id, obj_in=deck_in, user_id=user_id)
 
     def delete(self, db: Session, id: int, user_id: Optional[int] = None) -> bool:
-        """デッキを論理削除（active=False）に変更。"""
+        """デッキを論理削除（active=False）に変更。既存のアーカイブと統合。
+
+        同名のアーカイブ済みデッキが存在する場合、対戦履歴をそのデッキに統合し、
+        このデッキを物理削除します。これにより、重複アーカイブを防ぎます。
+
+        Args:
+            db: データベースセッション
+            id: 削除するデッキのID
+            user_id: ユーザーID（オプション）
+
+        Returns:
+            True: 削除が成功した場合
+            False: デッキが存在しない、または既にアーカイブ済みの場合
+        """
+        # アーカイブ対象のデッキを取得
         deck = self.get_by_id(db=db, id=id, user_id=user_id, include_inactive=True)
 
         if deck is None or deck.active is False:
             return False
 
-        deck.active = False
+        # 同名のアーカイブ済みデッキを探す
+        existing_archive = self.get_by_name(
+            db=db,
+            user_id=deck.user_id,
+            name=deck.name,
+            is_opponent=deck.is_opponent,
+            include_inactive=True,
+        )
+
+        # active=Falseのアーカイブが既に存在する場合、マージ処理を実行
+        if (
+            existing_archive
+            and existing_archive.id != deck.id
+            and not existing_archive.active
+        ):
+            # 対戦履歴を既存のアーカイブに移行（プレイヤーデッキとして）
+            db.query(Duel).filter(Duel.deck_id == deck.id).update(
+                {"deck_id": existing_archive.id}
+            )
+
+            # 対戦履歴を既存のアーカイブに移行（相手デッキとして）
+            db.query(Duel).filter(Duel.opponent_deck_id == deck.id).update(
+                {"opponent_deck_id": existing_archive.id}
+            )
+
+            # 統合元のデッキを物理削除
+            db.delete(deck)
+        else:
+            # 通常のアーカイブ（論理削除）
+            deck.active = False
+
         db.commit()
         return True
 
