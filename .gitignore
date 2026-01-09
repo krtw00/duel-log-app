@@ -51,3 +51,7 @@ venv/
 htmlcov/
 .claude/
 .mcp_cache/
+
+# screen-analysis raw templates (dev only)
+frontend/public/screen-analysis/*_raw.png
+frontend/public/screen-analysis/*-raw.png
