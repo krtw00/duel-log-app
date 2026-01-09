@@ -250,7 +250,7 @@ describe('DuelFormDialog.vue', () => {
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
   });
 
-  it('sets turn order from default when coin is heads and flips on tails', async () => {
+  it('sets turn order from default when coin is heads and uses second on tails', async () => {
     const wrapper = mount(DuelFormDialog, {
       global: {
         plugins: [vuetify, createTestingPinia()],
@@ -270,9 +270,9 @@ describe('DuelFormDialog.vue', () => {
     await wrapper.vm.$nextTick();
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
 
-    // 裏なら反転（先攻）
+    // 裏でも後攻
     (wrapper.vm as any).form.coin = 0;
     await wrapper.vm.$nextTick();
-    expect((wrapper.vm as any).form.first_or_second).toBe(1);
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
   });
 });
