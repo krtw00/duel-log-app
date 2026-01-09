@@ -7,6 +7,11 @@ import { ref } from 'vue';
 import { api } from '@/services/api';
 import type { Deck, GameMode } from '@/types';
 
+// localStorageのキー
+const LAST_MY_DECK_ID_KEY = 'duel-log-app:lastMyDeckId';
+const LAST_OPPONENT_DECK_ID_KEY = 'duel-log-app:lastOpponentDeckId';
+const LAST_RANK_KEY = 'duel-log-app:lastRank';
+
 interface LatestValue {
   value: number;
   deck_id: number;
@@ -56,7 +61,12 @@ export function useLatestDuelValues() {
     selectedMyDeck: Deck | null;
     selectedOpponentDeck: Deck | null;
   } => {
-    const latest = latestValues.value[gameMode];
+    const latestFromDb = latestValues.value[gameMode];
+
+    // localStorageから値を取得
+    const lastMyDeckId = localStorage.getItem(LAST_MY_DECK_ID_KEY);
+    const lastOpponentDeckId = localStorage.getItem(LAST_OPPONENT_DECK_ID_KEY);
+    const lastRank = localStorage.getItem(LAST_RANK_KEY);
 
     const result: {
       rank?: number;
@@ -69,36 +79,69 @@ export function useLatestDuelValues() {
       selectedOpponentDeck: null,
     };
 
-    if (latest) {
-      // 最新値が存在する場合
-      if (gameMode === 'RANK') {
-        result.rank = latest.value ?? DEFAULT_RANK;
-      } else if (gameMode === 'RATE') {
-        result.rate_value = latest.value ?? DEFAULT_RATE;
-      } else if (gameMode === 'DC') {
-        result.dc_value = latest.value ?? DEFAULT_DC;
-      }
-      result.selectedMyDeck = myDecks.find((d) => d.id === latest.deck_id) || null;
-      result.selectedOpponentDeck =
-        opponentDecks.find((d) => d.id === latest.opponent_deck_id) || null;
-    } else {
-      // 最新値がない場合はデフォルト値を使用
-      if (gameMode === 'RANK') {
+    // 値の適用ロジック (DB > localStorage > デフォルト)
+    // 1. RANK/RATE/DC値
+    if (gameMode === 'RANK') {
+      if (latestFromDb) {
+        result.rank = latestFromDb.value;
+      } else if (lastRank) {
+        result.rank = Number(lastRank);
+      } else {
         result.rank = DEFAULT_RANK;
-      } else if (gameMode === 'RATE') {
+      }
+    } else if (gameMode === 'RATE') {
+      if (latestFromDb) {
+        result.rate_value = latestFromDb.value;
+      } else {
         result.rate_value = DEFAULT_RATE;
-      } else if (gameMode === 'DC') {
+      }
+    } else if (gameMode === 'DC') {
+      if (latestFromDb) {
+        result.dc_value = latestFromDb.value;
+      } else {
         result.dc_value = DEFAULT_DC;
       }
     }
 
+    // 2. 使用デッキ
+    const myDeckIdToFind = latestFromDb?.deck_id ?? (lastMyDeckId ? Number(lastMyDeckId) : null);
+    if (myDeckIdToFind) {
+      result.selectedMyDeck = myDecks.find((d) => d.id === myDeckIdToFind) || null;
+    }
+
+    // 3. 相手デッキ
+    const opponentDeckIdToFind =
+      latestFromDb?.opponent_deck_id ?? (lastOpponentDeckId ? Number(lastOpponentDeckId) : null);
+    if (opponentDeckIdToFind) {
+      result.selectedOpponentDeck =
+        opponentDecks.find((d) => d.id === opponentDeckIdToFind) || null;
+    }
+
     return result;
+  };
+
+  /**
+   * 最後に使用した値をlocalStorageに保存する
+   * @param data - 保存するデータ
+   */
+  const saveLastUsedValues = (data: {
+    myDeckId: number;
+    opponentDeckId: number;
+    rank?: number;
+    gameMode: GameMode;
+  }) => {
+    localStorage.setItem(LAST_MY_DECK_ID_KEY, String(data.myDeckId));
+    localStorage.setItem(LAST_OPPONENT_DECK_ID_KEY, String(data.opponentDeckId));
+    if (data.gameMode === 'RANK' && data.rank !== undefined) {
+      localStorage.setItem(LAST_RANK_KEY, String(data.rank));
+    }
   };
 
   return {
     latestValues,
     fetchLatestValues,
     applyLatestValuesToGameMode,
+    saveLastUsedValues,
     DEFAULT_RANK,
     DEFAULT_RATE,
     DEFAULT_DC,

@@ -7,6 +7,7 @@
 - **[backend-architecture.md](./backend-architecture.md)** - FastAPI、SQLAlchemy を用いたバックエンド構造、サービスレイヤー、API設計について解説します。
 - **[frontend-architecture.md](./frontend-architecture.md)** - Vue 3 Composition API、Vuetify、Pinia を用いたフロントエンド構造、状態管理、コンポーネント設計について解説します。
 - **[db-schema.md](./db-schema.md)** - PostgreSQL データベースのテーブル定義、リレーションシップ、インデックス設計について記述します。
+- **[screen-recording-analysis.md](./screen-recording-analysis.md)** - ブラウザの画面録画から、選択権画面と勝敗（VICTORY/LOSE）を検出してイベント化する設計をまとめます。
 
 ## 🎯 このセクションを読むべき人
 
