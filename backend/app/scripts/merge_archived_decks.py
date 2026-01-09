@@ -55,12 +55,12 @@ def run_merge(db: Session):
             )
 
             # Sort by creation date to find the primary (oldest) deck
-            decks.sort(key=lambda d: d.created_at)
+            decks.sort(key=lambda d: d.createdat)
             primary_deck = decks[0]
             duplicate_decks = decks[1:]
 
             logger.info(
-                f"  Primary deck: ID {primary_deck.id} (Created: {primary_deck.created_at})"
+                f"  Primary deck: ID {primary_deck.id} (Created: {primary_deck.createdat})"
             )
 
             for duplicate_deck in duplicate_decks:
