@@ -474,14 +474,22 @@ const applyCoinDefault = (coin: 0 | 1, base: 0 | 1) => {
 
 // バリデーションルールと日時変換関数はcomposableから取得
 
-const myDeckItems = computed(() =>
-  isEdit.value ? myDecksForUser.value : myDecksForUser.value.filter((deck) => deck.active),
-);
-const opponentDeckItems = computed(() =>
-  isEdit.value
-    ? opponentDecksForUser.value
-    : opponentDecksForUser.value.filter((deck) => deck.active),
-);
+const mergeArchivedSelectedDeck = (items: Deck[], selected: Deck | string | null) => {
+  if (!selected || typeof selected === 'string') return items;
+  if (selected.active) return items;
+  if (items.some((deck) => deck.id === selected.id)) return items;
+  return [...items, selected];
+};
+const myDeckItems = computed(() => {
+  const activeDecks = myDecksForUser.value.filter((deck) => deck.active);
+  if (!isEdit.value) return activeDecks;
+  return mergeArchivedSelectedDeck(activeDecks, selectedMyDeck.value);
+});
+const opponentDeckItems = computed(() => {
+  const activeDecks = opponentDecksForUser.value.filter((deck) => deck.active);
+  if (!isEdit.value) return activeDecks;
+  return mergeArchivedSelectedDeck(activeDecks, selectedOpponentDeck.value);
+});
 
 // デッキ一覧を取得
 const fetchDecks = async (activeOnly: boolean) => {

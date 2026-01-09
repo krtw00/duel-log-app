@@ -327,6 +327,116 @@ describe('DuelFormDialog.vue', () => {
     expect((wrapper.vm as any).myDeckItems).toEqual([myDeck]);
     expect((wrapper.vm as any).opponentDeckItems).toEqual([opponentDeck]);
   });
+
+  it('does not show archived decks in edit mode (except selected)', async () => {
+    const activeMyDeck = {
+      id: 1,
+      name: 'Active My Deck',
+      is_opponent: false,
+      active: true,
+      user_id: 1,
+    };
+    const archivedMyDeck = {
+      id: 2,
+      name: 'Archived My Deck',
+      is_opponent: false,
+      active: false,
+      user_id: 1,
+    };
+    const otherUsersArchivedMyDeck = {
+      id: 999,
+      name: 'Other Archived My Deck',
+      is_opponent: false,
+      active: false,
+      user_id: 2,
+    };
+
+    const activeOpponentDeck = {
+      id: 3,
+      name: 'Active Opponent Deck',
+      is_opponent: true,
+      active: true,
+      user_id: 1,
+    };
+    const archivedOpponentDeck = {
+      id: 4,
+      name: 'Archived Opponent Deck',
+      is_opponent: true,
+      active: false,
+      user_id: 1,
+    };
+    const otherUsersArchivedOpponentDeck = {
+      id: 998,
+      name: 'Other Archived Opponent Deck',
+      is_opponent: true,
+      active: false,
+      user_id: 2,
+    };
+
+    (api.get as any).mockImplementation((url: string) => {
+      if (url.includes('/decks/?is_opponent=false'))
+        return Promise.resolve({ data: [activeMyDeck, archivedMyDeck, otherUsersArchivedMyDeck] });
+      if (url.includes('/decks/?is_opponent=true'))
+        return Promise.resolve({
+          data: [activeOpponentDeck, archivedOpponentDeck, otherUsersArchivedOpponentDeck],
+        });
+      return Promise.resolve({ data: [] });
+    });
+
+    const mockDuel = {
+      id: 1,
+      deck_id: 2,
+      opponent_deck_id: 4,
+      is_win: true,
+      game_mode: 'RANK' as const,
+      rank: 18,
+      won_coin_toss: true,
+      is_going_first: true,
+      played_date: '2023-01-01T12:00:00Z',
+      notes: 'Test notes',
+      create_date: '2023-01-01T12:00:00Z',
+      update_date: '2023-01-01T12:00:00Z',
+      user_id: 1,
+      deck: archivedMyDeck,
+      opponent_deck: archivedOpponentDeck,
+    };
+
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [
+          vuetify,
+          createTestingPinia({
+            initialState: {
+              auth: {
+                user: {
+                  id: 1,
+                  email: 'test@example.com',
+                  username: 'testuser',
+                  streamer_mode: false,
+                  theme_preference: 'dark',
+                },
+                isInitialized: true,
+              },
+            },
+          }),
+        ],
+      },
+      props: {
+        modelValue: true,
+        defaultGameMode: 'RANK',
+        duel: mockDuel,
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await wrapper.vm.$nextTick();
+
+    expect((wrapper.vm as any).myDeckItems).toEqual([activeMyDeck, archivedMyDeck]);
+    expect((wrapper.vm as any).opponentDeckItems).toEqual([
+      activeOpponentDeck,
+      archivedOpponentDeck,
+    ]);
+  });
   it('sets turn order from default when coin is heads and uses second on tails', async () => {
     const wrapper = mount(DuelFormDialog, {
       global: {
