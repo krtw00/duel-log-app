@@ -99,8 +99,12 @@ const executeMerge = async () => {
     successSnackbar.value = true;
   } catch (error: any) {
     console.error('Merge failed:', error);
+    console.error('Error response:', error.response);
+    console.error('Error data:', error.response?.data);
     errorMessage.value =
-      error.response?.data?.detail || 'マージに失敗しました';
+      error.response?.data?.detail ||
+      error.message ||
+      'マージに失敗しました';
     errorSnackbar.value = true;
   } finally {
     merging.value = false;
