@@ -117,7 +117,9 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
     ) -> None:
         """指定されたデッキIDがユーザーに属しているかを検証。"""
         if deck_id is not None:
-            deck = deck_service.get_by_id(db=db, id=deck_id, user_id=user_id)
+            deck = deck_service.get_by_id(
+                db=db, id=deck_id, user_id=user_id, include_inactive=True
+            )
             if not deck:
                 raise ValueError("使用デッキが見つかりません")
             if getattr(deck, "is_opponent", False):
@@ -127,7 +129,10 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
 
         if opponent_deck_id is not None:
             opponent_deck = deck_service.get_by_id(
-                db=db, id=opponent_deck_id, user_id=user_id
+                db=db,
+                id=opponent_deck_id,
+                user_id=user_id,
+                include_inactive=True,
             )
             if not opponent_deck:
                 raise ValueError("相手デッキが見つかりません")
