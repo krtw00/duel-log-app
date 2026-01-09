@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/krtw00/duel-log-app/compare/v1.3.1...v1.3.2) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **security:** scope decks by user ([192dd5b](https://github.com/krtw00/duel-log-app/commit/192dd5ba472775e4e85224563a4d945cda7957a5))
+
 ## [1.3.1](https://github.com/krtw00/duel-log-app/compare/v1.3.0...v1.3.1) (2026-01-09)
 
 
