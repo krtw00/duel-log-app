@@ -30,6 +30,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     streamer_mode: bool
     theme_preference: str
+    is_admin: bool
     createdat: Optional[datetime]
     updatedat: Optional[datetime]
 
