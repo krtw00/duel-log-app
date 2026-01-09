@@ -28,6 +28,7 @@ describe('ProfileView.vue', () => {
       username: 'testuser',
       streamer_mode: false,
       theme_preference: 'dark',
+      is_admin: false,
     };
 
     const wrapper = mount(ProfileView, {
@@ -55,6 +56,7 @@ describe('ProfileView.vue', () => {
       username: 'testuser',
       streamer_mode: false,
       theme_preference: 'dark',
+      is_admin: false,
     };
 
     const wrapper = mount(ProfileView, {
@@ -83,6 +85,7 @@ describe('ProfileView.vue', () => {
       username: 'testuser',
       streamer_mode: false,
       theme_preference: 'dark',
+      is_admin: false,
     };
 
     const wrapper = mount(ProfileView, {
