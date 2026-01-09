@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/krtw00/duel-log-app/compare/v1.7.1...v1.7.2) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **backend:** add exception chaining in admin router ([0dfe18c](https://github.com/krtw00/duel-log-app/commit/0dfe18ca7b25aefc8f6429f403c80bae33d09e21))
+
 ## [1.7.1](https://github.com/krtw00/duel-log-app/compare/v1.7.0...v1.7.1) (2026-01-09)
 
 
