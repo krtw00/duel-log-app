@@ -1,3 +1,16 @@
+## [1.6.0](https://github.com/krtw00/duel-log-app/compare/v1.5.0...v1.6.0) (2026-01-09)
+
+
+### ✨ Features
+
+* **backend:** add script to merge duplicate archived decks ([2cbde05](https://github.com/krtw00/duel-log-app/commit/2cbde0573bb89f640a7ce40ac16af48ae3786bcb))
+
+
+### 🐛 Bug Fixes
+
+* **backend:** remove unused import in merge script ([99a5cba](https://github.com/krtw00/duel-log-app/commit/99a5cbaded42213bd95d88e2b4f589938924fbaa))
+* **backend:** resolve linting errors in merge script ([aa4af99](https://github.com/krtw00/duel-log-app/commit/aa4af9987cd8f82275e97e1d485c3a234b67852e))
+
 ## [1.5.0](https://github.com/krtw00/duel-log-app/compare/v1.4.1...v1.5.0) (2026-01-09)
 
 
