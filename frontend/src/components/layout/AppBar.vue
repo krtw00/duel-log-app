@@ -61,6 +61,12 @@
           </template>
           <v-list-item-title>プロフィール</v-list-item-title>
         </v-list-item>
+        <v-list-item v-if="authStore.user?.is_admin" to="/admin">
+          <template #prepend>
+            <v-icon>mdi-shield-crown</v-icon>
+          </template>
+          <v-list-item-title>管理者画面</v-list-item-title>
+        </v-list-item>
         <v-list-item @click="authStore.logout">
           <template #prepend>
             <v-icon>mdi-logout</v-icon>
@@ -80,7 +86,7 @@ import { useThemeStore } from '@/stores/theme';
 import { maskEmail } from '@/utils/maskEmail';
 
 defineProps<{
-  currentView: 'dashboard' | 'decks' | 'statistics' | 'profile';
+  currentView: 'dashboard' | 'decks' | 'statistics' | 'profile' | 'admin';
 }>();
 
 defineEmits(['toggle-drawer']);
