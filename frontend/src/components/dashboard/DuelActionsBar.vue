@@ -2,40 +2,6 @@
   <div>
     <!-- スマホ用: 縦並びボタン -->
     <div class="d-flex d-sm-none flex-column ga-2">
-      <div class="default-toggle d-flex align-center ga-2">
-        <v-tooltip
-          text="新規追加時の初期値（先攻/後攻）"
-          location="top"
-          content-class="default-turn-tooltip"
-        >
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-tune-variant"
-              variant="text"
-              density="compact"
-              class="default-toggle__icon"
-            />
-          </template>
-        </v-tooltip>
-        <v-btn-toggle
-          :model-value="defaultFirstOrSecond"
-          mandatory
-          divided
-          density="compact"
-          variant="outlined"
-          color="primary"
-          selected-class="default-toggle__selected"
-          class="default-toggle__toggle"
-          @update:model-value="$emit('update:defaultFirstOrSecond', $event)"
-        >
-          <v-btn :value="0" size="small">後攻</v-btn>
-          <v-btn :value="1" size="small">先攻</v-btn>
-        </v-btn-toggle>
-      </div>
-      <v-btn color="primary" prepend-icon="mdi-plus" block size="large" @click="$emit('add-duel')">
-        対戦記録を追加
-      </v-btn>
       <div class="d-flex ga-2">
         <v-btn
           color="secondary"
@@ -79,40 +45,6 @@
       <v-btn color="info" prepend-icon="mdi-share-variant" @click="$emit('share-data')">
         共有リンクを生成
       </v-btn>
-      <div class="default-toggle d-flex align-center ga-2">
-        <v-tooltip
-          text="新規追加時の初期値（先攻/後攻）"
-          location="top"
-          content-class="default-turn-tooltip"
-        >
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-tune-variant"
-              variant="text"
-              density="compact"
-              class="default-toggle__icon"
-            />
-          </template>
-        </v-tooltip>
-        <v-btn-toggle
-          :model-value="defaultFirstOrSecond"
-          mandatory
-          divided
-          density="compact"
-          variant="outlined"
-          color="primary"
-          selected-class="default-toggle__selected"
-          class="default-toggle__toggle"
-          @update:model-value="$emit('update:defaultFirstOrSecond', $event)"
-        >
-          <v-btn :value="0" size="small">後攻</v-btn>
-          <v-btn :value="1" size="small">先攻</v-btn>
-        </v-btn-toggle>
-      </div>
-      <v-btn color="primary" prepend-icon="mdi-plus" class="add-btn" @click="$emit('add-duel')">
-        対戦記録を追加
-      </v-btn>
     </div>
 
     <input
@@ -130,83 +62,14 @@ import { ref } from 'vue';
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
-withDefaults(
-  defineProps<{
-    defaultFirstOrSecond?: 0 | 1;
-  }>(),
-  {
-    defaultFirstOrSecond: 1,
-  },
-);
-
 defineEmits<{
-  'add-duel': [];
   'export-csv': [];
   'import-csv': [];
   'share-data': [];
   'file-change': [event: Event];
-  'update:defaultFirstOrSecond': [value: 0 | 1];
 }>();
 
 defineExpose({
   fileInputRef,
 });
 </script>
-
-<style scoped>
-.add-btn {
-  font-weight: 600;
-}
-
-.default-toggle__icon {
-  opacity: 0.9;
-}
-
-.default-toggle__toggle {
-  border-width: 2px;
-  background: rgba(var(--v-theme-surface), 0.9);
-  border-color: rgba(var(--v-theme-on-surface), 0.25) !important;
-}
-
-.default-toggle__selected {
-  background: rgba(var(--v-theme-primary), 0.25) !important;
-  border-color: rgb(var(--v-theme-primary)) !important;
-}
-
-.default-toggle__toggle :deep(.v-btn) {
-  font-weight: 600;
-}
-
-/* 読みやすさ優先: ライト=黒 / ダーク=白 */
-:deep(.v-theme--customLightTheme) .default-toggle__toggle :deep(.v-btn),
-:deep(.v-theme--customLightTheme) .default-toggle__icon {
-  color: #000 !important;
-}
-
-:deep(.v-theme--customDarkTheme) .default-toggle__toggle :deep(.v-btn),
-:deep(.v-theme--customDarkTheme) .default-toggle__icon {
-  color: #fff !important;
-}
-
-/* Tooltip（teleport先でも効くようにglobal指定） */
-:global(.default-turn-tooltip) {
-  font-weight: 600;
-  padding: 8px 10px;
-  border-radius: 8px;
-  opacity: 1 !important;
-}
-
-:global(.v-theme--customLightTheme .default-turn-tooltip),
-:global(.v-theme--customLightTheme.default-turn-tooltip) {
-  color: #000 !important;
-  background: #fff !important;
-  border: 1px solid rgba(0, 0, 0, 0.25) !important;
-}
-
-:global(.v-theme--customDarkTheme .default-turn-tooltip),
-:global(.v-theme--customDarkTheme.default-turn-tooltip) {
-  color: #fff !important;
-  background: #111 !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-}
-</style>
