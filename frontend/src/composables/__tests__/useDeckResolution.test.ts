@@ -13,7 +13,7 @@ describe('useDeckResolution', () => {
   });
 
   describe('createDeckIfNeeded', () => {
-    it('既存のデッキが存在する場合はIDを返す', async () => {
+    it('既存のデッキが存在する場合はデッキを返す', async () => {
       const { createDeckIfNeeded } = useDeckResolution();
       const existingDecks: Deck[] = [
         { id: 1, name: 'テストデッキ', is_opponent: false, active: true },
@@ -22,7 +22,7 @@ describe('useDeckResolution', () => {
 
       const result = await createDeckIfNeeded('テストデッキ', false, existingDecks);
 
-      expect(result).toBe(1);
+      expect(result).toEqual(existingDecks[0]);
       expect(api.post).not.toHaveBeenCalled();
     });
 
@@ -35,7 +35,7 @@ describe('useDeckResolution', () => {
 
       const result = await createDeckIfNeeded('新デッキ', false, existingDecks);
 
-      expect(result).toBe(3);
+      expect(result).toEqual(newDeck);
       expect(api.post).toHaveBeenCalledWith('/decks/', {
         name: '新デッキ',
         is_opponent: false,
@@ -62,7 +62,7 @@ describe('useDeckResolution', () => {
 
       const result = await createDeckIfNeeded('既存デッキ', false, existingDecks);
 
-      expect(result).toBe(1);
+      expect(result).toEqual(existingDecks[0]);
     });
 
     it('重複エラー時に取得したデッキからIDを解決する', async () => {
@@ -77,7 +77,7 @@ describe('useDeckResolution', () => {
 
       const result = await createDeckIfNeeded('イベントデッキ', false, existingDecks);
 
-      expect(result).toBe(5);
+      expect(result).toEqual(decksResponse[0]);
       expect(api.get).toHaveBeenCalledWith('/decks/', {
         params: { is_opponent: false, active_only: false },
       });
@@ -85,14 +85,14 @@ describe('useDeckResolution', () => {
   });
 
   describe('resolveDeckId', () => {
-    it('Deckオブジェクトの場合はIDを返す', async () => {
+    it('Deckオブジェクトの場合はそのまま返す', async () => {
       const { resolveDeckId } = useDeckResolution();
       const deck: Deck = { id: 5, name: 'デッキ', is_opponent: false, active: true };
       const existingDecks: Deck[] = [];
 
       const result = await resolveDeckId(deck, false, existingDecks);
 
-      expect(result).toBe(5);
+      expect(result).toEqual(deck);
     });
 
     it('文字列の場合は新しいデッキを作成', async () => {
@@ -104,7 +104,7 @@ describe('useDeckResolution', () => {
 
       const result = await resolveDeckId('新規', true, existingDecks);
 
-      expect(result).toBe(10);
+      expect(result).toEqual(newDeck);
       expect(api.post).toHaveBeenCalledWith('/decks/', {
         name: '新規',
         is_opponent: true,

@@ -15,13 +15,13 @@ export function useDeckResolution() {
    * @param name - デッキ名
    * @param isOpponent - 相手のデッキかどうか
    * @param existingDecks - 既存のデッキリスト
-   * @returns デッキID
+   * @returns デッキ
    */
   const createDeckIfNeeded = async (
     name: string,
     isOpponent: boolean,
     existingDecks: Deck[],
-  ): Promise<number | null> => {
+  ): Promise<Deck | null> => {
     try {
       const trimmedName = name.trim();
       if (!trimmedName) {
@@ -31,7 +31,7 @@ export function useDeckResolution() {
       // 既存のデッキを検索
       const existingDeck = existingDecks.find((d) => d.name === trimmedName);
       if (existingDeck) {
-        return existingDeck.id;
+        return existingDeck;
       }
 
       // 新しいデッキを作成
@@ -44,14 +44,14 @@ export function useDeckResolution() {
       const deckType = isOpponent ? '相手のデッキ' : '自分のデッキ';
       notificationStore.success(`${deckType}「${trimmedName}」を登録しました`);
 
-      return newDeck.id;
+      return newDeck;
     } catch (error: unknown) {
       // 重複エラーの場合は既存のデッキを検索
       const axiosError = error as { response?: { status?: number } };
       if (axiosError.response?.status === 400) {
         const trimmedName = name.trim();
         const existingDeck = existingDecks.find((d) => d.name === trimmedName);
-        if (existingDeck) return existingDeck.id;
+        if (existingDeck) return existingDeck;
         try {
           const response = await api.get('/decks/', {
             params: {
@@ -61,7 +61,7 @@ export function useDeckResolution() {
           });
           const decks: Deck[] = response.data;
           const matched = decks.find((deck) => deck.name === trimmedName);
-          if (matched) return matched.id;
+          if (matched) return matched;
         } catch (fetchError) {
           console.error('Failed to fetch decks after duplicate error:', fetchError);
         }
@@ -72,24 +72,24 @@ export function useDeckResolution() {
   };
 
   /**
-   * デッキIDを解決（既存デッキまたは新規作成）
-   * @param selected - 選択されたデッキ（オブジェクトまたは文字列）
+   * デッキを解決（既存デッキまたは新規作成）
+   * @param selected - 選択されたデッキ（オブジェクト・ID・文字列）
    * @param isOpponent - 相手のデッキかどうか
    * @param existingDecks - 既存のデッキリスト
-   * @returns デッキID
+   * @returns デッキ
    */
   const resolveDeckId = async (
     selected: Deck | string | null,
     isOpponent: boolean,
     existingDecks: Deck[],
-  ): Promise<number | null> => {
+  ): Promise<Deck | null> => {
     if (!selected) {
       return null;
     }
 
     // オブジェクトの場合（既存のデッキを選択）
     if (typeof selected === 'object' && selected.id) {
-      return selected.id;
+      return selected;
     }
 
     // 文字列の場合（新しいデッキ名を入力）
