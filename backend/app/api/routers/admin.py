@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_admin_user, get_db
 from app.models.user import User
 from app.schemas.admin import (
     UpdateAdminStatusRequest,
@@ -24,31 +24,6 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 # ロガー初期化
 logger = logging.getLogger(__name__)
-
-
-def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
-    """
-    管理者権限を持つユーザーかどうかを検証する依存関数
-
-    Args:
-        current_user: 現在のログインユーザー
-
-    Returns:
-        管理者ユーザー
-
-    Raises:
-        HTTPException: 管理者権限がない場合
-    """
-    if not current_user.is_admin:
-        logger.warning(
-            f"Non-admin user {current_user.username} attempted to access admin endpoint"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin privileges required",
-        )
-
-    return current_user
 
 
 @router.get("/users", response_model=UsersListResponse)
