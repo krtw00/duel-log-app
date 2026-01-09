@@ -153,10 +153,15 @@ def create_duel(
         作成されたデュエル
     """
     try:
-        return duel_service.create_user_duel(db=db, user_id=current_user.id, duel_in=duel)
+        return duel_service.create_user_duel(
+            db=db,
+            user_id=current_user.id,
+            duel_in=duel,
+        )
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
         ) from e
 
 
@@ -214,11 +219,15 @@ def update_duel(
     """
     try:
         updated_duel = duel_service.update_user_duel(
-            db=db, user_id=current_user.id, duel_id=duel_id, duel_in=duel
+            db=db,
+            user_id=current_user.id,
+            duel_id=duel_id,
+            duel_in=duel,
         )
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
         ) from e
 
     if not updated_duel:
