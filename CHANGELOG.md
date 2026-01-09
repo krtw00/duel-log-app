@@ -1,3 +1,41 @@
+## [1.3.2](https://github.com/krtw00/duel-log-app/compare/v1.3.1...v1.3.2) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **security:** scope decks by user ([192dd5b](https://github.com/krtw00/duel-log-app/commit/192dd5ba472775e4e85224563a4d945cda7957a5))
+
+## [1.3.1](https://github.com/krtw00/duel-log-app/compare/v1.3.0...v1.3.1) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** remove unused saveLastUsedValues ([47d0695](https://github.com/krtw00/duel-log-app/commit/47d0695ec499ea4e98d081fe1c5648f0c1d94a52))
+
+## [1.3.0](https://github.com/krtw00/duel-log-app/compare/v1.2.1...v1.3.0) (2026-01-09)
+
+
+### ✨ Features
+
+* **frontend:** add duel entry screen analysis ([bf91edc](https://github.com/krtw00/duel-log-app/commit/bf91edce4b0a79e19bc21fc95757057b356f9ec2))
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** hide game mode tabs in edit dialog ([c11caaa](https://github.com/krtw00/duel-log-app/commit/c11caaa65b6995c0e38273d3a0ef88f4f257bb62))
+* **frontend:** hide screen analysis in edit dialog ([ce4a12f](https://github.com/krtw00/duel-log-app/commit/ce4a12f9d99a7bd851eb40c94b34e6e59e009725))
+* **frontend:** resolve deck id after duplicate ([a0e821a](https://github.com/krtw00/duel-log-app/commit/a0e821ab31dc30dd247312e45e14537dd1bacb68))
+
+
+### 📝 Documentation
+
+* add screen recording analysis notes ([42f18ae](https://github.com/krtw00/duel-log-app/commit/42f18aeca46a3230c2abb62ed459d260c73bc63f))
+
+
+### ♻️ Code Refactoring
+
+* **frontend:** remove game mode tabs from duel form ([7d34983](https://github.com/krtw00/duel-log-app/commit/7d349838a253d9ff8be22c7c9ce38d55f609a8ee))
+
 ## [1.2.1](https://github.com/krtw00/duel-log-app/compare/v1.2.0...v1.2.1) (2026-01-09)
 
 
