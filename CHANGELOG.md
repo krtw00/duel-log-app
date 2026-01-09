@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/krtw00/duel-log-app/compare/v1.3.0...v1.3.1) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** remove unused saveLastUsedValues ([47d0695](https://github.com/krtw00/duel-log-app/commit/47d0695ec499ea4e98d081fe1c5648f0c1d94a52))
+
 ## [1.3.0](https://github.com/krtw00/duel-log-app/compare/v1.2.1...v1.3.0) (2026-01-09)
 
 
