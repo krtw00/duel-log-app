@@ -5,6 +5,7 @@
 
 import { ref } from 'vue';
 import { api } from '@/services/api';
+import { useAuthStore } from '@/stores/auth';
 import type { Deck, GameMode } from '@/types';
 
 // localStorageのキー
@@ -29,6 +30,27 @@ const DEFAULT_DC = 0;
 
 export function useLatestDuelValues() {
   const latestValues = ref<LatestValues>({});
+  const authStore = useAuthStore();
+
+  const buildStorageKey = (base: string, userId: number | null) => {
+    return userId ? `${base}:${userId}` : base;
+  };
+
+  const getStorageItem = (base: string) => {
+    const userId = authStore.user?.id ?? null;
+    const scopedKey = buildStorageKey(base, userId);
+    return localStorage.getItem(scopedKey) ?? localStorage.getItem(base);
+  };
+
+  const setStorageItem = (base: string, value: string) => {
+    const userId = authStore.user?.id ?? null;
+    const scopedKey = buildStorageKey(base, userId);
+    localStorage.setItem(scopedKey, value);
+    if (userId) {
+      // backward compat: remove old unscoped keys to avoid cross-user leakage
+      localStorage.removeItem(base);
+    }
+  };
 
   /**
    * 最新値をAPIから取得
@@ -64,9 +86,9 @@ export function useLatestDuelValues() {
     const latestFromDb = latestValues.value[gameMode];
 
     // localStorageから値を取得
-    const lastMyDeckId = localStorage.getItem(LAST_MY_DECK_ID_KEY);
-    const lastOpponentDeckId = localStorage.getItem(LAST_OPPONENT_DECK_ID_KEY);
-    const lastRank = localStorage.getItem(LAST_RANK_KEY);
+    const lastMyDeckId = getStorageItem(LAST_MY_DECK_ID_KEY);
+    const lastOpponentDeckId = getStorageItem(LAST_OPPONENT_DECK_ID_KEY);
+    const lastRank = getStorageItem(LAST_RANK_KEY);
 
     const result: {
       rank?: number;
@@ -130,10 +152,10 @@ export function useLatestDuelValues() {
     rank?: number;
     gameMode: GameMode;
   }) => {
-    localStorage.setItem(LAST_MY_DECK_ID_KEY, String(data.myDeckId));
-    localStorage.setItem(LAST_OPPONENT_DECK_ID_KEY, String(data.opponentDeckId));
+    setStorageItem(LAST_MY_DECK_ID_KEY, String(data.myDeckId));
+    setStorageItem(LAST_OPPONENT_DECK_ID_KEY, String(data.opponentDeckId));
     if (data.gameMode === 'RANK' && data.rank !== undefined) {
-      localStorage.setItem(LAST_RANK_KEY, String(data.rank));
+      setStorageItem(LAST_RANK_KEY, String(data.rank));
     }
   };
 
