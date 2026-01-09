@@ -250,7 +250,49 @@ describe('DuelFormDialog.vue', () => {
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
   });
 
-  it('sets turn order from default when coin is heads and flips on tails', async () => {
+  it('does not prefill opponent deck in create mode', async () => {
+    const myDeck = { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 1 };
+    const opponentDeck = {
+      id: 2,
+      name: 'Opponent Deck',
+      is_opponent: true,
+      active: true,
+      user_id: 1,
+    };
+
+    (api.get as any).mockImplementation((url: string) => {
+      if (url.includes('/decks/?is_opponent=false')) return Promise.resolve({ data: [myDeck] });
+      if (url.includes('/decks/?is_opponent=true')) return Promise.resolve({ data: [opponentDeck] });
+      if (url === '/duels/latest-values/') {
+        return Promise.resolve({
+          data: {
+            RANK: { value: 18, deck_id: 1, opponent_deck_id: 2 },
+          },
+        });
+      }
+      return Promise.resolve({ data: [] });
+    });
+
+    const wrapper = mount(DuelFormDialog, {
+      global: {
+        plugins: [vuetify, createTestingPinia()],
+      },
+      props: {
+        modelValue: false,
+        defaultGameMode: 'RANK',
+        duel: null,
+      },
+    });
+
+    await wrapper.setProps({ modelValue: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await wrapper.vm.$nextTick();
+
+    expect((wrapper.vm as any).selectedMyDeck).toEqual(myDeck);
+    expect((wrapper.vm as any).selectedOpponentDeck).toBe(null);
+  });
+
+  it('sets turn order from default when coin is heads and uses second on tails', async () => {
     const wrapper = mount(DuelFormDialog, {
       global: {
         plugins: [vuetify, createTestingPinia()],
@@ -270,9 +312,9 @@ describe('DuelFormDialog.vue', () => {
     await wrapper.vm.$nextTick();
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
 
-    // 裏なら反転（先攻）
+    // 裏でも後攻
     (wrapper.vm as any).form.coin = 0;
     await wrapper.vm.$nextTick();
-    expect((wrapper.vm as any).form.first_or_second).toBe(1);
+    expect((wrapper.vm as any).form.first_or_second).toBe(0);
   });
 });
