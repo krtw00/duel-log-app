@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.duel import Duel
 from app.schemas.duel import DuelCreate, DuelUpdate
+from app.services.deck_service import deck_service
 from app.services.base import BaseService
 from app.utils.query_builders import apply_duel_filters
 
@@ -66,7 +67,27 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
 
     def create_user_duel(self, db: Session, user_id: int, duel_in: DuelCreate) -> Duel:
         """ユーザーのデュエルを作成。"""
+        self._validate_deck_ids(
+            db=db,
+            user_id=user_id,
+            deck_id=duel_in.deck_id,
+            opponent_deck_id=duel_in.opponent_deck_id,
+        )
         return self.create(db, duel_in, user_id=user_id)
+
+    def update_user_duel(
+        self, db: Session, user_id: int, duel_id: int, duel_in: DuelUpdate
+    ) -> Optional[Duel]:
+        """ユーザーのデュエルを更新。"""
+        if duel_in.deck_id is not None or duel_in.opponent_deck_id is not None:
+            self._validate_deck_ids(
+                db=db,
+                user_id=user_id,
+                deck_id=duel_in.deck_id,
+                opponent_deck_id=duel_in.opponent_deck_id,
+                allow_missing=True,
+            )
+        return self.update(db, duel_id, duel_in, user_id=user_id)
 
     def get_win_rate(
         self, db: Session, user_id: int, deck_id: Optional[int] = None
@@ -85,6 +106,35 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         wins = query.filter(Duel.is_win).count()
 
         return wins / total_duels
+
+    def _validate_deck_ids(
+        self,
+        db: Session,
+        user_id: int,
+        deck_id: Optional[int],
+        opponent_deck_id: Optional[int],
+        allow_missing: bool = False,
+    ) -> None:
+        """指定されたデッキIDがユーザーに属しているかを検証。"""
+        if deck_id is not None:
+            deck = deck_service.get_by_id(db=db, id=deck_id, user_id=user_id)
+            if not deck:
+                raise ValueError("使用デッキが見つかりません")
+            if getattr(deck, "is_opponent", False):
+                raise ValueError("使用デッキの指定が不正です")
+        elif not allow_missing:
+            raise ValueError("使用デッキが未指定です")
+
+        if opponent_deck_id is not None:
+            opponent_deck = deck_service.get_by_id(
+                db=db, id=opponent_deck_id, user_id=user_id
+            )
+            if not opponent_deck:
+                raise ValueError("相手デッキが見つかりません")
+            if not getattr(opponent_deck, "is_opponent", True):
+                raise ValueError("相手デッキの指定が不正です")
+        elif not allow_missing:
+            raise ValueError("相手デッキが未指定です")
 
     def get_latest_duel_values(self, db: Session, user_id: int) -> dict:
         """ユーザーの各ゲームモードにおける最新のランク、レート、DC値を取得。"""

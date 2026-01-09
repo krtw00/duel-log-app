@@ -252,8 +252,15 @@ describe('DuelFormDialog.vue', () => {
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
   });
 
-  it('does not prefill opponent deck in create mode', async () => {
+  it('prefills decks in create mode and filters by current user', async () => {
     const myDeck = { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 1 };
+    const otherUsersMyDeck = {
+      id: 999,
+      name: 'Other My Deck',
+      is_opponent: false,
+      active: true,
+      user_id: 2,
+    };
     const opponentDeck = {
       id: 2,
       name: 'Opponent Deck',
@@ -261,10 +268,19 @@ describe('DuelFormDialog.vue', () => {
       active: true,
       user_id: 1,
     };
+    const otherUsersOpponentDeck = {
+      id: 998,
+      name: 'Other Opponent Deck',
+      is_opponent: true,
+      active: true,
+      user_id: 2,
+    };
 
     (api.get as any).mockImplementation((url: string) => {
-      if (url.includes('/decks/?is_opponent=false')) return Promise.resolve({ data: [myDeck] });
-      if (url.includes('/decks/?is_opponent=true')) return Promise.resolve({ data: [opponentDeck] });
+      if (url.includes('/decks/?is_opponent=false'))
+        return Promise.resolve({ data: [myDeck, otherUsersMyDeck] });
+      if (url.includes('/decks/?is_opponent=true'))
+        return Promise.resolve({ data: [opponentDeck, otherUsersOpponentDeck] });
       if (url === '/duels/latest-values/') {
         return Promise.resolve({
           data: {
@@ -277,7 +293,23 @@ describe('DuelFormDialog.vue', () => {
 
     const wrapper = mount(DuelFormDialog, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [
+          vuetify,
+          createTestingPinia({
+            initialState: {
+              auth: {
+                user: {
+                  id: 1,
+                  email: 'test@example.com',
+                  username: 'testuser',
+                  streamer_mode: false,
+                  theme_preference: 'dark',
+                },
+                isInitialized: true,
+              },
+            },
+          }),
+        ],
       },
       props: {
         modelValue: false,
@@ -291,7 +323,9 @@ describe('DuelFormDialog.vue', () => {
     await wrapper.vm.$nextTick();
 
     expect((wrapper.vm as any).selectedMyDeck).toEqual(myDeck);
-    expect((wrapper.vm as any).selectedOpponentDeck).toBe(null);
+    expect((wrapper.vm as any).selectedOpponentDeck).toEqual(opponentDeck);
+    expect((wrapper.vm as any).myDeckItems).toEqual([myDeck]);
+    expect((wrapper.vm as any).opponentDeckItems).toEqual([opponentDeck]);
   });
   it('sets turn order from default when coin is heads and uses second on tails', async () => {
     const wrapper = mount(DuelFormDialog, {

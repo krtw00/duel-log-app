@@ -233,11 +233,7 @@ export function useScreenCaptureAnalysis() {
     if (!coinWinTemplate || !coinLoseTemplate || !ctx || !canvas) return;
     if (now < turnChoiceCooldownUntil) return;
 
-    const rect = roiToRect(
-      SCREEN_ANALYSIS_CONFIG.turnChoice.roi,
-      canvas.width,
-      canvas.height,
-    );
+    const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.turnChoice.roi, canvas.width, canvas.height);
     const image = extractAndPreprocess(ctx, rect, {
       downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
       useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
@@ -298,11 +294,7 @@ export function useScreenCaptureAnalysis() {
       useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
     });
 
-    const score = matchTemplateNcc(
-      image,
-      okButtonTemplate,
-      SCREEN_ANALYSIS_CONFIG.okButton.stride,
-    );
+    const score = matchTemplateNcc(image, okButtonTemplate, SCREEN_ANALYSIS_CONFIG.okButton.stride);
     lastScores.value = { ...lastScores.value, okButton: score };
 
     if (score >= SCREEN_ANALYSIS_CONFIG.okButton.threshold) {
@@ -329,16 +321,8 @@ export function useScreenCaptureAnalysis() {
       useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
     });
 
-    const winScore = matchTemplateNcc(
-      image,
-      winTemplate,
-      SCREEN_ANALYSIS_CONFIG.result.stride,
-    );
-    const loseScore = matchTemplateNcc(
-      image,
-      loseTemplate,
-      SCREEN_ANALYSIS_CONFIG.result.stride,
-    );
+    const winScore = matchTemplateNcc(image, winTemplate, SCREEN_ANALYSIS_CONFIG.result.stride);
+    const loseScore = matchTemplateNcc(image, loseTemplate, SCREEN_ANALYSIS_CONFIG.result.stride);
     lastScores.value = { ...lastScores.value, win: winScore, lose: loseScore };
 
     if (!okButtonAvailable.value) {
