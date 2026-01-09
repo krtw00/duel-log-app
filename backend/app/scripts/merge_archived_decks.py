@@ -4,10 +4,12 @@ import logging
 import os
 import sys
 from collections import defaultdict
+
+from sqlalchemy import is_
 from sqlalchemy.orm import Session
 
 # Ensure the app path is in the sys.path to allow for absolute imports
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from app.db.session import SessionLocal
 from app.models.deck import Deck
@@ -36,7 +38,9 @@ def run_merge(db: Session):
     for user in users:
         logger.info(f"Processing user: {user.username} (ID: {user.id})")
 
-        archived_decks = db.query(Deck).filter(Deck.user_id == user.id, Deck.active == False).all()
+        archived_decks = (
+            db.query(Deck).filter(Deck.user_id == user.id, Deck.active.is_(False)).all()
+        )
 
         decks_by_name = defaultdict(list)
         for deck in archived_decks:
@@ -47,31 +51,45 @@ def run_merge(db: Session):
             if len(decks) < 2:
                 continue
 
-            logger.info(f"Found {len(decks)} archived decks with name '{name}'. Merging...")
+            logger.info(
+                f"Found {len(decks)} archived decks with name '{name}'. Merging..."
+            )
 
             # Sort by creation date to find the primary (oldest) deck
             decks.sort(key=lambda d: d.created_at)
             primary_deck = decks[0]
             duplicate_decks = decks[1:]
 
-            logger.info(f"  Primary deck: ID {primary_deck.id} (Created: {primary_deck.created_at})")
+            logger.info(
+                f"  Primary deck: ID {primary_deck.id} (Created: {primary_deck.created_at})"
+            )
 
             for duplicate_deck in duplicate_decks:
-                logger.info(f"  Merging duplicate deck ID {duplicate_deck.id} into primary deck ID {primary_deck.id}")
+                logger.info(
+                    f"  Merging duplicate deck ID {duplicate_deck.id} into primary deck ID {primary_deck.id}"
+                )
 
                 # 1. Update duels where the user's deck was the duplicate
-                duels_as_main_deck_count = db.query(Duel).filter(
-                    Duel.deck_id == duplicate_deck.id
-                ).update({"deck_id": primary_deck.id})
-                logger.info(f"    - Updated {duels_as_main_deck_count} duel(s) (as main deck).")
+                duels_as_main_deck_count = (
+                    db.query(Duel)
+                    .filter(Duel.deck_id == duplicate_deck.id)
+                    .update({"deck_id": primary_deck.id})
+                )
+                logger.info(
+                    f"    - Updated {duels_as_main_deck_count} duel(s) (as main deck)."
+                )
 
                 # 2. Update duels where the opponent's deck was the duplicate
                 # Note: 'opponentDeck_id' is the current column name from the schema.
-                duels_as_opponent_deck_count = db.query(Duel).filter(
-                    Duel.opponentDeck_id == duplicate_deck.id
-                ).update({"opponentDeck_id": primary_deck.id})
-                logger.info(f"    - Updated {duels_as_opponent_deck_count} duel(s) (as opponent deck).")
-                
+                duels_as_opponent_deck_count = (
+                    db.query(Duel)
+                    .filter(Duel.opponentDeck_id == duplicate_deck.id)
+                    .update({"opponentDeck_id": primary_deck.id})
+                )
+                logger.info(
+                    f"    - Updated {duels_as_opponent_deck_count} duel(s) (as opponent deck)."
+                )
+
                 # 3. Delete the duplicate deck
                 db.delete(duplicate_deck)
                 logger.info(f"    - Deleted duplicate deck ID {duplicate_deck.id}.")
@@ -81,7 +99,9 @@ def run_merge(db: Session):
             logger.info(f"Committing changes for user {user.username}.")
             db.commit()
         else:
-            logger.info(f"No duplicate archived decks to merge for user {user.username}.")
+            logger.info(
+                f"No duplicate archived decks to merge for user {user.username}."
+            )
 
     logger.info("--- Archive merge process finished ---")
 
@@ -91,7 +111,7 @@ if __name__ == "__main__":
     db = SessionLocal()
     try:
         run_merge(db)
-    except Exception as e:
+    except Exception:
         logger.error("An error occurred during the merge process.", exc_info=True)
         db.rollback()
     finally:
