@@ -152,7 +152,17 @@ def create_duel(
     Returns:
         作成されたデュエル
     """
-    return duel_service.create_user_duel(db=db, user_id=current_user.id, duel_in=duel)
+    try:
+        return duel_service.create_user_duel(
+            db=db,
+            user_id=current_user.id,
+            duel_in=duel,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
 
 
 @router.get("/{duel_id}", response_model=DuelRead, response_model_by_alias=True)
@@ -207,9 +217,18 @@ def update_duel(
     Raises:
         HTTPException: デュエルが見つからない場合
     """
-    updated_duel = duel_service.update(
-        db=db, id=duel_id, obj_in=duel, user_id=current_user.id
-    )
+    try:
+        updated_duel = duel_service.update_user_duel(
+            db=db,
+            user_id=current_user.id,
+            duel_id=duel_id,
+            duel_in=duel,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
 
     if not updated_duel:
         raise HTTPException(
