@@ -1,3 +1,10 @@
+## [1.7.0](https://github.com/krtw00/duel-log-app/compare/v1.6.0...v1.7.0) (2026-01-09)
+
+
+### ✨ Features
+
+* add admin GUI with user-based authentication ([70337c0](https://github.com/krtw00/duel-log-app/commit/70337c0d03a1741574ca3b406033493ce9c1557b))
+
 ## [1.6.0](https://github.com/krtw00/duel-log-app/compare/v1.5.0...v1.6.0) (2026-01-09)
 
 
