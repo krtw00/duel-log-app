@@ -1,3 +1,10 @@
+## [1.7.4](https://github.com/krtw00/duel-log-app/compare/v1.7.3...v1.7.4) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **backend:** correct opponent_deck_id field name in merge script ([943aa18](https://github.com/krtw00/duel-log-app/commit/943aa186bc30574dc285f8524517aad8e1884fb4))
+
 ## [1.7.3](https://github.com/krtw00/duel-log-app/compare/v1.7.2...v1.7.3) (2026-01-09)
 
 
