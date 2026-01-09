@@ -1,0 +1,441 @@
+export type AnalysisResult = 'win' | 'lose';
+
+export interface RoiRatio {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export type CoinResult = 'win' | 'lose';
+
+export interface ScreenAnalysisConfig {
+  normalizedWidth: number;
+  scanFps: number;
+  turnChoice: {
+    winTemplateUrl: string;
+    loseTemplateUrl: string;
+    templateBaseWidth?: number;
+    roi: RoiRatio;
+    threshold: number;
+    margin: number;
+    requiredStreak: number;
+    cooldownMs: number;
+    activeMs: number;
+    downscale: number;
+    stride: number;
+    useEdge: boolean;
+  };
+  okButton: {
+    templateUrl: string;
+    templateBaseWidth?: number;
+    roi: RoiRatio;
+    threshold: number;
+    requiredStreak: number;
+    cooldownMs: number;
+    activeMs: number;
+    downscale: number;
+    stride: number;
+    useEdge: boolean;
+  };
+  result: {
+    winTemplateUrl: string;
+    loseTemplateUrl: string;
+    templateBaseWidth?: number;
+    roi: RoiRatio;
+    threshold: number;
+    margin: number;
+    requiredStreak: number;
+    cooldownMs: number;
+    downscale: number;
+    stride: number;
+    useEdge: boolean;
+  };
+}
+
+const resolvePublicUrl = (path: string) => {
+  const base = typeof import.meta !== 'undefined' ? import.meta.env.BASE_URL || '/' : '/';
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${normalizedBase}${normalizedPath}`;
+};
+
+export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
+  normalizedWidth: 1280,
+  scanFps: 10,
+  turnChoice: {
+    winTemplateUrl: resolvePublicUrl('screen-analysis/coin-win.png'),
+    loseTemplateUrl: resolvePublicUrl('screen-analysis/coin-lose.png'),
+    templateBaseWidth: 3200,
+    roi: {
+      x: 0.28,
+      y: 0.58,
+      width: 0.44,
+      height: 0.12,
+    },
+    threshold: 0.55,
+    margin: 0.10,
+    requiredStreak: 2,
+    cooldownMs: 15000,
+    activeMs: 20000,
+    downscale: 1.0,
+    stride: 2,
+    useEdge: true,
+  },
+  okButton: {
+    templateUrl: resolvePublicUrl('screen-analysis/ok-button.png'),
+    templateBaseWidth: 3200,
+    roi: {
+      x: 0.30,
+      y: 0.85,
+      width: 0.40,
+      height: 0.10,
+    },
+    threshold: 0.55,
+    requiredStreak: 1,
+    cooldownMs: 8000,
+    activeMs: 8000,
+    downscale: 1.0,
+    stride: 2,
+    useEdge: false,
+  },
+  result: {
+    winTemplateUrl: resolvePublicUrl('screen-analysis/result-win.png'),
+    loseTemplateUrl: resolvePublicUrl('screen-analysis/result-lose.png'),
+    templateBaseWidth: 3200,
+    roi: {
+      x: 0.05,
+      y: 0.20,
+      width: 0.9,
+      height: 0.40,
+    },
+    threshold: 0.55,
+    margin: 0.10,
+    requiredStreak: 2,
+    cooldownMs: 12000,
+    downscale: 0.5,
+    stride: 2,
+    useEdge: true,
+  },
+};
+
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface GrayscaleImage {
+  width: number;
+  height: number;
+  data: Float32Array;
+}
+
+export interface TemplateData extends GrayscaleImage {
+  mean: number;
+  std: number;
+  mask: Float32Array | null;
+  maskSum: number;
+}
+
+export const createCanvas = (width: number, height: number) => {
+  if (typeof OffscreenCanvas !== 'undefined') {
+    return new OffscreenCanvas(width, height);
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+};
+
+export const roiToRect = (roi: RoiRatio, width: number, height: number): Rect => {
+  const rect = {
+    x: Math.round(roi.x * width),
+    y: Math.round(roi.y * height),
+    width: Math.round(roi.width * width),
+    height: Math.round(roi.height * height),
+  };
+
+  const maxWidth = Math.max(1, width);
+  const maxHeight = Math.max(1, height);
+  const clamped = {
+    x: Math.min(Math.max(0, rect.x), maxWidth - 1),
+    y: Math.min(Math.max(0, rect.y), maxHeight - 1),
+    width: Math.max(1, Math.min(rect.width, maxWidth - rect.x)),
+    height: Math.max(1, Math.min(rect.height, maxHeight - rect.y)),
+  };
+
+  return clamped;
+};
+
+const ALPHA_MASK_THRESHOLD = 0.05;
+
+export const toGrayscale = (imageData: ImageData): GrayscaleImage => {
+  const { data, width, height } = imageData;
+  const gray = new Float32Array(width * height);
+  for (let i = 0, p = 0; i < data.length; i += 4, p += 1) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    gray[p] = 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+  return { width, height, data: gray };
+};
+
+export const toGrayscaleWithMask = (
+  imageData: ImageData,
+): GrayscaleImage & { mask: Float32Array; maskSum: number } => {
+  const { data, width, height } = imageData;
+  const gray = new Float32Array(width * height);
+  const mask = new Float32Array(width * height);
+  let maskSum = 0;
+  for (let i = 0, p = 0; i < data.length; i += 4, p += 1) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const a = data[i + 3] / 255;
+    const weight = a >= ALPHA_MASK_THRESHOLD ? a : 0;
+    gray[p] = 0.299 * r + 0.587 * g + 0.114 * b;
+    mask[p] = weight;
+    maskSum += weight;
+  }
+  return { width, height, data: gray, mask, maskSum };
+};
+
+export const downscale = (
+  image: GrayscaleImage & { mask?: Float32Array },
+  scale: number,
+): GrayscaleImage & { mask?: Float32Array } => {
+  if (scale >= 0.99) return image;
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+  const data = new Float32Array(width * height);
+  const mask = image.mask ? new Float32Array(width * height) : undefined;
+  const scaleX = image.width / width;
+  const scaleY = image.height / height;
+
+  for (let y = 0; y < height; y += 1) {
+    const srcY = Math.min(image.height - 1, Math.floor(y * scaleY));
+    for (let x = 0; x < width; x += 1) {
+      const srcX = Math.min(image.width - 1, Math.floor(x * scaleX));
+      const srcIndex = srcY * image.width + srcX;
+      const destIndex = y * width + x;
+      data[destIndex] = image.data[srcIndex];
+      if (mask) {
+        mask[destIndex] = image.mask ? image.mask[srcIndex] : 1;
+      }
+    }
+  }
+
+  return { width, height, data, mask };
+};
+
+export const applySobel = (
+  image: GrayscaleImage & { mask?: Float32Array },
+): GrayscaleImage & { mask?: Float32Array } => {
+  const { width, height, data } = image;
+  const output = new Float32Array(width * height);
+
+  const idx = (x: number, y: number) => y * width + x;
+
+  for (let y = 1; y < height - 1; y += 1) {
+    for (let x = 1; x < width - 1; x += 1) {
+      const gx =
+        -1 * data[idx(x - 1, y - 1)] +
+        1 * data[idx(x + 1, y - 1)] +
+        -2 * data[idx(x - 1, y)] +
+        2 * data[idx(x + 1, y)] +
+        -1 * data[idx(x - 1, y + 1)] +
+        1 * data[idx(x + 1, y + 1)];
+      const gy =
+        -1 * data[idx(x - 1, y - 1)] +
+        -2 * data[idx(x, y - 1)] +
+        -1 * data[idx(x + 1, y - 1)] +
+        1 * data[idx(x - 1, y + 1)] +
+        2 * data[idx(x, y + 1)] +
+        1 * data[idx(x + 1, y + 1)];
+      output[idx(x, y)] = Math.sqrt(gx * gx + gy * gy);
+    }
+  }
+
+  return { width, height, data: output, mask: image.mask };
+};
+
+export const computeTemplateStats = (data: Float32Array, mask?: Float32Array) => {
+  let sum = 0;
+  let sumSq = 0;
+  let weightSum = 0;
+  if (mask) {
+    for (let i = 0; i < data.length; i += 1) {
+      const weight = mask[i];
+      if (weight <= 0) continue;
+      const value = data[i];
+      sum += weight * value;
+      sumSq += weight * value * value;
+      weightSum += weight;
+    }
+  } else {
+    for (let i = 0; i < data.length; i += 1) {
+      const value = data[i];
+      sum += value;
+      sumSq += value * value;
+    }
+    weightSum = data.length;
+  }
+  if (weightSum <= 0) {
+    return { mean: 0, std: 0, weightSum: 0 };
+  }
+  const mean = sum / weightSum;
+  const variance = Math.max(0, sumSq / weightSum - mean * mean);
+  const std = Math.sqrt(variance);
+  return { mean, std, weightSum };
+};
+
+export const prepareTemplate = (
+  imageData: ImageData,
+  options: { downscale: number; useEdge: boolean },
+): TemplateData => {
+  const withMask = toGrayscaleWithMask(imageData);
+  let grayscale: GrayscaleImage & { mask?: Float32Array } = downscale(withMask, options.downscale);
+  if (options.useEdge) {
+    grayscale = applySobel(grayscale);
+  }
+  const { mean, std, weightSum } = computeTemplateStats(grayscale.data, grayscale.mask);
+  return {
+    width: grayscale.width,
+    height: grayscale.height,
+    data: grayscale.data,
+    mean,
+    std,
+    mask: grayscale.mask ?? null,
+    maskSum: weightSum,
+  };
+};
+
+export const loadTemplateFromUrl = async (
+  url: string,
+  options: {
+    downscale: number;
+    useEdge: boolean;
+    templateBaseWidth?: number;
+    normalizedWidth?: number;
+  },
+): Promise<TemplateData> => {
+  if (typeof window === 'undefined') {
+    throw new Error('Window is not available');
+  }
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch template (${response.status}): ${url}`);
+  }
+  const blob = await response.blob();
+  let source: ImageBitmap | HTMLImageElement | null = null;
+  let objectUrl: string | null = null;
+
+  try {
+    if ('createImageBitmap' in window) {
+      source = await createImageBitmap(blob);
+    } else {
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      objectUrl = URL.createObjectURL(blob);
+      const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error(`Failed to load template: ${url}`));
+      });
+      image.src = objectUrl;
+      source = await loadPromise;
+    }
+
+    if (!source) {
+      throw new Error(`Template decode failed: ${url}`);
+    }
+
+    let targetWidth = source.width;
+    let targetHeight = source.height;
+    if (options.templateBaseWidth && options.normalizedWidth) {
+      const scale = options.normalizedWidth / options.templateBaseWidth;
+      if (scale > 0 && Math.abs(scale - 1) > 0.01) {
+        targetWidth = Math.max(1, Math.round(source.width * scale));
+        targetHeight = Math.max(1, Math.round(source.height * scale));
+      }
+    }
+
+    const canvas = createCanvas(targetWidth, targetHeight);
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+      throw new Error(`Failed to create canvas context: ${url}`);
+    }
+    ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+    const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+    return prepareTemplate(imageData, options);
+  } finally {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
+    if (source && 'close' in source) {
+      source.close();
+    }
+  }
+};
+
+export const matchTemplateNcc = (
+  source: GrayscaleImage,
+  template: TemplateData,
+  stride: number,
+): number => {
+  if (template.std === 0 || template.maskSum <= 0) return 0;
+  const maxX = source.width - template.width;
+  const maxY = source.height - template.height;
+  if (maxX < 0 || maxY < 0) return 0;
+
+  const n = template.maskSum;
+  let best = -1;
+
+  for (let y = 0; y <= maxY; y += stride) {
+    for (let x = 0; x <= maxX; x += stride) {
+      let sum = 0;
+      let sumSq = 0;
+      let sumCross = 0;
+
+      for (let ty = 0; ty < template.height; ty += 1) {
+        const srcRow = (y + ty) * source.width + x;
+        const tmplRow = ty * template.width;
+        for (let tx = 0; tx < template.width; tx += 1) {
+          const tmplIndex = tmplRow + tx;
+          const weight = template.mask ? template.mask[tmplIndex] : 1;
+          if (weight <= 0) continue;
+          const srcVal = source.data[srcRow + tx];
+          const tmplVal = template.data[tmplIndex];
+          sum += weight * srcVal;
+          sumSq += weight * srcVal * srcVal;
+          sumCross += weight * srcVal * tmplVal;
+        }
+      }
+
+      const mean = sum / n;
+      const variance = sumSq / n - mean * mean;
+      if (variance <= 0) continue;
+      const std = Math.sqrt(variance);
+      const score = (sumCross - n * mean * template.mean) / (n * std * template.std);
+      if (score > best) best = score;
+    }
+  }
+
+  return best;
+};
+
+export const extractAndPreprocess = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  rect: Rect,
+  options: { downscale: number; useEdge: boolean },
+): GrayscaleImage => {
+  const imageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
+  let grayscale = toGrayscale(imageData);
+  grayscale = downscale(grayscale, options.downscale);
+  if (options.useEdge) {
+    grayscale = applySobel(grayscale);
+  }
+  return grayscale;
+};
