@@ -10,6 +10,7 @@ import ForgotPasswordView from '../views/ForgotPasswordView.vue';
 import ResetPasswordView from '../views/ResetPasswordView.vue';
 import SharedStatisticsView from '../views/SharedStatisticsView.vue';
 import OBSOverlayView from '../views/OBSOverlayView.vue';
+import AdminView from '../views/AdminView.vue';
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -59,6 +60,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'Profile',
     component: ProfileView,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: AdminView,
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/shared-stats/:share_id',
@@ -114,12 +121,18 @@ router.beforeEach(async (to, _from, next) => {
 
   // 認証ロジック
   const isAuthenticated = authStore.isAuthenticated;
+  const requiresAdmin = to.meta.requiresAdmin === true;
 
   if (requiresAuth && !isAuthenticated) {
     // 認証が必要なページにアクセスしようとしたが、認証されていない
     // -> ログインページにリダイレクト
     console.log('[Router] Auth required but not authenticated - redirecting to login');
     next({ name: 'Login' });
+  } else if (requiresAdmin && (!authStore.user || !authStore.user.is_admin)) {
+    // 管理者権限が必要なページにアクセスしようとしたが、管理者ではない
+    // -> ダッシュボードにリダイレクト
+    console.log('[Router] Admin required but not admin - redirecting to dashboard');
+    next({ name: 'Dashboard' });
   } else if ((to.name === 'Login' || to.name === 'Register') && isAuthenticated) {
     // ログイン済みユーザーがログインページや登録ページにアクセスしようとした
     // -> ダッシュボードにリダイレクト

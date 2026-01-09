@@ -34,6 +34,9 @@ class User(Base):
     theme_preference: Mapped[str] = mapped_column(
         String, nullable=False, server_default="dark"
     )
+    is_admin: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
     createdat: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
