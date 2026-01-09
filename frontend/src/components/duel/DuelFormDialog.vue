@@ -17,7 +17,7 @@
       <v-divider />
 
       <v-card-text class="pa-6">
-        <!-- ゲームモード選択タブ（編集時/ダイアログ時のみ） -->
+        <!-- ゲームモード選択タブ（新規作成ダイアログのみ） -->
         <v-tabs
           v-if="showGameModeTabs"
           v-model="form.game_mode"
@@ -393,7 +393,7 @@ const dialogProps = computed(() => ({
   persistent: true,
 }));
 const isActive = computed(() => (props.inline ? true : props.modelValue));
-const showGameModeTabs = computed(() => !props.inline || isEdit.value);
+const showGameModeTabs = computed(() => !props.inline && !isEdit.value);
 
 const {
   isRunning: analysisRunning,
