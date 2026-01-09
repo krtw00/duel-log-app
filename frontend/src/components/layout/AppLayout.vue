@@ -26,7 +26,7 @@
 import { computed, ref } from 'vue';
 import AppBar from '@/components/layout/AppBar.vue';
 
-type CurrentView = 'dashboard' | 'decks' | 'statistics' | 'profile';
+type CurrentView = 'dashboard' | 'decks' | 'statistics' | 'profile' | 'admin';
 
 interface NavItem {
   name: string;
