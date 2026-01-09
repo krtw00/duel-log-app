@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/krtw00/duel-log-app/compare/v1.2.0...v1.2.1) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** clear opponent deck and adjust turn defaults ([c64cec9](https://github.com/krtw00/duel-log-app/commit/c64cec92cd3923a383fa2734b288144e19d233d5))
+
 ## [1.2.0](https://github.com/krtw00/duel-log-app/compare/v1.1.3...v1.2.0) (2026-01-08)
 
 
