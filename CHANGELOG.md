@@ -1,3 +1,22 @@
+## [1.5.0](https://github.com/krtw00/duel-log-app/compare/v1.4.1...v1.5.0) (2026-01-09)
+
+
+### ✨ Features
+
+* **frontend:** persist new decks from edit dialog ([1417750](https://github.com/krtw00/duel-log-app/commit/14177508b0beba2035de45ed438fde07d09af4b5))
+
+
+### 🐛 Bug Fixes
+
+* **backend:** auto-stamp db when alembic_version is missing ([d2d58fe](https://github.com/krtw00/duel-log-app/commit/d2d58fe6a288c528916e13bf4adf86c87d7c575d))
+* **frontend:** remove unused saveLastUsedValues ([1635d60](https://github.com/krtw00/duel-log-app/commit/1635d60d339cabf2ead0567abcb70bdfc520bd9c))
+* **frontend:** restore saveLastUsedValues ([cf53d2c](https://github.com/krtw00/duel-log-app/commit/cf53d2c7da1330264dddd9c4c92e3d9dfdd3e7d8))
+
+
+### 📝 Documentation
+
+* **architecture:** add design for archive merge feature ([c8fbd27](https://github.com/krtw00/duel-log-app/commit/c8fbd2746ab1b701d0d44b2f8760944c85f6fec7))
+
 ## [1.4.1](https://github.com/krtw00/duel-log-app/compare/v1.4.0...v1.4.1) (2026-01-09)
 
 
