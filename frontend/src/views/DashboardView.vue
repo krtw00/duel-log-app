@@ -15,7 +15,13 @@
 
       <StatisticsSection :duels="duels" :decks="decks" :current-mode="currentMode" />
 
-      <OBSSection />
+      <DuelEntrySection
+        :decks="decks"
+        :default-game-mode="currentMode"
+        :default-first-or-second="defaultFirstOrSecond"
+        @update:default-first-or-second="defaultFirstOrSecond = $event"
+        @duel-saved="handleDuelSaved"
+      />
 
       <DuelHistorySection
         :duels="currentDuels"
@@ -28,6 +34,8 @@
         @refresh="fetchDuels"
         @duel-saved="handleDuelSaved"
       />
+
+      <OBSSection />
     </v-container>
 
     <template #overlay>
@@ -51,6 +59,7 @@ import { useUiStore } from '@/stores/ui';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import DashboardHeader from './DashboardHeader.vue';
 import StatisticsSection from './StatisticsSection.vue';
+import DuelEntrySection from './DuelEntrySection.vue';
 import OBSSection from './OBSSection.vue';
 import DuelHistorySection from './DuelHistorySection.vue';
 import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue';
@@ -62,10 +71,43 @@ const loading = ref(false);
 const currentMode = ref<GameMode>('RANK');
 const shareDialogOpened = ref(false);
 const uiStore = useUiStore();
+const DEFAULT_FIRST_OR_SECOND_STORAGE_KEY = 'duellog.defaultFirstOrSecond';
+const LEGACY_DEFAULT_COIN_STORAGE_KEY = 'duellog.defaultCoin';
+const defaultFirstOrSecond = ref<0 | 1>(1);
 
 // 年月選択
 const selectedYear = ref(new Date().getFullYear());
 const selectedMonth = ref(new Date().getMonth() + 1);
+
+const loadDefaultFirstOrSecond = () => {
+  try {
+    const stored = window.localStorage.getItem(DEFAULT_FIRST_OR_SECOND_STORAGE_KEY);
+    if (stored === '0' || stored === '1') {
+      defaultFirstOrSecond.value = stored === '0' ? 0 : 1;
+      return;
+    }
+
+    const legacyStored = window.localStorage.getItem(LEGACY_DEFAULT_COIN_STORAGE_KEY);
+    if (legacyStored === '0' || legacyStored === '1') {
+      defaultFirstOrSecond.value = legacyStored === '0' ? 0 : 1;
+      return;
+    }
+
+    defaultFirstOrSecond.value = 1;
+  } catch {
+    defaultFirstOrSecond.value = 1;
+  }
+};
+
+loadDefaultFirstOrSecond();
+
+watch(defaultFirstOrSecond, (value) => {
+  try {
+    window.localStorage.setItem(DEFAULT_FIRST_OR_SECOND_STORAGE_KEY, String(value));
+  } catch {
+    // ignore storage errors (private mode etc.)
+  }
+});
 
 // ゲームモード別にデュエルをフィルタリング
 const rankDuels = computed(() => duels.value.filter((d) => d.game_mode === 'RANK'));
