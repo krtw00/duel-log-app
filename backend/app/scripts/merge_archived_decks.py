@@ -5,7 +5,6 @@ import os
 import sys
 from collections import defaultdict
 
-from sqlalchemy import is_
 from sqlalchemy.orm import Session
 
 # Ensure the app path is in the sys.path to allow for absolute imports
