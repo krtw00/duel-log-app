@@ -1,3 +1,10 @@
+## [1.7.3](https://github.com/krtw00/duel-log-app/compare/v1.7.2...v1.7.3) (2026-01-09)
+
+
+### 🐛 Bug Fixes
+
+* **backend:** use correct field name in merge script ([4d90636](https://github.com/krtw00/duel-log-app/commit/4d9063623538223df12eb7d3279acdbb2d282219))
+
 ## [1.7.2](https://github.com/krtw00/duel-log-app/compare/v1.7.1...v1.7.2) (2026-01-09)
 
 
