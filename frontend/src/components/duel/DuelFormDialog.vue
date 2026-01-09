@@ -135,12 +135,12 @@
                   <div class="analysis-title">
                     <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
                     <span class="text-subtitle-2">画面解析</span>
-	                    <span class="text-caption text-error ml-2">※テスト機能</span>
-	                  </div>
-	                  <v-spacer />
-	                  <v-btn
-	                    size="small"
-	                    :color="autoRegisterEnabled ? 'success' : 'grey'"
+                    <span class="text-caption text-error ml-2">※テスト機能</span>
+                  </div>
+                  <v-spacer />
+                  <v-btn
+                    size="small"
+                    :color="autoRegisterEnabled ? 'success' : 'grey'"
                     variant="tonal"
                     class="mr-2"
                     @click="autoRegisterEnabled = !autoRegisterEnabled"
@@ -192,12 +192,7 @@
                   >
                     勝敗: {{ analysisResultLabel.text }}
                   </v-chip>
-                  <v-chip
-                    v-if="missingTemplateLabel"
-                    size="small"
-                    color="warning"
-                    variant="tonal"
-                  >
+                  <v-chip v-if="missingTemplateLabel" size="small" color="warning" variant="tonal">
                     {{ missingTemplateLabel }}
                   </v-chip>
                   <span v-if="analysisScoreLabel" class="analysis-scores">
@@ -463,7 +458,7 @@ const applyCoinDefault = (coin: 0 | 1, base: 0 | 1) => {
     return 0;
   }
   // 先攻をデフォルトにしている場合、コインが表なら先攻、裏なら後攻
-  return coin === 1 ? base : (base === 1 ? 0 : 1);
+  return coin === 1 ? base : base === 1 ? 0 : 1;
 };
 
 // バリデーションルールと日時変換関数はcomposableから取得
@@ -705,9 +700,7 @@ const autoRegisterDuel = async () => {
 
   // 相手デッキが空欄の場合は「不明」に自動設定
   if (!selectedOpponentDeck.value) {
-    const unknownDeck = opponentDecks.value.find(
-      (d) => d.name === '不明' && d.is_opponent,
-    );
+    const unknownDeck = opponentDecks.value.find((d) => d.name === '不明' && d.is_opponent);
     selectedOpponentDeck.value = unknownDeck ?? '不明';
   }
 
@@ -1031,10 +1024,10 @@ const closeDialog = () => {
 }
 
 // スマホ対応
-	@media (max-width: 599px) {
-	  .duel-form-card {
-	    .v-card-title {
-	      padding: 16px !important;
+@media (max-width: 599px) {
+  .duel-form-card {
+    .v-card-title {
+      padding: 16px !important;
 
       .text-h5 {
         font-size: 1.25rem !important;
@@ -1043,13 +1036,13 @@ const closeDialog = () => {
 
     .v-card-text {
       padding: 16px !important;
-	    }
-	  }
+    }
+  }
 
-	  .radio-group-wrapper {
-	    :deep(.v-selection-control-group) {
-	      gap: 8px;
-	    }
+  .radio-group-wrapper {
+    :deep(.v-selection-control-group) {
+      gap: 8px;
+    }
   }
 }
 </style>
