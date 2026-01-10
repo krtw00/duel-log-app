@@ -10,7 +10,7 @@ import type { Deck, GameMode } from '@/types';
 
 // localStorageのキー
 const LAST_MY_DECK_ID_KEY = 'duel-log-app:lastMyDeckId';
-const LAST_OPPONENT_DECK_ID_KEY = 'duel-log-app:lastOpponentDeckId';
+// const LAST_OPPONENT_DECK_ID_KEY = 'duel-log-app:lastOpponentDeckId'; // 相手デッキは保存しない
 const LAST_RANK_KEY = 'duel-log-app:lastRank';
 
 interface LatestValue {
@@ -75,7 +75,7 @@ export function useLatestDuelValues() {
   const applyLatestValuesToGameMode = (
     gameMode: GameMode,
     myDecks: Deck[],
-    opponentDecks: Deck[],
+    _opponentDecks: Deck[],
   ): {
     rank?: number;
     rate_value?: number;
@@ -87,7 +87,7 @@ export function useLatestDuelValues() {
 
     // localStorageから値を取得
     const lastMyDeckId = getStorageItem(LAST_MY_DECK_ID_KEY);
-    const lastOpponentDeckId = getStorageItem(LAST_OPPONENT_DECK_ID_KEY);
+    // const lastOpponentDeckId = getStorageItem(LAST_OPPONENT_DECK_ID_KEY);
     const lastRank = getStorageItem(LAST_RANK_KEY);
 
     const result: {
