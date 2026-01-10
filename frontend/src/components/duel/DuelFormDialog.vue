@@ -321,6 +321,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 import { Duel, DuelCreate, Deck, GameMode } from '@/types';
 import { useNotificationStore } from '@/stores/notification';
 import { RANKS } from '@/utils/ranks';
@@ -330,6 +331,8 @@ import { useDeckResolution } from '@/composables/useDeckResolution';
 import { useLatestDuelValues } from '@/composables/useLatestDuelValues';
 import { useScreenCaptureAnalysis } from '@/composables/useScreenCaptureAnalysis';
 import { useAuthStore } from '@/stores/auth';
+
+const logger = createLogger('DuelForm');
 
 interface Props {
   modelValue: boolean;
@@ -536,7 +539,7 @@ const fetchDecks = async (activeOnly: boolean) => {
     myDecks.value = filterDecksForUser(myDecksResponse.data);
     opponentDecks.value = filterDecksForUser(opponentDecksResponse.data);
   } catch (error) {
-    console.error('Failed to fetch decks:', error);
+    logger.error('Failed to fetch decks');
   }
 };
 
@@ -828,7 +831,7 @@ const autoRegisterDuel = async () => {
     // 次の試合のためにフォームをリセット
     await resetFormForNextDuel();
   } catch (error) {
-    console.error('Failed to auto-register duel:', error);
+    logger.error('Failed to auto-register duel');
     notificationStore.error('自動登録に失敗しました');
   } finally {
     loading.value = false;
@@ -950,7 +953,7 @@ const handleSubmit = async () => {
     });
     closeDialog();
   } catch (error) {
-    console.error('Failed to save duel:', error);
+    logger.error('Failed to save duel');
   } finally {
     loading.value = false;
   }
