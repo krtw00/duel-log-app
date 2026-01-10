@@ -323,7 +323,8 @@ describe('DuelFormDialog.vue', () => {
     await wrapper.vm.$nextTick();
 
     expect((wrapper.vm as any).selectedMyDeck).toEqual(myDeck);
-    expect((wrapper.vm as any).selectedOpponentDeck).toEqual(opponentDeck);
+    // 相手デッキは登録後に空欄にするため、自動設定されない
+    expect((wrapper.vm as any).selectedOpponentDeck).toBeNull();
     expect((wrapper.vm as any).myDeckItems).toEqual([myDeck]);
     expect((wrapper.vm as any).opponentDeckItems).toEqual([opponentDeck]);
   });
