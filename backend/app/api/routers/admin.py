@@ -138,7 +138,7 @@ def update_admin_status(
 
     # 最後の管理者の権限を削除しようとしている場合
     if target_user.is_admin and not request.is_admin:
-        admin_count = db.query(func.count(User.id)).filter(User.is_admin == True).scalar()
+        admin_count = db.query(func.count(User.id)).filter(User.is_admin).scalar()
         if admin_count <= 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
