@@ -7,9 +7,11 @@ import {
   createCanvas,
   extractAndPreprocess,
   loadTemplateFromUrl,
+  loadTemplateSetFromUrl,
   matchTemplateNcc,
   roiToRect,
   TemplateData,
+  TemplateSet,
 } from '@/utils/screenAnalysis';
 
 const logger = createLogger('ScreenCaptureAnalysis');
@@ -76,8 +78,8 @@ export function useScreenCaptureAnalysis() {
   let coinWinTemplate: TemplateData | null = null;
   let coinLoseTemplate: TemplateData | null = null;
   let okButtonTemplate: TemplateData | null = null;
-  let winTemplate: TemplateData | null = null;
-  let loseTemplate: TemplateData | null = null;
+  let winTemplateSet: TemplateSet | null = null;
+  let loseTemplateSet: TemplateSet | null = null;
 
   let turnChoiceStreak = 0;
   let turnChoiceCandidate: CoinResult | null = null;
@@ -117,7 +119,7 @@ export function useScreenCaptureAnalysis() {
   const loadTemplates = async (actualWidth?: number) => {
     const targetWidth = actualWidth || SCREEN_ANALYSIS_CONFIG.normalizedWidth;
 
-    const loadTemplate = async (
+    const loadSingleTemplate = async (
       key: keyof TemplateStatus,
       url: string,
       options: {
@@ -136,51 +138,70 @@ export function useScreenCaptureAnalysis() {
       }
     };
 
+    const loadMultiTemplate = async (
+      key: keyof TemplateStatus,
+      url: string,
+      options: {
+        downscale: number;
+        useEdge: boolean;
+        templateBaseWidth: number;
+        supportedHeights: number[];
+      },
+    ) => {
+      try {
+        const templateSet = await loadTemplateSetFromUrl(url, options);
+        return { key, templateSet, error: '' };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'テンプレセット読み込み失敗';
+        return { key, templateSet: null, error: message };
+      }
+    };
+
     const [coinWin, coinLose, okButton, win, lose] = await Promise.all([
-      loadTemplate('coinWin', SCREEN_ANALYSIS_CONFIG.turnChoice.winTemplateUrl, {
+      loadSingleTemplate('coinWin', SCREEN_ANALYSIS_CONFIG.turnChoice.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
         normalizedWidth: targetWidth,
       }),
-      loadTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
+      loadSingleTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
         normalizedWidth: targetWidth,
       }),
-      loadTemplate('okButton', SCREEN_ANALYSIS_CONFIG.okButton.templateUrl, {
+      loadSingleTemplate('okButton', SCREEN_ANALYSIS_CONFIG.okButton.templateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.okButton.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.okButton.templateBaseWidth,
         normalizedWidth: targetWidth,
       }),
-      loadTemplate('win', SCREEN_ANALYSIS_CONFIG.result.winTemplateUrl, {
+      loadMultiTemplate('win', SCREEN_ANALYSIS_CONFIG.result.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
-        normalizedWidth: targetWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.result.supportedHeights,
       }),
-      loadTemplate('lose', SCREEN_ANALYSIS_CONFIG.result.loseTemplateUrl, {
+      loadMultiTemplate('lose', SCREEN_ANALYSIS_CONFIG.result.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
-        normalizedWidth: targetWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.result.supportedHeights,
       }),
     ]);
 
     coinWinTemplate = coinWin.template;
     coinLoseTemplate = coinLose.template;
     okButtonTemplate = okButton.template;
-    winTemplate = win.template;
-    loseTemplate = lose.template;
+    winTemplateSet = win.templateSet;
+    loseTemplateSet = lose.templateSet;
 
     updateTemplateStatus({
       coinWin: !!coinWinTemplate,
       coinLose: !!coinLoseTemplate,
       okButton: !!okButtonTemplate,
-      win: !!winTemplate,
-      lose: !!loseTemplate,
+      win: !!winTemplateSet && Object.keys(winTemplateSet).length > 0,
+      lose: !!loseTemplateSet && Object.keys(loseTemplateSet).length > 0,
     });
 
     templateErrors.value = {
@@ -195,8 +216,10 @@ export function useScreenCaptureAnalysis() {
       !!coinWinTemplate &&
       !!coinLoseTemplate &&
       !!okButtonTemplate &&
-      !!winTemplate &&
-      !!loseTemplate &&
+      !!winTemplateSet &&
+      Object.keys(winTemplateSet).length > 0 &&
+      !!loseTemplateSet &&
+      Object.keys(loseTemplateSet).length > 0 &&
       !coinWin.error &&
       !coinLose.error &&
       !okButton.error &&
@@ -314,8 +337,23 @@ export function useScreenCaptureAnalysis() {
   };
 
   const analyzeResult = (now: number) => {
-    if (!winTemplate || !loseTemplate || !ctx || !canvas) return;
+    if (!winTemplateSet || !loseTemplateSet || !ctx || !canvas) return;
     if (now < resultCooldownUntil) return;
+
+    // 現在のキャンバス解像度に最も近いサポート対象の解像度を見つける
+    const currentHeight = canvas.height;
+    const supportedHeights = SCREEN_ANALYSIS_CONFIG.result.supportedHeights;
+    const bestHeight = supportedHeights.reduce((prev, curr) => {
+      return Math.abs(curr - currentHeight) < Math.abs(prev - currentHeight) ? curr : prev;
+    });
+
+    const winTemplate = winTemplateSet[bestHeight.toString()];
+    const loseTemplate = loseTemplateSet[bestHeight.toString()];
+
+    if (!winTemplate || !loseTemplate) {
+      // 最適なテンプレートが見つからない場合は何もしない
+      return;
+    }
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.result.roi, canvas.width, canvas.height);
     const image = extractAndPreprocess(ctx, rect, {
