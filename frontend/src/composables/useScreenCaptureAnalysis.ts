@@ -114,7 +114,9 @@ export function useScreenCaptureAnalysis() {
     templateStatus.value = { ...next };
   };
 
-  const loadTemplates = async () => {
+  const loadTemplates = async (actualWidth?: number) => {
+    const targetWidth = actualWidth || SCREEN_ANALYSIS_CONFIG.normalizedWidth;
+
     const loadTemplate = async (
       key: keyof TemplateStatus,
       url: string,
@@ -139,31 +141,31 @@ export function useScreenCaptureAnalysis() {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        normalizedWidth: targetWidth,
       }),
       loadTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        normalizedWidth: targetWidth,
       }),
       loadTemplate('okButton', SCREEN_ANALYSIS_CONFIG.okButton.templateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.okButton.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.okButton.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        normalizedWidth: targetWidth,
       }),
       loadTemplate('win', SCREEN_ANALYSIS_CONFIG.result.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        normalizedWidth: targetWidth,
       }),
       loadTemplate('lose', SCREEN_ANALYSIS_CONFIG.result.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        normalizedWidth: targetWidth,
       }),
     ]);
 
@@ -397,8 +399,6 @@ export function useScreenCaptureAnalysis() {
     errorMessage.value = null;
     resetState();
 
-    await ensureTemplatesLoaded();
-
     try {
       stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
@@ -415,20 +415,8 @@ export function useScreenCaptureAnalysis() {
 
       const videoWidth = video.videoWidth || SCREEN_ANALYSIS_CONFIG.normalizedWidth;
       const videoHeight = video.videoHeight || Math.round((videoWidth * 9) / 16);
-      const normalizedWidth = SCREEN_ANALYSIS_CONFIG.normalizedWidth;
-      const normalizedHeight = Math.round((normalizedWidth * 9) / 16);
 
-      canvas = createCanvas(normalizedWidth, normalizedHeight);
-      ctx = canvas.getContext('2d', { willReadFrequently: true });
-      if (!ctx) {
-        throw new Error('Failed to initialize canvas context');
-      }
-
-      const track = stream.getVideoTracks()[0];
-      track.addEventListener('ended', () => {
-        stopCapture();
-      });
-
+      // 16:9にクロップしたサイズを計算
       const targetAspect = 16 / 9;
       const videoAspect = videoWidth / videoHeight;
       let sx = 0;
@@ -447,6 +435,24 @@ export function useScreenCaptureAnalysis() {
       }
 
       drawParams = { sx, sy, sWidth, sHeight };
+
+      // 実際のビデオ解像度でキャンバスを作成（16:9クロップ後のサイズ）
+      const canvasWidth = sWidth;
+      const canvasHeight = sHeight;
+      canvas = createCanvas(canvasWidth, canvasHeight);
+      ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) {
+        throw new Error('Failed to initialize canvas context');
+      }
+
+      // 実際の解像度に合わせてテンプレートを再読み込み
+      logger.info(`Loading templates for resolution: ${canvasWidth}x${canvasHeight}`);
+      await loadTemplates(canvasWidth);
+
+      const track = stream.getVideoTracks()[0];
+      track.addEventListener('ended', () => {
+        stopCapture();
+      });
 
       isRunning.value = true;
       intervalId = window.setInterval(analyzeFrame, 1000 / SCREEN_ANALYSIS_CONFIG.scanFps);
