@@ -1,3 +1,16 @@
+## [1.9.0](https://github.com/krtw00/duel-log-app/compare/v1.8.0...v1.9.0) (2026-01-10)
+
+
+### ✨ Features
+
+* **frontend:** add description for screen analysis feature ([f986255](https://github.com/krtw00/duel-log-app/commit/f9862559d66591c7c2c3802ffafbb369a29f3918))
+
+
+### 🐛 Bug Fixes
+
+* **backend:** fix ruff linting errors in admin code ([f47e143](https://github.com/krtw00/duel-log-app/commit/f47e14319662fd4132f8547b2e5602cede00c80b))
+* **backend:** fix test failures and deprecation warnings ([5d5d890](https://github.com/krtw00/duel-log-app/commit/5d5d89015783619bc32f45acab89293764872b77))
+
 ## [1.8.0](https://github.com/krtw00/duel-log-app/compare/v1.7.4...v1.8.0) (2026-01-10)
 
 
