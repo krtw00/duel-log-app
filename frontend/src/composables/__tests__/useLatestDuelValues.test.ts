@@ -80,11 +80,8 @@ describe('useLatestDuelValues', () => {
 
       expect(result.rate_value).toBe(1700);
       expect(result.selectedMyDeck).toMatchObject({ id: 2, name: 'デッキC', is_opponent: false });
-      expect(result.selectedOpponentDeck).toMatchObject({
-        id: 3,
-        name: '相手デッキB',
-        is_opponent: true,
-      });
+      // 相手デッキは登録後に空欄にするため、自動設定されない
+      expect(result.selectedOpponentDeck).toBeNull();
       expect(result.rank).toBeUndefined();
     });
 
@@ -102,11 +99,8 @@ describe('useLatestDuelValues', () => {
 
       expect(result.dc_value).toBe(5);
       expect(result.selectedMyDeck).toMatchObject({ id: 4, name: 'デッキD', is_opponent: false });
-      expect(result.selectedOpponentDeck).toMatchObject({
-        id: 5,
-        name: '相手デッキC',
-        is_opponent: true,
-      });
+      // 相手デッキは登録後に空欄にするため、自動設定されない
+      expect(result.selectedOpponentDeck).toBeNull();
     });
 
     it('最新値がない場合はデフォルト値を使用（RANK）', () => {
