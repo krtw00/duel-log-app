@@ -106,8 +106,10 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 import { useNotificationStore } from '@/stores/notification';
 
+const logger = createLogger('Register');
 const router = useRouter();
 const notificationStore = useNotificationStore();
 
@@ -149,7 +151,7 @@ const handleRegister = async () => {
     }, 2000);
   } catch (error: unknown) {
     // エラーはAPIインターセプターで処理される
-    console.error('Failed to register:', error);
+    logger.error('Failed to register');
   } finally {
     loading.value = false;
   }

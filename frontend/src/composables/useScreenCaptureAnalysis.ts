@@ -507,7 +507,7 @@ export function useScreenCaptureAnalysis() {
 
       // テンプレートを読み込み（MIPMAPアプローチで全解像度用を生成）
       logger.info(`Starting capture at resolution: ${canvasWidth}x${canvasHeight}`);
-      await loadTemplates();
+      await ensureTemplatesLoaded();
 
       const track = stream.getVideoTracks()[0];
       track.addEventListener('ended', () => {
