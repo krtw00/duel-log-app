@@ -1,5 +1,9 @@
 import { api } from './api';
-import type { UsersListResponse, UpdateAdminStatusResponse, UpdateAdminStatusRequest } from '../types/admin';
+import type {
+  UsersListResponse,
+  UpdateAdminStatusResponse,
+  UpdateAdminStatusRequest,
+} from '../types/admin';
 
 export const getAdminUsers = async (
   page: number,
@@ -7,7 +11,7 @@ export const getAdminUsers = async (
   sort: string,
   order: string,
   search?: string,
-  adminOnly?: boolean
+  adminOnly?: boolean,
 ): Promise<UsersListResponse> => {
   const params = new URLSearchParams({
     page: String(page),
@@ -27,11 +31,10 @@ export const getAdminUsers = async (
 
 export const updateUserAdminStatus = async (
   userId: number,
-  isAdmin: boolean
+  isAdmin: boolean,
 ): Promise<UpdateAdminStatusResponse> => {
-  const response = await api.put<UpdateAdminStatusResponse>(
-    `/admin/users/${userId}/admin-status`,
-    { is_admin: isAdmin } as UpdateAdminStatusRequest
-  );
+  const response = await api.put<UpdateAdminStatusResponse>(`/admin/users/${userId}/admin-status`, {
+    is_admin: isAdmin,
+  } as UpdateAdminStatusRequest);
   return response.data;
 };
