@@ -57,11 +57,8 @@ describe('useLatestDuelValues', () => {
 
       expect(result.rank).toBe(15);
       expect(result.selectedMyDeck).toMatchObject({ id: 1, name: 'デッキA', is_opponent: false });
-      expect(result.selectedOpponentDeck).toMatchObject({
-        id: 2,
-        name: '相手デッキA',
-        is_opponent: true,
-      });
+      // 相手デッキは登録後に空欄にするため、自動設定されない
+      expect(result.selectedOpponentDeck).toBeNull();
       expect(result.rate_value).toBeUndefined();
       expect(result.dc_value).toBeUndefined();
     });
