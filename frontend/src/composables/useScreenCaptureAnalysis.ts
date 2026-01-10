@@ -6,11 +6,9 @@ import {
   SCREEN_ANALYSIS_CONFIG,
   createCanvas,
   extractAndPreprocess,
-  loadTemplateFromUrl,
   loadTemplateSetFromUrl,
   matchTemplateNcc,
   roiToRect,
-  TemplateData,
   TemplateSet,
 } from '@/utils/screenAnalysis';
 
@@ -75,9 +73,9 @@ export function useScreenCaptureAnalysis() {
   let intervalId: number | null = null;
   let drawParams: { sx: number; sy: number; sWidth: number; sHeight: number } | null = null;
 
-  let coinWinTemplate: TemplateData | null = null;
-  let coinLoseTemplate: TemplateData | null = null;
-  let okButtonTemplate: TemplateData | null = null;
+  let coinWinTemplateSet: TemplateSet | null = null;
+  let coinLoseTemplateSet: TemplateSet | null = null;
+  let okButtonTemplateSet: TemplateSet | null = null;
   let winTemplateSet: TemplateSet | null = null;
   let loseTemplateSet: TemplateSet | null = null;
 
@@ -116,28 +114,7 @@ export function useScreenCaptureAnalysis() {
     templateStatus.value = { ...next };
   };
 
-  const loadTemplates = async (actualWidth?: number) => {
-    const targetWidth = actualWidth || SCREEN_ANALYSIS_CONFIG.normalizedWidth;
-
-    const loadSingleTemplate = async (
-      key: keyof TemplateStatus,
-      url: string,
-      options: {
-        downscale: number;
-        useEdge: boolean;
-        templateBaseWidth?: number;
-        normalizedWidth?: number;
-      },
-    ) => {
-      try {
-        const template = await loadTemplateFromUrl(url, options);
-        return { key, template, error: '' };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'テンプレ読み込み失敗';
-        return { key, template: null, error: message };
-      }
-    };
-
+  const loadTemplates = async () => {
     const loadMultiTemplate = async (
       key: keyof TemplateStatus,
       url: string,
@@ -158,23 +135,23 @@ export function useScreenCaptureAnalysis() {
     };
 
     const [coinWin, coinLose, okButton, win, lose] = await Promise.all([
-      loadSingleTemplate('coinWin', SCREEN_ANALYSIS_CONFIG.turnChoice.winTemplateUrl, {
+      loadMultiTemplate('coinWin', SCREEN_ANALYSIS_CONFIG.turnChoice.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
-        normalizedWidth: targetWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
       }),
-      loadSingleTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
+      loadMultiTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
-        normalizedWidth: targetWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
       }),
-      loadSingleTemplate('okButton', SCREEN_ANALYSIS_CONFIG.okButton.templateUrl, {
+      loadMultiTemplate('okButton', SCREEN_ANALYSIS_CONFIG.okButton.templateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.okButton.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.okButton.templateBaseWidth,
-        normalizedWidth: targetWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.okButton.supportedHeights,
       }),
       loadMultiTemplate('win', SCREEN_ANALYSIS_CONFIG.result.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
@@ -190,18 +167,20 @@ export function useScreenCaptureAnalysis() {
       }),
     ]);
 
-    coinWinTemplate = coinWin.template;
-    coinLoseTemplate = coinLose.template;
-    okButtonTemplate = okButton.template;
+    coinWinTemplateSet = coinWin.templateSet;
+    coinLoseTemplateSet = coinLose.templateSet;
+    okButtonTemplateSet = okButton.templateSet;
     winTemplateSet = win.templateSet;
     loseTemplateSet = lose.templateSet;
 
+    const hasTemplates = (set: TemplateSet | null) => !!set && Object.keys(set).length > 0;
+
     updateTemplateStatus({
-      coinWin: !!coinWinTemplate,
-      coinLose: !!coinLoseTemplate,
-      okButton: !!okButtonTemplate,
-      win: !!winTemplateSet && Object.keys(winTemplateSet).length > 0,
-      lose: !!loseTemplateSet && Object.keys(loseTemplateSet).length > 0,
+      coinWin: hasTemplates(coinWinTemplateSet),
+      coinLose: hasTemplates(coinLoseTemplateSet),
+      okButton: hasTemplates(okButtonTemplateSet),
+      win: hasTemplates(winTemplateSet),
+      lose: hasTemplates(loseTemplateSet),
     });
 
     templateErrors.value = {
@@ -213,13 +192,11 @@ export function useScreenCaptureAnalysis() {
     };
 
     templatesLoaded.value =
-      !!coinWinTemplate &&
-      !!coinLoseTemplate &&
-      !!okButtonTemplate &&
-      !!winTemplateSet &&
-      Object.keys(winTemplateSet).length > 0 &&
-      !!loseTemplateSet &&
-      Object.keys(loseTemplateSet).length > 0 &&
+      hasTemplates(coinWinTemplateSet) &&
+      hasTemplates(coinLoseTemplateSet) &&
+      hasTemplates(okButtonTemplateSet) &&
+      hasTemplates(winTemplateSet) &&
+      hasTemplates(loseTemplateSet) &&
       !coinWin.error &&
       !coinLose.error &&
       !okButton.error &&
@@ -254,9 +231,26 @@ export function useScreenCaptureAnalysis() {
     isRunning.value = false;
   };
 
+  const findBestHeight = (currentHeight: number, supportedHeights: number[]): number => {
+    return supportedHeights.reduce((prev, curr) => {
+      return Math.abs(curr - currentHeight) < Math.abs(prev - currentHeight) ? curr : prev;
+    });
+  };
+
   const analyzeTurnChoice = (now: number) => {
-    if (!coinWinTemplate || !coinLoseTemplate || !ctx || !canvas) return;
+    if (!coinWinTemplateSet || !coinLoseTemplateSet || !ctx || !canvas) return;
     if (now < turnChoiceCooldownUntil) return;
+
+    const currentHeight = canvas.height;
+    const bestHeight = findBestHeight(
+      currentHeight,
+      SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
+    );
+
+    const coinWinTemplate = coinWinTemplateSet[bestHeight.toString()];
+    const coinLoseTemplate = coinLoseTemplateSet[bestHeight.toString()];
+
+    if (!coinWinTemplate || !coinLoseTemplate) return;
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.turnChoice.roi, canvas.width, canvas.height);
     const image = extractAndPreprocess(ctx, rect, {
@@ -310,8 +304,18 @@ export function useScreenCaptureAnalysis() {
   };
 
   const analyzeOkButton = (now: number) => {
-    if (!okButtonTemplate || !ctx || !canvas) return;
+    if (!okButtonTemplateSet || !ctx || !canvas) return;
     if (now < okButtonCooldownUntil) return;
+
+    const currentHeight = canvas.height;
+    const bestHeight = findBestHeight(
+      currentHeight,
+      SCREEN_ANALYSIS_CONFIG.okButton.supportedHeights,
+    );
+
+    const okButtonTemplate = okButtonTemplateSet[bestHeight.toString()];
+
+    if (!okButtonTemplate) return;
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.okButton.roi, canvas.width, canvas.height);
     const image = extractAndPreprocess(ctx, rect, {
@@ -340,12 +344,8 @@ export function useScreenCaptureAnalysis() {
     if (!winTemplateSet || !loseTemplateSet || !ctx || !canvas) return;
     if (now < resultCooldownUntil) return;
 
-    // 現在のキャンバス解像度に最も近いサポート対象の解像度を見つける
     const currentHeight = canvas.height;
-    const supportedHeights = SCREEN_ANALYSIS_CONFIG.result.supportedHeights;
-    const bestHeight = supportedHeights.reduce((prev, curr) => {
-      return Math.abs(curr - currentHeight) < Math.abs(prev - currentHeight) ? curr : prev;
-    });
+    const bestHeight = findBestHeight(currentHeight, SCREEN_ANALYSIS_CONFIG.result.supportedHeights);
 
     const winTemplate = winTemplateSet[bestHeight.toString()];
     const loseTemplate = loseTemplateSet[bestHeight.toString()];
@@ -483,9 +483,9 @@ export function useScreenCaptureAnalysis() {
         throw new Error('Failed to initialize canvas context');
       }
 
-      // 実際の解像度に合わせてテンプレートを再読み込み
-      logger.info(`Loading templates for resolution: ${canvasWidth}x${canvasHeight}`);
-      await loadTemplates(canvasWidth);
+      // テンプレートを読み込み（MIPMAPアプローチで全解像度用を生成）
+      logger.info(`Starting capture at resolution: ${canvasWidth}x${canvasHeight}`);
+      await loadTemplates();
 
       const track = stream.getVideoTracks()[0];
       track.addEventListener('ended', () => {
