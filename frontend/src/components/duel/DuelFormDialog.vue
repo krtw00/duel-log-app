@@ -163,6 +163,14 @@
                   </v-btn>
                 </div>
 
+                <div class="analysis-description">
+                  <v-icon class="mr-1" size="small" color="info">mdi-information</v-icon>
+                  <span class="text-caption">
+                    マスターデュエルのウィンドウを選択して、画面を自動解析します。
+                    勝敗結果を検出すると自動で対戦記録を登録できます。
+                  </span>
+                </div>
+
                 <div class="analysis-status">
                   <v-chip
                     size="small"
@@ -1046,6 +1054,20 @@ const closeDialog = () => {
   display: flex;
   align-items: center;
   color: rgba(128, 128, 128, 0.8);
+}
+
+.analysis-description {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 12px;
+  background-color: rgba(33, 150, 243, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid rgba(33, 150, 243, 0.5);
+
+  .text-caption {
+    color: rgba(128, 128, 128, 0.9);
+    line-height: 1.4;
+  }
 }
 
 .analysis-status {
