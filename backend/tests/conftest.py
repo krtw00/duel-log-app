@@ -109,6 +109,16 @@ def authenticated_client(db_session, test_user):
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(scope="function")
+def sample_duel_data():
+    """テスト用の対戦データ"""
+    from datetime import datetime, timezone
+
+    return {
+        "played_date": datetime.now(timezone.utc),
+    }
+
+
 @pytest.fixture(autouse=True)
 def mock_resend_api():
     """Resend APIをモックして、テスト環境でメール送信を実行しない"""
