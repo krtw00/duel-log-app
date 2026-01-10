@@ -1,7 +1,7 @@
 """管理者API用のスキーマ"""
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel, EmailStr
 
