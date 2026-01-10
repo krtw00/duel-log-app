@@ -33,9 +33,9 @@ def get_users(
     page: int = Query(1, ge=1, description="ページ番号"),
     per_page: int = Query(20, ge=1, le=100, description="1ページあたりの件数"),
     sort: Optional[str] = Query(
-        "id", regex="^(id|username|createdat)$", description="ソート項目"
+        "id", pattern="^(id|username|createdat)$", description="ソート項目"
     ),
-    order: Optional[str] = Query("asc", regex="^(asc|desc)$", description="ソート順"),
+    order: Optional[str] = Query("asc", pattern="^(asc|desc)$", description="ソート順"),
     search: Optional[str] = Query(None, description="検索クエリ（ユーザー名、メール）"),
     admin_only: Optional[bool] = Query(None, description="管理者のみ表示"),
 ):
