@@ -2,6 +2,9 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { api } from '@/services/api';
 import { useAuthStore } from './auth';
+import { createLogger } from '@/utils/logger';
+
+const logger = createLogger('Theme');
 
 const THEME_STORAGE_KEY = 'theme';
 const DEFAULT_THEME = 'dark';
@@ -67,7 +70,7 @@ export const useThemeStore = defineStore('theme', () => {
         await authStore.fetchUser();
         applyTheme(nextTheme);
       } catch (error) {
-        console.error('Failed to update theme preference:', error);
+        logger.error('Failed to update theme preference');
       }
     } else {
       applyTheme(nextTheme);
