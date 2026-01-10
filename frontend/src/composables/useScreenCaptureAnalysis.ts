@@ -4,6 +4,7 @@ import {
   AnalysisResult,
   CoinResult,
   SCREEN_ANALYSIS_CONFIG,
+  calculateScaledSigma,
   createCanvas,
   extractAndPreprocess,
   loadTemplateSetFromUrl,
@@ -121,6 +122,7 @@ export function useScreenCaptureAnalysis() {
       options: {
         downscale: number;
         useEdge: boolean;
+        blurSigma?: number;
         templateBaseWidth: number;
         supportedHeights: number[];
       },
@@ -138,30 +140,35 @@ export function useScreenCaptureAnalysis() {
       loadMultiTemplate('coinWin', SCREEN_ANALYSIS_CONFIG.turnChoice.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.turnChoice.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
         supportedHeights: SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
       }),
       loadMultiTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.turnChoice.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
         supportedHeights: SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
       }),
       loadMultiTemplate('okButton', SCREEN_ANALYSIS_CONFIG.okButton.templateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.okButton.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.okButton.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.okButton.templateBaseWidth,
         supportedHeights: SCREEN_ANALYSIS_CONFIG.okButton.supportedHeights,
       }),
       loadMultiTemplate('win', SCREEN_ANALYSIS_CONFIG.result.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.result.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
         supportedHeights: SCREEN_ANALYSIS_CONFIG.result.supportedHeights,
       }),
       loadMultiTemplate('lose', SCREEN_ANALYSIS_CONFIG.result.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.result.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
         supportedHeights: SCREEN_ANALYSIS_CONFIG.result.supportedHeights,
       }),
@@ -253,9 +260,14 @@ export function useScreenCaptureAnalysis() {
     if (!coinWinTemplate || !coinLoseTemplate) return;
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.turnChoice.roi, canvas.width, canvas.height);
+    const scaledSigma = calculateScaledSigma(
+      SCREEN_ANALYSIS_CONFIG.turnChoice.blurSigma,
+      bestHeight,
+    );
     const image = extractAndPreprocess(ctx, rect, {
       downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
       useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
+      blurSigma: scaledSigma,
     });
 
     const coinWinScore = matchTemplateNcc(
@@ -318,9 +330,14 @@ export function useScreenCaptureAnalysis() {
     if (!okButtonTemplate) return;
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.okButton.roi, canvas.width, canvas.height);
+    const scaledSigma = calculateScaledSigma(
+      SCREEN_ANALYSIS_CONFIG.okButton.blurSigma,
+      bestHeight,
+    );
     const image = extractAndPreprocess(ctx, rect, {
       downscale: SCREEN_ANALYSIS_CONFIG.okButton.downscale,
       useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
+      blurSigma: scaledSigma,
     });
 
     const score = matchTemplateNcc(image, okButtonTemplate, SCREEN_ANALYSIS_CONFIG.okButton.stride);
@@ -356,9 +373,14 @@ export function useScreenCaptureAnalysis() {
     }
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.result.roi, canvas.width, canvas.height);
+    const scaledSigma = calculateScaledSigma(
+      SCREEN_ANALYSIS_CONFIG.result.blurSigma,
+      bestHeight,
+    );
     const image = extractAndPreprocess(ctx, rect, {
       downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
       useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
+      blurSigma: scaledSigma,
     });
 
     const winScore = matchTemplateNcc(image, winTemplate, SCREEN_ANALYSIS_CONFIG.result.stride);
