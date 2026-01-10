@@ -6,7 +6,10 @@
 import { ref } from 'vue';
 import { api } from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
+import { createLogger } from '@/utils/logger';
 import type { Deck, GameMode } from '@/types';
+
+const logger = createLogger('LatestDuelValues');
 
 // localStorageのキー
 const LAST_MY_DECK_ID_KEY = 'duel-log-app:lastMyDeckId';
@@ -60,7 +63,7 @@ export function useLatestDuelValues() {
       const response = await api.get('/duels/latest-values/');
       latestValues.value = response.data;
     } catch (error) {
-      console.error('Failed to fetch latest values:', error);
+      logger.error('Failed to fetch latest values');
       latestValues.value = {};
     }
   };

@@ -141,12 +141,14 @@ import { useRoute } from 'vue-router';
 import { useSharedStatisticsStore } from '@/stores/shared_statistics';
 import { useThemeStore } from '@/stores/theme';
 import { useChartOptions } from '@/composables/useChartOptions';
+import { createLogger } from '@/utils/logger';
 import DashboardContent from '@/components/dashboard/DashboardContent.vue';
 import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
 import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 import { api } from '@/services/api';
 import { useNotificationStore } from '@/stores/notification';
 
+const logger = createLogger('SharedStatistics');
 const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
@@ -376,7 +378,7 @@ const exportCSV = async () => {
     document.body.removeChild(link);
     notificationStore.success('CSVファイルをダウンロードしました。');
   } catch (error) {
-    console.error('Failed to export CSV:', error);
+    logger.error('Failed to export CSV');
     notificationStore.error('CSVのエクスポートに失敗しました。');
   }
 };
@@ -384,7 +386,7 @@ const exportCSV = async () => {
 const fetchSharedStatistics = async () => {
   const shareId = route.params.share_id as string;
   if (!shareId) {
-    console.error('Share ID is missing.');
+    logger.error('Share ID is missing');
     return;
   }
 
@@ -507,7 +509,7 @@ const fetchSharedStatistics = async () => {
       processedStats.value = null; // Clear stats if fetch failed
     }
   } catch (error) {
-    console.error('Failed to fetch shared statistics:', error);
+    logger.error('Failed to fetch shared statistics');
     processedStats.value = null;
   } finally {
     sharedStatisticsStore.loading = false;

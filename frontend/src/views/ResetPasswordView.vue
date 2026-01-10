@@ -78,6 +78,9 @@
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useNotificationStore } from '@/stores/notification';
+import { createLogger } from '@/utils/logger';
+
+const logger = createLogger('ResetPassword');
 import api from '@/services/api';
 
 const route = useRoute();
@@ -115,7 +118,7 @@ const handleResetPassword = async () => {
     router.push('/login'); // ログインページに戻る
   } catch (error: unknown) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    console.error('Reset password error:', error);
+    logger.error('Reset password error');
   } finally {
     loading.value = false;
   }

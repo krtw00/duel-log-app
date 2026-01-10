@@ -191,9 +191,11 @@ import { ref, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { maskEmail } from '@/utils/maskEmail';
 
+const logger = createLogger('Profile');
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
@@ -231,7 +233,7 @@ const exportAllData = async () => {
     document.body.removeChild(link);
     notificationStore.success('バックアップファイルをダウンロードしました。');
   } catch (error) {
-    console.error('Failed to export data:', error);
+    logger.error('Failed to export data');
     notificationStore.error('データのエクスポートに失敗しました。');
   }
 };
@@ -264,7 +266,7 @@ const importBackup = async (event: Event) => {
 
     if (errors && errors.length > 0) {
       notificationStore.error('復元中にエラーが発生しました。');
-      console.error('Import Errors:', errors);
+      logger.error('Import Errors:', errors.length);
     } else {
       notificationStore.success(`${created}件の対戦記録を復元しました`);
     }
@@ -275,7 +277,7 @@ const importBackup = async (event: Event) => {
     // A better solution would be a shared service or a more robust state management.
     await authStore.fetchUser(); // to refresh user related data if any
   } catch (error) {
-    console.error('Failed to import data:', error);
+    logger.error('Failed to import data');
     notificationStore.error('データのインポートに失敗しました。');
   } finally {
     loading.value = false;
@@ -363,7 +365,7 @@ const handleUpdate = async () => {
     form.value.passwordConfirm = '';
     formRef.value.resetValidation();
   } catch (error) {
-    console.error('Failed to update profile:', error);
+    logger.error('Failed to update profile');
     // エラー通知はapi.tsのインターセプターが処理
   } finally {
     loading.value = false;
@@ -380,7 +382,7 @@ const handleDeleteAccount = async () => {
     // ログアウト処理でリダイレクト
     await authStore.logout();
   } catch (error) {
-    console.error('Failed to delete account:', error);
+    logger.error('Failed to delete account');
   } finally {
     deleting.value = false;
     deleteDialog.value = false;
