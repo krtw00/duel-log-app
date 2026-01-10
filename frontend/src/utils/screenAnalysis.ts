@@ -1,3 +1,7 @@
+import { createLogger } from '@/utils/logger';
+
+const logger = createLogger('ScreenAnalysis');
+
 export type AnalysisResult = 'win' | 'lose';
 
 export interface RoiRatio {
@@ -420,7 +424,7 @@ export const loadTemplateSetFromUrl = async (
   if (typeof window === 'undefined') {
     throw new Error('Window is not available');
   }
-  const response = await fetch(url, { cache: 'no-store' });
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch master template (${response.status}): ${url}`);
   }
@@ -461,7 +465,7 @@ export const loadTemplateSetFromUrl = async (
       const canvas = createCanvas(targetWidth, targetHeight);
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) {
-        console.error(`Failed to create canvas context for size ${targetWidth}x${targetHeight}`);
+        logger.error(`Failed to create canvas context for size ${targetWidth}x${targetHeight}`);
         continue;
       }
       ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
@@ -501,7 +505,7 @@ export const loadTemplateFromUrl = async (
   if (typeof window === 'undefined') {
     throw new Error('Window is not available');
   }
-  const response = await fetch(url, { cache: 'no-store' });
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch template (${response.status}): ${url}`);
   }
