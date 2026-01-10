@@ -16,7 +16,8 @@ export interface ScreenAnalysisConfig {
   turnChoice: {
     winTemplateUrl: string;
     loseTemplateUrl: string;
-    templateBaseWidth?: number;
+    templateBaseWidth: number;
+    supportedHeights: number[];
     roi: RoiRatio;
     threshold: number;
     margin: number;
@@ -29,7 +30,8 @@ export interface ScreenAnalysisConfig {
   };
   okButton: {
     templateUrl: string;
-    templateBaseWidth?: number;
+    templateBaseWidth: number;
+    supportedHeights: number[];
     roi: RoiRatio;
     threshold: number;
     requiredStreak: number;
@@ -68,7 +70,8 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
   turnChoice: {
     winTemplateUrl: resolvePublicUrl('screen-analysis/coin-win.png'),
     loseTemplateUrl: resolvePublicUrl('screen-analysis/coin-lose.png'),
-    templateBaseWidth: 3200,
+    templateBaseWidth: 3840,
+    supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
     roi: {
       x: 0.28,
       y: 0.58,
@@ -86,7 +89,8 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
   },
   okButton: {
     templateUrl: resolvePublicUrl('screen-analysis/ok-button.png'),
-    templateBaseWidth: 3200,
+    templateBaseWidth: 3840,
+    supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
     roi: {
       x: 0.3,
       y: 0.85,
