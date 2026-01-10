@@ -4,6 +4,9 @@ import { useLoadingStore } from '../stores/loading';
 import { useAuthStore } from '../stores/auth';
 import { getAccessToken } from './authTokens';
 import type { ApiErrorResponse, ValidationErrorDetail } from '../types/api';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('API');
 
 // 環境変数からAPIのベースURLを取得
 const IS_TEST = import.meta.env.MODE === 'test';
@@ -11,7 +14,7 @@ const RAW_API_BASE_URL = import.meta.env.VITE_API_URL ?? (IS_TEST ? 'http://127.
 
 // 環境変数が設定されていない場合の警告
 if (!RAW_API_BASE_URL) {
-  console.error('VITE_API_URL environment variable is not set');
+  logger.error('VITE_API_URL environment variable is not set');
   throw new Error('API URL is not configured. Please check your .env file.');
 }
 
@@ -23,7 +26,7 @@ export const normalizeApiBaseUrl = (
   // ここで安全に正規化しておく。
   const trimmed = raw.trim();
   if (trimmed !== raw) {
-    console.warn('[API] VITE_API_URL contained leading/trailing whitespace; trimmed.');
+    logger.warn('VITE_API_URL contained leading/trailing whitespace; trimmed.');
   }
 
   // Docker 内からは backend:8000 で到達できるが、ブラウザからは名前解決できない。
@@ -46,12 +49,9 @@ const API_BASE_URL = normalizeApiBaseUrl(RAW_API_BASE_URL, {
   runtimeHostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
 });
 
-console.info('[API] baseURL resolved', {
-  raw: RAW_API_BASE_URL,
+logger.info('baseURL resolved', {
   baseURL: API_BASE_URL,
   mode: import.meta.env.MODE,
-  dev: import.meta.env.DEV,
-  hostname: typeof window !== 'undefined' ? window.location.hostname : undefined,
 });
 
 export const api = axios.create({
@@ -90,16 +90,11 @@ api.interceptors.request.use(
     const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('[API] Using Authorization header from localStorage');
+      logger.debug('Using Authorization header from localStorage');
     }
 
     // リクエスト詳細ログ
-    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
-      baseURL: config.baseURL,
-      withCredentials: config.withCredentials,
-      hasAuthHeader: !!config.headers.Authorization,
-      hasCookieFromStorage: !!token,
-    });
+    logger.debug(`Request: ${config.method?.toUpperCase()} ${config.url}`);
 
     return config;
   },
@@ -120,7 +115,7 @@ api.interceptors.response.use(
       loadingStore.stop(requestId);
     }
 
-    console.log(`[API Response] ${response.status} ${response.config.url}`);
+    logger.debug(`Response: ${response.status} ${response.config.url}`);
 
     return response;
   },
@@ -146,10 +141,7 @@ api.interceptors.response.use(
       const status = error.response.status;
       const data = error.response.data as ApiErrorResponse;
 
-      console.error(`[API Error] ${status} ${error.config?.url}`, {
-        detail: data?.detail,
-        isMe: error.config?.url?.endsWith('/me'),
-      });
+      logger.error(`Error: ${status} ${error.config?.url}`);
 
       switch (status) {
         case 400:
@@ -161,7 +153,7 @@ api.interceptors.response.use(
           // /meエンドポイントからの401エラーは、単に「ログインしていない」状態を示すため、
           // 自動的なログアウト処理を引き起こさないようにする。
           if (error.config?.url?.endsWith('/me')) {
-            console.log('[API] 401 from /me - not authenticated yet');
+            logger.debug('401 from /me - not authenticated yet');
             // このエラーは後続の処理でハンドリングされるため、ここでは何もしない
           } else {
             // 他のAPIからの401エラーは「セッション切れ」を示す可能性
@@ -170,12 +162,7 @@ api.interceptors.response.use(
             const hadAuthHeader = !!(error.config?.headers as any)?.Authorization;
             const hadLocalToken = !!getAccessToken();
 
-            console.warn('[API] 401 from non-/me endpoint', {
-              url: error.config?.url,
-              hadAuthHeader,
-              hadLocalToken,
-              isInitialized: authStore.isInitialized,
-            });
+            logger.warn('401 from non-/me endpoint - session may have expired');
             message = '認証の有効期限が切れました。再度ログインしてください';
 
             // 初期化前（=起動直後）はログアウトしない。
