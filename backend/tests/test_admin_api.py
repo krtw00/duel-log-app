@@ -7,10 +7,10 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app.api.deps import get_current_user
+from app.core.security import get_password_hash
 from app.db.session import get_db
 from app.main import app
 from app.models.user import User
-from app.core.security import get_password_hash
 
 
 @pytest.fixture(scope="function")
@@ -146,10 +146,10 @@ class TestAdminUpdateUserStatus:
     def test_demote_last_admin_forbidden(self, admin_authenticated_client, admin_user, db_session):
         """最後の管理者の降格（失敗 - 400 Bad Request）"""
         # 他の管理者がいないことを確認
-        admin_count = db_session.query(User).filter(User.is_admin == True).count()
+        admin_count = db_session.query(User).filter(User.is_admin).count()
         if admin_count > 1:
             # 他の管理者を削除または非管理者に変更
-            admins_to_remove = db_session.query(User).filter(User.is_admin == True, User.id != admin_user.id).all()
+            admins_to_remove = db_session.query(User).filter(User.is_admin, User.id != admin_user.id).all()
             for u in admins_to_remove:
                 u.is_admin = False
             db_session.commit()
