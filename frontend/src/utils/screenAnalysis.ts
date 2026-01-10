@@ -8,6 +8,7 @@ export interface RoiRatio {
 }
 
 export type CoinResult = 'win' | 'lose';
+export type TemplateSet = Record<string, TemplateData>;
 
 export interface ScreenAnalysisConfig {
   normalizedWidth: number;
@@ -41,7 +42,8 @@ export interface ScreenAnalysisConfig {
   result: {
     winTemplateUrl: string;
     loseTemplateUrl: string;
-    templateBaseWidth?: number;
+    templateBaseWidth: number;
+    supportedHeights: number[];
     roi: RoiRatio;
     threshold: number;
     margin: number;
@@ -102,7 +104,8 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
   result: {
     winTemplateUrl: resolvePublicUrl('screen-analysis/result-win.png'),
     loseTemplateUrl: resolvePublicUrl('screen-analysis/result-lose.png'),
-    templateBaseWidth: 3200,
+    templateBaseWidth: 3840,
+    supportedHeights: [720, 1080, 1440, 2160],
     roi: {
       x: 0.05,
       y: 0.2,
@@ -311,6 +314,81 @@ export const prepareTemplate = (
     mask: grayscale.mask ?? null,
     maskSum: weightSum,
   };
+};
+
+export const loadTemplateSetFromUrl = async (
+  url: string,
+  options: {
+    downscale: number;
+    useEdge: boolean;
+    templateBaseWidth: number;
+    supportedHeights: number[];
+  },
+): Promise<TemplateSet> => {
+  if (typeof window === 'undefined') {
+    throw new Error('Window is not available');
+  }
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch master template (${response.status}): ${url}`);
+  }
+  const blob = await response.blob();
+  let source: ImageBitmap | HTMLImageElement | null = null;
+  let objectUrl: string | null = null;
+
+  try {
+    // 1. マスター画像を一度だけデコード
+    if ('createImageBitmap' in window) {
+      source = await createImageBitmap(blob);
+    } else {
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      objectUrl = URL.createObjectURL(blob);
+      const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error(`Failed to load master template: ${url}`));
+      });
+      image.src = objectUrl;
+      source = await loadPromise;
+    }
+
+    if (!source) {
+      throw new Error(`Master template decode failed: ${url}`);
+    }
+
+    const templateSet: TemplateSet = {};
+    const masterWidth = source.width;
+    const masterHeight = source.height;
+
+    // 2. サポートする解像度ごとにテンプレートを生成
+    for (const height of options.supportedHeights) {
+      const scale = (height * (16 / 9)) / options.templateBaseWidth;
+      const targetWidth = Math.max(1, Math.round(masterWidth * scale));
+      const targetHeight = Math.max(1, Math.round(masterHeight * scale));
+
+      const canvas = createCanvas(targetWidth, targetHeight);
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) {
+        console.error(`Failed to create canvas context for size ${targetWidth}x${targetHeight}`);
+        continue;
+      }
+      ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+      const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+      
+      // 3. 各解像度で前処理を実行
+      const templateData = prepareTemplate(imageData, options);
+      templateSet[height.toString()] = templateData;
+    }
+
+    return templateSet;
+  } finally {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
+    if (source && 'close' in source) {
+      source.close();
+    }
+  }
 };
 
 export const loadTemplateFromUrl = async (
