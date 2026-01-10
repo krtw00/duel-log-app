@@ -27,6 +27,7 @@ def admin_user(db_session):
     db_session.refresh(user)
     return user
 
+
 @pytest.fixture(scope="function")
 def regular_user(db_session):
     """テスト用一般ユーザー"""
@@ -102,15 +103,17 @@ class TestAdminGetUserList:
         response = client.get("/admin/users")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+
 class TestAdminUpdateUserStatus:
     """PUT /admin/users/{user_id}/admin-status のテスト"""
 
-    def test_update_user_to_admin_as_admin_success(self, admin_authenticated_client, regular_user, db_session):
+    def test_update_user_to_admin_as_admin_success(
+        self, admin_authenticated_client, regular_user, db_session
+    ):
         """管理者によるユーザーの管理者昇格（成功）"""
         assert not regular_user.is_admin
         response = admin_authenticated_client.put(
-            f"/admin/users/{regular_user.id}/admin-status",
-            json={"is_admin": True}
+            f"/admin/users/{regular_user.id}/admin-status", json={"is_admin": True}
         )
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -120,52 +123,65 @@ class TestAdminUpdateUserStatus:
         db_session.refresh(regular_user)
         assert regular_user.is_admin is True
 
-    def test_demote_admin_as_admin_success(self, admin_authenticated_client, db_session):
+    def test_demote_admin_as_admin_success(
+        self, admin_authenticated_client, db_session
+    ):
         """管理者による他の管理者の降格（成功）"""
         # 別の管理者を作成
-        another_admin = User(username="anotheradmin", email="another@admin.com", passwordhash="pw", is_admin=True)
+        another_admin = User(
+            username="anotheradmin",
+            email="another@admin.com",
+            passwordhash="pw",
+            is_admin=True,
+        )
         db_session.add(another_admin)
         db_session.commit()
 
         response = admin_authenticated_client.put(
-            f"/admin/users/{another_admin.id}/admin-status",
-            json={"is_admin": False}
+            f"/admin/users/{another_admin.id}/admin-status", json={"is_admin": False}
         )
         assert response.status_code == status.HTTP_200_OK
         db_session.refresh(another_admin)
         assert another_admin.is_admin is False
 
-    def test_demote_self_as_admin_forbidden(self, admin_authenticated_client, admin_user):
+    def test_demote_self_as_admin_forbidden(
+        self, admin_authenticated_client, admin_user
+    ):
         """管理者による自身の降格（失敗 - 403 Forbidden）"""
         response = admin_authenticated_client.put(
-            f"/admin/users/{admin_user.id}/admin-status",
-            json={"is_admin": False}
+            f"/admin/users/{admin_user.id}/admin-status", json={"is_admin": False}
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_demote_last_admin_forbidden(self, admin_authenticated_client, admin_user, db_session):
+    def test_demote_last_admin_forbidden(
+        self, admin_authenticated_client, admin_user, db_session
+    ):
         """最後の管理者の降格（失敗 - 400 Bad Request）"""
         # 他の管理者がいないことを確認
         admin_count = db_session.query(User).filter(User.is_admin).count()
         if admin_count > 1:
             # 他の管理者を削除または非管理者に変更
-            admins_to_remove = db_session.query(User).filter(User.is_admin, User.id != admin_user.id).all()
+            admins_to_remove = (
+                db_session.query(User)
+                .filter(User.is_admin, User.id != admin_user.id)
+                .all()
+            )
             for u in admins_to_remove:
                 u.is_admin = False
             db_session.commit()
 
         response = admin_authenticated_client.put(
-            f"/admin/users/{admin_user.id}/admin-status",
-            json={"is_admin": False}
+            f"/admin/users/{admin_user.id}/admin-status", json={"is_admin": False}
         )
         # The user is trying to demote themself, which should be a 403, but the logic for last admin is checked first.
         # The current implementation checks for self-demotion first.
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_update_status_as_regular_user_forbidden(self, regular_authenticated_client, admin_user):
+    def test_update_status_as_regular_user_forbidden(
+        self, regular_authenticated_client, admin_user
+    ):
         """一般ユーザーによる権限変更（失敗 - 403 Forbidden）"""
         response = regular_authenticated_client.put(
-            f"/admin/users/{admin_user.id}/admin-status",
-            json={"is_admin": False}
+            f"/admin/users/{admin_user.id}/admin-status", json={"is_admin": False}
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -266,9 +266,7 @@ class TestDeckService:
         assert result is True
 
         # デッキは論理削除され、データベース上に残っている
-        archived_deck = (
-            db_session.query(Deck).filter(Deck.id == active_deck_id).first()
-        )
+        archived_deck = db_session.query(Deck).filter(Deck.id == active_deck_id).first()
         assert archived_deck is not None
         assert archived_deck.active is False
         assert archived_deck.name == "Dark Magician"
