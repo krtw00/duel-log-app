@@ -131,13 +131,13 @@ export function useLatestDuelValues() {
       result.selectedMyDeck = myDecks.find((d) => d.id === myDeckIdToFind) || null;
     }
 
-    // 3. 相手デッキ
-    const opponentDeckIdToFind =
-      latestFromDb?.opponent_deck_id ?? (lastOpponentDeckId ? Number(lastOpponentDeckId) : null);
-    if (opponentDeckIdToFind) {
-      result.selectedOpponentDeck =
-        opponentDecks.find((d) => d.id === opponentDeckIdToFind) || null;
-    }
+    // 3. 相手デッキ（登録後は空欄にするため、自動設定しない）
+    // const opponentDeckIdToFind =
+    //   latestFromDb?.opponent_deck_id ?? (lastOpponentDeckId ? Number(lastOpponentDeckId) : null);
+    // if (opponentDeckIdToFind) {
+    //   result.selectedOpponentDeck =
+    //     opponentDecks.find((d) => d.id === opponentDeckIdToFind) || null;
+    // }
 
     return result;
   };
@@ -153,7 +153,8 @@ export function useLatestDuelValues() {
     gameMode: GameMode;
   }) => {
     setStorageItem(LAST_MY_DECK_ID_KEY, String(data.myDeckId));
-    setStorageItem(LAST_OPPONENT_DECK_ID_KEY, String(data.opponentDeckId));
+    // 相手デッキは登録後に空欄にするため、localStorageに保存しない
+    // setStorageItem(LAST_OPPONENT_DECK_ID_KEY, String(data.opponentDeckId));
     if (data.gameMode === 'RANK' && data.rank !== undefined) {
       setStorageItem(LAST_RANK_KEY, String(data.rank));
     }
