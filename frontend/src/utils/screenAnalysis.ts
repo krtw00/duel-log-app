@@ -27,6 +27,7 @@ export interface ScreenAnalysisConfig {
     downscale: number;
     stride: number;
     useEdge: boolean;
+    blurSigma: number;
   };
   okButton: {
     templateUrl: string;
@@ -40,6 +41,7 @@ export interface ScreenAnalysisConfig {
     downscale: number;
     stride: number;
     useEdge: boolean;
+    blurSigma: number;
   };
   result: {
     winTemplateUrl: string;
@@ -54,6 +56,7 @@ export interface ScreenAnalysisConfig {
     downscale: number;
     stride: number;
     useEdge: boolean;
+    blurSigma: number;
   };
 }
 
@@ -70,7 +73,7 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
   turnChoice: {
     winTemplateUrl: resolvePublicUrl('screen-analysis/coin-win.png'),
     loseTemplateUrl: resolvePublicUrl('screen-analysis/coin-lose.png'),
-    templateBaseWidth: 3840,
+    templateBaseWidth: 3200,
     supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
     roi: {
       x: 0.28,
@@ -84,12 +87,13 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
     cooldownMs: 15000,
     activeMs: 20000,
     downscale: 1.0,
-    stride: 2,
-    useEdge: true,
+    stride: 1,
+    useEdge: false,
+    blurSigma: 1.0,
   },
   okButton: {
     templateUrl: resolvePublicUrl('screen-analysis/ok-button.png'),
-    templateBaseWidth: 3840,
+    templateBaseWidth: 3200,
     supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
     roi: {
       x: 0.3,
@@ -102,13 +106,14 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
     cooldownMs: 8000,
     activeMs: 8000,
     downscale: 1.0,
-    stride: 2,
+    stride: 1,
     useEdge: false,
+    blurSigma: 1.0,
   },
   result: {
     winTemplateUrl: resolvePublicUrl('screen-analysis/result-win.png'),
     loseTemplateUrl: resolvePublicUrl('screen-analysis/result-lose.png'),
-    templateBaseWidth: 3840,
+    templateBaseWidth: 3200,
     supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
     roi: {
       x: 0.05,
@@ -121,8 +126,9 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
     requiredStreak: 2,
     cooldownMs: 12000,
     downscale: 1.0,
-    stride: 2,
+    stride: 1,
     useEdge: true,
+    blurSigma: 1.0,
   },
 };
 
@@ -238,6 +244,66 @@ export const downscale = (
   return { width, height, data, mask };
 };
 
+export const applyGaussianBlur = (
+  image: GrayscaleImage & { mask?: Float32Array },
+  sigma: number = 1.0,
+): GrayscaleImage & { mask?: Float32Array } => {
+  if (sigma <= 0) return image;
+
+  const { width, height, data } = image;
+  const output = new Float32Array(width * height);
+
+  // カーネルサイズを決定（sigma * 3で十分）
+  const kernelRadius = Math.ceil(sigma * 3);
+  const kernelSize = kernelRadius * 2 + 1;
+
+  // 1Dガウシアンカーネルを生成
+  const kernel = new Float32Array(kernelSize);
+  let kernelSum = 0;
+  for (let i = 0; i < kernelSize; i++) {
+    const x = i - kernelRadius;
+    kernel[i] = Math.exp(-(x * x) / (2 * sigma * sigma));
+    kernelSum += kernel[i];
+  }
+  // 正規化
+  for (let i = 0; i < kernelSize; i++) {
+    kernel[i] /= kernelSum;
+  }
+
+  // 水平方向のブラー
+  const temp = new Float32Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      let weightSum = 0;
+      for (let k = -kernelRadius; k <= kernelRadius; k++) {
+        const sx = Math.min(Math.max(0, x + k), width - 1);
+        const weight = kernel[k + kernelRadius];
+        sum += data[y * width + sx] * weight;
+        weightSum += weight;
+      }
+      temp[y * width + x] = sum / weightSum;
+    }
+  }
+
+  // 垂直方向のブラー
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      let weightSum = 0;
+      for (let k = -kernelRadius; k <= kernelRadius; k++) {
+        const sy = Math.min(Math.max(0, y + k), height - 1);
+        const weight = kernel[k + kernelRadius];
+        sum += temp[sy * width + x] * weight;
+        weightSum += weight;
+      }
+      output[y * width + x] = sum / weightSum;
+    }
+  }
+
+  return { width, height, data: output, mask: image.mask };
+};
+
 export const applySobel = (
   image: GrayscaleImage & { mask?: Float32Array },
 ): GrayscaleImage & { mask?: Float32Array } => {
@@ -301,10 +367,13 @@ export const computeTemplateStats = (data: Float32Array, mask?: Float32Array) =>
 
 export const prepareTemplate = (
   imageData: ImageData,
-  options: { downscale: number; useEdge: boolean },
+  options: { downscale: number; useEdge: boolean; blurSigma?: number },
 ): TemplateData => {
   const withMask = toGrayscaleWithMask(imageData);
   let grayscale: GrayscaleImage & { mask?: Float32Array } = downscale(withMask, options.downscale);
+  if (options.blurSigma && options.blurSigma > 0) {
+    grayscale = applyGaussianBlur(grayscale, options.blurSigma);
+  }
   if (options.useEdge) {
     grayscale = applySobel(grayscale);
   }
@@ -320,11 +389,30 @@ export const prepareTemplate = (
   };
 };
 
+/**
+ * 解像度に応じたsigmaを計算する
+ * 低解像度ほどsigmaを大きくして、縮小によるノイズを軽減
+ * @param baseSigma 基準sigma（1800p時の値）
+ * @param currentHeight 現在の解像度の高さ
+ * @param baseHeight 基準解像度の高さ（デフォルト1800）
+ */
+export const calculateScaledSigma = (
+  baseSigma: number,
+  currentHeight: number,
+  baseHeight: number = 1800,
+): number => {
+  if (baseSigma <= 0) return 0;
+  // 低解像度ほどsigmaを大きく（baseHeight/currentHeight比で増加）
+  const scale = baseHeight / currentHeight;
+  return baseSigma * Math.max(1, scale);
+};
+
 export const loadTemplateSetFromUrl = async (
   url: string,
   options: {
     downscale: number;
     useEdge: boolean;
+    blurSigma?: number;
     templateBaseWidth: number;
     supportedHeights: number[];
   },
@@ -378,9 +466,15 @@ export const loadTemplateSetFromUrl = async (
       }
       ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
       const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-      
-      // 3. 各解像度で前処理を実行
-      const templateData = prepareTemplate(imageData, options);
+
+      // 3. 各解像度で前処理を実行（解像度に応じてsigmaをスケーリング）
+      const scaledSigma = options.blurSigma
+        ? calculateScaledSigma(options.blurSigma, height)
+        : undefined;
+      const templateData = prepareTemplate(imageData, {
+        ...options,
+        blurSigma: scaledSigma,
+      });
       templateSet[height.toString()] = templateData;
     }
 
@@ -511,11 +605,14 @@ export const matchTemplateNcc = (
 export const extractAndPreprocess = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   rect: Rect,
-  options: { downscale: number; useEdge: boolean },
+  options: { downscale: number; useEdge: boolean; blurSigma?: number },
 ): GrayscaleImage => {
   const imageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
-  let grayscale = toGrayscale(imageData);
+  let grayscale: GrayscaleImage = toGrayscale(imageData);
   grayscale = downscale(grayscale, options.downscale);
+  if (options.blurSigma && options.blurSigma > 0) {
+    grayscale = applyGaussianBlur(grayscale, options.blurSigma);
+  }
   if (options.useEdge) {
     grayscale = applySobel(grayscale);
   }
