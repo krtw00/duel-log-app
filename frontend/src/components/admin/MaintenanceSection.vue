@@ -38,9 +38,7 @@
           <v-chip class="ml-2" size="small" color="grey">近日公開</v-chip>
         </v-card-title>
         <v-card-text>
-          <p class="text-body-2 text-disabled">
-            対戦履歴が存在しない相手デッキを削除します。
-          </p>
+          <p class="text-body-2 text-disabled">対戦履歴が存在しない相手デッキを削除します。</p>
         </v-card-text>
       </v-card>
 
@@ -73,13 +71,9 @@
             この操作は、全ユーザーの同名のアーカイブ済みデッキを統合します。
           </p>
           <v-alert type="warning" variant="tonal" class="mb-4">
-            <p class="text-body-2">
-              <strong>注意：</strong>この操作は取り消せません。
-            </p>
+            <p class="text-body-2"><strong>注意：</strong>この操作は取り消せません。</p>
           </v-alert>
-          <p class="text-body-2">
-            続行してもよろしいですか？
-          </p>
+          <p class="text-body-2">続行してもよろしいですか？</p>
         </v-card-text>
 
         <v-divider />
@@ -145,8 +139,7 @@ async function executeMerge() {
     notificationStore.success('マージが完了しました');
   } catch (error: any) {
     mergeSuccess.value = false;
-    mergeResultMessage.value =
-      error.response?.data?.detail || 'マージ中にエラーが発生しました。';
+    mergeResultMessage.value = error.response?.data?.detail || 'マージ中にエラーが発生しました。';
     notificationStore.error('マージに失敗しました');
   } finally {
     mergeLoading.value = false;
