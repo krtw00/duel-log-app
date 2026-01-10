@@ -1,3 +1,23 @@
+## [1.8.0](https://github.com/krtw00/duel-log-app/compare/v1.7.4...v1.8.0) (2026-01-10)
+
+
+### ✨ Features
+
+* **admin:** implement user management frontend ([69f4c3a](https://github.com/krtw00/duel-log-app/commit/69f4c3a91bd509b93098526836cc15c973f2133e))
+* **admin:** implement Vuetify-based admin panel UI ([99ac6d8](https://github.com/krtw00/duel-log-app/commit/99ac6d8a87843f54b7c430ad46eb4e8cfb0e0f62))
+* **backend:** implement auto-merge for archived decks ([012c375](https://github.com/krtw00/duel-log-app/commit/012c375cbd0c28a120aa2c3dcce31b5c5bed62d2))
+* **backend:** implement user management API for admin panel ([e649851](https://github.com/krtw00/duel-log-app/commit/e6498514cb7c6f764196e3d19f7ce18d2ff937d0))
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** clear opponent deck after duel registration ([51a6880](https://github.com/krtw00/duel-log-app/commit/51a68801f3bf2c67d11b7ded8e0c771058e5248e))
+
+
+### 📝 Documentation
+
+* add admin panel and archive merge design documents ([b3edce1](https://github.com/krtw00/duel-log-app/commit/b3edce1be3e022e0f8ed287e1ec735f7794c1d5d))
+
 ## [1.7.4](https://github.com/krtw00/duel-log-app/compare/v1.7.3...v1.7.4) (2026-01-09)
 
 
