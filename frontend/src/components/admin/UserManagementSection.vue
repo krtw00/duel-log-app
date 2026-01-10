@@ -57,9 +57,7 @@
             <v-icon start size="small">mdi-shield-crown</v-icon>
             管理者
           </v-chip>
-          <v-chip v-else color="default" size="small" variant="outlined">
-            一般ユーザー
-          </v-chip>
+          <v-chip v-else color="default" size="small" variant="outlined"> 一般ユーザー </v-chip>
         </template>
 
         <template #item.createdat="{ item }">
@@ -186,7 +184,7 @@ async function fetchUsers() {
       sort.value,
       order.value,
       searchQuery.value || undefined,
-      adminOnly.value || undefined
+      adminOnly.value || undefined,
     );
     users.value = response.users;
     totalUsers.value = response.total;
