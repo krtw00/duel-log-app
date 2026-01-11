@@ -1,0 +1,20 @@
+{
+  "coin-classifier": {
+    "modelUrl": "/models/coin-classifier/model.json",
+    "inputSize": 224,
+    "labels": [
+      "lose",
+      "none",
+      "win"
+    ]
+  },
+  "result-classifier": {
+    "modelUrl": "/models/result-classifier/model.json",
+    "inputSize": 224,
+    "labels": [
+      "lose",
+      "none",
+      "victory"
+    ]
+  }
+}

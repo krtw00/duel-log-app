@@ -55,3 +55,8 @@ htmlcov/
 # screen-analysis raw templates (dev only)
 frontend/public/screen-analysis/*_raw.png
 frontend/public/screen-analysis/*-raw.png
+
+# ML training data and intermediate models
+ml-training/data/
+ml-training/models/
+ml-training/venv/

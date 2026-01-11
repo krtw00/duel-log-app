@@ -27,13 +27,13 @@ export interface ClassifierConfig {
   threshold: number;
 }
 
-// デフォルト設定
+// デフォルト設定（学習済みモデルのラベル順序に合わせる）
 export const TFJS_CONFIG = {
   coin: {
     modelUrl: '/models/coin-classifier/model.json',
     inputSize: MODEL_INPUT_SIZE,
-    labels: ['win', 'lose', 'none'],
-    threshold: 0.7,
+    labels: ['lose', 'none', 'win'], // アルファベット順（学習時の順序）
+    threshold: 0.6,
     roi: {
       x: 0.28,
       y: 0.58,
@@ -44,8 +44,8 @@ export const TFJS_CONFIG = {
   result: {
     modelUrl: '/models/result-classifier/model.json',
     inputSize: MODEL_INPUT_SIZE,
-    labels: ['victory', 'lose', 'none'],
-    threshold: 0.7,
+    labels: ['lose', 'none', 'victory'], // アルファベット順（学習時の順序）
+    threshold: 0.6,
     roi: {
       x: 0.05,
       y: 0.2,
