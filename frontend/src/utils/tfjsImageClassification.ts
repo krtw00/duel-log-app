@@ -92,9 +92,12 @@ export class ImageClassifier {
       // LayersModel または GraphModel としてロード
       try {
         this.model = await tf.loadLayersModel(this.config.modelUrl);
-      } catch {
+        logger.info('Model loaded as LayersModel');
+      } catch (layersError) {
+        logger.warn('Failed to load as LayersModel, trying GraphModel:', layersError);
         // GraphModel として試行
         this.model = await tf.loadGraphModel(this.config.modelUrl);
+        logger.info('Model loaded as GraphModel');
       }
       logger.info('Model loaded successfully');
       return true;
