@@ -30,19 +30,20 @@ type ResultLockState = 'unlocked' | 'locked';
 const ANALYSIS_CONFIG = {
   scanFps: 5,
   normalizedWidth: 1280,
+  warmupFrames: 10, // 開始後 10 フレーム（2秒）はスキップ
   // コイントス判定
   coin: {
     roi: TFJS_CONFIG.coin.roi,
-    threshold: 0.6,
-    requiredStreak: 2,
+    threshold: 0.9, // ML モデル用に高めに設定（誤検出防止）
+    requiredStreak: 5, // 5 フレーム連続で検出が必要（誤検出防止）
     cooldownMs: 15000,
     activeMs: 20000,
   },
   // 勝敗判定
   result: {
     roi: TFJS_CONFIG.result.roi,
-    threshold: 0.6,
-    requiredStreak: 2,
+    threshold: 0.8, // ML モデル用に高めに設定
+    requiredStreak: 3, // 3 フレーム連続で検出が必要
     cooldownMs: 12000,
   },
   // 色ベース判定用の設定（モデルがない場合のフォールバック）
@@ -79,6 +80,12 @@ export function useScreenCaptureAnalysisTfjs() {
     lose: 0,
   });
 
+  // 最後の予測ラベル（デバッグ用）
+  const lastPredictedLabels = ref({
+    coin: 'none',
+    result: 'none',
+  });
+
   // モデル状態
   const modelStatus = ref({
     tfjsReady: false,
@@ -108,6 +115,8 @@ export function useScreenCaptureAnalysisTfjs() {
   let coinActiveUntil = 0;
   let resultCooldownUntil = 0;
   let frameCount = 0;
+  let coinDetectedOnce = false; // コインが一度でも検出されたか
+  let captureStartTime = 0; // キャプチャ開始時刻
 
   // 不足テンプレート（互換性のため）
   const missingTemplates = computed(() => {
@@ -162,6 +171,8 @@ export function useScreenCaptureAnalysisTfjs() {
     resultEventId.value = 0;
     resultLockState.value = 'unlocked';
     frameCount = 0;
+    coinDetectedOnce = false;
+    captureStartTime = 0;
   };
 
   /**
@@ -237,8 +248,8 @@ export function useScreenCaptureAnalysisTfjs() {
    */
   const analyzeCoin = async (now: number) => {
     if (!ctx || !canvas) return;
-    if (now < coinCooldownUntil) return;
 
+    // スコア表示用に常に分類を実行
     const result = await classifyRoi(
       ANALYSIS_CONFIG.coin.roi,
       coinClassifier,
@@ -248,14 +259,21 @@ export function useScreenCaptureAnalysisTfjs() {
       ],
     );
 
-    // スコア更新
+    // 予測ラベルを記録
+    lastPredictedLabels.value = { ...lastPredictedLabels.value, coin: result.label };
+
+    // スコア更新 - 常に更新（予測ラベルに関わらず信頼度を表示）
     if (result.label === 'win') {
       lastScores.value = { ...lastScores.value, coinWin: result.confidence, coinLose: 0 };
     } else if (result.label === 'lose') {
       lastScores.value = { ...lastScores.value, coinWin: 0, coinLose: result.confidence };
     } else {
-      lastScores.value = { ...lastScores.value, coinWin: 0, coinLose: 0 };
+      // 'none' の場合も信頼度を表示（デバッグ用）
+      lastScores.value = { ...lastScores.value, coinWin: result.confidence, coinLose: 0 };
     }
+
+    // 以下は検出判定のブロック条件（スコア更新後にチェック）
+    if (now < coinCooldownUntil) return;
 
     // しきい値チェック
     if (result.confidence < ANALYSIS_CONFIG.coin.threshold || result.label === 'none') {
@@ -281,19 +299,21 @@ export function useScreenCaptureAnalysisTfjs() {
       coinCooldownUntil = now + ANALYSIS_CONFIG.coin.cooldownMs;
       turnChoiceEventId.value += 1;
       resultLockState.value = 'unlocked';
+      coinDetectedOnce = true; // コインが検出されたことを記録
       logger.info(`Coin result detected: ${candidate} (confidence: ${result.confidence.toFixed(2)})`);
     }
   };
+
+  // 勝敗判定を許可する最小経過時間（コインが検出されない場合のフォールバック）
+  const MIN_TIME_BEFORE_RESULT_MS = 60000; // 60秒
 
   /**
    * 勝敗判定
    */
   const analyzeResult = async (now: number) => {
     if (!ctx || !canvas) return;
-    if (now < resultCooldownUntil) return;
-    if (resultLockState.value === 'locked') return;
-    if (turnChoiceAvailable.value) return;
 
+    // スコア表示用に常に分類を実行
     const result = await classifyRoi(
       ANALYSIS_CONFIG.result.roi,
       resultClassifier,
@@ -303,13 +323,31 @@ export function useScreenCaptureAnalysisTfjs() {
       ],
     );
 
-    // スコア更新（victory -> win に変換）
+    // 予測ラベルを記録
+    lastPredictedLabels.value = { ...lastPredictedLabels.value, result: result.label };
+
+    // スコア更新（victory -> win に変換）- 常に更新
     if (result.label === 'victory') {
       lastScores.value = { ...lastScores.value, win: result.confidence, lose: 0 };
     } else if (result.label === 'lose') {
       lastScores.value = { ...lastScores.value, win: 0, lose: result.confidence };
     } else {
-      lastScores.value = { ...lastScores.value, win: 0, lose: 0 };
+      // 'none' の場合も信頼度を表示（デバッグ用）
+      lastScores.value = { ...lastScores.value, win: result.confidence, lose: 0 };
+    }
+
+    // 以下は検出判定のブロック条件（スコア更新後にチェック）
+    if (now < resultCooldownUntil) return;
+    if (resultLockState.value === 'locked') return;
+    if (turnChoiceAvailable.value) return;
+
+    // コインが検出されていない場合は、十分な時間が経過するまで勝敗判定をブロック
+    // （コイン判定中に誤って勝敗を検出するのを防ぐ）
+    if (!coinDetectedOnce) {
+      const elapsed = now - captureStartTime;
+      if (elapsed < MIN_TIME_BEFORE_RESULT_MS) {
+        return; // まだコインが検出されていないのでスキップ
+      }
     }
 
     // しきい値チェック
@@ -374,6 +412,14 @@ export function useScreenCaptureAnalysisTfjs() {
     // コイントス表示期間の終了チェック
     if (turnChoiceAvailable.value && now > coinActiveUntil) {
       turnChoiceAvailable.value = false;
+    }
+
+    // ウォームアップ期間中は解析をスキップ（誤検出防止）
+    if (frameCount <= ANALYSIS_CONFIG.warmupFrames) {
+      if (frameCount === ANALYSIS_CONFIG.warmupFrames) {
+        logger.info(`Warmup complete after ${frameCount} frames, starting analysis`);
+      }
+      return;
     }
 
     // 定期ログ
@@ -449,6 +495,9 @@ export function useScreenCaptureAnalysisTfjs() {
 
       logger.info(`Starting TF.js capture at resolution: ${canvasWidth}x${canvasHeight}`);
 
+      // キャプチャ開始時刻を記録
+      captureStartTime = Date.now();
+
       // モデル初期化（バックグラウンド）
       void initModels();
 
@@ -515,6 +564,154 @@ export function useScreenCaptureAnalysisTfjs() {
     await initModels();
   };
 
+  /**
+   * Canvas を Blob に変換するヘルパー
+   */
+  const canvasToBlob = async (
+    targetCanvas: HTMLCanvasElement | OffscreenCanvas,
+  ): Promise<Blob | null> => {
+    if (targetCanvas instanceof HTMLCanvasElement) {
+      return new Promise((resolve) => {
+        targetCanvas.toBlob((blob) => resolve(blob), 'image/png');
+      });
+    } else if (targetCanvas instanceof OffscreenCanvas) {
+      return await targetCanvas.convertToBlob({ type: 'image/png' });
+    }
+    return null;
+  };
+
+  // File System Access API 用のディレクトリハンドル
+  let trainingDataDirHandle: FileSystemDirectoryHandle | null = null;
+
+  /**
+   * 学習データ保存先フォルダを選択
+   */
+  const selectTrainingDataFolder = async (): Promise<boolean> => {
+    try {
+      // @ts-expect-error - File System Access API
+      trainingDataDirHandle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+      });
+      logger.info(`Training data folder selected: ${trainingDataDirHandle?.name}`);
+      return true;
+    } catch (error) {
+      logger.error('Failed to select training data folder:', error);
+      return false;
+    }
+  };
+
+  /**
+   * サブディレクトリを取得または作成
+   */
+  const getOrCreateSubDir = async (
+    parentHandle: FileSystemDirectoryHandle,
+    name: string,
+  ): Promise<FileSystemDirectoryHandle> => {
+    return await parentHandle.getDirectoryHandle(name, { create: true });
+  };
+
+  /**
+   * ファイルを保存
+   */
+  const saveFileToDir = async (
+    dirHandle: FileSystemDirectoryHandle,
+    filename: string,
+    blob: Blob,
+  ): Promise<boolean> => {
+    try {
+      const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return true;
+    } catch (error) {
+      logger.error(`Failed to save file ${filename}:`, error);
+      return false;
+    }
+  };
+
+  /**
+   * Blob をダウンロード（フォールバック用）
+   */
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  /**
+   * 学習データ保存先が設定済みか
+   */
+  const hasTrainingDataFolder = () => trainingDataDirHandle !== null;
+
+  /**
+   * デバッグ用: 現在のフレームとROI領域を保存
+   * 学習データ収集に使用
+   */
+  const saveDebugImages = async (label: 'coin-win' | 'coin-lose' | 'coin-none' | 'result-win' | 'result-lose' | 'result-none') => {
+    if (!canvas || !ctx) {
+      logger.warn('Cannot save debug images: canvas not ready');
+      return null;
+    }
+
+    const timestamp = Date.now();
+    let savedCount = 0;
+
+    try {
+      // ROI を抽出
+      const roiConfig = label.startsWith('coin') ? TFJS_CONFIG.coin : TFJS_CONFIG.result;
+      const roiImageData = extractRoiImageData(ctx, roiConfig.roi, canvas.width, canvas.height);
+
+      // ROI を HTMLCanvas に描画
+      const roiHtmlCanvas = document.createElement('canvas');
+      roiHtmlCanvas.width = roiImageData.width;
+      roiHtmlCanvas.height = roiImageData.height;
+      const roiCtx = roiHtmlCanvas.getContext('2d');
+      if (!roiCtx) {
+        logger.error('Failed to create ROI canvas context');
+        return 0;
+      }
+      roiCtx.putImageData(roiImageData, 0, 0);
+      const roiBlob = await canvasToBlob(roiHtmlCanvas);
+
+      if (!roiBlob) {
+        logger.error('Failed to create ROI blob');
+        return 0;
+      }
+
+      // File System Access API が使える場合は直接保存
+      if (trainingDataDirHandle) {
+        // ラベルからディレクトリ構造を決定
+        // coin-win -> coin/win, result-lose -> result/lose
+        const [category, className] = label.split('-') as [string, string];
+        const categoryDir = await getOrCreateSubDir(trainingDataDirHandle, category);
+        const classDir = await getOrCreateSubDir(categoryDir, className === 'win' && category === 'result' ? 'victory' : className);
+
+        // ROI のみ保存（学習に使用）
+        const roiFilename = `${className}_${timestamp}.png`;
+        if (await saveFileToDir(classDir, roiFilename, roiBlob)) {
+          savedCount++;
+          logger.info(`Saved to ${category}/${className}/${roiFilename}`);
+        }
+      } else {
+        // フォールバック: ダウンロード
+        downloadBlob(roiBlob, `${label}_${timestamp}_roi.png`);
+        savedCount++;
+      }
+
+      logger.info(`Debug images captured: ${label} (${savedCount} images)`);
+    } catch (error) {
+      logger.error('Failed to save debug images:', error);
+    }
+
+    return savedCount;
+  };
+
   // ライフサイクル
   onMounted(() => {
     void initModels();
@@ -541,11 +738,15 @@ export function useScreenCaptureAnalysisTfjs() {
 
     // TF.js 固有
     modelStatus,
+    lastPredictedLabels,
 
     // メソッド
     startCapture,
     stopCapture,
     resetState,
     ensureTemplatesLoaded,
+    saveDebugImages,
+    selectTrainingDataFolder,
+    hasTrainingDataFolder,
   };
 }
