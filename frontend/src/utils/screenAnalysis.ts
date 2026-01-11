@@ -33,20 +33,6 @@ export interface ScreenAnalysisConfig {
     useEdge: boolean;
     blurSigma: number;
   };
-  okButton: {
-    templateUrl: string;
-    templateBaseWidth: number;
-    supportedHeights: number[];
-    roi: RoiRatio;
-    threshold: number;
-    requiredStreak: number;
-    cooldownMs: number;
-    activeMs: number;
-    downscale: number;
-    stride: number;
-    useEdge: boolean;
-    blurSigma: number;
-  };
   result: {
     winTemplateUrl: string;
     loseTemplateUrl: string;
@@ -73,11 +59,12 @@ const resolvePublicUrl = (path: string) => {
 
 export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
   normalizedWidth: 1280,
-  scanFps: 10,
+  scanFps: 5,
   turnChoice: {
+    // 1800pテンプレートをマスターとして使用（縮小で各解像度を生成）
     winTemplateUrl: resolvePublicUrl('screen-analysis/coin-win.png'),
     loseTemplateUrl: resolvePublicUrl('screen-analysis/coin-lose.png'),
-    templateBaseWidth: 3200,
+    templateBaseWidth: 3200, // 1800p = 3200x1800
     supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
     roi: {
       x: 0.28,
@@ -85,39 +72,21 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
       width: 0.44,
       height: 0.12,
     },
-    threshold: 0.45,
-    margin: 0.1,
-    requiredStreak: 2,
+    threshold: 0.55,
+    margin: 0.10,
+    requiredStreak: 3,
     cooldownMs: 15000,
     activeMs: 20000,
     downscale: 1.0,
-    stride: 1,
+    stride: 4,
     useEdge: false,
-    blurSigma: 1.0,
-  },
-  okButton: {
-    templateUrl: resolvePublicUrl('screen-analysis/ok-button.png'),
-    templateBaseWidth: 3200,
-    supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
-    roi: {
-      x: 0.3,
-      y: 0.85,
-      width: 0.4,
-      height: 0.1,
-    },
-    threshold: 0.45,
-    requiredStreak: 1,
-    cooldownMs: 8000,
-    activeMs: 8000,
-    downscale: 1.0,
-    stride: 1,
-    useEdge: false,
-    blurSigma: 1.0,
+    blurSigma: 0,
   },
   result: {
+    // 1800pテンプレートをマスターとして使用（縮小で各解像度を生成）
     winTemplateUrl: resolvePublicUrl('screen-analysis/result-win.png'),
     loseTemplateUrl: resolvePublicUrl('screen-analysis/result-lose.png'),
-    templateBaseWidth: 3200,
+    templateBaseWidth: 3200, // 1800p = 3200x1800
     supportedHeights: [720, 768, 810, 900, 1080, 1152, 1440, 1800, 2160],
     roi: {
       x: 0.05,
@@ -125,14 +94,14 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
       width: 0.9,
       height: 0.4,
     },
-    threshold: 0.35,
-    margin: 0.1,
-    requiredStreak: 2,
+    threshold: 0.50,
+    margin: 0.10,
+    requiredStreak: 3,
     cooldownMs: 12000,
     downscale: 1.0,
-    stride: 1,
-    useEdge: true,
-    blurSigma: 1.0,
+    stride: 4,
+    useEdge: false,
+    blurSigma: 0,
   },
 };
 
@@ -411,6 +380,35 @@ export const calculateScaledSigma = (
   return baseSigma * Math.max(1, scale);
 };
 
+/**
+ * 画像を読み込んでImageBitmapまたはHTMLImageElementを返す
+ */
+const loadImage = async (
+  url: string,
+): Promise<{ source: ImageBitmap | HTMLImageElement; objectUrl: string | null }> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch: ${url}`);
+  }
+  const blob = await response.blob();
+
+  if ('createImageBitmap' in window) {
+    const source = await createImageBitmap(blob);
+    return { source, objectUrl: null };
+  }
+
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+  const objectUrl = URL.createObjectURL(blob);
+  const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Failed to load: ${url}`));
+  });
+  image.src = objectUrl;
+  const source = await loadPromise;
+  return { source, objectUrl };
+};
+
 export const loadTemplateSetFromUrl = async (
   url: string,
   options: {
@@ -424,39 +422,16 @@ export const loadTemplateSetFromUrl = async (
   if (typeof window === 'undefined') {
     throw new Error('Window is not available');
   }
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch master template (${response.status}): ${url}`);
-  }
-  const blob = await response.blob();
-  let source: ImageBitmap | HTMLImageElement | null = null;
-  let objectUrl: string | null = null;
+
+  // マスター画像を読み込み
+  const { source: masterSource, objectUrl: masterObjectUrl } = await loadImage(url);
 
   try {
-    // 1. マスター画像を一度だけデコード
-    if ('createImageBitmap' in window) {
-      source = await createImageBitmap(blob);
-    } else {
-      const image = new Image();
-      image.crossOrigin = 'anonymous';
-      objectUrl = URL.createObjectURL(blob);
-      const loadPromise = new Promise<HTMLImageElement>((resolve, reject) => {
-        image.onload = () => resolve(image);
-        image.onerror = () => reject(new Error(`Failed to load master template: ${url}`));
-      });
-      image.src = objectUrl;
-      source = await loadPromise;
-    }
-
-    if (!source) {
-      throw new Error(`Master template decode failed: ${url}`);
-    }
-
     const templateSet: TemplateSet = {};
-    const masterWidth = source.width;
-    const masterHeight = source.height;
+    const masterWidth = masterSource.width;
+    const masterHeight = masterSource.height;
 
-    // 2. サポートする解像度ごとにテンプレートを生成
+    // サポートする解像度ごとにテンプレートを生成（マスターからスケーリング）
     for (const height of options.supportedHeights) {
       const scale = (height * (16 / 9)) / options.templateBaseWidth;
       const targetWidth = Math.max(1, Math.round(masterWidth * scale));
@@ -468,10 +443,10 @@ export const loadTemplateSetFromUrl = async (
         logger.error(`Failed to create canvas context for size ${targetWidth}x${targetHeight}`);
         continue;
       }
-      ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+      ctx.drawImage(masterSource, 0, 0, targetWidth, targetHeight);
       const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
 
-      // 3. 各解像度で前処理を実行（解像度に応じてsigmaをスケーリング）
+      // 前処理を実行
       const scaledSigma = options.blurSigma
         ? calculateScaledSigma(options.blurSigma, height)
         : undefined;
@@ -484,11 +459,11 @@ export const loadTemplateSetFromUrl = async (
 
     return templateSet;
   } finally {
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl);
+    if (masterObjectUrl) {
+      URL.revokeObjectURL(masterObjectUrl);
     }
-    if (source && 'close' in source) {
-      source.close();
+    if ('close' in masterSource) {
+      masterSource.close();
     }
   }
 };
@@ -560,15 +535,30 @@ export const loadTemplateFromUrl = async (
   }
 };
 
+let matchDebugCount = 0;
+
 export const matchTemplateNcc = (
   source: GrayscaleImage,
   template: TemplateData,
   stride: number,
 ): number => {
-  if (template.std === 0 || template.maskSum <= 0) return 0;
+  matchDebugCount++;
+  const shouldLog = matchDebugCount <= 4;
+
+  if (template.std === 0 || template.maskSum <= 0) {
+    if (shouldLog) {
+      logger.warn(`matchTemplateNcc: returning 0 - std=${template.std}, maskSum=${template.maskSum}`);
+    }
+    return 0;
+  }
   const maxX = source.width - template.width;
   const maxY = source.height - template.height;
-  if (maxX < 0 || maxY < 0) return 0;
+  if (maxX < 0 || maxY < 0) {
+    if (shouldLog) {
+      logger.warn(`matchTemplateNcc: returning 0 - source ${source.width}x${source.height} too small for template ${template.width}x${template.height}`);
+    }
+    return 0;
+  }
 
   const n = template.maskSum;
   let best = -1;
@@ -601,6 +591,21 @@ export const matchTemplateNcc = (
       const score = (sumCross - n * mean * template.mean) / (n * std * template.std);
       if (score > best) best = score;
     }
+  }
+
+  if (shouldLog) {
+    // ソース画像の統計情報を計算
+    let srcSum = 0;
+    let srcSumSq = 0;
+    for (let i = 0; i < source.data.length; i++) {
+      srcSum += source.data[i];
+      srcSumSq += source.data[i] * source.data[i];
+    }
+    const srcMean = srcSum / source.data.length;
+    const srcVar = srcSumSq / source.data.length - srcMean * srcMean;
+    const srcStd = Math.sqrt(srcVar);
+
+    logger.info(`matchTemplateNcc: source=${source.width}x${source.height} (mean=${srcMean.toFixed(1)}, std=${srcStd.toFixed(1)}), template=${template.width}x${template.height} (mean=${template.mean.toFixed(1)}, std=${template.std.toFixed(1)}), best=${best.toFixed(4)}`);
   }
 
   return best;

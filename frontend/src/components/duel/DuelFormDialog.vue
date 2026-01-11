@@ -188,17 +188,17 @@
                   </v-chip>
                   <v-chip
                     size="small"
-                    :color="okButtonAvailable ? 'info' : undefined"
-                    variant="tonal"
-                  >
-                    {{ okButtonAvailable ? 'OK: 検出' : 'OK: 未検出' }}
-                  </v-chip>
-                  <v-chip
-                    size="small"
                     :color="analysisResultLabel.color ?? undefined"
                     variant="tonal"
                   >
                     勝敗: {{ analysisResultLabel.text }}
+                  </v-chip>
+                  <v-chip
+                    size="small"
+                    :color="resultLockState === 'locked' ? 'warning' : 'success'"
+                    variant="tonal"
+                  >
+                    {{ resultLockState === 'locked' ? '登録済' : '登録可' }}
                   </v-chip>
                   <v-chip v-if="missingTemplateLabel" size="small" color="warning" variant="tonal">
                     {{ missingTemplateLabel }}
@@ -390,9 +390,9 @@ const {
   lastResult,
   lastCoinResult,
   turnChoiceAvailable,
-  okButtonAvailable,
   turnChoiceEventId,
   resultEventId,
+  resultLockState,
   lastScores,
   missingTemplates,
   templateErrors,
@@ -423,14 +423,13 @@ const analysisResultLabel = computed(() => {
 const analysisScoreLabel = computed(() => {
   if (!analysisRunning.value) return '';
   const scores = lastScores.value;
-  return `score: ${scores.coinWin.toFixed(2)} / ${scores.coinLose.toFixed(2)} / ${scores.okButton.toFixed(2)} / ${scores.win.toFixed(2)} / ${scores.lose.toFixed(2)}`;
+  return `score: ${scores.coinWin.toFixed(2)} / ${scores.coinLose.toFixed(2)} / ${scores.win.toFixed(2)} / ${scores.lose.toFixed(2)}`;
 });
 
 const templateErrorLabel = computed(() => {
   const entries = [
     ['coin-win', templateErrors.value.coinWin],
     ['coin-lose', templateErrors.value.coinLose],
-    ['ok-button', templateErrors.value.okButton],
     ['result-win', templateErrors.value.win],
     ['result-lose', templateErrors.value.lose],
   ].filter((entry) => entry[1]);
