@@ -4,7 +4,7 @@ uvicorn[standard]==0.40.0
 sqlalchemy==2.0.44
 psycopg[binary,compat]
 python-dotenv==1.2.1
-alembic==1.17.2
+alembic==1.18.0
 bcrypt==4.0.1
 python-jose[cryptography]==3.5.0
 pydantic-settings==2.12.0
