@@ -29,6 +29,7 @@ describe('ProfileView.vue', () => {
       streamer_mode: false,
       theme_preference: 'dark',
       is_admin: false,
+      enable_screen_analysis: false,
     };
 
     const wrapper = mount(ProfileView, {
@@ -57,6 +58,7 @@ describe('ProfileView.vue', () => {
       streamer_mode: false,
       theme_preference: 'dark',
       is_admin: false,
+      enable_screen_analysis: false,
     };
 
     const wrapper = mount(ProfileView, {
@@ -86,6 +88,7 @@ describe('ProfileView.vue', () => {
       streamer_mode: false,
       theme_preference: 'dark',
       is_admin: false,
+      enable_screen_analysis: false,
     };
 
     const wrapper = mount(ProfileView, {
