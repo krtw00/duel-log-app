@@ -63,8 +63,10 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotificationStore } from '@/stores/notification';
+import { createLogger } from '@/utils/logger';
 import api from '@/services/api';
 
+const logger = createLogger('ForgotPassword');
 const router = useRouter();
 const notificationStore = useNotificationStore();
 
@@ -89,7 +91,7 @@ const handleForgotPassword = async () => {
     router.push('/login'); // ログインページに戻る
   } catch (error: unknown) {
     // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    console.error('Forgot password error:', error);
+    logger.error('Forgot password error');
   } finally {
     loading.value = false;
   }

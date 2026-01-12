@@ -128,8 +128,8 @@
               </div>
             </v-col>
 
-            <!-- 画面解析（新規作成時のみ） -->
-            <v-col v-if="!isEdit" cols="12">
+            <!-- 画面解析（新規作成時かつ設定で有効な場合のみ） -->
+            <v-col v-if="!isEdit && screenAnalysisEnabled" cols="12">
               <div class="screen-analysis-panel">
                 <div class="analysis-header">
                   <div class="analysis-title">
@@ -138,6 +138,22 @@
                     <span class="text-caption text-error ml-2">※テスト機能</span>
                   </div>
                   <v-spacer />
+                  <v-btn-toggle
+                    v-model="analysisMethod"
+                    density="compact"
+                    mandatory
+                    class="mr-2"
+                    :disabled="analysisRunning"
+                  >
+                    <v-btn value="template" size="small" variant="tonal">
+                      <v-icon start size="small">mdi-image-search</v-icon>
+                      テンプレート
+                    </v-btn>
+                    <v-btn value="tfjs" size="small" variant="tonal">
+                      <v-icon start size="small">mdi-brain</v-icon>
+                      ML
+                    </v-btn>
+                  </v-btn-toggle>
                   <v-btn
                     size="small"
                     :color="autoRegisterEnabled ? 'success' : 'grey'"
@@ -168,6 +184,9 @@
                   <span class="text-caption">
                     マスターデュエルのウィンドウを選択して、画面を自動解析します。
                     勝敗結果を検出すると自動で対戦記録を登録できます。
+                    <br />
+                    <strong>{{ analysisMethod === 'template' ? 'テンプレートマッチング' : '機械学習(TF.js)' }}</strong>
+                    モードで解析します。
                   </span>
                 </div>
 
@@ -188,17 +207,17 @@
                   </v-chip>
                   <v-chip
                     size="small"
-                    :color="okButtonAvailable ? 'info' : undefined"
-                    variant="tonal"
-                  >
-                    {{ okButtonAvailable ? 'OK: 検出' : 'OK: 未検出' }}
-                  </v-chip>
-                  <v-chip
-                    size="small"
                     :color="analysisResultLabel.color ?? undefined"
                     variant="tonal"
                   >
                     勝敗: {{ analysisResultLabel.text }}
+                  </v-chip>
+                  <v-chip
+                    size="small"
+                    :color="resultLockState === 'locked' ? 'warning' : 'success'"
+                    variant="tonal"
+                  >
+                    {{ resultLockState === 'locked' ? '登録済' : '登録可' }}
                   </v-chip>
                   <v-chip v-if="missingTemplateLabel" size="small" color="warning" variant="tonal">
                     {{ missingTemplateLabel }}
@@ -219,6 +238,43 @@
                 </div>
                 <div v-else-if="templateErrorLabel" class="analysis-error">
                   {{ templateErrorLabel }}
+                </div>
+
+                <!-- ML学習データ収集用ボタン -->
+                <div
+                  v-if="analysisMethod === 'tfjs' && analysisRunning"
+                  class="debug-capture-buttons"
+                >
+                  <div class="debug-folder-row">
+                    <v-btn
+                      size="x-small"
+                      variant="tonal"
+                      :color="trainingFolderSelected ? 'success' : 'warning'"
+                      @click="selectTrainingFolder"
+                    >
+                      <v-icon start size="small">
+                        {{ trainingFolderSelected ? 'mdi-folder-check' : 'mdi-folder-open' }}
+                      </v-icon>
+                      {{ trainingFolderSelected ? 'フォルダ設定済' : '保存先を選択' }}
+                    </v-btn>
+                    <span v-if="!trainingFolderSelected" class="text-caption text-warning ml-2">
+                      ml-training/data を選択してください
+                    </span>
+                  </div>
+                  <div class="debug-buttons-row">
+                    <span class="text-caption mr-2">コイン:</span>
+                    <v-btn-group density="compact" variant="outlined" size="x-small">
+                      <v-btn color="primary" @click="saveDebugImage('coin-win')">勝</v-btn>
+                      <v-btn color="error" @click="saveDebugImage('coin-lose')">負</v-btn>
+                      <v-btn @click="saveDebugImage('coin-none')">なし</v-btn>
+                    </v-btn-group>
+                    <span class="text-caption mr-2 ml-3">勝敗:</span>
+                    <v-btn-group density="compact" variant="outlined" size="x-small">
+                      <v-btn color="success" @click="saveDebugImage('result-win')">勝</v-btn>
+                      <v-btn color="error" @click="saveDebugImage('result-lose')">負</v-btn>
+                      <v-btn @click="saveDebugImage('result-none')">なし</v-btn>
+                    </v-btn-group>
+                  </div>
                 </div>
               </div>
             </v-col>
@@ -321,6 +377,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 import { Duel, DuelCreate, Deck, GameMode } from '@/types';
 import { useNotificationStore } from '@/stores/notification';
 import { RANKS } from '@/utils/ranks';
@@ -329,7 +386,13 @@ import { useDateTimeFormat } from '@/composables/useDateTimeFormat';
 import { useDeckResolution } from '@/composables/useDeckResolution';
 import { useLatestDuelValues } from '@/composables/useLatestDuelValues';
 import { useScreenCaptureAnalysis } from '@/composables/useScreenCaptureAnalysis';
+import { useScreenCaptureAnalysisTfjs } from '@/composables/useScreenCaptureAnalysisTfjs';
 import { useAuthStore } from '@/stores/auth';
+
+// 解析手法の型
+type AnalysisMethod = 'template' | 'tfjs';
+
+const logger = createLogger('DuelForm');
 
 interface Props {
   modelValue: boolean;
@@ -364,6 +427,7 @@ const loading = ref(false);
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
 const currentUserId = computed(() => authStore.user?.id ?? props.duel?.user_id ?? null);
+const screenAnalysisEnabled = computed(() => authStore.user?.enable_screen_analysis ?? false);
 const filterDecksForUser = (decks: Deck[]) => {
   const userId = currentUserId.value;
   if (!userId) return decks;
@@ -381,22 +445,106 @@ const dialogProps = computed(() => ({
 }));
 const isActive = computed(() => (props.inline ? true : props.modelValue));
 
-const {
-  isRunning: analysisRunning,
-  errorMessage: analysisError,
-  lastResult,
-  lastCoinResult,
-  turnChoiceAvailable,
-  okButtonAvailable,
-  turnChoiceEventId,
-  resultEventId,
-  lastScores,
-  missingTemplates,
-  templateErrors,
-  startCapture,
-  stopCapture,
-  resetState: resetScreenAnalysis,
-} = useScreenCaptureAnalysis();
+// 解析手法の選択（デフォルトはテンプレートマッチング）
+const analysisMethod = ref<AnalysisMethod>('template');
+
+// テンプレートマッチング用 composable
+const templateAnalysis = useScreenCaptureAnalysis();
+
+// TensorFlow.js 用 composable
+const tfjsAnalysis = useScreenCaptureAnalysisTfjs();
+
+// 現在の解析手法に応じた状態を公開する computed
+const analysisRunning = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.isRunning
+      : tfjsAnalysis.isRunning
+    ).value,
+);
+const analysisError = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.errorMessage
+      : tfjsAnalysis.errorMessage
+    ).value,
+);
+const lastResult = computed(
+  () =>
+    (analysisMethod.value === 'template' ? templateAnalysis.lastResult : tfjsAnalysis.lastResult)
+      .value,
+);
+const lastCoinResult = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.lastCoinResult
+      : tfjsAnalysis.lastCoinResult
+    ).value,
+);
+const turnChoiceAvailable = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.turnChoiceAvailable
+      : tfjsAnalysis.turnChoiceAvailable
+    ).value,
+);
+const turnChoiceEventId = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.turnChoiceEventId
+      : tfjsAnalysis.turnChoiceEventId
+    ).value,
+);
+const resultEventId = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.resultEventId
+      : tfjsAnalysis.resultEventId
+    ).value,
+);
+const resultLockState = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.resultLockState
+      : tfjsAnalysis.resultLockState
+    ).value,
+);
+const lastScores = computed(
+  () =>
+    (analysisMethod.value === 'template' ? templateAnalysis.lastScores : tfjsAnalysis.lastScores)
+      .value,
+);
+const missingTemplates = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.missingTemplates
+      : tfjsAnalysis.missingTemplates
+    ).value,
+);
+const templateErrors = computed(
+  () =>
+    (analysisMethod.value === 'template'
+      ? templateAnalysis.templateErrors
+      : tfjsAnalysis.templateErrors
+    ).value,
+);
+
+// 解析開始・停止
+const startCapture = async () => {
+  if (analysisMethod.value === 'template') {
+    await templateAnalysis.startCapture();
+  } else {
+    await tfjsAnalysis.startCapture();
+  }
+};
+const stopCapture = () => {
+  templateAnalysis.stopCapture();
+  tfjsAnalysis.stopCapture();
+};
+const resetScreenAnalysis = () => {
+  templateAnalysis.resetState();
+  tfjsAnalysis.resetState();
+};
 
 // 自動登録機能
 const autoRegisterEnabled = ref(true);
@@ -420,14 +568,22 @@ const analysisResultLabel = computed(() => {
 const analysisScoreLabel = computed(() => {
   if (!analysisRunning.value) return '';
   const scores = lastScores.value;
-  return `score: ${scores.coinWin.toFixed(2)} / ${scores.coinLose.toFixed(2)} / ${scores.okButton.toFixed(2)} / ${scores.win.toFixed(2)} / ${scores.lose.toFixed(2)}`;
+
+  if (analysisMethod.value === 'tfjs') {
+    // ML モード: モデル状態と予測ラベルも表示
+    const status = tfjsAnalysis.modelStatus.value;
+    const labels = tfjsAnalysis.lastPredictedLabels.value;
+    const modelInfo = status.usingFallback ? '[fallback]' : '[ML]';
+    return `${modelInfo} coin:${labels.coin}(${scores.coinWin.toFixed(2)}) result:${labels.result}(${scores.win.toFixed(2)}/${scores.lose.toFixed(2)})`;
+  }
+
+  return `score: ${scores.coinWin.toFixed(2)} / ${scores.coinLose.toFixed(2)} / ${scores.win.toFixed(2)} / ${scores.lose.toFixed(2)}`;
 });
 
 const templateErrorLabel = computed(() => {
   const entries = [
     ['coin-win', templateErrors.value.coinWin],
     ['coin-lose', templateErrors.value.coinLose],
-    ['ok-button', templateErrors.value.okButton],
     ['result-win', templateErrors.value.win],
     ['result-lose', templateErrors.value.lose],
   ].filter((entry) => entry[1]);
@@ -441,6 +597,34 @@ const toggleScreenAnalysis = async () => {
     return;
   }
   await startCapture();
+};
+
+// ML学習データ保存
+type DebugLabel =
+  | 'coin-win'
+  | 'coin-lose'
+  | 'coin-none'
+  | 'result-win'
+  | 'result-lose'
+  | 'result-none';
+
+// 学習データ保存先フォルダが選択済みか
+const trainingFolderSelected = computed(() => tfjsAnalysis.hasTrainingDataFolder());
+
+// 学習データ保存先フォルダを選択
+const selectTrainingFolder = async () => {
+  const success = await tfjsAnalysis.selectTrainingDataFolder();
+  if (success) {
+    notificationStore.success('学習データ保存先フォルダを設定しました');
+  } else {
+    notificationStore.warning('フォルダの選択がキャンセルされました');
+  }
+};
+
+const saveDebugImage = async (label: DebugLabel) => {
+  if (analysisMethod.value !== 'tfjs') return;
+  await tfjsAnalysis.saveDebugImages(label);
+  notificationStore.success(`学習データを保存しました: ${label}`);
 };
 
 const setSecondTurn = () => {
@@ -536,7 +720,7 @@ const fetchDecks = async (activeOnly: boolean) => {
     myDecks.value = filterDecksForUser(myDecksResponse.data);
     opponentDecks.value = filterDecksForUser(opponentDecksResponse.data);
   } catch (error) {
-    console.error('Failed to fetch decks:', error);
+    logger.error('Failed to fetch decks');
   }
 };
 
@@ -828,7 +1012,7 @@ const autoRegisterDuel = async () => {
     // 次の試合のためにフォームをリセット
     await resetFormForNextDuel();
   } catch (error) {
-    console.error('Failed to auto-register duel:', error);
+    logger.error('Failed to auto-register duel');
     notificationStore.error('自動登録に失敗しました');
   } finally {
     loading.value = false;
@@ -950,7 +1134,7 @@ const handleSubmit = async () => {
     });
     closeDialog();
   } catch (error) {
-    console.error('Failed to save duel:', error);
+    logger.error('Failed to save duel');
   } finally {
     loading.value = false;
   }
@@ -1090,6 +1274,30 @@ const closeDialog = () => {
 .analysis-error {
   color: rgba(220, 38, 38, 0.9);
   font-size: 0.875rem;
+}
+
+.debug-capture-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px dashed rgba(255, 193, 7, 0.5);
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.debug-folder-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debug-buttons-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 // スマホ対応

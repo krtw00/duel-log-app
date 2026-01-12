@@ -5,7 +5,10 @@
 
 import { api } from '@/services/api';
 import { useNotificationStore } from '@/stores/notification';
+import { createLogger } from '@/utils/logger';
 import type { Deck } from '@/types';
+
+const logger = createLogger('DeckResolution');
 
 export function useDeckResolution() {
   const notificationStore = useNotificationStore();
@@ -63,10 +66,10 @@ export function useDeckResolution() {
           const matched = decks.find((deck) => deck.name === trimmedName);
           if (matched) return matched;
         } catch (fetchError) {
-          console.error('Failed to fetch decks after duplicate error:', fetchError);
+          logger.error('Failed to fetch decks after duplicate error');
         }
       }
-      console.error('Failed to create deck:', error);
+      logger.error('Failed to create deck');
       throw error;
     }
   };

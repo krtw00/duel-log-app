@@ -4,27 +4,29 @@ import {
   AnalysisResult,
   CoinResult,
   SCREEN_ANALYSIS_CONFIG,
+  calculateScaledSigma,
   createCanvas,
   extractAndPreprocess,
-  loadTemplateFromUrl,
+  loadTemplateSetFromUrl,
   matchTemplateNcc,
   roiToRect,
-  TemplateData,
+  TemplateSet,
 } from '@/utils/screenAnalysis';
+
+// 戦績登録のロック状態を管理する型
+type ResultLockState = 'unlocked' | 'locked';
 
 const logger = createLogger('ScreenCaptureAnalysis');
 
 type TemplateStatus = {
   coinWin: boolean;
   coinLose: boolean;
-  okButton: boolean;
   win: boolean;
   lose: boolean;
 };
 type TemplateErrors = {
   coinWin: string;
   coinLose: string;
-  okButton: string;
   win: string;
   lose: string;
 };
@@ -35,22 +37,21 @@ export function useScreenCaptureAnalysis() {
   const lastResult = ref<AnalysisResult | null>(null);
   const lastCoinResult = ref<CoinResult | null>(null);
   const turnChoiceAvailable = ref(false);
-  const okButtonAvailable = ref(false);
   const turnChoiceEventId = ref(0);
   const resultEventId = ref(0);
-  const lastScores = ref({ coinWin: 0, coinLose: 0, okButton: 0, win: 0, lose: 0 });
+  const lastScores = ref({ coinWin: 0, coinLose: 0, win: 0, lose: 0 });
+  // 戦績登録のロック状態（コイントス判定でアンロック）
+  const resultLockState = ref<ResultLockState>('unlocked');
 
   const templateStatus = ref<TemplateStatus>({
     coinWin: false,
     coinLose: false,
-    okButton: false,
     win: false,
     lose: false,
   });
   const templateErrors = ref<TemplateErrors>({
     coinWin: '',
     coinLose: '',
-    okButton: '',
     win: '',
     lose: '',
   });
@@ -60,7 +61,6 @@ export function useScreenCaptureAnalysis() {
     const missing: string[] = [];
     if (!templateStatus.value.coinWin) missing.push('coin-win');
     if (!templateStatus.value.coinLose) missing.push('coin-lose');
-    if (!templateStatus.value.okButton) missing.push('ok-button');
     if (!templateStatus.value.win) missing.push('result-win');
     if (!templateStatus.value.lose) missing.push('result-lose');
     return missing;
@@ -73,41 +73,41 @@ export function useScreenCaptureAnalysis() {
   let intervalId: number | null = null;
   let drawParams: { sx: number; sy: number; sWidth: number; sHeight: number } | null = null;
 
-  let coinWinTemplate: TemplateData | null = null;
-  let coinLoseTemplate: TemplateData | null = null;
-  let okButtonTemplate: TemplateData | null = null;
-  let winTemplate: TemplateData | null = null;
-  let loseTemplate: TemplateData | null = null;
+  let coinWinTemplateSet: TemplateSet | null = null;
+  let coinLoseTemplateSet: TemplateSet | null = null;
+  let winTemplateSet: TemplateSet | null = null;
+  let loseTemplateSet: TemplateSet | null = null;
 
   let turnChoiceStreak = 0;
   let turnChoiceCandidate: CoinResult | null = null;
-  let okButtonStreak = 0;
   let resultStreak = 0;
   let resultCandidate: AnalysisResult | null = null;
   let turnChoiceCooldownUntil = 0;
   let turnChoiceActiveUntil = 0;
-  let okButtonCooldownUntil = 0;
-  let okButtonActiveUntil = 0;
   let resultCooldownUntil = 0;
 
+  // 次の対戦のためにフォームリセット時に呼ばれる（ロック状態は維持）
   const resetState = () => {
     lastResult.value = null;
     lastCoinResult.value = null;
     turnChoiceAvailable.value = false;
-    okButtonAvailable.value = false;
-    lastScores.value = { coinWin: 0, coinLose: 0, okButton: 0, win: 0, lose: 0 };
+    lastScores.value = { coinWin: 0, coinLose: 0, win: 0, lose: 0 };
     turnChoiceStreak = 0;
     turnChoiceCandidate = null;
-    okButtonStreak = 0;
     resultStreak = 0;
     resultCandidate = null;
     turnChoiceCooldownUntil = 0;
     turnChoiceActiveUntil = 0;
-    okButtonCooldownUntil = 0;
-    okButtonActiveUntil = 0;
     resultCooldownUntil = 0;
+    // resultLockStateはリセットしない（コイントス検出でのみアンロック）
+  };
+
+  // キャプチャ停止時など完全リセット
+  const resetStateComplete = () => {
+    resetState();
     turnChoiceEventId.value = 0;
     resultEventId.value = 0;
+    resultLockState.value = 'unlocked';
   };
 
   const updateTemplateStatus = (next: TemplateStatus) => {
@@ -115,89 +115,94 @@ export function useScreenCaptureAnalysis() {
   };
 
   const loadTemplates = async () => {
-    const loadTemplate = async (
+    const loadMultiTemplate = async (
       key: keyof TemplateStatus,
       url: string,
       options: {
         downscale: number;
         useEdge: boolean;
-        templateBaseWidth?: number;
-        normalizedWidth?: number;
+        blurSigma?: number;
+        templateBaseWidth: number;
+        supportedHeights: number[];
       },
     ) => {
       try {
-        const template = await loadTemplateFromUrl(url, options);
-        return { key, template, error: '' };
+        const templateSet = await loadTemplateSetFromUrl(url, options);
+        return { key, templateSet, error: '' };
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'テンプレ読み込み失敗';
-        return { key, template: null, error: message };
+        const message = error instanceof Error ? error.message : 'テンプレセット読み込み失敗';
+        return { key, templateSet: null, error: message };
       }
     };
 
-    const [coinWin, coinLose, okButton, win, lose] = await Promise.all([
-      loadTemplate('coinWin', SCREEN_ANALYSIS_CONFIG.turnChoice.winTemplateUrl, {
+    const [coinWin, coinLose, win, lose] = await Promise.all([
+      loadMultiTemplate('coinWin', SCREEN_ANALYSIS_CONFIG.turnChoice.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.turnChoice.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
       }),
-      loadTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
+      loadMultiTemplate('coinLose', SCREEN_ANALYSIS_CONFIG.turnChoice.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.turnChoice.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.turnChoice.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
       }),
-      loadTemplate('okButton', SCREEN_ANALYSIS_CONFIG.okButton.templateUrl, {
-        downscale: SCREEN_ANALYSIS_CONFIG.okButton.downscale,
-        useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
-        templateBaseWidth: SCREEN_ANALYSIS_CONFIG.okButton.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
-      }),
-      loadTemplate('win', SCREEN_ANALYSIS_CONFIG.result.winTemplateUrl, {
+      loadMultiTemplate('win', SCREEN_ANALYSIS_CONFIG.result.winTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.result.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.result.supportedHeights,
       }),
-      loadTemplate('lose', SCREEN_ANALYSIS_CONFIG.result.loseTemplateUrl, {
+      loadMultiTemplate('lose', SCREEN_ANALYSIS_CONFIG.result.loseTemplateUrl, {
         downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
         useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
+        blurSigma: SCREEN_ANALYSIS_CONFIG.result.blurSigma,
         templateBaseWidth: SCREEN_ANALYSIS_CONFIG.result.templateBaseWidth,
-        normalizedWidth: SCREEN_ANALYSIS_CONFIG.normalizedWidth,
+        supportedHeights: SCREEN_ANALYSIS_CONFIG.result.supportedHeights,
       }),
     ]);
 
-    coinWinTemplate = coinWin.template;
-    coinLoseTemplate = coinLose.template;
-    okButtonTemplate = okButton.template;
-    winTemplate = win.template;
-    loseTemplate = lose.template;
+    coinWinTemplateSet = coinWin.templateSet;
+    coinLoseTemplateSet = coinLose.templateSet;
+    winTemplateSet = win.templateSet;
+    loseTemplateSet = lose.templateSet;
+
+    // デバッグログ
+    logger.info('Templates loaded:', {
+      coinWin: coinWin.templateSet ? Object.keys(coinWin.templateSet) : null,
+      coinLose: coinLose.templateSet ? Object.keys(coinLose.templateSet) : null,
+      win: win.templateSet ? Object.keys(win.templateSet) : null,
+      lose: lose.templateSet ? Object.keys(lose.templateSet) : null,
+      errors: { coinWin: coinWin.error, coinLose: coinLose.error, win: win.error, lose: lose.error },
+    });
+
+    const hasTemplates = (set: TemplateSet | null) => !!set && Object.keys(set).length > 0;
 
     updateTemplateStatus({
-      coinWin: !!coinWinTemplate,
-      coinLose: !!coinLoseTemplate,
-      okButton: !!okButtonTemplate,
-      win: !!winTemplate,
-      lose: !!loseTemplate,
+      coinWin: hasTemplates(coinWinTemplateSet),
+      coinLose: hasTemplates(coinLoseTemplateSet),
+      win: hasTemplates(winTemplateSet),
+      lose: hasTemplates(loseTemplateSet),
     });
 
     templateErrors.value = {
       coinWin: coinWin.error,
       coinLose: coinLose.error,
-      okButton: okButton.error,
       win: win.error,
       lose: lose.error,
     };
 
     templatesLoaded.value =
-      !!coinWinTemplate &&
-      !!coinLoseTemplate &&
-      !!okButtonTemplate &&
-      !!winTemplate &&
-      !!loseTemplate &&
+      hasTemplates(coinWinTemplateSet) &&
+      hasTemplates(coinLoseTemplateSet) &&
+      hasTemplates(winTemplateSet) &&
+      hasTemplates(loseTemplateSet) &&
       !coinWin.error &&
       !coinLose.error &&
-      !okButton.error &&
       !win.error &&
       !lose.error;
   };
@@ -229,15 +234,72 @@ export function useScreenCaptureAnalysis() {
     isRunning.value = false;
   };
 
+  const findBestHeight = (currentHeight: number, supportedHeights: number[]): number => {
+    return supportedHeights.reduce((prev, curr) => {
+      return Math.abs(curr - currentHeight) < Math.abs(prev - currentHeight) ? curr : prev;
+    });
+  };
+
   const analyzeTurnChoice = (now: number) => {
-    if (!coinWinTemplate || !coinLoseTemplate || !ctx || !canvas) return;
+    if (!coinWinTemplateSet || !coinLoseTemplateSet || !ctx || !canvas) {
+      if (frameCount % 25 === 1) {
+        logger.warn('analyzeTurnChoice: missing templates or context', {
+          hasCoinWin: !!coinWinTemplateSet,
+          hasCoinLose: !!coinLoseTemplateSet,
+          hasCtx: !!ctx,
+          hasCanvas: !!canvas,
+        });
+      }
+      return;
+    }
     if (now < turnChoiceCooldownUntil) return;
 
+    const currentHeight = canvas.height;
+    const bestHeight = findBestHeight(
+      currentHeight,
+      SCREEN_ANALYSIS_CONFIG.turnChoice.supportedHeights,
+    );
+
+    const coinWinTemplate = coinWinTemplateSet[bestHeight.toString()];
+    const coinLoseTemplate = coinLoseTemplateSet[bestHeight.toString()];
+
+    if (!coinWinTemplate || !coinLoseTemplate) {
+      if (frameCount % 25 === 1) {
+        logger.warn('analyzeTurnChoice: template not found for height', {
+          currentHeight,
+          bestHeight,
+          availableKeys: Object.keys(coinWinTemplateSet),
+        });
+      }
+      return;
+    }
+
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.turnChoice.roi, canvas.width, canvas.height);
+    const scaledSigma = calculateScaledSigma(
+      SCREEN_ANALYSIS_CONFIG.turnChoice.blurSigma,
+      bestHeight,
+    );
     const image = extractAndPreprocess(ctx, rect, {
       downscale: SCREEN_ANALYSIS_CONFIG.turnChoice.downscale,
       useEdge: SCREEN_ANALYSIS_CONFIG.turnChoice.useEdge,
+      blurSigma: scaledSigma,
     });
+
+    if (frameCount === 1) {
+      const canMatch = image.width >= coinWinTemplate.width && image.height >= coinWinTemplate.height;
+      logger.info(`analyzeTurnChoice: height=${canvas.height}->best=${bestHeight}, rect=${rect.width}x${rect.height}, image=${image.width}x${image.height}, template=${coinWinTemplate.width}x${coinWinTemplate.height}, canMatch=${canMatch}`);
+      // テンプレート統計情報をログ出力（std=0だとマッチング不可能）
+      logger.info(`coinWin template stats: mean=${coinWinTemplate.mean.toFixed(2)}, std=${coinWinTemplate.std.toFixed(2)}, maskSum=${coinWinTemplate.maskSum.toFixed(0)}`);
+      logger.info(`coinLose template stats: mean=${coinLoseTemplate.mean.toFixed(2)}, std=${coinLoseTemplate.std.toFixed(2)}, maskSum=${coinLoseTemplate.maskSum.toFixed(0)}`);
+
+      // 画像ROIの輝度分布を確認（デバッグ用）
+      let minVal = 255, maxVal = 0;
+      for (let i = 0; i < image.data.length; i++) {
+        if (image.data[i] < minVal) minVal = image.data[i];
+        if (image.data[i] > maxVal) maxVal = image.data[i];
+      }
+      logger.info(`image ROI luminance range: ${minVal.toFixed(0)} - ${maxVal.toFixed(0)}`);
+    }
 
     const coinWinScore = matchTemplateNcc(
       image,
@@ -281,55 +343,51 @@ export function useScreenCaptureAnalysis() {
       turnChoiceActiveUntil = now + SCREEN_ANALYSIS_CONFIG.turnChoice.activeMs;
       turnChoiceCooldownUntil = now + SCREEN_ANALYSIS_CONFIG.turnChoice.cooldownMs;
       turnChoiceEventId.value += 1;
-    }
-  };
-
-  const analyzeOkButton = (now: number) => {
-    if (!okButtonTemplate || !ctx || !canvas) return;
-    if (now < okButtonCooldownUntil) return;
-
-    const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.okButton.roi, canvas.width, canvas.height);
-    const image = extractAndPreprocess(ctx, rect, {
-      downscale: SCREEN_ANALYSIS_CONFIG.okButton.downscale,
-      useEdge: SCREEN_ANALYSIS_CONFIG.okButton.useEdge,
-    });
-
-    const score = matchTemplateNcc(image, okButtonTemplate, SCREEN_ANALYSIS_CONFIG.okButton.stride);
-    lastScores.value = { ...lastScores.value, okButton: score };
-
-    if (score >= SCREEN_ANALYSIS_CONFIG.okButton.threshold) {
-      okButtonStreak += 1;
-    } else {
-      okButtonStreak = 0;
-    }
-
-    if (okButtonStreak >= SCREEN_ANALYSIS_CONFIG.okButton.requiredStreak) {
-      okButtonStreak = 0;
-      okButtonAvailable.value = true;
-      okButtonActiveUntil = now + SCREEN_ANALYSIS_CONFIG.okButton.activeMs;
-      okButtonCooldownUntil = now + SCREEN_ANALYSIS_CONFIG.okButton.cooldownMs;
+      // コイントス判定が成功したら戦績登録のロックを解除
+      resultLockState.value = 'unlocked';
     }
   };
 
   const analyzeResult = (now: number) => {
-    if (!winTemplate || !loseTemplate || !ctx || !canvas) return;
+    if (!winTemplateSet || !loseTemplateSet || !ctx || !canvas) return;
     if (now < resultCooldownUntil) return;
+    // ロック中は戦績判定をスキップ
+    if (resultLockState.value === 'locked') return;
+    // コイントス判定がアクティブな間は戦績判定をスキップ（誤判定防止）
+    if (turnChoiceAvailable.value) return;
+
+    const currentHeight = canvas.height;
+    const bestHeight = findBestHeight(currentHeight, SCREEN_ANALYSIS_CONFIG.result.supportedHeights);
+
+    const winTemplate = winTemplateSet[bestHeight.toString()];
+    const loseTemplate = loseTemplateSet[bestHeight.toString()];
+
+    if (!winTemplate || !loseTemplate) {
+      // 最適なテンプレートが見つからない場合は何もしない
+      return;
+    }
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.result.roi, canvas.width, canvas.height);
+    const scaledSigma = calculateScaledSigma(
+      SCREEN_ANALYSIS_CONFIG.result.blurSigma,
+      bestHeight,
+    );
     const image = extractAndPreprocess(ctx, rect, {
       downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
       useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
+      blurSigma: scaledSigma,
     });
+
+    if (frameCount === 1) {
+      logger.info(`analyzeResult: rect=${rect.width}x${rect.height}, image=${image.width}x${image.height}, winTemplate=${winTemplate.width}x${winTemplate.height}, loseTemplate=${loseTemplate.width}x${loseTemplate.height}`);
+      // テンプレート統計情報をログ出力（std=0だとマッチング不可能）
+      logger.info(`win template stats: mean=${winTemplate.mean.toFixed(2)}, std=${winTemplate.std.toFixed(2)}, maskSum=${winTemplate.maskSum.toFixed(0)}`);
+      logger.info(`lose template stats: mean=${loseTemplate.mean.toFixed(2)}, std=${loseTemplate.std.toFixed(2)}, maskSum=${loseTemplate.maskSum.toFixed(0)}`);
+    }
 
     const winScore = matchTemplateNcc(image, winTemplate, SCREEN_ANALYSIS_CONFIG.result.stride);
     const loseScore = matchTemplateNcc(image, loseTemplate, SCREEN_ANALYSIS_CONFIG.result.stride);
     lastScores.value = { ...lastScores.value, win: winScore, lose: loseScore };
-
-    if (!okButtonAvailable.value) {
-      resultStreak = 0;
-      resultCandidate = null;
-      return;
-    }
 
     const bestScore = Math.max(winScore, loseScore);
     const margin = Math.abs(winScore - loseScore);
@@ -358,11 +416,26 @@ export function useScreenCaptureAnalysis() {
       resultStreak = 0;
       resultCandidate = null;
       resultCooldownUntil = now + SCREEN_ANALYSIS_CONFIG.result.cooldownMs;
+      // 戦績登録後はロックをかけ、次のコイントス判定まで登録しない
+      resultLockState.value = 'locked';
     }
   };
 
+  let frameCount = 0;
   const analyzeFrame = () => {
-    if (!ctx || !canvas || !video) return;
+    frameCount++;
+    if (frameCount === 1) {
+      logger.info(`analyzeFrame called: ctx=${!!ctx}, canvas=${!!canvas}, video=${!!video}`);
+    }
+    if (!ctx || !canvas || !video) {
+      if (frameCount <= 3) {
+        logger.warn(`analyzeFrame early return: ctx=${!!ctx}, canvas=${!!canvas}, video=${!!video}`);
+      }
+      return;
+    }
+    if (frameCount % 25 === 1) {
+      logger.info(`Frame ${frameCount}: canvas=${canvas.width}x${canvas.height}, templatesLoaded=${templatesLoaded.value}, scores=${JSON.stringify(lastScores.value)}`);
+    }
     if (drawParams) {
       ctx.drawImage(
         video,
@@ -383,21 +456,15 @@ export function useScreenCaptureAnalysis() {
     if (turnChoiceAvailable.value && now > turnChoiceActiveUntil) {
       turnChoiceAvailable.value = false;
     }
-    if (okButtonAvailable.value && now > okButtonActiveUntil) {
-      okButtonAvailable.value = false;
-    }
 
     analyzeTurnChoice(now);
-    analyzeOkButton(now);
     analyzeResult(now);
   };
 
   const startCapture = async () => {
     if (isRunning.value) return;
     errorMessage.value = null;
-    resetState();
-
-    await ensureTemplatesLoaded();
+    resetStateComplete();
 
     try {
       stream = await navigator.mediaDevices.getDisplayMedia({
@@ -415,20 +482,8 @@ export function useScreenCaptureAnalysis() {
 
       const videoWidth = video.videoWidth || SCREEN_ANALYSIS_CONFIG.normalizedWidth;
       const videoHeight = video.videoHeight || Math.round((videoWidth * 9) / 16);
-      const normalizedWidth = SCREEN_ANALYSIS_CONFIG.normalizedWidth;
-      const normalizedHeight = Math.round((normalizedWidth * 9) / 16);
 
-      canvas = createCanvas(normalizedWidth, normalizedHeight);
-      ctx = canvas.getContext('2d', { willReadFrequently: true });
-      if (!ctx) {
-        throw new Error('Failed to initialize canvas context');
-      }
-
-      const track = stream.getVideoTracks()[0];
-      track.addEventListener('ended', () => {
-        stopCapture();
-      });
-
+      // 16:9にクロップしたサイズを計算
       const targetAspect = 16 / 9;
       const videoAspect = videoWidth / videoHeight;
       let sx = 0;
@@ -448,8 +503,29 @@ export function useScreenCaptureAnalysis() {
 
       drawParams = { sx, sy, sWidth, sHeight };
 
+      // 実際のビデオ解像度でキャンバスを作成（16:9クロップ後のサイズ）
+      const canvasWidth = sWidth;
+      const canvasHeight = sHeight;
+      canvas = createCanvas(canvasWidth, canvasHeight);
+      ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) {
+        throw new Error('Failed to initialize canvas context');
+      }
+
+      // テンプレートを読み込み（MIPMAPアプローチで全解像度用を生成）
+      // バックグラウンドで読み込み - 読み込み完了前でもキャプチャは開始する
+      logger.info(`Starting capture at resolution: ${canvasWidth}x${canvasHeight}`);
+      void ensureTemplatesLoaded();
+
+      const track = stream.getVideoTracks()[0];
+      track.addEventListener('ended', () => {
+        stopCapture();
+      });
+
       isRunning.value = true;
-      intervalId = window.setInterval(analyzeFrame, 1000 / SCREEN_ANALYSIS_CONFIG.scanFps);
+      const intervalMs = 1000 / SCREEN_ANALYSIS_CONFIG.scanFps;
+      logger.info(`Setting up analysis interval: ${intervalMs}ms (${SCREEN_ANALYSIS_CONFIG.scanFps} FPS)`);
+      intervalId = window.setInterval(analyzeFrame, intervalMs);
     } catch (error) {
       logger.error('Failed to start capture', error);
       errorMessage.value = '画面共有の開始に失敗しました';
@@ -471,9 +547,9 @@ export function useScreenCaptureAnalysis() {
     lastResult,
     lastCoinResult,
     turnChoiceAvailable,
-    okButtonAvailable,
     turnChoiceEventId,
     resultEventId,
+    resultLockState,
     lastScores,
     templateStatus,
     missingTemplates,

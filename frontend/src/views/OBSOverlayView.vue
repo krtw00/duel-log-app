@@ -33,9 +33,12 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import axios, { AxiosError } from 'axios';
 import { getRankName } from '@/utils/ranks';
+import { createLogger } from '@/utils/logger';
 import type { OBSStatsResponse, OBSDisplayItemDefinition, OBSQueryParams } from '@/types/obs';
 import type { ApiErrorResponse } from '@/types/api';
 import type { GameMode } from '@/types';
+
+const logger = createLogger('OBS');
 
 const route = useRoute();
 const loading = ref(true);
@@ -219,13 +222,12 @@ const fetchStats = async () => {
   try {
     // トークンがない場合はエラー
     if (!token.value) {
-      console.error('[OBS] No token provided in URL parameters');
+      logger.error('No token provided in URL parameters');
       loading.value = false;
       return;
     }
 
-    console.log('[OBS] Fetching stats with token:', token.value.substring(0, 20) + '...');
-    console.log('[OBS] Period Type:', periodType.value, 'Game Mode:', gameMode.value);
+    logger.debug('Fetching stats');
 
     const params: Partial<OBSQueryParams> = {
       token: token.value,
@@ -251,7 +253,6 @@ const fetchStats = async () => {
 
     // 環境変数からAPIのベースURLを取得
     const API_BASE_URL = import.meta.env.VITE_API_URL;
-    console.log('[OBS] API Base URL:', API_BASE_URL);
 
     // 直接axiosを使用してAPIリクエスト（インターセプターを回避）
     const response = await axios.get(`${API_BASE_URL}/statistics/obs`, {
@@ -263,15 +264,12 @@ const fetchStats = async () => {
       withCredentials: true,
     });
 
-    console.log('[OBS] Stats fetched successfully:', response.data);
+    logger.debug('Stats fetched successfully');
     stats.value = response.data as OBSStatsResponse;
     loading.value = false;
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
-    console.error('[OBS] Failed to fetch OBS statistics:', axiosError);
-    console.error('[OBS] Error response:', axiosError.response?.data);
-    console.error('[OBS] Error status:', axiosError.response?.status);
-    console.error('[OBS] Error message:', axiosError.message);
+    logger.error('Failed to fetch OBS statistics:', axiosError.response?.status || axiosError.message);
 
     // エラーメッセージを設定
     if (axiosError.response?.status === 401) {

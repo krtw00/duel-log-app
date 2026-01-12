@@ -201,10 +201,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 import { Deck } from '@/types';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { useNotificationStore } from '@/stores/notification';
 
+const logger = createLogger('Decks');
 const notificationStore = useNotificationStore();
 
 const myDecks = ref<Deck[]>([]);
@@ -262,7 +264,7 @@ const fetchDecks = async () => {
     myDecks.value = allDecks.filter((d: Deck) => !d.is_opponent);
     opponentDecks.value = allDecks.filter((d: Deck) => d.is_opponent);
   } catch (error) {
-    console.error('Failed to fetch decks:', error);
+    logger.error('Failed to fetch decks');
   }
 };
 
@@ -312,7 +314,7 @@ const handleSubmit = async () => {
     closeDialog();
     notificationStore.success(isEdit.value ? 'デッキを更新しました' : 'デッキを登録しました');
   } catch (error) {
-    console.error('Failed to save deck:', error);
+    logger.error('Failed to save deck');
   } finally {
     loading.value = false;
   }
@@ -326,7 +328,7 @@ const deleteDeck = async (deckId: number) => {
     await fetchDecks();
     notificationStore.success('デッキを削除しました');
   } catch (error) {
-    console.error('Failed to delete deck:', error);
+    logger.error('Failed to delete deck');
   }
 };
 
@@ -367,7 +369,7 @@ const confirmArchiveAll = async () => {
     notificationStore.success(response.data.message);
     await fetchDecks();
   } catch (error) {
-    console.error('Failed to archive decks:', error);
+    logger.error('Failed to archive decks');
     notificationStore.error('アーカイブに失敗しました');
   }
 };

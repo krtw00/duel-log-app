@@ -1,0 +1,12 @@
+{
+  "labels": [
+    "lose",
+    "none",
+    "victory"
+  ],
+  "class_indices": {
+    "lose": 0,
+    "none": 1,
+    "victory": 2
+  }
+}
