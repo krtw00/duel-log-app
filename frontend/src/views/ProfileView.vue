@@ -370,7 +370,7 @@ const handleUpdate = async () => {
       payload.password = form.value.password;
     }
 
-    const response = await api.put('/me/', payload);
+    const response = await api.put('/me', payload);
 
     // ストアのユーザー情報を更新
     authStore.user = response.data;
@@ -400,7 +400,7 @@ const handleDeleteAccount = async () => {
 
   deleting.value = true;
   try {
-    await api.delete('/me/');
+    await api.delete('/me');
     notificationStore.success('アカウントが正常に削除されました');
     // ログアウト処理でリダイレクト
     await authStore.logout();
