@@ -60,3 +60,4 @@ frontend/public/screen-analysis/*-raw.png
 ml-training/data/
 ml-training/models/
 ml-training/venv/
+frontend/public/ml-traning/
