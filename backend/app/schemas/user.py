@@ -21,6 +21,7 @@ class UserUpdate(BaseModel):
     )
     streamer_mode: bool | None = None
     theme_preference: str | None = None
+    enable_screen_analysis: bool | None = None
 
 
 # レスポンス用
@@ -31,6 +32,7 @@ class UserResponse(BaseModel):
     streamer_mode: bool
     theme_preference: str
     is_admin: bool
+    enable_screen_analysis: bool
     createdat: Optional[datetime]
     updatedat: Optional[datetime]
 

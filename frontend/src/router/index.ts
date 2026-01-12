@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('Router');
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import DashboardView from '../views/DashboardView.vue';
@@ -105,17 +108,12 @@ router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
   const requiresAuth = to.meta.requiresAuth !== false;
 
-  console.log('[Router] beforeEach called', {
-    to: to.name,
-    isInitialized: authStore.isInitialized,
-    isAuthenticated: authStore.isAuthenticated,
-    requiresAuth,
-  });
+  logger.debug(`Navigation to: ${String(to.name)}`);
 
   // アプリケーションの初期化時に一度だけサーバーからユーザー情報を取得する
   // （ページリロード時に認証状態を復元するため）
   if (!authStore.isInitialized) {
-    console.log('[Router] First navigation - fetching user from server');
+    logger.debug('First navigation - fetching user from server');
     await authStore.fetchUser();
   }
 
@@ -126,21 +124,21 @@ router.beforeEach(async (to, _from, next) => {
   if (requiresAuth && !isAuthenticated) {
     // 認証が必要なページにアクセスしようとしたが、認証されていない
     // -> ログインページにリダイレクト
-    console.log('[Router] Auth required but not authenticated - redirecting to login');
+    logger.debug('Auth required but not authenticated - redirecting to login');
     next({ name: 'Login' });
   } else if (requiresAdmin && (!authStore.user || !authStore.user.is_admin)) {
     // 管理者権限が必要なページにアクセスしようとしたが、管理者ではない
     // -> ダッシュボードにリダイレクト
-    console.log('[Router] Admin required but not admin - redirecting to dashboard');
+    logger.debug('Admin required but not admin - redirecting to dashboard');
     next({ name: 'Dashboard' });
   } else if ((to.name === 'Login' || to.name === 'Register') && isAuthenticated) {
     // ログイン済みユーザーがログインページや登録ページにアクセスしようとした
     // -> ダッシュボードにリダイレクト
-    console.log('[Router] Already authenticated, redirecting from login to dashboard');
+    logger.debug('Already authenticated, redirecting from login to dashboard');
     next({ name: 'Dashboard' });
   } else {
     // 上記以外の場合は、要求されたルートへのナビゲーションを許可
-    console.log('[Router] Allowing navigation');
+    logger.debug('Allowing navigation');
     next();
   }
 });
