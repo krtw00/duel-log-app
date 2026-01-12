@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/krtw00/duel-log-app/compare/v1.10.1...v1.10.2) (2026-01-12)
+
+
+### 🐛 Bug Fixes
+
+* **types:** add enable_screen_analysis to user type in auth store ([2e77dc4](https://github.com/krtw00/duel-log-app/commit/2e77dc4f91a60aee4e309886ce4a34729bd30439))
+
 ## [1.10.1](https://github.com/krtw00/duel-log-app/compare/v1.10.0...v1.10.1) (2026-01-12)
 
 
