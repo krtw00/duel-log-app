@@ -128,8 +128,8 @@
               </div>
             </v-col>
 
-            <!-- 画面解析（新規作成時のみ） -->
-            <v-col v-if="!isEdit" cols="12">
+            <!-- 画面解析（新規作成時かつ設定で有効な場合のみ） -->
+            <v-col v-if="!isEdit && screenAnalysisEnabled" cols="12">
               <div class="screen-analysis-panel">
                 <div class="analysis-header">
                   <div class="analysis-title">
@@ -427,6 +427,7 @@ const loading = ref(false);
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
 const currentUserId = computed(() => authStore.user?.id ?? props.duel?.user_id ?? null);
+const screenAnalysisEnabled = computed(() => authStore.user?.enable_screen_analysis ?? false);
 const filterDecksForUser = (decks: Deck[]) => {
   const userId = currentUserId.value;
   if (!userId) return decks;
