@@ -83,6 +83,25 @@
                   hide-details
                 ></v-switch>
               </div>
+
+              <v-divider class="my-4" />
+
+              <div class="screen-analysis-section">
+                <div class="d-flex align-center mb-2">
+                  <v-icon color="warning" class="mr-2">mdi-flask</v-icon>
+                  <span class="text-h6">実験的機能</span>
+                  <v-chip size="x-small" color="warning" class="ml-2">テスト</v-chip>
+                </div>
+                <p class="text-caption text-grey mb-3">
+                  画面解析機能を有効にすると、対戦記録作成時に画面キャプチャによる自動入力機能が使用できます。この機能は開発中のため、誤判定が発生する可能性があります。
+                </p>
+                <v-switch
+                  v-model="form.enableScreenAnalysis"
+                  color="warning"
+                  label="画面解析機能を有効にする"
+                  hide-details
+                ></v-switch>
+              </div>
             </v-form>
           </v-card-text>
 
@@ -191,9 +210,11 @@ import { ref, onMounted, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { maskEmail } from '@/utils/maskEmail';
 
+const logger = createLogger('Profile');
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
@@ -205,6 +226,7 @@ const form = ref({
   password: '',
   passwordConfirm: '',
   streamerMode: false,
+  enableScreenAnalysis: false,
 });
 
 const deleteDialog = ref(false);
@@ -231,7 +253,7 @@ const exportAllData = async () => {
     document.body.removeChild(link);
     notificationStore.success('バックアップファイルをダウンロードしました。');
   } catch (error) {
-    console.error('Failed to export data:', error);
+    logger.error('Failed to export data');
     notificationStore.error('データのエクスポートに失敗しました。');
   }
 };
@@ -264,7 +286,7 @@ const importBackup = async (event: Event) => {
 
     if (errors && errors.length > 0) {
       notificationStore.error('復元中にエラーが発生しました。');
-      console.error('Import Errors:', errors);
+      logger.error('Import Errors:', errors.length);
     } else {
       notificationStore.success(`${created}件の対戦記録を復元しました`);
     }
@@ -275,7 +297,7 @@ const importBackup = async (event: Event) => {
     // A better solution would be a shared service or a more robust state management.
     await authStore.fetchUser(); // to refresh user related data if any
   } catch (error) {
-    console.error('Failed to import data:', error);
+    logger.error('Failed to import data');
     notificationStore.error('データのインポートに失敗しました。');
   } finally {
     loading.value = false;
@@ -308,6 +330,7 @@ onMounted(() => {
     actualEmail.value = authStore.user.email;
     form.value.email = authStore.user.email;
     form.value.streamerMode = authStore.user.streamer_mode;
+    form.value.enableScreenAnalysis = authStore.user.enable_screen_analysis;
   }
 });
 
@@ -334,11 +357,13 @@ const handleUpdate = async () => {
       username: string;
       email: string;
       streamer_mode: boolean;
+      enable_screen_analysis: boolean;
       password?: string;
     } = {
       username: form.value.username,
       email: actualEmail.value, // 実際のメールアドレスを送信
       streamer_mode: form.value.streamerMode,
+      enable_screen_analysis: form.value.enableScreenAnalysis,
     };
 
     if (form.value.password) {
@@ -363,7 +388,7 @@ const handleUpdate = async () => {
     form.value.passwordConfirm = '';
     formRef.value.resetValidation();
   } catch (error) {
-    console.error('Failed to update profile:', error);
+    logger.error('Failed to update profile');
     // エラー通知はapi.tsのインターセプターが処理
   } finally {
     loading.value = false;
@@ -380,7 +405,7 @@ const handleDeleteAccount = async () => {
     // ログアウト処理でリダイレクト
     await authStore.logout();
   } catch (error) {
-    console.error('Failed to delete account:', error);
+    logger.error('Failed to delete account');
   } finally {
     deleting.value = false;
     deleteDialog.value = false;

@@ -52,8 +52,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 import type { Duel, Deck, GameMode } from '@/types';
 import { useUiStore } from '@/stores/ui';
+
+const logger = createLogger('Dashboard');
 
 // Components
 import AppLayout from '@/components/layout/AppLayout.vue';
@@ -184,7 +187,7 @@ const fetchDuels = async () => {
     decks.value = decksResponse.data;
     duels.value = duelsResponse.data;
   } catch (error) {
-    console.error('Failed to fetch duels:', error);
+    logger.error('Failed to fetch duels');
   } finally {
     loading.value = false;
   }
