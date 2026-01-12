@@ -4,6 +4,7 @@ export interface User {
   email: string;
   streamer_mode: boolean;
   theme_preference: string;
+  enable_screen_analysis: boolean;
 }
 
 export interface UserCreate {
