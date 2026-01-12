@@ -83,6 +83,25 @@
                   hide-details
                 ></v-switch>
               </div>
+
+              <v-divider class="my-4" />
+
+              <div class="screen-analysis-section">
+                <div class="d-flex align-center mb-2">
+                  <v-icon color="warning" class="mr-2">mdi-flask</v-icon>
+                  <span class="text-h6">実験的機能</span>
+                  <v-chip size="x-small" color="warning" class="ml-2">テスト</v-chip>
+                </div>
+                <p class="text-caption text-grey mb-3">
+                  画面解析機能を有効にすると、対戦記録作成時に画面キャプチャによる自動入力機能が使用できます。この機能は開発中のため、誤判定が発生する可能性があります。
+                </p>
+                <v-switch
+                  v-model="form.enableScreenAnalysis"
+                  color="warning"
+                  label="画面解析機能を有効にする"
+                  hide-details
+                ></v-switch>
+              </div>
             </v-form>
           </v-card-text>
 
@@ -207,6 +226,7 @@ const form = ref({
   password: '',
   passwordConfirm: '',
   streamerMode: false,
+  enableScreenAnalysis: false,
 });
 
 const deleteDialog = ref(false);
@@ -310,6 +330,7 @@ onMounted(() => {
     actualEmail.value = authStore.user.email;
     form.value.email = authStore.user.email;
     form.value.streamerMode = authStore.user.streamer_mode;
+    form.value.enableScreenAnalysis = authStore.user.enable_screen_analysis;
   }
 });
 
@@ -336,11 +357,13 @@ const handleUpdate = async () => {
       username: string;
       email: string;
       streamer_mode: boolean;
+      enable_screen_analysis: boolean;
       password?: string;
     } = {
       username: form.value.username,
       email: actualEmail.value, // 実際のメールアドレスを送信
       streamer_mode: form.value.streamerMode,
+      enable_screen_analysis: form.value.enableScreenAnalysis,
     };
 
     if (form.value.password) {
