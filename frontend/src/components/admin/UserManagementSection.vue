@@ -136,8 +136,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useNotificationStore } from '@/stores/notification';
+import { createLogger } from '@/utils/logger';
 import { getAdminUsers, updateUserAdminStatus } from '@/services/adminApi';
 import type { UserAdminResponse } from '@/types/admin';
+
+const logger = createLogger('UserManagement');
 
 // State
 const users = ref<UserAdminResponse[]>([]);
@@ -189,7 +192,7 @@ async function fetchUsers() {
     users.value = response.users;
     totalUsers.value = response.total;
   } catch (e: any) {
-    console.error('Failed to fetch users:', e);
+    logger.error('Failed to fetch users');
   } finally {
     loading.value = false;
   }

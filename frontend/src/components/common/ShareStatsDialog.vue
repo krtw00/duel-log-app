@@ -92,7 +92,10 @@
 import { ref, computed, watch } from 'vue';
 import { useSharedStatisticsStore } from '@/stores/shared_statistics';
 import { useNotificationStore } from '@/stores/notification';
+import { createLogger } from '@/utils/logger';
 import { GameMode } from '@/types';
+
+const logger = createLogger('ShareStats');
 
 const props = defineProps<{
   modelValue: boolean;
@@ -219,7 +222,7 @@ const copyLink = async () => {
       notificationStore.success('共有リンクをクリップボードにコピーしました！');
     } catch (err) {
       notificationStore.error('リンクのコピーに失敗しました。手動でコピーしてください。');
-      console.error('Failed to copy link: ', err);
+      logger.error('Failed to copy link');
     }
   }
 };
