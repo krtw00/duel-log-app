@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/krtw00/duel-log-app/compare/v1.10.0...v1.10.1) (2026-01-12)
+
+
+### 🐛 Bug Fixes
+
+* **api:** remove trailing slashes from /me endpoints to avoid 307 redirect ([6abdbfd](https://github.com/krtw00/duel-log-app/commit/6abdbfd0edbb85acffe8fa04295add1bd9881222))
+
 ## [1.10.0](https://github.com/krtw00/duel-log-app/compare/v1.9.0...v1.10.0) (2026-01-12)
 
 
