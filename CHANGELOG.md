@@ -1,3 +1,40 @@
+## [1.10.0](https://github.com/krtw00/duel-log-app/compare/v1.9.0...v1.10.0) (2026-01-12)
+
+
+### ✨ Features
+
+* **frontend:** add description for screen analysis feature ([32b82ba](https://github.com/krtw00/duel-log-app/commit/32b82ba60273ed2b9d0e4dc0364aacd78b72767a))
+* **ml:** add TensorFlow.js image classification models ([b9425a3](https://github.com/krtw00/duel-log-app/commit/b9425a3253175bfe29c9d32687c12ff89724ffe1))
+* **screen-analysis:** add Gaussian blur and dynamic sigma scaling for low resolutions ([71ab5cd](https://github.com/krtw00/duel-log-app/commit/71ab5cd90827c7da68ff99ebdd52727038c1ce00))
+* **screen-analysis:** add TensorFlow.js image classification prototype ([b3971ec](https://github.com/krtw00/duel-log-app/commit/b3971ec25ba0e4f56ab2f552d2038d1dd68e8690))
+* **screen-analysis:** apply MIPMAP approach to turnChoice and okButton ([d1e5134](https://github.com/krtw00/duel-log-app/commit/d1e51347421666c46f19f1f2485dee2414d43459))
+* **screen-analysis:** implement MIPMAP approach for multi-resolution template matching ([05b5498](https://github.com/krtw00/duel-log-app/commit/05b54981f75a08ae3127cf90b25e552defde42af))
+* **screen-analysis:** replace OK button detection with result lock mechanism ([f272412](https://github.com/krtw00/duel-log-app/commit/f27241271660ab9053a0057f353a3fff4fcf5878))
+* **screen-analysis:** support all game resolutions for template matching ([a9cb093](https://github.com/krtw00/duel-log-app/commit/a9cb09383c8b75ec6db052b5b6c0a50ca3dfb5a6))
+* **screen-analysis:** support variable screen resolutions (1280x720-3840x2160) ([a2fa73e](https://github.com/krtw00/duel-log-app/commit/a2fa73e150ac2f972774a84b1a9cd251f7bd7573))
+* **settings:** add toggle for screen analysis feature ([c96d639](https://github.com/krtw00/duel-log-app/commit/c96d6399b7cb906d7a8180b021fa812ed6d74e8e))
+* **ui:** add ML mode toggle and training data collection UI ([c3c0925](https://github.com/krtw00/duel-log-app/commit/c3c0925d3d6a6e445414b5214a3b4e7b3136c2f1))
+
+
+### 🐛 Bug Fixes
+
+* **backend:** fix ruff linting errors in admin code ([193bac2](https://github.com/krtw00/duel-log-app/commit/193bac2093fc7af1d8bb48a3132d4b30b7698a09))
+* **backend:** fix test failures and deprecation warnings ([473bfff](https://github.com/krtw00/duel-log-app/commit/473bfff49ea4650f29c095b1fed8083e63117cf5))
+* **ml:** update TensorFlow.js classification models ([2efdfd6](https://github.com/krtw00/duel-log-app/commit/2efdfd6ec517e9c59d1deef8752d00c5c281dec1))
+* **screen-analysis:** adjust thresholds and remove downscale for low resolutions ([f7b3170](https://github.com/krtw00/duel-log-app/commit/f7b317089048c051afba548f63144c8df5211d4f))
+* **screen-analysis:** reduce false positives in coin detection ([0022362](https://github.com/krtw00/duel-log-app/commit/002236221f36fff629a9751631ef2907f655cee1))
+
+
+### 📝 Documentation
+
+* remove obsolete image recognition planning document ([37adb1f](https://github.com/krtw00/duel-log-app/commit/37adb1f55797b1c7b227c4bc5cdb600d98e1031c))
+
+
+### ♻️ Code Refactoring
+
+* **frontend:** replace console.log/error with centralized logger ([cf94531](https://github.com/krtw00/duel-log-app/commit/cf94531db17a7c785ebd49be30183898198c6268))
+* **ml:** add detailed logging for model loading ([68db2c9](https://github.com/krtw00/duel-log-app/commit/68db2c95e33ec3f27279fe7174a99bff3477a822))
+
 ## [1.9.0](https://github.com/krtw00/duel-log-app/compare/v1.8.0...v1.9.0) (2026-01-10)
 
 
