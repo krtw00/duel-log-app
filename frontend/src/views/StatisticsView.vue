@@ -115,6 +115,9 @@
  */
 import { ref, onMounted, computed, watch } from 'vue';
 import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
+
+const logger = createLogger('Statistics');
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { useThemeStore } from '@/stores/theme';
 import { useUiStore } from '@/stores/ui';
@@ -298,7 +301,7 @@ const fetchAvailableDecks = async () => {
       }
     }
   } catch (error) {
-    console.error('Failed to fetch available decks:', error);
+    logger.error('Failed to fetch available decks');
   }
 };
 
@@ -371,7 +374,7 @@ const fetchMonthlyDuels = async (mode: GameMode) => {
       };
     });
   } catch (error) {
-    console.error('Failed to fetch monthly duels:', error);
+    logger.error('Failed to fetch monthly duels');
     monthlyDuelsByMode.value[mode] = [];
   }
 };
@@ -452,7 +455,7 @@ const fetchStatistics = async () => {
       };
     });
   } catch (error) {
-    console.error('Failed to fetch statistics:', error);
+    logger.error('Failed to fetch statistics');
   } finally {
     loading.value = false;
   }
