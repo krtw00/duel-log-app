@@ -35,7 +35,7 @@
         @duel-saved="handleDuelSaved"
       />
 
-      <OBSSection />
+      <StreamerSection :streamer-mode-enabled="authStore.isStreamerModeEnabled" />
     </v-container>
 
     <template #overlay>
@@ -63,7 +63,8 @@ import AppLayout from '@/components/layout/AppLayout.vue';
 import DashboardHeader from './DashboardHeader.vue';
 import StatisticsSection from './StatisticsSection.vue';
 import DuelEntrySection from './DuelEntrySection.vue';
-import OBSSection from './OBSSection.vue';
+import StreamerSection from '@/components/dashboard/StreamerSection.vue';
+import { useAuthStore } from '@/stores/auth';
 import DuelHistorySection from './DuelHistorySection.vue';
 import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue';
 
@@ -74,6 +75,7 @@ const loading = ref(false);
 const currentMode = ref<GameMode>('RANK');
 const shareDialogOpened = ref(false);
 const uiStore = useUiStore();
+const authStore = useAuthStore();
 const DEFAULT_FIRST_OR_SECOND_STORAGE_KEY = 'duellog.defaultFirstOrSecond';
 const LEGACY_DEFAULT_COIN_STORAGE_KEY = 'duellog.defaultCoin';
 const defaultFirstOrSecond = ref<0 | 1>(1);
