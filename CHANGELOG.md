@@ -1,3 +1,10 @@
+## [2.0.24](https://github.com/krtw00/duel-log-app/compare/v2.0.23...v2.0.24) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** resolve black screen issue on OAuth callback and login ([54e9708](https://github.com/krtw00/duel-log-app/commit/54e97081ffb796e39850175946797a3c5935e6b3))
+
 ## [2.0.23](https://github.com/krtw00/duel-log-app/compare/v2.0.22...v2.0.23) (2026-01-13)
 
 
