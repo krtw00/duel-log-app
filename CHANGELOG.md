@@ -1,3 +1,10 @@
+## [2.0.22](https://github.com/krtw00/duel-log-app/compare/v2.0.21...v2.0.22) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** correct JWKS endpoint URL for Supabase ([4c88fce](https://github.com/krtw00/duel-log-app/commit/4c88fce48d778ceafe50301a5120d5a51b81492b))
+
 ## [2.0.21](https://github.com/krtw00/duel-log-app/compare/v2.0.20...v2.0.21) (2026-01-13)
 
 
