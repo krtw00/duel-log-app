@@ -5,17 +5,23 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+  console.warn('Supabase environment variables are not set. Using dummy values for development.');
+  // ダミー値を使用してアプリがクラッシュしないようにする
+  // 本番環境では環境変数を設定してください
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    // OAuth コールバック用のリダイレクトURL
-    flowType: 'pkce',
-  },
-});
+export const supabase = createClient<Database>(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-anon-key',
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      // OAuth コールバック用のリダイレクトURL
+      flowType: 'pkce',
+    },
+  }
+);
 
 export default supabase;
