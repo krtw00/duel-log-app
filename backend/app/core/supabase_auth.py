@@ -2,8 +2,9 @@
 Supabase認証ユーティリティ
 
 Supabase JWT検証:
-- PyJWTライブラリを使用してHS256アルゴリズムで検証
-- 秘密鍵はSupabaseダッシュボードの「JWT Secret」をそのまま使用する（Base64デコードしない）
+- ES256 (ECDSA) とHS256両方をサポート
+- ES256の場合: JWKSエンドポイントから公開鍵を取得して検証
+- HS256の場合: JWT Secretを使用して検証
 """
 
 import base64
@@ -13,13 +14,29 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import jwt  # PyJWT library
+from jwt import PyJWKClient
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# JWT secret candidates (raw / decoded fallback)
+# JWKS client for ES256 verification
+_jwks_client: Optional[PyJWKClient] = None
+
+# JWT secret candidates for HS256 (raw / decoded fallback)
 _jwt_secret_candidates: Optional[list[tuple[str, str | bytes]]] = None
+
+
+def _get_jwks_client() -> PyJWKClient:
+    """
+    JWKSクライアントを取得（キャッシュ付き）
+    """
+    global _jwks_client
+    if _jwks_client is None:
+        jwks_url = f"{settings.SUPABASE_URL}/auth/v1/keys"
+        _jwks_client = PyJWKClient(jwks_url, cache_keys=True)
+        logger.info("JWKS client initialized: %s", jwks_url)
+    return _jwks_client
 
 
 def _normalize_env_secret(secret: str) -> str:
@@ -42,9 +59,6 @@ def _hostname(url: str) -> str:
 def _try_b64decode(secret: str, *, altchars: bytes | None = None) -> Optional[bytes]:
     """
     Best-effort Base64 decode with padding normalization.
-
-    環境変数の設定方法により、JWT Secret が Base64(またはURL-safe Base64) の文字列として
-    扱われるケースがあるため、互換のためにデコード候補を作る。
     """
     try:
         normalized = secret.strip()
@@ -108,10 +122,7 @@ def _log_unverified_token_summary(token: str) -> None:
 
 def _get_jwt_secret_candidates() -> list[tuple[str, str | bytes]]:
     """
-    JWT検証用のシークレット候補を取得
-
-    Returns:
-        list[tuple[str, str | bytes]]: (label, key) の候補リスト
+    HS256 JWT検証用のシークレット候補を取得
     """
     global _jwt_secret_candidates
     if _jwt_secret_candidates is not None:
@@ -120,8 +131,6 @@ def _get_jwt_secret_candidates() -> list[tuple[str, str | bytes]]:
     secret_raw = _normalize_env_secret(settings.SUPABASE_JWT_SECRET)
     candidates: list[tuple[str, str | bytes]] = [("raw", secret_raw)]
 
-    # Backward compatibility: 以前の実装ではBase64デコードしたバイト列を鍵としていたため、
-    # 署名検証に失敗した場合のフォールバックとして候補に加える。
     decoded = _try_b64decode(secret_raw)
     if decoded:
         candidates.append(("base64", decoded))
@@ -141,18 +150,51 @@ def _get_jwt_secret_candidates() -> list[tuple[str, str | bytes]]:
     return candidates
 
 
-def verify_supabase_token(token: str) -> Optional[dict]:
+def _verify_with_es256(token: str) -> Optional[dict]:
     """
-    Supabase JWTトークンを検証してペイロードを返す
+    ES256 (ECDSA) でトークンを検証
+    JWKSエンドポイントから公開鍵を取得して使用
+    """
+    try:
+        jwks_client = _get_jwks_client()
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-    Args:
-        token: 検証するJWTトークン
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["ES256"],
+            audience="authenticated",
+        )
+        logger.debug("Supabase token verified with ES256 (JWKS)")
+        return payload
+    except jwt.InvalidAudienceError:
+        # audience検証なしで再試行
+        try:
+            jwks_client = _get_jwks_client()
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-    Returns:
-        Optional[dict]: デコードされたペイロード。検証失敗時はNone
+            payload = jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["ES256"],
+                options={"verify_aud": False},
+            )
+            logger.debug("Supabase token verified with ES256 without audience check")
+            return payload
+        except Exception as e:
+            logger.debug("ES256 verification failed (no aud): %s", str(e))
+            return None
+    except Exception as e:
+        logger.debug("ES256 verification failed: %s", str(e))
+        return None
+
+
+def _verify_with_hs256(token: str) -> Optional[dict]:
+    """
+    HS256 (HMAC) でトークンを検証
+    JWT Secretを使用
     """
     secrets = _get_jwt_secret_candidates()
-
     last_error: Optional[Exception] = None
 
     for label, secret in secrets:
@@ -163,7 +205,7 @@ def verify_supabase_token(token: str) -> Optional[dict]:
                 algorithms=["HS256"],
                 audience="authenticated",
             )
-            logger.debug("Supabase token verified successfully (key=%s)", label)
+            logger.debug("Supabase token verified with HS256 (key=%s)", label)
             return payload
         except jwt.InvalidAudienceError:
             try:
@@ -173,7 +215,7 @@ def verify_supabase_token(token: str) -> Optional[dict]:
                     algorithms=["HS256"],
                     options={"verify_aud": False},
                 )
-                logger.debug("Supabase token verified without audience check (key=%s)", label)
+                logger.debug("Supabase token verified with HS256 without audience check (key=%s)", label)
                 return payload
             except jwt.PyJWTError as e:
                 last_error = e
@@ -183,12 +225,56 @@ def verify_supabase_token(token: str) -> Optional[dict]:
             continue
 
     if last_error is not None:
-        logger.warning(
-            "Supabase token verification failed: %s (keys_tried=%s)",
+        logger.debug(
+            "HS256 verification failed: %s (keys_tried=%s)",
             str(last_error),
             [label for label, _ in secrets],
         )
-        _log_unverified_token_summary(token)
+    return None
+
+
+def verify_supabase_token(token: str) -> Optional[dict]:
+    """
+    Supabase JWTトークンを検証してペイロードを返す
+
+    トークンのアルゴリズムに応じて適切な検証方法を使用:
+    - ES256: JWKSから公開鍵を取得して検証
+    - HS256: JWT Secretで検証
+
+    Args:
+        token: 検証するJWTトークン
+
+    Returns:
+        Optional[dict]: デコードされたペイロード。検証失敗時はNone
+    """
+    # トークンのアルゴリズムを確認
+    try:
+        header = jwt.get_unverified_header(token)
+        alg = header.get("alg", "").upper()
+    except Exception:
+        alg = ""
+
+    # アルゴリズムに応じて検証
+    if alg == "ES256":
+        payload = _verify_with_es256(token)
+        if payload:
+            return payload
+    elif alg == "HS256":
+        payload = _verify_with_hs256(token)
+        if payload:
+            return payload
+    else:
+        # 不明なアルゴリズムの場合、両方試す
+        payload = _verify_with_es256(token)
+        if payload:
+            return payload
+        payload = _verify_with_hs256(token)
+        if payload:
+            return payload
+
+    # 検証失敗時のログ
+    logger.warning("Supabase token verification failed for alg=%s", alg)
+    _log_unverified_token_summary(token)
     return None
 
 
