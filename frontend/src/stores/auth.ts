@@ -343,37 +343,42 @@ export const useAuthStore = defineStore('auth', () => {
    * 認証状態の変更を監視
    */
   const setupAuthListener = () => {
-    supabase.auth.onAuthStateChange(async (event, newSession) => {
-      logger.debug('Auth state changed:', event);
+    try {
+      supabase.auth.onAuthStateChange(async (event, newSession) => {
+        logger.debug('Auth state changed:', event);
 
-      if (event === 'SIGNED_IN' && newSession) {
-        supabaseUser.value = newSession.user;
-        session.value = newSession;
+        if (event === 'SIGNED_IN' && newSession) {
+          supabaseUser.value = newSession.user;
+          session.value = newSession;
 
-        const profile = await fetchProfile(newSession.user.id);
-        if (profile) {
-          user.value = profile;
-        } else {
-          user.value = {
-            id: newSession.user.id,
-            email: newSession.user.email || null,
-            username: newSession.user.user_metadata?.username || newSession.user.email?.split('@')[0] || 'ユーザー',
-            streamer_mode: false,
-            theme_preference: 'dark',
-            is_admin: false,
-            enable_screen_analysis: false,
-          };
+          const profile = await fetchProfile(newSession.user.id);
+          if (profile) {
+            user.value = profile;
+          } else {
+            user.value = {
+              id: newSession.user.id,
+              email: newSession.user.email || null,
+              username: newSession.user.user_metadata?.username || newSession.user.email?.split('@')[0] || 'ユーザー',
+              streamer_mode: false,
+              theme_preference: 'dark',
+              is_admin: false,
+              enable_screen_analysis: false,
+            };
+          }
+          isInitialized.value = true;
+        } else if (event === 'SIGNED_OUT') {
+          user.value = null;
+          supabaseUser.value = null;
+          session.value = null;
+          isInitialized.value = true;
+        } else if (event === 'TOKEN_REFRESHED' && newSession) {
+          session.value = newSession;
         }
-        isInitialized.value = true;
-      } else if (event === 'SIGNED_OUT') {
-        user.value = null;
-        supabaseUser.value = null;
-        session.value = null;
-        isInitialized.value = true;
-      } else if (event === 'TOKEN_REFRESHED' && newSession) {
-        session.value = newSession;
-      }
-    });
+      });
+    } catch (error) {
+      logger.warn('Failed to setup auth listener:', error);
+      isInitialized.value = true;
+    }
   };
 
   return {
