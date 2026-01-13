@@ -1,3 +1,10 @@
+## [2.0.7](https://github.com/krtw00/duel-log-app/compare/v2.0.6...v2.0.7) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** use requirements-dev.txt and add Supabase env vars ([80aec5f](https://github.com/krtw00/duel-log-app/commit/80aec5f2d9c1a2c1394b9f66f52d82aac9abea3f))
+
 ## [2.0.6](https://github.com/krtw00/duel-log-app/compare/v2.0.5...v2.0.6) (2026-01-13)
 
 
