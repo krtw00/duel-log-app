@@ -1,3 +1,10 @@
+## [2.0.12](https://github.com/krtw00/duel-log-app/compare/v2.0.11...v2.0.12) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **lint:** remove extraneous f-string prefix ([0e4d30d](https://github.com/krtw00/duel-log-app/commit/0e4d30dc23e0c3cd38ae638401aa1f7db3427788))
+
 ## [2.0.11](https://github.com/krtw00/duel-log-app/compare/v2.0.10...v2.0.11) (2026-01-13)
 
 
