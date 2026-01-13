@@ -305,7 +305,7 @@ def fix_alembic_version_if_needed():
                             # マイグレーション履歴に関係なく、スキーマが最新状態なのでheadを使用
                             stamp_target = "head"
                             logger.info(
-                                f"   Schema has 'opponent_deck_id' (current state). Stamping to head."
+                                "   Schema has 'opponent_deck_id' (current state). Stamping to head."
                             )
                         elif column_name == "opponentDeck_id":
                             # 古いカラム名の場合、その前のリビジョンにスタンプ
