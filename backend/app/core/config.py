@@ -23,12 +23,17 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(..., description="データベース接続URL")
     DATABASE_ECHO: bool = Field(default=False, description="SQLログ出力")
 
-    # JWT設定
+    # JWT設定（OBSトークン用に維持）
     SECRET_KEY: str = Field(..., min_length=32, description="JWT署名用秘密鍵")
     ALGORITHM: str = Field(default="HS256", description="JWT署名アルゴリズム")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
         default=10080, ge=1, description="アクセストークン有効期限（分）"
     )
+
+    # Supabase設定
+    SUPABASE_URL: str = Field(..., description="SupabaseプロジェクトURL")
+    SUPABASE_ANON_KEY: str = Field(..., description="Supabase匿名キー（公開キー）")
+    SUPABASE_JWT_SECRET: str = Field(..., description="Supabase JWT署名検証用シークレット")
 
     # CORS設定
     CORS_ORIGINS: List[str] = Field(
