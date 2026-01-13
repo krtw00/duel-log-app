@@ -1,0 +1,15 @@
+# 本番依存関係を含む
+-r requirements.txt
+
+# テスト
+pytest==9.0.2
+pytest-cov==6.3.0
+httpx==0.25.2
+Faker==39.0.0
+
+# リンター・フォーマッター
+ruff
+black
+
+# メール送信（Supabase移行後は不要だが、旧コード互換性のため開発環境に残す）
+resend==2.15.0
