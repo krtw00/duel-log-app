@@ -1,3 +1,15 @@
+## [2.0.5](https://github.com/krtw00/duel-log-app/compare/v2.0.4...v2.0.5) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **alembic:** create merge migration to resolve multiple heads ([331e3bf](https://github.com/krtw00/duel-log-app/commit/331e3bf71773d05ab45332482176cb8a5f2d6ca6))
+
+
+### ♻️ Code Refactoring
+
+* **start.py:** use 'head' instead of hardcoded revision ([c5a5963](https://github.com/krtw00/duel-log-app/commit/c5a59632303f4e38dc927b9d2f3180b04c11eefd))
+
 ## [2.0.4](https://github.com/krtw00/duel-log-app/compare/v2.0.3...v2.0.4) (2026-01-13)
 
 
