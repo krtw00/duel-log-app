@@ -3,7 +3,9 @@ Supabase認証ユーティリティ
 """
 
 from typing import Optional
+
 from jose import JWTError, jwt
+
 from app.core.config import settings
 
 
