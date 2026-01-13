@@ -1,3 +1,10 @@
+## [2.0.9](https://github.com/krtw00/duel-log-app/compare/v2.0.8...v2.0.9) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** add Supabase env vars for backend tests ([93bc0ff](https://github.com/krtw00/duel-log-app/commit/93bc0ffa52e99249281855cf1ee6553b1b150f2a))
+
 ## [2.0.8](https://github.com/krtw00/duel-log-app/compare/v2.0.7...v2.0.8) (2026-01-13)
 
 
