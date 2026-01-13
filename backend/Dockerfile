@@ -32,7 +32,8 @@ ENV PYTHONPATH=/app \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libpq5 \
-    postgresql-client && \
+    postgresql-client \
+    curl && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # ビルドステージからPythonパッケージをコピー
