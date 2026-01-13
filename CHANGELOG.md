@@ -1,3 +1,10 @@
+## [2.0.21](https://github.com/krtw00/duel-log-app/compare/v2.0.20...v2.0.21) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** support ES256 algorithm for Supabase JWT verification ([ec64b27](https://github.com/krtw00/duel-log-app/commit/ec64b275d53460c24563db5b855f24cd1479c705))
+
 ## [2.0.20](https://github.com/krtw00/duel-log-app/compare/v2.0.19...v2.0.20) (2026-01-13)
 
 
