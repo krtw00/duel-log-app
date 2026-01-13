@@ -33,7 +33,7 @@ def _get_jwks_client() -> PyJWKClient:
     """
     global _jwks_client
     if _jwks_client is None:
-        jwks_url = f"{settings.SUPABASE_URL}/auth/v1/keys"
+        jwks_url = f"{settings.SUPABASE_URL}/auth/v1/.well-known/jwks.json"
         _jwks_client = PyJWKClient(jwks_url, cache_keys=True)
         logger.info("JWKS client initialized: %s", jwks_url)
     return _jwks_client
