@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { useNotificationStore } from '../stores/notification';
 import { useLoadingStore } from '../stores/loading';
 import { useAuthStore } from '../stores/auth';
-import { getAccessToken } from './authTokens';
+import { supabase } from '../lib/supabase';
 import type { ApiErrorResponse, ValidationErrorDetail } from '../types/api';
 import { createLogger } from '../utils/logger';
 
@@ -75,7 +75,7 @@ export const normalizeApiRequestUrl = (
 
 // リクエストインターセプター
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     config.url = normalizeApiRequestUrl(config.baseURL, config.url);
 
     // ローディング開始
@@ -84,13 +84,17 @@ api.interceptors.request.use(
     config.metadata = { requestId };
     loadingStore.start(requestId);
 
-    // localStorage からトークンを取得して Authorization ヘッダーに設定
-    // これにより、Cookie が機能しない環境（Docker でのクロスオリジン など）でも認証が動作する
-    // Safari/iOS/MacOS Cookie 制限環境にも対応
-    const token = getAccessToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      logger.debug('Using Authorization header from localStorage');
+    // Supabase セッションからトークンを取得して Authorization ヘッダーに設定
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        config.headers.Authorization = `Bearer ${session.access_token}`;
+        logger.debug('Using Supabase access token');
+      }
+    } catch (error) {
+      logger.warn('Failed to get Supabase session:', error);
     }
 
     // リクエスト詳細ログ
@@ -150,27 +154,13 @@ api.interceptors.response.use(
             'リクエストが正しくありません';
           break;
         case 401:
-          // /meエンドポイントからの401エラーは、単に「ログインしていない」状態を示すため、
-          // 自動的なログアウト処理を引き起こさないようにする。
-          if (error.config?.url?.endsWith('/me')) {
-            logger.debug('401 from /me - not authenticated yet');
-            // このエラーは後続の処理でハンドリングされるため、ここでは何もしない
-          } else {
-            // 他のAPIからの401エラーは「セッション切れ」を示す可能性
-            // ただし、Cookie未反映・タイミング等の一過性要因もあり得るため、
-            // Authorization ヘッダー等の実証的根拠がある場合のみログアウトを実施する。
-            const hadAuthHeader = !!(error.config?.headers as any)?.Authorization;
-            const hadLocalToken = !!getAccessToken();
+          // 認証エラー
+          logger.warn('401 - session may have expired');
+          message = '認証の有効期限が切れました。再度ログインしてください';
 
-            logger.warn('401 from non-/me endpoint - session may have expired');
-            message = '認証の有効期限が切れました。再度ログインしてください';
-
-            // 初期化前（=起動直後）はログアウトしない。
-            // また、Authorization ヘッダーも localStorage トークンも無い場合は、
-            // 強制ログアウトせず、ガードに任せて遷移させる（過剰リダイレクト防止）。
-            if (authStore.isInitialized && (hadAuthHeader || hadLocalToken)) {
-              authStore.logout();
-            }
+          // 初期化前はログアウトしない
+          if (authStore.isInitialized && authStore.isAuthenticated) {
+            authStore.logout();
           }
           break;
         case 403:

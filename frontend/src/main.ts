@@ -6,6 +6,7 @@ import VueApexCharts from 'vue3-apexcharts';
 import App from './App.vue';
 import './assets/styles/main.scss';
 import './assets/styles/auth.scss';
+import { useAuthStore } from './stores/auth';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -14,6 +15,10 @@ app.use(pinia);
 app.use(router);
 app.use(vuetify);
 app.use(VueApexCharts);
+
+// Setup Supabase auth listener
+const authStore = useAuthStore(pinia);
+authStore.setupAuthListener();
 
 app.mount('#app');
 

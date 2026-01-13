@@ -5,12 +5,17 @@
 import os
 from unittest.mock import patch
 
+# Supabase設定をテスト用にモック（settingsインポート前に設定）
+os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
+os.environ.setdefault("SUPABASE_ANON_KEY", "test-anon-key")
+os.environ.setdefault("SUPABASE_JWT_SECRET", "test-jwt-secret-for-testing-only-32chars")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_obs_overlay_user
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.db.session import get_db
@@ -100,6 +105,7 @@ def authenticated_client(db_session, test_user):
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_obs_overlay_user] = override_get_current_user
 
     # TestClientを作成
     with TestClient(app) as client:

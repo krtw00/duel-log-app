@@ -262,9 +262,8 @@ def fix_alembic_version_if_needed():
             conn_params["sslmode"] = "require"
 
         if tables_exist:
-            # テーブルが既に存在する場合、初期リビジョンを設定
-            logger.info("🔧 Tables already exist. Setting initial revision...")
-            logger.info("   (This will allow missing migrations to run)")
+            # テーブルが既に存在する場合、スキーマの状態に基づいてスタンプ
+            logger.info("🔧 Tables already exist. Checking schema state...")
             sys.stdout.flush()
 
             with psycopg.connect(**conn_params) as conn:
@@ -273,42 +272,81 @@ def fix_alembic_version_if_needed():
                     try:
                         cur.execute("SELECT version_num FROM alembic_version")
                         current = cur.fetchone()
-                        if current:
-                            logger.info(f"   Current version: {current[0]}")
+                        current_version = current[0] if current else None
+
+                        if current_version:
+                            logger.info(f"   Current version: {current_version}")
                         else:
-                            logger.info("   No version found, setting to initial")
-                            # バージョンがない場合は初期リビジョンに設定
-                            cur.execute("DELETE FROM alembic_version")
-                            cur.execute(
-                                "INSERT INTO alembic_version (version_num) VALUES ('5c16ff509f3d')"
+                            logger.info("   No version found in alembic_version table")
+
+                        # opponent_deck_id カラムの存在確認（スキーマ状態の判定）
+                        cur.execute(
+                            """
+                            SELECT column_name
+                            FROM information_schema.columns
+                            WHERE table_name = 'duels'
+                            AND column_name IN ('opponent_deck_id', 'opponentDeck_id')
+                        """
+                        )
+                        column_result = cur.fetchone()
+                        column_name = column_result[0] if column_result else None
+
+                        if column_name:
+                            logger.info(
+                                f"   Detected column in duels table: {column_name}"
                             )
-                            conn.commit()
-                            logger.info("   Set to initial revision: 5c16ff509f3d")
+
+                        # スタンプするリビジョンを決定
+                        stamp_target = None
+
+                        # opponent_deck_id が存在する場合、Branch B側にいる（最新）
+                        if column_name == "opponent_deck_id":
+                            # 現在のバージョンがheadでない場合はheadにスタンプ
+                            # マイグレーション履歴に関係なく、スキーマが最新状態なのでheadを使用
+                            stamp_target = "head"
+                            logger.info(
+                                "   Schema has 'opponent_deck_id' (current state). Stamping to head."
+                            )
+                        elif column_name == "opponentDeck_id":
+                            # 古いカラム名の場合、その前のリビジョンにスタンプ
+                            stamp_target = "5c16ff509f3d"
+                            logger.info(
+                                f"   Schema has 'opponentDeck_id' (old state). Stamping to: {stamp_target}"
+                            )
+                        elif not current_version:
+                            # バージョン情報がない場合は head にスタンプ
+                            stamp_target = "head"
+                            logger.info("   No version recorded. Stamping to head")
+
+                        if stamp_target:
+                            sys.stdout.flush()
+                            try:
+                                subprocess.run(
+                                    ["alembic", "stamp", stamp_target],
+                                    check=True,
+                                    capture_output=True,
+                                    text=True,
+                                )
+                                logger.info(
+                                    f"   ✅ Database stamped successfully to {stamp_target}"
+                                )
+                            except subprocess.CalledProcessError as stamp_e:
+                                logger.error(
+                                    f"   ❌ Failed to stamp database: {stamp_e.stderr}"
+                                )
+                                raise
+                            except FileNotFoundError:
+                                logger.error("   ❌ 'alembic' command not found.")
+                                raise
+                        else:
+                            logger.info(
+                                "   No stamping needed, current version is valid"
+                            )
+
                         sys.stdout.flush()
                     except Exception as e:
-                        logger.warning(f"   Could not check version: {e}")
-                        logger.info(
-                            "   'alembic_version' table not found or is empty. Stamping database to head..."
-                        )
-                        sys.stdout.flush()
-                        try:
-                            # alembic stamp headコマンドを実行
-                            subprocess.run(
-                                ["alembic", "stamp", "head"],
-                                check=True,
-                                capture_output=True,
-                                text=True,
-                            )
-                            logger.info("   ✅ Database stamped successfully to head.")
-                        except subprocess.CalledProcessError as stamp_e:
-                            logger.error(
-                                f"   ❌ Failed to stamp database: {stamp_e.stderr}"
-                            )
-                        except FileNotFoundError:
-                            logger.error(
-                                "   ❌ 'alembic' command not found. Make sure it's installed and in PATH."
-                            )
-                        sys.stdout.flush()
+                        logger.error(f"   ❌ Failed to check/stamp database: {e}")
+                        raise
         else:
             # テーブルが存在しない場合、履歴をクリア
             with psycopg.connect(**conn_params) as conn:
@@ -388,9 +426,9 @@ def run_migrations():
     sys.stdout.flush()
     check_for_multiple_heads()
 
-    # テーブルが存在するがバージョンがない/不一致の場合、事前に修復
-    if tables_exist and not current_version:
-        logger.info("🔧 Tables exist but no version found. Fixing before migration...")
+    # テーブルが存在する場合、常にスキーマ状態を確認して修復
+    if tables_exist:
+        logger.info("🔧 Tables exist. Checking schema state before migration...")
         sys.stdout.flush()
         fix_alembic_version_if_needed()
 
