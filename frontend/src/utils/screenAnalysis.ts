@@ -73,7 +73,7 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
       height: 0.12,
     },
     threshold: 0.55,
-    margin: 0.10,
+    margin: 0.1,
     requiredStreak: 3,
     cooldownMs: 15000,
     activeMs: 20000,
@@ -94,8 +94,8 @@ export const SCREEN_ANALYSIS_CONFIG: ScreenAnalysisConfig = {
       width: 0.9,
       height: 0.4,
     },
-    threshold: 0.50,
-    margin: 0.10,
+    threshold: 0.5,
+    margin: 0.1,
     requiredStreak: 3,
     cooldownMs: 12000,
     downscale: 1.0,
@@ -547,7 +547,9 @@ export const matchTemplateNcc = (
 
   if (template.std === 0 || template.maskSum <= 0) {
     if (shouldLog) {
-      logger.warn(`matchTemplateNcc: returning 0 - std=${template.std}, maskSum=${template.maskSum}`);
+      logger.warn(
+        `matchTemplateNcc: returning 0 - std=${template.std}, maskSum=${template.maskSum}`,
+      );
     }
     return 0;
   }
@@ -555,7 +557,9 @@ export const matchTemplateNcc = (
   const maxY = source.height - template.height;
   if (maxX < 0 || maxY < 0) {
     if (shouldLog) {
-      logger.warn(`matchTemplateNcc: returning 0 - source ${source.width}x${source.height} too small for template ${template.width}x${template.height}`);
+      logger.warn(
+        `matchTemplateNcc: returning 0 - source ${source.width}x${source.height} too small for template ${template.width}x${template.height}`,
+      );
     }
     return 0;
   }
@@ -605,7 +609,9 @@ export const matchTemplateNcc = (
     const srcVar = srcSumSq / source.data.length - srcMean * srcMean;
     const srcStd = Math.sqrt(srcVar);
 
-    logger.info(`matchTemplateNcc: source=${source.width}x${source.height} (mean=${srcMean.toFixed(1)}, std=${srcStd.toFixed(1)}), template=${template.width}x${template.height} (mean=${template.mean.toFixed(1)}, std=${template.std.toFixed(1)}), best=${best.toFixed(4)}`);
+    logger.info(
+      `matchTemplateNcc: source=${source.width}x${source.height} (mean=${srcMean.toFixed(1)}, std=${srcStd.toFixed(1)}), template=${template.width}x${template.height} (mean=${template.mean.toFixed(1)}, std=${template.std.toFixed(1)}), best=${best.toFixed(4)}`,
+    );
   }
 
   return best;

@@ -21,8 +21,14 @@
           <p class="app-subtitle">Enter your new password.</p>
         </div>
 
+        <!-- セッション確認中 -->
+        <div v-if="checkingSession" class="text-center py-8">
+          <v-progress-circular indeterminate color="primary" size="48" />
+          <p class="mt-4 text-grey">認証情報を確認中...</p>
+        </div>
+
         <!-- フォーム -->
-        <v-form ref="formRef" @submit.prevent="handleResetPassword">
+        <v-form v-else-if="isValidSession" ref="formRef" @submit.prevent="handleResetPassword">
           <v-text-field
             v-model="newPassword"
             label="新しいパスワード"
@@ -75,15 +81,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useNotificationStore } from '@/stores/notification';
 import { createLogger } from '@/utils/logger';
+import { supabase } from '@/lib/supabase';
 
 const logger = createLogger('ResetPassword');
-import api from '@/services/api';
-
-const route = useRoute();
 const router = useRouter();
 const notificationStore = useNotificationStore();
 
@@ -93,14 +97,45 @@ const confirmPassword = ref('');
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const loading = ref(false);
-
-const token = route.params.token as string;
+const isValidSession = ref(false);
+const checkingSession = ref(true);
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
   min: (v: string) => v.length >= 8 || '8文字以上で入力してください',
   passwordMatch: (v: string) => v === newPassword.value || 'パスワードが一致しません',
 };
+
+// Supabaseのパスワードリセットリンクからのセッション確認
+onMounted(async () => {
+  try {
+    // URLのハッシュからトークンを処理（Supabaseが自動的にセッションを設定）
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) {
+      logger.error('Session error', error);
+      notificationStore.error('セッションの取得に失敗しました');
+      router.push('/login');
+      return;
+    }
+
+    if (session) {
+      isValidSession.value = true;
+    } else {
+      notificationStore.error('パスワードリセットリンクが無効または期限切れです');
+      router.push('/forgot-password');
+    }
+  } catch (error) {
+    logger.error('Session check error', error);
+    notificationStore.error('エラーが発生しました');
+    router.push('/login');
+  } finally {
+    checkingSession.value = false;
+  }
+});
 
 const handleResetPassword = async () => {
   const { valid } = await formRef.value.validate();
@@ -109,16 +144,23 @@ const handleResetPassword = async () => {
   loading.value = true;
 
   try {
-    await api.post('/auth/reset-password', {
-      token: token,
-      new_password: newPassword.value,
-      confirm_password: confirmPassword.value,
+    // Supabaseでパスワードを更新
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword.value,
     });
-    notificationStore.success('パスワードが正常にリセットされました。');
-    router.push('/login'); // ログインページに戻る
+
+    if (error) {
+      logger.error('Reset password error', error);
+      notificationStore.error(error.message || 'パスワードのリセットに失敗しました');
+    } else {
+      notificationStore.success('パスワードが正常にリセットされました。');
+      // ログアウトしてログインページへ
+      await supabase.auth.signOut();
+      router.push('/login');
+    }
   } catch (error: unknown) {
-    // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    logger.error('Reset password error');
+    logger.error('Reset password error', error);
+    notificationStore.error('予期せぬエラーが発生しました');
   } finally {
     loading.value = false;
   }
