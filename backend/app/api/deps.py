@@ -3,6 +3,7 @@
 """
 
 import logging
+import secrets
 from typing import Optional
 
 from fastapi import Cookie, Depends, Header
@@ -14,6 +15,74 @@ from app.db.session import get_db
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
+
+
+def _create_user_from_supabase(
+    db: Session, supabase_uuid: str, email: Optional[str], username: Optional[str]
+) -> User:
+    """
+    Supabase認証情報から新しいユーザーを作成（JIT Provisioning）
+
+    Args:
+        db: データベースセッション
+        supabase_uuid: SupabaseのユーザーUUID
+        email: メールアドレス
+        username: ユーザー名
+
+    Returns:
+        作成されたユーザー
+    """
+    # ユーザー名がない場合はメールから生成
+    if not username:
+        if email:
+            username = email.split("@")[0]
+        else:
+            username = f"user_{supabase_uuid[:8]}"
+
+    # ユーザー名の重複チェック
+    existing = db.query(User).filter(User.username == username).first()
+    if existing:
+        # 重複する場合はランダムサフィックスを追加
+        username = f"{username}_{secrets.token_hex(4)}"
+
+    # メールの重複チェック
+    if email:
+        existing_email = db.query(User).filter(User.email == email).first()
+        if existing_email:
+            # 既存ユーザーにsupabase_uuidを紐付け
+            existing_email.supabase_uuid = supabase_uuid
+            db.commit()
+            db.refresh(existing_email)
+            logger.info(
+                "Linked existing user (id=%d) to Supabase UUID: %s",
+                existing_email.id,
+                supabase_uuid,
+            )
+            return existing_email
+
+    # 新規ユーザー作成
+    # パスワードハッシュはSupabase認証のため使用しないがNOT NULLなのでダミー値を設定
+    new_user = User(
+        supabase_uuid=supabase_uuid,
+        username=username,
+        email=email,
+        passwordhash="supabase_auth_user",  # Supabase認証ユーザーを示すマーカー
+        streamer_mode=False,
+        theme_preference="dark",
+        is_admin=False,
+        enable_screen_analysis=False,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    logger.info(
+        "Created new user via JIT Provisioning: id=%d, username=%s, supabase_uuid=%s",
+        new_user.id,
+        new_user.username,
+        supabase_uuid,
+    )
+    return new_user
 
 
 def get_current_user(
@@ -79,7 +148,18 @@ def get_current_user(
     user = db.query(User).filter(User.supabase_uuid == supabase_uuid).first()
 
     if user is None:
-        raise UnauthorizedException(message="ユーザーが見つかりません")
+        # JIT Provisioning: ユーザーが見つからない場合は自動作成
+        logger.info("User not found for Supabase UUID: %s, attempting JIT provisioning", supabase_uuid)
+        email: Optional[str] = payload.get("email")
+        # user_metadataからユーザー名を取得（Supabase signup時に設定される）
+        user_metadata = payload.get("user_metadata", {})
+        username: Optional[str] = user_metadata.get("username") if isinstance(user_metadata, dict) else None
+
+        try:
+            user = _create_user_from_supabase(db, supabase_uuid, email, username)
+        except Exception as e:
+            logger.error("JIT Provisioning failed: %s", str(e))
+            raise UnauthorizedException(message="ユーザーの作成に失敗しました")
 
     return user
 
