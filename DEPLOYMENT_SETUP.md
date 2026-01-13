@@ -137,7 +137,9 @@ Claude Codeでは、以下のコマンドで自動的に環境変数を設定で
 
 **原因:** `SUPABASE_JWT_SECRET` が正しくない
 
-**解決策:** Supabaseダッシュボードで正しいJWT Secretを確認し、Renderの環境変数を更新
+**解決策:**
+1. Supabaseダッシュボードで正しいJWT Secretを確認し、Renderの環境変数を更新
+2. `SUPABASE_ANON_KEY`や`SERVICE_ROLE_KEY`を誤って入れていないか確認（JWT Secretは別の値です）
 
 ### エラー: データベース接続エラー
 
