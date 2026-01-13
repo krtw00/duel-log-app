@@ -42,3 +42,16 @@ def test_verify_supabase_token_falls_back_to_base64_decoded_secret(monkeypatch):
 
     assert payload is not None
     assert payload["email"] == "test@example.com"
+
+
+def test_verify_supabase_token_falls_back_to_base64url_decoded_secret_without_padding(monkeypatch):
+    underlying_secret = "my-underlying-jwt-secret-32chars!!!!"
+    env_value = base64.urlsafe_b64encode(underlying_secret.encode("utf-8")).decode("ascii").rstrip("=")
+    monkeypatch.setattr(settings, "SUPABASE_JWT_SECRET", env_value)
+    supabase_auth._jwt_secret_candidates = None
+
+    token = _make_token(secret=underlying_secret)
+    payload = supabase_auth.verify_supabase_token(token)
+
+    assert payload is not None
+    assert payload["email"] == "test@example.com"
