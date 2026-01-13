@@ -10,6 +10,7 @@ import base64
 import binascii
 import logging
 from typing import Optional
+from urllib.parse import urlparse
 
 import jwt  # PyJWT library
 
@@ -31,6 +32,80 @@ def _normalize_env_secret(secret: str) -> str:
     return secret.strip()
 
 
+def _hostname(url: str) -> str:
+    try:
+        return urlparse(url).hostname or ""
+    except Exception:
+        return ""
+
+
+def _try_b64decode(secret: str, *, altchars: bytes | None = None) -> Optional[bytes]:
+    """
+    Best-effort Base64 decode with padding normalization.
+
+    環境変数の設定方法により、JWT Secret が Base64(またはURL-safe Base64) の文字列として
+    扱われるケースがあるため、互換のためにデコード候補を作る。
+    """
+    try:
+        normalized = secret.strip()
+        padded = normalized + ("=" * (-len(normalized) % 4))
+        decoded = base64.b64decode(padded, altchars=altchars)
+        return decoded if decoded else None
+    except (binascii.Error, ValueError):
+        return None
+
+
+def _log_unverified_token_summary(token: str) -> None:
+    try:
+        header = jwt.get_unverified_header(token)
+        alg = header.get("alg")
+        kid = header.get("kid")
+    except Exception:
+        alg = None
+        kid = None
+
+    try:
+        payload = jwt.decode(
+            token,
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": False,
+                "verify_iss": False,
+            },
+        )
+        iss = payload.get("iss")
+        aud = payload.get("aud")
+        exp = payload.get("exp")
+        iat = payload.get("iat")
+    except Exception:
+        iss = None
+        aud = None
+        exp = None
+        iat = None
+
+    configured_host = _hostname(settings.SUPABASE_URL)
+    token_host = _hostname(iss) if isinstance(iss, str) else ""
+
+    logger.warning(
+        "Token summary (unverified): alg=%s kid=%s iss_host=%s aud=%s exp=%s iat=%s configured_supabase_host=%s",
+        alg,
+        kid,
+        token_host or None,
+        aud,
+        exp,
+        iat,
+        configured_host or None,
+    )
+    if token_host and configured_host and token_host != configured_host:
+        logger.error(
+            "Supabase project mismatch: token issuer host (%s) != SUPABASE_URL host (%s). "
+            "Check frontend(VITE_SUPABASE_URL/ANON_KEY) and backend(SUPABASE_URL/JWT_SECRET) are the same project.",
+            token_host,
+            configured_host,
+        )
+
+
 def _get_jwt_secret_candidates() -> list[tuple[str, str | bytes]]:
     """
     JWT検証用のシークレット候補を取得
@@ -47,20 +122,15 @@ def _get_jwt_secret_candidates() -> list[tuple[str, str | bytes]]:
 
     # Backward compatibility: 以前の実装ではBase64デコードしたバイト列を鍵としていたため、
     # 署名検証に失敗した場合のフォールバックとして候補に加える。
-    try:
-        decoded = base64.b64decode(secret_raw, validate=True)
-        if decoded:
-            candidates.append(("base64", decoded))
-    except (binascii.Error, ValueError):
-        pass
+    decoded = _try_b64decode(secret_raw)
+    if decoded:
+        candidates.append(("base64", decoded))
 
-    try:
-        decoded_urlsafe = base64.b64decode(secret_raw, altchars=b"-_", validate=True)
+    decoded_urlsafe = _try_b64decode(secret_raw, altchars=b"-_")
+    if decoded_urlsafe:
         decoded_values = {v for _, v in candidates if isinstance(v, (bytes, bytearray))}
-        if decoded_urlsafe and decoded_urlsafe not in decoded_values:
+        if decoded_urlsafe not in decoded_values:
             candidates.append(("base64url", decoded_urlsafe))
-    except (binascii.Error, ValueError):
-        pass
 
     _jwt_secret_candidates = candidates
     logger.info(
@@ -114,9 +184,11 @@ def verify_supabase_token(token: str) -> Optional[dict]:
 
     if last_error is not None:
         logger.warning(
-            "Supabase token verification failed: %s (check SUPABASE_JWT_SECRET)",
+            "Supabase token verification failed: %s (keys_tried=%s)",
             str(last_error),
+            [label for label, _ in secrets],
         )
+        _log_unverified_token_summary(token)
     return None
 
 
