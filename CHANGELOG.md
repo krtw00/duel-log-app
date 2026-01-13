@@ -1,3 +1,10 @@
+## [2.0.15](https://github.com/krtw00/duel-log-app/compare/v2.0.14...v2.0.15) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** base64-decode Supabase JWT secret before verification ([c81be77](https://github.com/krtw00/duel-log-app/commit/c81be7746ddf05f34d9df492b551e8523e07af31))
+
 ## [2.0.14](https://github.com/krtw00/duel-log-app/compare/v2.0.13...v2.0.14) (2026-01-13)
 
 
