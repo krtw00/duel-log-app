@@ -38,8 +38,37 @@ onMounted(async () => {
       return;
     }
 
+    // detectSessionInUrl: trueにより、Supabaseが自動でコードを処理している可能性がある
+    // まず既存のセッションを確認
+    console.log('[AuthCallback] Checking for existing session (detectSessionInUrl may have processed code)...');
+    statusMessage.value = 'セッションを確認中...';
+
+    const { data: existingSession, error: sessionError } = await supabase.auth.getSession();
+
+    console.log('[AuthCallback] getSession result - error:', sessionError);
+    console.log('[AuthCallback] getSession result - session:', existingSession?.session ? 'present' : 'missing');
+
+    if (sessionError) {
+      console.error('[AuthCallback] Session check error:', sessionError);
+      throw sessionError;
+    }
+
+    // セッションが既に存在する場合（detectSessionInUrlが処理済み）
+    if (existingSession?.session) {
+      console.log('[AuthCallback] Session already established, fetching user...');
+      statusMessage.value = 'ユーザー情報を取得中...';
+
+      await authStore.fetchUser();
+
+      console.log('[AuthCallback] User fetched, redirecting to dashboard...');
+      notificationStore.success('ログインに成功しました');
+      await router.push('/');
+      return;
+    }
+
+    // セッションがない場合、コードがあれば手動で交換を試みる
     if (code) {
-      console.log('[AuthCallback] Exchanging code for session...');
+      console.log('[AuthCallback] No session yet, exchanging code for session...');
       statusMessage.value = 'セッションを確立中...';
 
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
@@ -65,27 +94,10 @@ onMounted(async () => {
       }
     }
 
-    // codeがない場合は既存のセッションを確認
-    console.log('[AuthCallback] No code, checking existing session...');
-    const { data, error } = await supabase.auth.getSession();
-
-    console.log('[AuthCallback] getSession result - error:', error);
-    console.log('[AuthCallback] getSession result - session:', data?.session ? 'present' : 'missing');
-
-    if (error) {
-      throw error;
-    }
-
-    if (data.session) {
-      console.log('[AuthCallback] Existing session found, fetching user...');
-      await authStore.fetchUser();
-      notificationStore.success('ログインに成功しました');
-      await router.push('/');
-    } else {
-      console.log('[AuthCallback] No session, redirecting to login...');
-      notificationStore.error('認証に失敗しました');
-      await router.push('/login');
-    }
+    // コードもセッションもない場合
+    console.log('[AuthCallback] No session and no code, redirecting to login...');
+    notificationStore.error('認証に失敗しました');
+    await router.push('/login');
   } catch (error) {
     console.error('[AuthCallback] Error:', error);
     statusMessage.value = 'エラーが発生しました';
