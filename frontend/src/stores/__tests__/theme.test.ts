@@ -18,6 +18,7 @@ const createUser = () => ({
   streamer_mode: false,
   theme_preference: 'dark',
   is_admin: false,
+  enable_screen_analysis: false,
 });
 
 describe('theme store', () => {
