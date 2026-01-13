@@ -36,6 +36,11 @@ jobs:
           FRONTEND_URL=http://localhost:5173
           RESEND_API_KEY=testing
           DEBUG=true
+
+          # Supabase configuration (test values)
+          SUPABASE_URL=https://test.supabase.co
+          SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlc3QiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYyMDY3NjE3MCwiZXhwIjoxOTM2MjUyMTcwfQ.test
+          SUPABASE_JWT_SECRET=test_jwt_secret_for_docker_testing_only_1234567890abcdef
           EOF
 
       - name: Build Docker images
