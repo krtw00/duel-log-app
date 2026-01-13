@@ -14,6 +14,19 @@ def test_get_obs_statistics_unauthorized(client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+def test_get_obs_statistics_with_obs_token_success(client, authenticated_client):
+    """OBS専用トークン（/auth/obs-token）でOBS統計を取得できる"""
+    token_response = authenticated_client.post("/auth/obs-token")
+    assert token_response.status_code == status.HTTP_200_OK
+    obs_token = token_response.json()["obs_token"]
+
+    response = client.get(
+        "/statistics/obs",
+        params={"token": obs_token, "period_type": "recent", "limit": 30},
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
 def test_get_obs_statistics_recent_success(authenticated_client):
     """直近N戦のOBS統計情報の取得が成功する"""
     response = authenticated_client.get(
