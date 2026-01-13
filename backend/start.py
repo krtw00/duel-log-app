@@ -276,19 +276,18 @@ def fix_alembic_version_if_needed():
                         if current:
                             logger.info(f"   Current version: {current[0]}")
                         else:
-                            logger.info("   No version found, stamping to latest head")
-                            logger.info("   (Tables exist, so marking as current: e2f3g4h5i6j7)")
+                            logger.info("   No version found, stamping to head")
+                            logger.info("   (Tables exist, so marking as current)")
                             sys.stdout.flush()
-                            # テーブルが存在する場合は最新のマージヘッドにスタンプ
-                            # マージマイグレーション e2f3g4h5i6j7 が2つのheadを統合
+                            # テーブルが存在する場合は最新のヘッドにスタンプ
                             try:
                                 subprocess.run(
-                                    ["alembic", "stamp", "e2f3g4h5i6j7"],
+                                    ["alembic", "stamp", "head"],
                                     check=True,
                                     capture_output=True,
                                     text=True,
                                 )
-                                logger.info("   ✅ Database stamped successfully to e2f3g4h5i6j7.")
+                                logger.info("   ✅ Database stamped successfully to head.")
                             except subprocess.CalledProcessError as stamp_e:
                                 logger.error(
                                     f"   ❌ Failed to stamp database: {stamp_e.stderr}"
@@ -301,18 +300,18 @@ def fix_alembic_version_if_needed():
                     except Exception as e:
                         logger.warning(f"   Could not check version: {e}")
                         logger.info(
-                            "   'alembic_version' table not found or is empty. Stamping database to e2f3g4h5i6j7..."
+                            "   'alembic_version' table not found or is empty. Stamping database to head..."
                         )
                         sys.stdout.flush()
                         try:
-                            # alembic stamp コマンドを実行（マージヘッドを使用）
+                            # alembic stamp コマンドを実行
                             subprocess.run(
-                                ["alembic", "stamp", "e2f3g4h5i6j7"],
+                                ["alembic", "stamp", "head"],
                                 check=True,
                                 capture_output=True,
                                 text=True,
                             )
-                            logger.info("   ✅ Database stamped successfully to e2f3g4h5i6j7.")
+                            logger.info("   ✅ Database stamped successfully to head.")
                         except subprocess.CalledProcessError as stamp_e:
                             logger.error(
                                 f"   ❌ Failed to stamp database: {stamp_e.stderr}"
