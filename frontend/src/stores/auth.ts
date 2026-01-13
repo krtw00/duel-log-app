@@ -257,16 +257,29 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   /**
+   * タイムアウト付きPromiseラッパー
+   */
+  const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs),
+      ),
+    ]);
+  };
+
+  /**
    * 現在のセッションを取得して認証状態を復元
    */
   const fetchUser = async () => {
     try {
       logger.debug('Fetching current session');
 
+      // 5秒のタイムアウトを設定（ネットワーク問題でのハングを防ぐ）
       const {
         data: { session: currentSession },
         error,
-      } = await supabase.auth.getSession();
+      } = await withTimeout(supabase.auth.getSession(), 5000);
 
       if (error) {
         throw error;
@@ -285,10 +298,27 @@ export const useAuthStore = defineStore('auth', () => {
       supabaseUser.value = currentSession.user;
       session.value = currentSession;
 
-      const profile = await fetchProfile(currentSession.user.id);
-      if (profile) {
-        user.value = profile;
-      } else {
+      // プロフィール取得にも3秒のタイムアウトを設定
+      try {
+        const profile = await withTimeout(fetchProfile(currentSession.user.id), 3000);
+        if (profile) {
+          user.value = profile;
+        } else {
+          user.value = {
+            id: currentSession.user.id,
+            email: currentSession.user.email || null,
+            username:
+              currentSession.user.user_metadata?.username ||
+              currentSession.user.email?.split('@')[0] ||
+              'ユーザー',
+            streamer_mode: false,
+            theme_preference: 'dark',
+            is_admin: false,
+            enable_screen_analysis: false,
+          };
+        }
+      } catch (profileError) {
+        logger.warn('Profile fetch failed or timed out, using metadata:', profileError);
         user.value = {
           id: currentSession.user.id,
           email: currentSession.user.email || null,
@@ -305,7 +335,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       isInitialized.value = true;
     } catch (error) {
-      logger.debug('Failed to fetch session');
+      logger.debug('Failed to fetch session:', error);
       user.value = null;
       supabaseUser.value = null;
       session.value = null;

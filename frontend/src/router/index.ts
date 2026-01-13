@@ -123,6 +123,14 @@ router.beforeEach(async (to, _from, next) => {
 
   logger.debug(`Navigation to: ${String(to.name)}`);
 
+  // OAuthコールバックページでは初期化をスキップ
+  // AuthCallbackView側でセッション処理を行うため
+  if (to.path === '/auth/callback') {
+    logger.debug('Auth callback route - skipping fetchUser');
+    next();
+    return;
+  }
+
   // アプリケーションの初期化時に一度だけサーバーからユーザー情報を取得する
   // （ページリロード時に認証状態を復元するため）
   if (!authStore.isInitialized) {
