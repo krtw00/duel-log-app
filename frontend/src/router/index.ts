@@ -14,6 +14,7 @@ import ResetPasswordView from '../views/ResetPasswordView.vue';
 import SharedStatisticsView from '../views/SharedStatisticsView.vue';
 import OBSOverlayView from '../views/OBSOverlayView.vue';
 import AdminView from '../views/AdminView.vue';
+import AuthCallbackView from '../views/AuthCallbackView.vue';
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -35,9 +36,21 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false },
   },
   {
-    path: '/reset-password/:token',
+    path: '/reset-password/:token?',
     name: 'ResetPassword',
     component: ResetPasswordView,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPasswordNoToken',
+    component: ResetPasswordView,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: AuthCallbackView,
     meta: { requiresAuth: false },
   },
   {

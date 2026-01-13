@@ -326,7 +326,7 @@ const resolveOpponentDeckName = (deckId: number): string => {
   return deck ? deck.name : '不明';
 };
 
-const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: number): Deck => ({
+const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: string): Deck => ({
   id,
   name,
   is_opponent: isOpponent,

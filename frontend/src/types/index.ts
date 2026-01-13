@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;
   username: string;
   email: string;
   streamer_mode: boolean;
@@ -18,7 +18,7 @@ export interface Deck {
   name: string;
   is_opponent: boolean;
   active: boolean;
-  user_id?: number;
+  user_id?: string;
   createdat?: string;
   updatedat?: string;
 }
@@ -58,7 +58,7 @@ export interface Duel {
   notes?: string; // メモ（任意）
   create_date: string; // 作成日時
   update_date: string; // 更新日時
-  user_id: number; // ユーザーID
+  user_id: string; // ユーザーID
   // フロントエンドで追加するフィールド
   deck?: Deck; // 使用したデッキの詳細情報（結合データ）
   opponent_deck?: Deck; // 相手のデッキの詳細情報（結合データ）
@@ -174,7 +174,7 @@ export interface SharedStatisticsCreatePayload {
 export interface SharedStatisticsReadPayload {
   id: number;
   share_id: string;
-  user_id: number;
+  user_id: string;
   year: number;
   month: number;
   game_mode: GameMode;
