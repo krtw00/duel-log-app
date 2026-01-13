@@ -245,9 +245,7 @@ export function useOBSConfiguration() {
 
       obsToken.value = newToken;
       obsTokenExpiresAt.value =
-        typeof expiresIn === 'number'
-          ? now + expiresIn * 1000 - 30_000
-          : now + 23 * 60 * 60 * 1000;
+        typeof expiresIn === 'number' ? now + expiresIn * 1000 - 30_000 : now + 23 * 60 * 60 * 1000;
     } catch (error) {
       logger.error('Failed to fetch OBS token:', error);
       notificationStore.error('OBS用トークンの取得に失敗しました。再ログインしてください');
