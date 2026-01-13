@@ -266,21 +266,23 @@ export const classifyByColorHistogram = (
   const totalPixels = width * height;
 
   // 各ターゲット色へのマッチ度を計算
-  const scores: { label: string; score: number }[] = config.targetColors.map(({ label, rgb, tolerance }) => {
-    let matchCount = 0;
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const distance = Math.sqrt(
-        Math.pow(r - rgb[0], 2) + Math.pow(g - rgb[1], 2) + Math.pow(b - rgb[2], 2),
-      );
-      if (distance <= tolerance) {
-        matchCount++;
+  const scores: { label: string; score: number }[] = config.targetColors.map(
+    ({ label, rgb, tolerance }) => {
+      let matchCount = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const distance = Math.sqrt(
+          Math.pow(r - rgb[0], 2) + Math.pow(g - rgb[1], 2) + Math.pow(b - rgb[2], 2),
+        );
+        if (distance <= tolerance) {
+          matchCount++;
+        }
       }
-    }
-    return { label, score: matchCount / totalPixels };
-  });
+      return { label, score: matchCount / totalPixels };
+    },
+  );
 
   // 最高スコアのラベルを返す
   scores.sort((a, b) => b.score - a.score);
@@ -295,10 +297,7 @@ export const classifyByColorHistogram = (
 /**
  * デバッグ用：Canvas の内容をコンソールに出力
  */
-export const debugCanvas = (
-  canvas: HTMLCanvasElement | OffscreenCanvas,
-  label: string,
-): void => {
+export const debugCanvas = (canvas: HTMLCanvasElement | OffscreenCanvas, label: string): void => {
   if (canvas instanceof HTMLCanvasElement) {
     logger.debug(`${label}: ${canvas.width}x${canvas.height}`, canvas.toDataURL().slice(0, 100));
   } else {

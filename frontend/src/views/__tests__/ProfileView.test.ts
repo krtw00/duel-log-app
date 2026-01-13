@@ -23,7 +23,7 @@ describe('ProfileView.vue', () => {
     const pinia = createTestingPinia();
     const authStore = useAuthStore(pinia);
     authStore.user = {
-      id: 1,
+      id: 'test-user-uuid',
       email: 'test@example.com',
       username: 'testuser',
       streamer_mode: false,
@@ -52,7 +52,7 @@ describe('ProfileView.vue', () => {
     const pinia = createTestingPinia();
     const authStore = useAuthStore(pinia);
     authStore.user = {
-      id: 1,
+      id: 'test-user-uuid',
       email: 'test@example.com',
       username: 'testuser',
       streamer_mode: false,
@@ -82,7 +82,7 @@ describe('ProfileView.vue', () => {
     const pinia = createTestingPinia();
     const authStore = useAuthStore(pinia);
     authStore.user = {
-      id: 1,
+      id: 'test-user-uuid',
       email: 'test@example.com',
       username: 'testuser',
       streamer_mode: false,

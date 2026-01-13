@@ -102,9 +102,15 @@ describe('DuelFormDialog.vue', () => {
       notes: 'Test notes',
       create_date: '2023-01-01T12:00:00Z',
       update_date: '2023-01-01T12:00:00Z',
-      user_id: 1,
-      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 1 },
-      opponent_deck: { id: 2, name: 'Opponent Deck', is_opponent: true, active: true, user_id: 1 },
+      user_id: 'user-uuid-1',
+      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 'user-uuid-1' },
+      opponent_deck: {
+        id: 2,
+        name: 'Opponent Deck',
+        is_opponent: true,
+        active: true,
+        user_id: 'user-uuid-1',
+      },
     };
 
     const wrapper = mount(DuelFormDialog, {
@@ -139,9 +145,15 @@ describe('DuelFormDialog.vue', () => {
       notes: 'Test notes',
       create_date: '2023-01-01T12:00:00Z',
       update_date: '2023-01-01T12:00:00Z',
-      user_id: 1,
-      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 1 },
-      opponent_deck: { id: 2, name: 'Opponent Deck', is_opponent: true, active: true, user_id: 1 },
+      user_id: 'user-uuid-1',
+      deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 'user-uuid-1' },
+      opponent_deck: {
+        id: 2,
+        name: 'Opponent Deck',
+        is_opponent: true,
+        active: true,
+        user_id: 'user-uuid-1',
+      },
     };
 
     const wrapper = mount(DuelFormDialog, {
@@ -180,7 +192,7 @@ describe('DuelFormDialog.vue', () => {
       notes: 'Test notes',
       create_date: '2023-01-01T12:00:00Z',
       update_date: '2023-01-01T12:00:00Z',
-      user_id: 1,
+      user_id: 'user-uuid-1',
     };
 
     const wrapper = mount(DuelFormDialog, {
@@ -253,27 +265,33 @@ describe('DuelFormDialog.vue', () => {
   });
 
   it('prefills decks in create mode and filters by current user', async () => {
-    const myDeck = { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 1 };
+    const myDeck = {
+      id: 1,
+      name: 'My Deck',
+      is_opponent: false,
+      active: true,
+      user_id: 'user-uuid-1',
+    };
     const otherUsersMyDeck = {
       id: 999,
       name: 'Other My Deck',
       is_opponent: false,
       active: true,
-      user_id: 2,
+      user_id: 'user-uuid-2',
     };
     const opponentDeck = {
       id: 2,
       name: 'Opponent Deck',
       is_opponent: true,
       active: true,
-      user_id: 1,
+      user_id: 'user-uuid-1',
     };
     const otherUsersOpponentDeck = {
       id: 998,
       name: 'Other Opponent Deck',
       is_opponent: true,
       active: true,
-      user_id: 2,
+      user_id: 'user-uuid-2',
     };
 
     (api.get as any).mockImplementation((url: string) => {
@@ -299,7 +317,7 @@ describe('DuelFormDialog.vue', () => {
             initialState: {
               auth: {
                 user: {
-                  id: 1,
+                  id: 'user-uuid-1',
                   email: 'test@example.com',
                   username: 'testuser',
                   streamer_mode: false,
@@ -335,21 +353,21 @@ describe('DuelFormDialog.vue', () => {
       name: 'Active My Deck',
       is_opponent: false,
       active: true,
-      user_id: 1,
+      user_id: 'user-uuid-1',
     };
     const archivedMyDeck = {
       id: 2,
       name: 'Archived My Deck',
       is_opponent: false,
       active: false,
-      user_id: 1,
+      user_id: 'user-uuid-1',
     };
     const otherUsersArchivedMyDeck = {
       id: 999,
       name: 'Other Archived My Deck',
       is_opponent: false,
       active: false,
-      user_id: 2,
+      user_id: 'user-uuid-2',
     };
 
     const activeOpponentDeck = {
@@ -357,21 +375,21 @@ describe('DuelFormDialog.vue', () => {
       name: 'Active Opponent Deck',
       is_opponent: true,
       active: true,
-      user_id: 1,
+      user_id: 'user-uuid-1',
     };
     const archivedOpponentDeck = {
       id: 4,
       name: 'Archived Opponent Deck',
       is_opponent: true,
       active: false,
-      user_id: 1,
+      user_id: 'user-uuid-1',
     };
     const otherUsersArchivedOpponentDeck = {
       id: 998,
       name: 'Other Archived Opponent Deck',
       is_opponent: true,
       active: false,
-      user_id: 2,
+      user_id: 'user-uuid-2',
     };
 
     (api.get as any).mockImplementation((url: string) => {
@@ -397,7 +415,7 @@ describe('DuelFormDialog.vue', () => {
       notes: 'Test notes',
       create_date: '2023-01-01T12:00:00Z',
       update_date: '2023-01-01T12:00:00Z',
-      user_id: 1,
+      user_id: 'user-uuid-1',
       deck: archivedMyDeck,
       opponent_deck: archivedOpponentDeck,
     };
@@ -410,7 +428,7 @@ describe('DuelFormDialog.vue', () => {
             initialState: {
               auth: {
                 user: {
-                  id: 1,
+                  id: 'user-uuid-1',
                   email: 'test@example.com',
                   username: 'testuser',
                   streamer_mode: false,

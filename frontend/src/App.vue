@@ -1,6 +1,23 @@
 <template>
   <v-app :theme="themeStore.themeName">
-    <router-view />
+    <!-- 初期化中のローディング表示 -->
+    <template v-if="!authStore.isInitialized && showInitialLoader">
+      <v-main>
+        <v-container class="fill-height" fluid>
+          <v-row align="center" justify="center">
+            <v-col cols="12" class="text-center">
+              <v-progress-circular indeterminate size="64" color="primary" />
+              <p class="mt-4 text-grey">認証状態を確認中...</p>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-main>
+    </template>
+
+    <!-- 初期化完了後のメインコンテンツ -->
+    <template v-else>
+      <router-view />
+    </template>
 
     <!-- グローバル通知システム -->
     <toast-notification />
@@ -11,7 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
+import { onMounted, watch, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import ToastNotification from '@/components/common/ToastNotification.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import { useThemeStore } from '@/stores/theme';
@@ -19,6 +37,13 @@ import { useAuthStore } from '@/stores/auth';
 
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
+const route = useRoute();
+
+// 特定のルートでは初期ローダーを表示しない（AuthCallbackなど）
+const showInitialLoader = computed(() => {
+  const skipLoaderRoutes = ['/auth/callback', '/obs-overlay'];
+  return !skipLoaderRoutes.includes(route.path);
+});
 
 // アプリ起動時にテーマを読み込む
 onMounted(() => {
