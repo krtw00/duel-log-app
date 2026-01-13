@@ -105,12 +105,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { api } from '@/services/api';
+import { useAuthStore } from '@/stores/auth';
 import { createLogger } from '@/utils/logger';
 import { useNotificationStore } from '@/stores/notification';
 
 const logger = createLogger('Register');
 const router = useRouter();
+const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 
 const formRef = ref();
@@ -121,6 +122,7 @@ const passwordConfirm = ref('');
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 const loading = ref(false);
+const errorMessage = ref('');
 
 const rules = {
   required: (v: string) => !!v || '入力必須です',
@@ -135,23 +137,29 @@ const handleRegister = async () => {
   if (!valid) return;
 
   loading.value = true;
+  errorMessage.value = '';
 
   try {
-    await api.post('/users/', {
-      username: username.value,
-      email: email.value,
-      password: password.value,
-    });
+    const result = await authStore.register(email.value, password.value, username.value);
 
-    notificationStore.success('登録が完了しました。ログイン画面に移動します...');
-
-    // 2秒後にログイン画面へ遷移
-    setTimeout(() => {
-      router.push('/login');
-    }, 2000);
+    if (result.requiresConfirmation) {
+      // メール確認が必要な場合
+      notificationStore.success('確認メールを送信しました。メールを確認してアカウントを有効化してください。');
+      setTimeout(() => {
+        router.push('/login');
+      }, 3000);
+    } else {
+      // メール確認不要（自動ログイン完了、register内でダッシュボードへリダイレクト済み）
+      notificationStore.success('登録が完了しました！');
+    }
   } catch (error: unknown) {
-    // エラーはAPIインターセプターで処理される
-    logger.error('Failed to register');
+    logger.error('Failed to register', error);
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = '予期せぬエラーが発生しました';
+    }
+    notificationStore.error(errorMessage.value);
   } finally {
     loading.value = false;
   }

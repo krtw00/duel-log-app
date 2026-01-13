@@ -12,7 +12,7 @@ vi.mock('@/services/api', () => ({
 }));
 
 const createUser = () => ({
-  id: 1,
+  id: 'test-user-uuid',
   email: 'test@example.com',
   username: 'tester',
   streamer_mode: false,
