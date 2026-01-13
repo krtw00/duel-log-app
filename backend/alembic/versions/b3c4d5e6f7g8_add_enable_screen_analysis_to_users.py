@@ -22,7 +22,10 @@ def upgrade() -> None:
     op.add_column(
         "users",
         sa.Column(
-            "enable_screen_analysis", sa.Boolean(), server_default="false", nullable=False
+            "enable_screen_analysis",
+            sa.Boolean(),
+            server_default="false",
+            nullable=False,
         ),
     )
     # ### end Alembic commands ###
