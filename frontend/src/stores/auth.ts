@@ -32,11 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
    * プロフィール情報を取得
    */
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
     if (error) {
       logger.error('Failed to fetch profile:', error.message);
@@ -79,7 +75,8 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = {
           id: data.user.id,
           email: data.user.email || null,
-          username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'ユーザー',
+          username:
+            data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'ユーザー',
           streamer_mode: false,
           theme_preference: 'dark',
           is_admin: false,
@@ -239,7 +236,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       logger.debug('Fetching current session');
 
-      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+      const {
+        data: { session: currentSession },
+        error,
+      } = await supabase.auth.getSession();
 
       if (error) {
         throw error;
@@ -265,7 +265,10 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = {
           id: currentSession.user.id,
           email: currentSession.user.email || null,
-          username: currentSession.user.user_metadata?.username || currentSession.user.email?.split('@')[0] || 'ユーザー',
+          username:
+            currentSession.user.user_metadata?.username ||
+            currentSession.user.email?.split('@')[0] ||
+            'ユーザー',
           streamer_mode: false,
           theme_preference: 'dark',
           is_admin: false,
@@ -335,7 +338,9 @@ export const useAuthStore = defineStore('auth', () => {
    * アクセストークンを取得（API呼び出し用）
    */
   const getAccessToken = async (): Promise<string | null> => {
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    const {
+      data: { session: currentSession },
+    } = await supabase.auth.getSession();
     return currentSession?.access_token || null;
   };
 
@@ -358,7 +363,10 @@ export const useAuthStore = defineStore('auth', () => {
             user.value = {
               id: newSession.user.id,
               email: newSession.user.email || null,
-              username: newSession.user.user_metadata?.username || newSession.user.email?.split('@')[0] || 'ユーザー',
+              username:
+                newSession.user.user_metadata?.username ||
+                newSession.user.email?.split('@')[0] ||
+                'ユーザー',
               streamer_mode: false,
               theme_preference: 'dark',
               is_admin: false,
@@ -415,7 +423,8 @@ function translateAuthError(message: string): string {
     'Unable to validate email address: invalid format': 'メールアドレスの形式が正しくありません',
     'Signup requires a valid password': '有効なパスワードを入力してください',
     'Email rate limit exceeded': 'メール送信の制限に達しました。しばらくしてからお試しください',
-    'For security purposes, you can only request this once every 60 seconds': 'セキュリティのため、60秒に1回のみリクエストできます',
+    'For security purposes, you can only request this once every 60 seconds':
+      'セキュリティのため、60秒に1回のみリクエストできます',
   };
 
   return translations[message] || message;
