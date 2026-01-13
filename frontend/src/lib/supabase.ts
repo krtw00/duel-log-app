@@ -21,7 +21,7 @@ export const supabase = createClient<Database>(
       // OAuth コールバック用のリダイレクトURL
       flowType: 'pkce',
     },
-  }
+  },
 );
 
 export default supabase;

@@ -250,14 +250,10 @@ export function useScreenCaptureAnalysisTfjs() {
     if (!ctx || !canvas) return;
 
     // スコア表示用に常に分類を実行
-    const result = await classifyRoi(
-      ANALYSIS_CONFIG.coin.roi,
-      coinClassifier,
-      [
-        { label: 'win', ...ANALYSIS_CONFIG.colorHeuristics.coin.win },
-        { label: 'lose', ...ANALYSIS_CONFIG.colorHeuristics.coin.lose },
-      ],
-    );
+    const result = await classifyRoi(ANALYSIS_CONFIG.coin.roi, coinClassifier, [
+      { label: 'win', ...ANALYSIS_CONFIG.colorHeuristics.coin.win },
+      { label: 'lose', ...ANALYSIS_CONFIG.colorHeuristics.coin.lose },
+    ]);
 
     // 予測ラベルを記録
     lastPredictedLabels.value = { ...lastPredictedLabels.value, coin: result.label };
@@ -300,7 +296,9 @@ export function useScreenCaptureAnalysisTfjs() {
       turnChoiceEventId.value += 1;
       resultLockState.value = 'unlocked';
       coinDetectedOnce = true; // コインが検出されたことを記録
-      logger.info(`Coin result detected: ${candidate} (confidence: ${result.confidence.toFixed(2)})`);
+      logger.info(
+        `Coin result detected: ${candidate} (confidence: ${result.confidence.toFixed(2)})`,
+      );
     }
   };
 
@@ -314,14 +312,10 @@ export function useScreenCaptureAnalysisTfjs() {
     if (!ctx || !canvas) return;
 
     // スコア表示用に常に分類を実行
-    const result = await classifyRoi(
-      ANALYSIS_CONFIG.result.roi,
-      resultClassifier,
-      [
-        { label: 'victory', ...ANALYSIS_CONFIG.colorHeuristics.result.victory },
-        { label: 'lose', ...ANALYSIS_CONFIG.colorHeuristics.result.lose },
-      ],
-    );
+    const result = await classifyRoi(ANALYSIS_CONFIG.result.roi, resultClassifier, [
+      { label: 'victory', ...ANALYSIS_CONFIG.colorHeuristics.result.victory },
+      { label: 'lose', ...ANALYSIS_CONFIG.colorHeuristics.result.lose },
+    ]);
 
     // 予測ラベルを記録
     lastPredictedLabels.value = { ...lastPredictedLabels.value, result: result.label };
@@ -385,7 +379,9 @@ export function useScreenCaptureAnalysisTfjs() {
 
     if (!ctx || !canvas || !video) {
       if (frameCount <= 3) {
-        logger.warn(`analyzeFrame early return: ctx=${!!ctx}, canvas=${!!canvas}, video=${!!video}`);
+        logger.warn(
+          `analyzeFrame early return: ctx=${!!ctx}, canvas=${!!canvas}, video=${!!video}`,
+        );
       }
       return;
     }
@@ -653,7 +649,9 @@ export function useScreenCaptureAnalysisTfjs() {
    * デバッグ用: 現在のフレームとROI領域を保存
    * 学習データ収集に使用
    */
-  const saveDebugImages = async (label: 'coin-win' | 'coin-lose' | 'coin-none' | 'result-win' | 'result-lose' | 'result-none') => {
+  const saveDebugImages = async (
+    label: 'coin-win' | 'coin-lose' | 'coin-none' | 'result-win' | 'result-lose' | 'result-none',
+  ) => {
     if (!canvas || !ctx) {
       logger.warn('Cannot save debug images: canvas not ready');
       return null;
@@ -690,7 +688,10 @@ export function useScreenCaptureAnalysisTfjs() {
         // coin-win -> coin/win, result-lose -> result/lose
         const [category, className] = label.split('-') as [string, string];
         const categoryDir = await getOrCreateSubDir(trainingDataDirHandle, category);
-        const classDir = await getOrCreateSubDir(categoryDir, className === 'win' && category === 'result' ? 'victory' : className);
+        const classDir = await getOrCreateSubDir(
+          categoryDir,
+          className === 'win' && category === 'result' ? 'victory' : className,
+        );
 
         // ROI のみ保存（学習に使用）
         const roiFilename = `${className}_${timestamp}.png`;

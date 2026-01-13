@@ -110,7 +110,10 @@ const rules = {
 onMounted(async () => {
   try {
     // URLのハッシュからトークンを処理（Supabaseが自動的にセッションを設定）
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
     if (error) {
       logger.error('Session error', error);
