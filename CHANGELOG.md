@@ -1,3 +1,10 @@
+## [2.0.18](https://github.com/krtw00/duel-log-app/compare/v2.0.17...v2.0.18) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* improve supabase token verification diagnostics ([a5fbee7](https://github.com/krtw00/duel-log-app/commit/a5fbee712281860707ec7c03ae144852d19af733))
+
 ## [2.0.17](https://github.com/krtw00/duel-log-app/compare/v2.0.16...v2.0.17) (2026-01-13)
 
 
