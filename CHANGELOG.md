@@ -1,3 +1,10 @@
+## [2.0.11](https://github.com/krtw00/duel-log-app/compare/v2.0.10...v2.0.11) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** always check schema state and stamp to head when current ([f67e406](https://github.com/krtw00/duel-log-app/commit/f67e406559890e14eddb8a01d1aaa3de637b0923))
+
 ## [2.0.10](https://github.com/krtw00/duel-log-app/compare/v2.0.9...v2.0.10) (2026-01-13)
 
 
