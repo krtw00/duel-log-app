@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
     streamer_mode: boolean;
     theme_preference: string;
     is_admin: boolean;
+    enable_screen_analysis: boolean;
   } | null>(null);
   const isInitialized = ref(false);
 
