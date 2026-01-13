@@ -1,0 +1,898 @@
+b715d72	2025-09-24	Initial commit (reset history)
+b0a31d8	2025-09-24	プロジェクトのフォルダ構成を作成
+d1f5760	2025-09-24	ER図をMermaid形式に変更
+51c3212	2025-09-24	ER図.mdを更新
+2dca86f	2025-09-24	ER図.mdを更新
+f6fda5c	2025-09-24	ER図.mdを更新
+45d4c02	2025-09-24	Dockerfileの環境設定
+2334e3c	2025-09-24	python環境の構築
+1942e8e	2025-09-24	Vueの導入
+8c1c0bf	2025-09-24	仮でフロントエンドとバックエンドを動作
+76b1706	2025-09-24	READMEを修正
+16788ed	2025-09-25	README.mdを更新
+8b0851c	2025-09-25	README.mdを更新
+7018f12	2025-09-25	Create UI構想.md
+683503c	2025-09-25	UI構想.mdを更新
+40b8c5b	2025-09-25	UI構想.mdを更新
+bd66e30	2025-09-25	該当フォルダを無視するように修正
+80abd71	2025-09-25	該当ファイルを無視するよう修正
+1893c87	2025-09-25	.envが表に出ていたため削除
+88fef0b	2025-09-25	.gitignoreの更新
+77a01a8	2025-09-25	.gitignoreを修正
+a70c9fd	2025-09-25	*.pyc削除
+3cfd2c7	2025-09-25	.gitignore修正
+3d26603	2025-09-25	DECKのCURDAPIを実装
+faa9a8a	2025-09-26	USERのPOSTのAPIを作成
+7d4dfb7	2025-09-27	USERのCRUDAPIを作成
+28a9998	2025-09-27	DeckのCREATE機能を追加
+3c42806	2025-09-28	Deck認証付き取得成功
+2440039	2025-09-28	UserとDecksのCRUDのAPIが完全感性
+2cc1b7b	2025-09-29	.env.exampleを更新
+988d2c1	2025-09-29	Deckに対戦相手の判定を追加
+83ad180	2025-09-29	DECKのCRUD APIを実装
+4dfb8a3	2025-09-29	DUELのCRUDのAPIを実装
+edcc4d2	2025-09-29	Merge branch 'main' of https://github.com/krtw00/デュエル-log-app
+e4a549a	2025-09-30	フロントエンド動作
+d097d04	2025-09-30	docker-composeを安定して動くように修正
+63dccd5	2025-09-30	Rename .dockerignore to .dockerignore
+9d89d26	2025-10-01	JWTでセキュアなログイン機能を構築
+05fbe85	2025-10-01	リファクタリングの実施
+0f88f18	2025-10-01	リファクタリングの実施
+d23bc31	2025-10-01	リファクタリングの実施更新漏れ
+daa4dd9	2025-10-01	基本的なUIの機能を実装（ログイン、戦績管理、デッキ登録）
+287412e	2025-10-01	細かいレイアウトの調整
+0a56a79	2025-10-02	ヘルスチェックを正常に動くように修正
+ee7910c	2025-10-02	READMEの更新
+9ccb19b	2025-10-02	プロジェクトの全体像のドキュメントを作成
+3aa4ea8	2025-10-02	レート、イベント、DC機能を追加
+f7110c3	2025-10-02	統計機能を実装
+8da90c3	2025-10-02	クッキーの導入
+ed9b906	2025-10-02	プロフィール機能を追加
+62158ef	2025-10-02	GitHubActionの確認
+009b14d	2025-10-02	GitHubActionの再度確認
+dfda689	2025-10-02	GitHubActionのCIワークフローを更新
+9c85c12	2025-10-02	テストコードのエラーを修正
+e99cf63	2025-10-02	GitHubActionに対応した修正の実施
+e7442ae	2025-10-02	ログを残し忘れていたので修正
+af5c551	2025-10-02	GitHubActionのエラー解消確認
+32fb9d1	2025-10-02	READMEの整理
+51a9a4a	2025-10-03	フロントエンドのテストを追加
+1fcf409	2025-10-03	GitHubActionに対応して修正
+3c8ded8	2025-10-03	GitHubActionのエラー対応
+1b91dc8	2025-10-03	テストのリファクタリング
+b2aaca8	2025-10-03	パスワード変更処理を追加
+a4f2f5e	2025-10-03	細かい見た目関係の処理を修正
+c809519	2025-10-03	リファクタリングの実施
+e38a33f	2025-10-03	リファクタリングで起こった問題に対して修正
+acbff18	2025-10-03	GitHubActionの対応
+40fb8ee	2025-10-03	CSVえくすぽーときのうを追加
+8ed973d	2025-10-03	Delete フロントエンド/public/favicon.png:Zone.Identifier
+2bb6fca	2025-10-03	ドキュメントの位置を修正
+e7c2c83	2025-10-03	本番環境用に調整
+48a4616	2025-10-03	本番環境用に再調整
+aafbb9b	2025-10-03	本番環境用に再調整2
+5ad1eb5	2025-10-03	CORS preflight と headersを修正
+61b8e27	2025-10-03	cross-origin cookie 認証 for productionを修正
+604cffe	2025-10-03	README更新
+0543173	2025-10-04	レスポンシブデザインに変更
+c3d135f	2025-10-04	デッキ登録機能周りを修正
+ef3bf37	2025-10-04	CIに対応
+f8330c5	2025-10-04	CIに対応
+fdc95ff	2025-10-04	タイムゾーン問題に対応
+d0eda38	2025-10-04	CIに対応
+7fe8bd1	2025-10-04	CIに対応
+a06c687	2025-10-04	時刻関係の問題を修正
+07dfd5a	2025-10-04	デッキのアーカイブ機能を追加。ドキュメントの整理
+c13eded	2025-10-04	ドキュメントの整理
+77ed7f7	2025-10-04	CIの対応とドキュメント整理
+431f9c3	2025-10-04	CSVエクスポート機能を正常に修正
+c54aa3a	2025-10-04	ドキュメントの整備
+e976a61	2025-10-04	READMEの修正
+368d3b6	2025-10-05	配信者モードを実装
+6609d78	2025-10-05	CIを通るように調整
+d780686	2025-10-05	CIを通すように修正2
+9568514	2025-10-05	CIを通るように修正3
+6783594	2025-10-05	レスポンシブデザインに対応
+5070bd4	2025-10-05	CIを通るように修正
+d30458c	2025-10-05	CI対応
+4a9a347	2025-10-05	CI対応2
+26954c3	2025-10-05	CI対応3
+c4f494a	2025-10-05	CI対応4
+8c32504	2025-10-05	CI対応5
+f7443b3	2025-10-05	CI対応6
+407ead8	2025-10-05	ローカルCI環境を構築
+e04c888	2025-10-05	ダミーデータ生成機能を作成
+313d7f9	2025-10-05	統計機能を修正
+d5c4997	2025-10-05	psycopg3に対応
+d3c647a	2025-10-05	本番環境のマイグレーション自動修復機能を追加
+642b239	2025-10-05	本番環境でのマイグレーション再対応
+24338b0	2025-10-05	本番環境でのマイグレーション再対応
+650c54a	2025-10-05	本番環境でストリーマー機能の動作修正
+3576b0b	2025-10-05	本番動作問題の解析
+0202423	2025-10-05	本番動作問題の解析
+a0c791d	2025-10-06	PWA機能お試し
+775e34a	2025-10-06	CSVインポート時重複削除機能を実装
+cfaa46c	2025-10-06	データ共有機能の実装
+b47224d	2025-10-08	メール送信機能の実装
+4750a56	2025-10-08	パスワードリセット機構を本実装
+fac9fc3	2025-10-09	CI対応、リファクタリング（途中）
+e7689bc	2025-10-09	CIを通るように修正
+b4ae1d6	2025-10-09	CIに対応して修正
+9d676e0	2025-10-09	CIが通るように修正
+b284c10	2025-10-09	再度CIが通るように修正
+3d44080	2025-10-09	CIが通るように修正5
+179c02e	2025-10-09	CIが通るように修正6
+94dfe17	2025-10-09	Vercel のビルドエラーを修正
+7a8b0f0	2025-10-09	CIが通るように修正
+abe04f5	2025-10-10	feat: 新規戦績登録モーダルに最新のデッキ情報を自動反映
+9565c90	2025-10-10	対戦相手が自動設定されないように修正
+35dd113	2025-10-10	READMEとドキュメントの更新
+5fb4a96	2025-10-10	本番環境向けにURL共有機能に対応
+e2c45a1	2025-10-10	Merge branch 'main' of https://github.com/krtw00/デュエル-log-app
+935d8c2	2025-10-10	グラフの色合いを修正
+f19d2cf	2025-10-11	Appバーが統計画面で表示されないバグを修正
+6e6f60e	2025-10-12	Fix: 本番環境エラー修正（Cookie + NeonDB SSL + start.py最適化）
+e6620fc	2025-10-12	Fix:本番環境でログインできない問題を修正
+cd35042	2025-10-12	Fix:対戦相手のリストボックスを月の対戦数に合わせて修正
+f386277	2025-10-12	Fix:CROSSエラーとクッキー問題に対処
+bd16e53	2025-10-12	Fix:ログインできない問題を修正
+74ba18d	2025-10-12	Fix：クッキー対策2
+9c12f99	2025-10-12	Fix：本番環境でのエラー対応
+31d8891	2025-10-12	Fix:Render環境でクッキーが正常に動作しない問題を修正
+0b552ea	2025-10-12	Fix:CSVインポート・エクスポート機能を実装
+4314b73	2025-10-13	Fix:プロフィールにバックアップ機能を追加
+609c22b	2025-10-13	Fix:CSVのエクスポート、インポートの際のランクの値を修正
+36f035b	2025-10-13	Fix:同じ時刻、マッチのデッキはインポートしないように修正
+e689e4e	2025-10-13	Fix:クッキーのアクセス時間を長く変更
+949f1c6	2025-10-20	Fix:ライトモード実装
+f5feabc	2025-10-20	Fix:CIが通るように修正、UIの色味を調整
+fec549d	2025-10-20	Fix:CIを通るように修正2
+9e5eb4d	2025-10-20	Fix:CIが通るように修正3
+d653641	2025-10-20	Fix:CIを通るように修正4
+6c61224	2025-10-20	Fix:CIが通るように修正
+144e0a8	2025-10-20	Fix:CSVの列設定を修正
+4cdf7f9	2025-10-20	Fix:プロフィールのデータ管理のCSVについて列を修正
+1595e3f	2025-10-20	Fix:タイトル行常に固定する機能を実装
+55e10d9	2025-10-20	Fix：デッキ相性表の機能を修正
+a11f1d5	2025-10-20	Fix:デッキ勝率を追加
+7978da7	2025-10-20	Fix:共有画面にCSVエクスポート機能を追加
+d44576e	2025-10-20	Fix:CIに対応
+af6e6ea	2025-10-20	Fix:APIが無制限公開されている状態を修正
+c306433	2025-10-20	Fix:APIに直接アクセスできないように修正
+6195893	2025-10-20	Fix:グラフの文字がライトモードとダークモードで正常に見えるように修正
+0a63047	2025-10-21	Fix:Safariで動作しない不具合についてログを追加
+a44b892	2025-10-21	Fix:Safariのログを追加（Renderで発生したエラーの修正）
+6545594	2025-10-21	Fix:Safariで動作しない問題を対応
+9ec3882	2025-10-21	Fix:iOS対応確認
+18a37d6	2025-10-21	Fix:コミットエラーを修正
+05bedd0	2025-10-21	Fix:対戦日時を入力実施後適応
+6720935	2025-10-21	Fix:利用規約を追加
+812ebb0	2025-10-21	Fix:OBS連携機能を追加
+6c3c224	2025-10-21	Add: OBS連携機能のビューとテストを追加
+74b3d63	2025-10-21	Fix: TypeScriptビルドエラーを修正
+61ece3e	2025-10-21	Add: 統計フィルター機能を追加し、統計画面のUIを改善
+835c9e3	2025-10-21	Fix: StatisticsView.vueの未使用変数を削除してビルドエラーを修正
+6f1691c	2025-10-21	Improve: 対戦記録モーダルのUI改善（ラジオボタン化）
+dbdf81f	2025-10-21	Remove: 直近30戦のデッキ分布機能を削除
+b37623c	2025-10-21	Add:統計フィルターに自分のデッキを追加
+fe8f52f	2025-10-21	Fix:Typescriptを修正
+5d37873	2025-10-21	Fix:デッキ画面に論理削除を追加
+4648f47	2025-10-22	Fix:OBS連携機能の全期間を削除、文字が折りたたまれる部分を修正
+24461dd	2025-10-22	Refactor: フロントエンドに共通ユーティリティと型定義を追加
+b556ef3	2025-10-22	Refactor: DashboardView用のComposablesを作成
+9757909	2025-10-22	Refactor: DashboardView用のUIコンポーネントを作成
+c5b6cf5	2025-10-22	Refactor: DashboardView.vueを350行に削減 (1,212行→370行)
+daf5998	2025-10-22	Refactor: Phase 4 - 型安全性の強化（Part 1）
+7bff170	2025-10-22	Refactor: Phase 4 - 型安全性の強化（Part 2）
+8d7fa0b	2025-10-22	Refactor: Phase 6 - コードの重複削除
+40241d8	2025-10-22	Refactor: Phase 5 - 大規模コンポーネントの分割（部分実施）
+e1cc1f6	2025-10-22	Refactor: Phase 4b & 5 - TypeScript型安全性向上とコンポーネント分割
+9fee260	2025-10-22	Refactor: Phase 7-9 - エラーハンドリング統一化、any型削減、テストカバレッジ向上
+aa05dcf	2025-10-22	Refactor(バックエンド): 統計サービスの改善とテスト追加
+63aa593	2025-10-22	refactor(backend): 統計サービスのデッキ分布計算を改善
+0100e4b	2025-10-22	refactor(backend): 統計サービスの直近デッキ分布計算を改善
+369f254	2025-10-22	refactor(backend): Extract GeneralStatsService from StatisticsService
+1e45ae5	2025-10-22	refactor(backend): Extract WinRateService from StatisticsService
+81248c2	2025-10-22	refactor(backend): Extract DeckDistributionService from StatisticsService
+f4ef617	2025-10-22	refactor(backend): Extract MatchupService from StatisticsService
+c77ca7b	2025-10-22	refactor(backend): Extract TimeSeriesService from StatisticsService
+332417e	2025-10-22	fix(frontend): 対戦履歴テーブルでデッキ名が表示されない問題を修正
+c726d6f	2025-10-22	refactor(backend): Extract rank conversion logic to utility module
+ca988fd	2025-10-22	refactor(backend): Extract CSV processing logic to dedicated service
+e061877	2025-10-22	refactor(backend): get_latest_duel_valuesのcode duplicationを低減
+f8439a2	2025-10-22	refactor(backend): Create query builder utility for common filters
+94ad57e	2025-10-22	fix(csv): CSVインポート機能の修正と改善
+df472ed	2025-10-22	fix(frontend): CSVインポートボタンが反応しない問題を修正
+e56006d	2025-10-22	fix(frontend): useCSVOperationsからunused ref importを削除
+483cdf0	2025-10-22	test(frontend): DashboardView テスト to match new デュエル structureを更新
+309c031	2025-10-22	fix(obs): OBSオーバーレイのパーセント表示の小数点位置を修正
+524603b	2025-10-22	feat(frontend): OBSオーバーレイにライト/ダークモードテーマ切り替え機能を追加
+62c050d	2025-10-22	fix(obs): OBSオーバーレイの表示問題を修正
+867c3d7	2025-10-22	fix(frontend): OBSオーバーレイページのみ背景を透明化するように修正
+4f209a3	2025-10-22	fix(auth): MacOS環境での統計ページ認証エラーを修正
+4be0338	2025-10-23	Avoid logging sensitive token data
+6d139b0	2025-10-23	PR #1 (krtw00/codex) をマージ
+52ab7c7	2025-10-23	typo in OBS go first rate labelを修正
+e770abc	2025-10-23	PR #2 (krtw00/90zurl-codex/fix-typo-in-for-obs-integration) をマージ
+21f5b1b	2025-10-23	fix: 共有リンクの有効期限が1日前になる問題を修正
+66b74e1	2025-10-23	Fix:共有リンクのダッシュボードの値を修正
+51c09ef	2025-10-23	Merge branch 'main' of https://github.com/krtw00/デュエル-log-app
+9313aa9	2025-10-23	Fix:共有リンクのパーセンテージのエラーを修正
+e509ab5	2025-10-23	fix: テスト実行の失敗要因を修正
+cecbc07	2025-10-24	feat: 統計画面に月間対戦一覧を追加
+c951da1	2025-10-24	fix: 月間対戦一覧の列表示を整理
+b3ade59	2025-10-24	chore: 月間対戦一覧の高さを調整
+af17fa2	2025-10-24	fix: アクション列の表示制御を調整
+2ed4e5c	2025-10-24	Fix:アクションボタンが消えた不具合を修正
+da34b67	2025-10-24	Delete フロントエンド/coverage directory
+6312f73	2025-10-24	Fix:Typescript型エラーを修正
+dae1db0	2025-10-24	Fix:先行の誤字を先攻に修正
+021eef5	2025-10-24	Fix:OBS連携機能についてレイアウトを調整
+587e126	2025-10-24	Add:OBS連携機能について、配信開始からを追加
+2b4cb6b	2025-10-24	Fix:CIを通るように修正
+d335906	2025-10-24	docs: READMEのOBSオーバーレイ機能に関する記述を更新
+6585416	2025-10-24	PR #3 (krtw00/docs-update-readme-obs-feature) をマージ
+79b4dc3	2025-10-25	feat(frontend): ログアウト後にログイン画面へ遷移するように修正
+85383ac	2025-10-25	Merge branch 'main' of https://github.com/krtw00/デュエル-log-app
+6636d0d	2025-10-25	OBS連携機能の不具合を修正
+ad65b3b	2025-10-25	PR #4 (krtw00/fix-obs-token-issue) をマージ
+e6e521d	2025-10-25	ログアウト機能の不具合を修正
+fb3f341	2025-10-25	PR #5 (krtw00/fix-obs-token-issue) をマージ
+c29afaa	2025-10-25	Fix: ログアウト後も認証状態が維持される問題を修正
+1df4d7b	2025-10-25	PR #6 (krtw00/fix-logout-vulnerability) をマージ
+82e3151	2025-10-25	OBS連携機能のパーセンテージ表示を修正
+c2970c9	2025-10-25	Fix:フォントの大きさを修正
+c1949ff	2025-10-25	Merge branch 'main' of https://github.com/krtw00/デュエル-log-app
+593bf5c	2025-10-25	PR #7 (krtw00/fix-obs-token-issue) をマージ
+8217f2e	2025-10-25	Fix: ログアウト後の自動再ログインの脆弱性を修正
+fb77389	2025-10-25	branch 'main' を fix-logout-vulnerability にマージ
+58f86e0	2025-10-25	PR #8 (krtw00/fix-logout-vulnerability) をマージ
+8e9c55e	2025-10-25	OBS連携機能のラベルの文字サイズを調整
+2f48be7	2025-10-25	branch 'main' を fix-obs-token-issue にマージ
+b697c98	2025-10-25	PR #9 (krtw00/fix-obs-token-issue) をマージ
+ea1409f	2025-10-25	Fix: ログアウト後の自動再ログインの脆弱性を完全に修正
+790f507	2025-10-25	branch 'main' を fix-logout-vulnerability にマージ
+d564710	2025-10-25	PR #10 (krtw00/fix-logout-vulnerability) をマージ
+9f6b0fc	2025-10-25	Fix: ログアウト処理を厳格化し、自動再ログインの脆弱性を完全に修正
+733c5bc	2025-10-25	PR #11 (krtw00/fix-logout-vulnerability) をマージ
+23606ff	2025-10-25	Fix: ログアウト処理を全面的に見直し、認証の脆弱性を完全に修正
+aa94188	2025-10-25	branch 'main' を fix-logout-vulnerability にマージ
+ac2b2ef	2025-10-25	PR #13 (krtw00/fix-logout-vulnerability) をマージ
+24f900f	2025-10-25	Hotfix: 無限リダイレクトを引き起こす致命的な認証エラーハンドリングを修正
+14974d3	2025-10-25	ブランチ 'fix-logout-vulnerability' をマージ
+7079a44	2025-10-25	マージが正常にできていなかったので修正
+af028be	2025-10-25	feat: OBS連携機能のパーセンテージ表示を修正
+1cf9c19	2025-10-25	incorrect timezone in デュエル historyを修正
+886f771	2025-10-26	Fix:共有リンクの統計が二重で100倍になっていたのを修正
+5a3c0b6	2025-10-26	fix(frontend): 共有統計ライトテーマの配色を調整
+8927ac8	2025-10-26	Fix:統計機能について、集計がおかしい部分を修正
+a848e96	2025-10-26	PR #15 (krtw00/fix/statistics-filtering) をマージ
+1827623	2025-10-27	fix(frontend): improve 対戦相手デッキ visibility in dark モード
+26184a1	2025-10-27	fix(frontend): フロントエンドの起動とテーマ表示の問題を修正
+6b7a200	2025-10-27	fix(ci): フロントエンドのCIテスト失敗を修正
+a72cf1b	2025-10-27	PR #17 (krtw00/feature-dark-mode-opponent-deck-color) をマージ
+8ff371f	2025-10-27	docs(readme): Git運用ルールを追記
+7af9e38	2025-10-27	Merge remote-tracking branch 'origin/main'
+717fde0	2025-10-27	docs(readme): 開発環境のセットアップ手順を更新
+4d6b08d	2025-10-27	docs(readme): OBS機能の説明を更新し、機能一覧を拡充
+d047867	2025-10-27	docs(readme): 技術スタックの情報を更新
+5f8184a	2025-10-27	docs: ドキュメントを最新の実装に合わせて更新
+d2d2a35	2025-10-28	docs: コード可読性向上のための包括的なドキュメントとサンプル実装を追加
+f171810	2025-10-28	chore: .gitignore改善と機密ファイルの除外
+047c0b5	2025-10-28	fix(ci): 環境変数ファイル削除後のCI失敗を修正
+4cc3fa4	2025-10-28	fix(ci): フロントエンドテスト・ビルドにVITE_API_URL環境変数を追加
+a2003e7	2025-10-28	docs(backend): Phase 1.1 - バックエンドサービスに詳細なdocstringとコメントを追加
+0d72d7b	2025-10-28	docs(models): Phase 1.3 - モデル定義とTypeScript型に詳細なコメントを追加
+5fb3b26	2025-10-28	docs: Phase 1進捗を可読性向上ロードマップに反映
+a558d25	2025-10-28	docs(backend): time_series_service.pyに詳細なdocstringとコメントを追加
+6ee6e09	2025-10-28	docs(backend): deck_service.pyに詳細なdocstringとコメントを追加
+72e3690	2025-10-28	docs(frontend): DashboardView.vueにドキュメント追加
+19b47cf	2025-10-28	docs(frontend): DuelFormDialog.vueにドキュメント追加
+2d47dde	2025-10-28	docs: Phase 1完了を反映したロードマップ更新
+d731ebe	2025-10-28	PR #18 (krtw00/feature/code-readability-phase1) をマージ
+937d924	2025-10-28	refactor(backend): クエリビルダーユーティリティを作成
+8c87250	2025-10-28	refactor(backend): サービスで共通クエリビルダーを使用
+a1d8451	2025-10-28	test(backend): クエリビルダーユーティリティのテスト追加
+f40d0d1	2025-10-28	docs(frontend): Composablesに詳細なJSDocを追加
+fc91c1f	2025-10-28	docs: 命名規則統一化の詳細な移行計画を策定
+69e7166	2025-10-28	fix(test): test_query_builders.pyのファイル破損を修正
+7a72e4d	2025-10-28	chore: trigger CI
+0d7b0ba	2025-10-28	PR #20 (krtw00/feature/code-readability-phase2) をマージ
+529193c	2025-10-28	fix(docs): 破損したnaming-convention-migration-plan.mdを修正
+fccbcb0	2025-10-28	feat(backend): 命名規則統一化 - Phase 2完了
+6e55173	2025-10-28	feat(frontend): 対戦記録の命名規則を改善
+f748d10	2025-10-28	feat(docs): フェーズ2の可読性改善を完了
+d3dae8d	2025-10-28	PR #21 (krtw00/feature/naming-convention-phase3) をマージ
+fb6c349	2025-10-28	feat(docs): フェーズ3の可読性改善を完了
+441f415	2025-10-28	PR #22 (krtw00/feature/readability-phase3) をマージ
+678bf12	2025-10-28	docs: ロードマップのフェーズ完了状況を更新
+149a240	2025-10-28	fix(backend): クエリビルダの属性エラーを修正
+9eda350	2025-10-28	PR #23 (krtw00/fix-backend-query-typo) をマージ
+dd446b0	2025-10-28	fix(alembic): alembicの多重ヘッド問題を修正
+78de726	2025-10-28	PR #24 (krtw00/fix-alembic-multiple-heads) をマージ
+fbe9a46	2025-10-28	fix(backend): 対戦履歴取得時のバリデーションエラーを修正
+4af345b	2025-10-28	PR #25 (krtw00/fix-duel-read-validation-error) をマージ
+99745fc	2025-10-28	fix(backend): DBカラム名の不一致によるエラーを修正
+d5b9926	2025-10-28	PR #26 (krtw00/fix-duel-read-validation-error) をマージ
+75cf23b	2025-10-28	hotfix(backend): 緊急修正として古いDBスキーマにモデルを適合させる
+b08d927	2025-10-28	PR #27 (krtw00/fix-duel-read-validation-error) をマージ
+b240999	2025-10-28	fix(backend): Alembicの履歴分岐を解消
+447ef45	2025-10-28	PR #28 (krtw00/fix-duel-read-validation-error) をマージ
+1e3cad1	2025-10-28	Revert to 4cc3fa4: 戦績登録エラー修正のため正常動作時の状態に復元
+225cccb	2025-10-28	refactor(backend): クエリビルダーにヘルパー関数を追加
+2bcb74e	2025-10-28	fix(backend): モデルとDBスキーマのフィールド名を統一
+ce436ab	2025-10-28	fix(backend): 本番環境のDBスキーマに合わせて競合するマイグレーションを削除
+a51302e	2025-10-28	fix(backend): query_builders内の古いフィールド名参照を修正
+4bfb738	2025-10-28	fix(backend): 本番DBスキーマ(camelCase)に完全対応
+10dcc69	2025-10-28	fix(backend): statistics_serviceのフィールド名をopponentDeck_idに統一
+d125a4b	2025-10-29	chore(linter): リンター設定を強化してコード品質チェックを自動化
+3116793	2025-10-29	docs(phase1): モデルと型定義にドキュメントを追加（命名規則は維持）
+361df12	2025-10-29	PR #30 (krtw00/feature/phase1-documentation-only) をマージ
+4099590	2025-10-29	refactor(phase2): クエリビルダーを共通化してコード重複を削減
+cb5f54a	2025-10-29	PR #31 (krtw00/feature/phase2-query-builder-refactoring) をマージ
+66c7ca3	2025-10-29	リモート追跡ブランチ 'origin/main' を feature/linter-configuration-phase3 にマージ
+c8bde26	2025-10-29	PR #29 (krtw00/feature/linter-configuration-phase3) をマージ
+5f6d84e	2025-10-29	docs: pre-commit hooksのセットアップ手順をREADMEに追加
+631f745	2025-10-29	fix(docs): pre-commit hooksのセットアップ手順を修正
+7436e49	2025-10-29	PR #32 (krtw00/docs/add-pre-commit-setup-instructions) をマージ
+d673b27	2025-10-30	feat(backend,frontend): レート/DC値の小数点対応とOBS表示追加
+90d1b6c	2025-10-30	fix(backend): マイグレーションのdown_revisionを修正
+0b59be8	2025-10-30	fix(frontend): OBSStatsResponse型にcurrent_rateとcurrent_dcを追加
+ce8fa41	2025-10-30	PR #52 (krtw00/feature/add-float-support-for-rate-and-dc) をマージ
+200eee0	2025-10-30	feat(frontend): OBSオーバーレイにレート/DC表示項目を追加
+58bca0d	2025-10-30	feat(frontend): OBS設定のゲームモードを必須化し初期値をランクに設定
+dbdb8a8	2025-10-30	fix(frontend): OBS設定の表示項目にレートとDCを追加
+685fefe	2025-10-30	PR #54 (krtw00/feature/improve-obs-ui) をマージ
+dffe376	2025-10-30	refactor(backend): Duelモデルのカラム名を明確化し、docstring検証を無効化
+69b43f9	2025-10-30	feat(frontend): Align SharedStatisticsView with Dashboard と Statistics views
+b02c1c7	2025-10-30	feat(frontend): Align SharedStatisticsView with Dashboard と Statistics views
+1245afa	2025-10-30	fix(backend): Correct opponentDeck_id to opponent_deck_id in shared_statistics エンドポイント
+b45fbb2	2025-10-30	fix(backend): Correct opponentDeck attribute access in shared_statistics エンドポイント
+afaf2ca	2025-10-30	feat(backend): Return すべてのgame モード statistics in shared エンドポイント
+a018c10	2025-10-30	feat(frontend): Unify statistics filter across すべてのviews
+924d21e	2025-10-30	fix(frontend): SharedStatisticsView.テスト.tsのテストを修正
+e6293ab	2025-10-30	PR #55 (krtw00/feature/shared-statistics-dashboard-sync) をマージ
+23cca20	2025-10-30	バックエンドのappフォルダにどれから手を付けたらよいかのマニュアルをつけた。alembicフォルダはREADMEにここはいじらなくて良いということがわかったということを書いた。全部コメントのみ
+f740265	2025-10-30	fix(api): 対戦履歴表示の不具合を修正
+bb88424	2025-10-30	PR #57 (krtw00/docs/comment-written-by-AI) をマージ
+60180b2	2025-10-30	fix(ci): Vercelのビルドエラーを修正し対戦履歴表示の不具合に対応
+89fc003	2025-10-30	PR #59 (krtw00/fix-duel-history-display-bug) をマージ
+5a196bd	2025-10-30	fix(api): 対戦履歴表示の不具合を完全に修正
+462df50	2025-10-30	PR #60 (krtw00/fix-duel-history-display-bug) をマージ
+9f79125	2025-10-31	fix(frontend): unknown 対戦相手デッキ displayを修正
+4b663c6	2025-10-31	fix(frontend): デュエル interface to use opponent_deck_idを更新
+400f6e2	2025-10-31	fix(frontend): align with opponent_deck_id snake_case
+d65711d	2025-10-31	fix(backend): use snake_case for opponent_deck_id query
+5d2b75b	2025-10-31	fix(backend): align services with renamed デュエル fields
+eef7742	2025-10-31	Fix:統計周りの修正
+c9b42b8	2025-10-31	fix(backend): align テスト with renamed デュエル fields
+8eb47eb	2025-10-31	fix(backend): align デュエル fields with naming convention
+85478ce	2025-10-31	Merge branch 'main' of https://github.com/krtw00/デュエル-log-app
+7f8399c	2025-10-31	fix(backend): align デュエル fields with naming convention
+ee32df7	2025-10-31	fix(backend): include デッキ names in デュエル list エンドポイント
+fca005b	2025-10-31	refactor(frontend): unnecessary デッキ fetching in DashboardViewを削除
+5b734f0	2025-10-31	fix(backend): import joinedload in duel_service
+336e060	2025-10-31	refactor(frontend): DuelHistorySectionからunnecessary decks propを削除
+af20fa9	2025-10-31	Revert "refactor(フロントエンド): remove unnecessary decks prop from DuelHistorySection"
+a301228	2025-10-31	fix(backend): DuelWithDeckNames schemaにcomputed_fieldを追加
+d118e7c	2025-10-31	fix(backend): correct DuelWithDeckNames schema for response validation
+dc136c0	2025-10-31	fix(frontend): correctly map opponent_deck to opponentDeck
+ed06961	2025-10-31	feat(frontend): unify snake_case naming convention
+5d1bb2f	2025-10-31	fix(frontend): use snake_case for opponent_deck in DuelTable
+0134d3d	2025-10-31	fix(backend): return statistics data in shared link エンドポイント
+10fd2f3	2025-10-31	fix(backend): SharedStatisticsResponse schemaを追加
+7d6e8c5	2025-10-31	fix(backend): resolve AttributeError in shared statistics エンドポイント
+4b16863	2025-10-31	fix(backend): correct syntax error in shared_statistics_service
+c0364a5	2025-10-31	fix(backend): pass filter params to shared statistics エンドポイント
+e394e4e	2025-10-31	fix(backend): pass range filter params to shared statistics エンドポイント
+a9dc405	2025-10-31	fix(frontend): correct typo in SharedStatisticsView
+af66df8	2025-10-31	fix(share): resolve data loading issue in shared statistics view
+d6d09d6	2025-10-31	fix(backend): correct keyword argument in get_user_duels call
+695f6a2	2025-10-31	fix(backend): correctly serialize デュエル objects in statistics response
+309698c	2025-10-31	fix(api): ensure nested デッキ objects in デュエル response
+9bdc9d7	2025-10-31	fix(backend): import statistics_service in statistics router
+74573aa	2025-10-31	fix(frontend): resolve vercel build errors
+3e754d0	2025-10-31	fix(frontend): correct テスト data と mocks for CI
+bab5602	2025-10-31	fix(frontend): stray code causing syntax errorを削除
+bb6e0ce	2025-10-31	PR #63 (krtw00/feature/unify-snake-case) をマージ
+628ba99	2025-10-31	fix(backend): exit on migration failure in start.py
+0b9ecc1	2025-10-31	branch 'main' of origin を main にマージ
+09c981a	2025-10-31	fix(frontend): Correct デュエル data display と submission
+32ec185	2025-10-31	fix(frontend): resolve build errors by updating references
+4136c2a	2025-10-31	docs: 不要になったドキュメントファイルを削除
+b75b595	2025-10-31	docs: コーディング規約を追加
+7248e95	2025-10-31	PR #64 (krtw00/develop) をマージ
+a186180	2025-10-31	docs: ブランチ戦略をGitFlowベースのフローに更新
+ceb110d	2025-10-31	PR #65 (krtw00/develop) をマージ
+75cebf5	2025-10-31	docs: architecture documentsとupdate db-schemaを追加
+f75f981	2025-10-31	PR #66 (krtw00/develop) をマージ
+130d67d	2025-11-01	docs(development-guide): ブランチ命名規則を追記
+f8ee583	2025-11-01	PR #70 (krtw00/docs/add-branch-naming-rule-to-main) をマージ
+164f5e3	2025-11-01	docs(readme): WSL開発環境セットアップ手順を更新
+2d5d4d9	2025-11-01	PR #71 (krtw00/docs/add-branch-naming-rule-to-main) をマージ
+0f9b088	2025-11-01	fix: シードデータ投入処理の修正
+438325e	2025-11-01	PR #72 (krtw00/develop) をマージ
+6771013	2025-11-01	docs: 開発環境のセットアップ手順にフロントエンドのenv設定を追加
+fec95d1	2025-11-01	Revert: README.md to previous state
+b3a3dbd	2025-11-01	ドキュメント: READMEのフロントエンドセットアップ手順を詳細化
+9bae1ed	2025-11-01	PR #73 (krtw00/docs/update-readme-setup) をマージ
+27ca5ea	2025-11-01	PR #74 (krtw00/develop) をマージ
+cf65e3f	2025-11-02	feat(statistics): refactor value sequence charts
+21202f9	2025-11-02	fix(frontend): align apex value sequence typings
+b410c8d	2025-11-02	PR #75 (krtw00/feature/value-sequence-data) をマージ
+d7fc22d	2025-11-02	feat: 共有統計ページのフィルタリングとOBSオーバーレイの改善
+7e10aaf	2025-11-02	PR #76 (krtw00/fix/vue-lint-errors) をマージ
+b811ed5	2025-11-02	Revert "Merge pull request #76 from krtw00/fix/vue-lint-errors"
+c02f109	2025-11-02	PR #77 (krtw00/fix/vue-lint-errors) をマージ
+7ad9333	2025-11-02	docs(development-tutorial.md): チュートリアル新規作成
+ed82fb8	2025-11-02	PR #78 (krtw00/docs/gitのよく使うコマンド集) をマージ
+d5d26b7	2025-11-02	docs: branch name examples to Englishを更新
+3f4aba5	2025-11-02	PR #80 (krtw00/docs/update-branch-name-examples) をマージ
+6efd3bb	2025-11-02	docs: agent contributor guideを追加
+698e65e	2025-11-03	fix: shared statistics month boundaryを調整
+7b3312f	2025-11-03	PR #81 (krtw00/fix/shared-stats-timezone) をマージ
+1be2b24	2025-11-03	PR #82 (krtw00/develop) をマージ
+6a0ccbd	2025-11-03	fix: OBS連携機能でランク、レート、DCが正しく表示されるように修正
+c349f22	2025-11-03	refactor: OBS統計値取得ロジックのリファクタリングとフォーマット改善
+c2edd00	2025-11-03	PR #84 (krtw00/fix/obs-rank-rate-dc-display-v2) をマージ
+1b4a358	2025-11-04	test: verify author config
+980f27f	2025-11-04	若干のREADMEの編集等詳しくは詳細見て
+96d7499	2025-11-04	fix: 月の切り替え時間をゲームの仕様(7:59)に合わせて調整
+2334415	2025-11-04	fix: 月の境界を7:59:00ジャストに変更
+3206b78	2025-11-04	PR #85 (krtw00/docs/fix-README) をマージ
+3612fa3	2025-11-04	PR #86 (krtw00/fix/month-boundary-adjustment) をマージ
+8a5e2e4	2025-11-05	fix(security): 重大なセキュリティ問題と認証テストの追加
+9a08363	2025-11-05	PR #88 (krtw00/claude/code-review-overview-011CUpiwqiLqnAikDDcgkpte) をマージ
+fe0ec20	2025-11-05	feat(github): 日本語バグトラッキングシステムを追加
+37b08f5	2025-11-05	perf: パフォーマンスとエラーハンドリングの改善
+4889c18	2025-11-05	fix(test): resolve pytest import errorにconftest.pyを追加
+9d57e48	2025-11-05	PR #89 (krtw00/claude/code-review-overview-011CUpiwqiLqnAikDDcgkpte) をマージ
+b083a07	2025-11-05	PR #91 (krtw00/claude/fix-pytest-import-error-011CUpnTVtv3Y3DR7nZjHigw) をマージ
+0849a6b	2025-11-05	fix: resolve timezone-aware datetime comparison issues
+1d72622	2025-11-05	refactor(frontend): フロントエンドの型安全性を向上
+3e0c0f9	2025-11-05	PR #92 (krtw00/claude/fix-auth-datetime-timezone-011CUpoP8Spt7sz693JkN46t) をマージ
+1c18771	2025-11-05	fix(frontend): SharedStatisticsView の型エラーを修正
+4ae5c56	2025-11-05	PR #93 (krtw00/claude/code-review-overview-011CUpiwqiLqnAikDDcgkpte) をマージ
+0558bf2	2025-11-05	fix(frontend): resolve infinite loading state on network errors
+499b2db	2025-11-05	chore(frontend): package-lock.json metadataを更新
+50e84ec	2025-11-05	PR #95 (krtw00/claude/fix-loading-state-bug-011CUpqPeudQ2rcjpvwwbENR) をマージ
+a1745ac	2025-11-05	fix: resolve multiple alembic head revisions error
+2f1d90c	2025-11-05	PR #96 (krtw00/claude/fix-auth-login-connection-011CUprQMo8cDKccLU8xuixB) をマージ
+43a3ccc	2025-11-05	fix: use 'alembic upgrade heads' instead of 'head'
+23a8cfa	2025-11-05	PR #97 (krtw00/claude/fix-auth-login-connection-011CUprQMo8cDKccLU8xuixB) をマージ
+1745806	2025-11-05	fix(migration): resolve duplicate index migration error
+68250bb	2025-11-05	branch 'develop' を claude/fix-duplicate-index-migration-011CUpttPf1RcdEqb9nwjaim にマージ
+9c52622	2025-11-05	PR #98 (krtw00/claude/fix-duplicate-index-migration-011CUpttPf1RcdEqb9nwjaim) をマージ
+efc6208	2025-11-05	chore: migration issues向けにDocker cleanup スクリプトを追加
+84a4fb0	2025-11-05	docs: detailed migration fix instructionsを追加
+c937e46	2025-11-05	chore: Docker state diagnostic スクリプトを追加
+b8207ed	2025-11-05	リモート追跡ブランチ 'origin/claude/fix-migration-duel-date-index-011CUpuaiL34uJiKuLYRAHYi' を develop にマージ
+973d0e7	2025-11-05	fix: migration issues向けにurgent Docker rebuild スクリプトを追加
+fae740f	2025-11-05	fix(migration): correct column name from duel_date to played_date
+0923557	2025-11-06	リモート追跡ブランチ 'remotes/origin/claude/fix-migration-duel-date-index-011CUpuaiL34uJiKuLYRAHYi' を develop にマージ
+1dfe83f	2025-11-06	chore: URGENT_FIX_STEPS.shを削除
+151f834	2025-11-05	docs: improve SECRET_KEY generation instructions in .env.example
+916b1f9	2025-11-05	fix(auth): correct UnauthorizedException parameter usage in deps.py
+1a53ea8	2025-11-05	docs: recommend base64 整形 for SECRET_KEY generation
+41c73da	2025-11-06	PR #99 (krtw00/claude/fix-auth-token-validation-011CUpyZeMbqevFp7TVJ6EMg) をマージ
+02121bb	2025-11-06	PR #100 (krtw00/claude/jwt-configuration-011CUpyfGDWfZNgrgtGuSKTe) をマージ
+1abe213	2025-11-05	fix(seed): dummy data generationにtimezone awarenessを追加
+88b6a92	2025-11-05	fix(shared-link): data filtering issue causing partial displayを修正
+2c13803	2025-11-05	test(shared-link): テスト expectations for new filter logicを更新
+29f4065	2025-11-06	PR #102 (krtw00/claude/shared-link-dummy-data-011CUq13h8gXJJoKcGQFLrHK) をマージ
+579b938	2025-11-05	fix(tests): resolve CI テスト失敗
+99ce3ed	2025-11-06	PR #104 (krtw00/claude/fix-ci-errors-011CUq4XuuWfvSXLRSA7oeod) をマージ
+75f6300	2025-11-05	fix(tests): mock Resend API to prevent CI failures
+96d0183	2025-11-06	PR #105 (krtw00/claude/debug-ci-errors-011CUq5NrvYV33R4pUo8ewRf) をマージ
+5604146	2025-11-06	PR #103 (krtw00/develop) をマージ
+10ef0c7	2025-11-06	Delete check_docker_state.sh
+807b911	2025-11-06	Delete cleanup_and_restart.sh
+ffdaec6	2025-11-06	Delete MIGRATION_FIX_INSTRUCTIONS.md
+d86f3ee	2025-11-05	chore: GitHub Project URL for デュエル-log-app bug tracking systemを更新
+8ee73a5	2025-11-06	PR #106 (krtw00/claude/update-bug-tracking-duel-log-011CUq6JjjhahRzPQV38qmKZ) をマージ
+496abed	2025-11-05	fix(ci): Pass github-token as input parameter instead of env variable
+e59457d	2025-11-06	PR #108 (krtw00/claude/update-bug-tracking-duel-log-011CUq6JjjhahRzPQV38qmKZ) をマージ
+3fe6f8c	2025-11-06	PR #110 (krtw00/main) をマージ
+a8f667a	2025-11-06	feat: プロジェクトツールと設定ファイルを追加
+f78e8c5	2025-11-06	PR #112 (krtw00/fix/month-boundary-adjustment) をマージ
+fbc6570	2025-11-07	feat(ci): comprehensive CI/CD pipeline enhancementsを追加
+16d9eb1	2025-11-07	feat(e2e): comprehensive Playwright E2E テスト suiteを追加
+d429aa0	2025-11-07	chore(ci): Codecov integrationを削除
+a324568	2025-11-07	PR #113 (krtw00/claude/review-cicd-requirements-011CUsmPBB4ENd6HxXbtNiHY) をマージ
+6e305c3	2025-11-07	fix(ci): PR auto-review workflow permissions と error handlingを修正
+7df94dd	2025-11-07	fix(ci): PR title checkからsubject capitalization restrictionを削除
+3099aff	2025-11-07	PR #114 (krtw00/claude/review-cicd-requirements-011CUsmPBB4ENd6HxXbtNiHY) をマージ
+97483b7	2025-11-07	feat(ci): Localize PR auto-review messages to Japanese
+7b19706	2025-11-07	PR #115 (krtw00/claude/review-cicd-requirements-011CUsmPBB4ENd6HxXbtNiHY) をマージ
+9a7dc75	2025-11-07	fix(ci): ヘルスチェックエンドポイント修正とdevelopブランチのCI対応
+66d5828	2025-11-07	fix(ci): CI/CDワークフローのエラーを修正
+ef0e591	2025-11-07	feat(ci): CodeQLセキュリティ分析を日本語化
+1eb8ba7	2025-11-07	docs(ci): GitHub Copilot設定を最新情報に更新
+811bd37	2025-11-07	fix(ci): ESLint v-slotエラーを修正
+149ebbc	2025-11-07	fix(ci): CIワークフローのエラーを修正
+4b22d5b	2025-11-07	fix(ci): Docker/E2Eテストのデータベース接続エラーを修正
+9006c7e	2025-11-07	fix(ci): タイムゾーンとSQLite接続エラーを修正
+317dd4e	2025-11-07	fix(test): test_duel_service.pyのタイムゾーンエラーを修正
+607130c	2025-11-07	fix(test): SQLiteタイムゾーン問題の解決
+7d8af3a	2025-11-07	fix(security): Jinja2にautoescapeを有効化してXSS脆弱性を対策
+647683e	2025-11-07	fix(ci): Banditスキャンから開発用スクリプトを除外
+e58ede9	2025-11-07	fix(security): CodeQLセキュリティアラート6件を修正
+8f1aa92	2025-11-07	PR #116 (krtw00/develop) をマージ
+1d10e9f	2025-11-07	chore(release): 1.0.0 [skip ci]
+5f61b1e	2025-11-07	perf(ci): Optimize E2E CI workflow execution time from 20min to 5-7min
+acf244b	2025-11-07	fix(deps): FastAPI 0.111.1+用にpython-multipartを追加
+64d7d5f	2025-11-07	PR #141 (krtw00/claude/optimize-e2e-ci-011CUt3m83H4kwMNtagh1dcZ) をマージ
+2f4ef89	2025-11-07	fix: stabilize codeql uploads と register form fields
+b3910a7	2025-11-07	fix: make auth e2e selectors deterministic
+2da2171	2025-11-07	fix(ci): allow e2e バックエンド cors for preview port
+5363ec7	2025-11-07	fix: route e2e api traffic via ipv4 loopback
+9cd2760	2025-11-08	fix: developブランチからmainへの同期（セキュリティ修正・CI改善・Dependabot設定変更含む） (#145)
+dcfe15d	2025-11-08	chore(deps)(deps-dev): bump @typescript-eslint/parser in /フロントエンド (#144)
+5502b72	2025-11-08	chore(deps)(deps-dev): bump typescript-eslint in /フロントエンド (#142)
+19f9413	2025-11-08	chore(deps)(deps): bump vuetify from 3.10.7 to 3.10.9 in /フロントエンド (#138)
+e806daf	2025-11-07	chore(docker): bump node from 20 to 24 in /フロントエンド
+005b491	2025-11-07	chore(deps)(deps): bump pytest from 7.4.3 to 8.4.2 in /バックエンド
+895e14d	2025-11-08	chore(deps)(deps): bump sqlalchemy from 2.0.22 to 2.0.44 in /バックエンド (#137)
+6fd3b82	2025-11-08	chore(deps)(deps): bump python-jose[cryptography] in /バックエンド (#134)
+4d3c1d6	2025-11-07	chore(deps)(deps): bump pytest-cov from 4.1.0 to 6.3.0 in /バックエンド
+be483b8	2025-11-08	chore(deps)(deps): bump python-dotenv from 1.0.1 to 1.2.1 in /バックエンド (#132)
+85b2108	2025-11-07	chore(deps)(deps): bump pydantic[email] from 2.5.0 to 2.12.4 in /バックエンド
+f9b6b12	2025-11-07	chore(deps)(deps): bump @vueuse/core from 13.9.0 to 14.0.0 in /フロントエンド
+be7ac78	2025-11-07	chore(deps)(deps-dev): bump @pinia/testing in /フロントエンド
+8c26491	2025-11-08	chore(deps)(deps): bump jinja2 from 3.1.4 to 3.1.6 in /バックエンド (#128)
+b7edd53	2025-11-08	chore(deps)(deps): bump faker from 26.0.0 to 37.12.0 in /バックエンド (#125)
+46e0ce2	2025-11-07	chore(deps)(deps-dev): bump eslint from 9.38.0 to 9.39.1 in /フロントエンド
+134e045	2025-11-08	chore(deps)(deps-dev): bump vue-tsc from 3.1.2 to 3.1.3 in /フロントエンド (#136)
+03ee9be	2025-11-08	chore(deps)(deps-dev): bump @types/node in /フロントエンド (#133)
+90e45f3	2025-11-08	chore(deps)(deps): bump axios from 1.12.2 to 1.13.2 in /フロントエンド (#130)
+6406f07	2025-11-08	chore(ci)(deps): bump actions/setup-python from 5 to 6 (#124)
+a9591e1	2025-11-08	chore(ci)(deps): bump actions/upload-artifact from 4 to 5 (#122)
+2ca55c5	2025-11-08	chore(ci)(deps): bump actions/github-スクリプト from 7 to 8 (#119)
+10ca2ae	2025-11-07	chore(deps)(deps): bump vue from 3.5.22 to 3.5.24 in /フロントエンド
+addd1f8	2025-11-08	chore(ci)(deps): bump actions/setup-node from 4 to 6 (#118)
+b3ea328	2025-11-07	chore(deps)(deps-dev): bump @typescript-eslint/eslint-plugin
+1042d2e	2025-11-07	chore(deps)(deps-dev): bump sass from 1.93.2 to 1.93.3 in /フロントエンド
+39ada21	2025-11-07	chore(deps)(deps-dev): bump vite from 7.1.12 to 7.2.2 in /フロントエンド
+09e1238	2025-11-07	chore(deps)(deps-dev): bump jsdom from 27.0.1 to 27.1.0 in /フロントエンド
+1ad5eb9	2025-11-07	chore(deps)(deps): bump fastapi from 0.111.1 to 0.121.0 in /バックエンド
+2e46b98	2025-11-07	chore(release): 1.0.1 [skip ci]
+2f5e192	2025-11-08	fix(security): CodeQLセキュリティアラート4件を修正
+56a7e11	2025-11-07	chore(ci)(deps): bump github/codeql-action from 3 to 4
+fa92163	2025-11-07	chore(release): 1.0.2 [skip ci]
+cb70718	2025-11-08	PR #131 (krtw00/dependabot/pip/backend/fastapi-0.121.0) をマージ
+5fe52fb	2025-11-08	PR #126 (krtw00/dependabot/github_actions/github/codeql-action-4) をマージ
+1650bf7	2025-11-08	PR #158 (krtw00/dependabot/npm_and_yarn/frontend/develop/jsdom-27.1.0) をマージ
+33080da	2025-11-08	PR #154 (krtw00/dependabot/npm_and_yarn/frontend/develop/vue-3.5.24) をマージ
+bf46a83	2025-11-08	PR #152 (krtw00/dependabot/npm_and_yarn/frontend/develop/pinia/testing-1.0.3) をマージ
+be28057	2025-11-08	PR #157 (krtw00/dependabot/npm_and_yarn/frontend/develop/vite-7.2.2) をマージ
+62bbb50	2025-11-08	PR #156 (krtw00/dependabot/npm_and_yarn/frontend/develop/sass-1.93.3) をマージ
+f6075d7	2025-11-08	PR #155 (krtw00/dependabot/npm_and_yarn/frontend/develop/typescript-eslint/eslint-plugin-8.46.3) をマージ
+84ff132	2025-11-08	PR #150 (krtw00/dependabot/pip/backend/develop/pydantic-email--2.12.4) をマージ
+b266715	2025-11-08	PR #149 (krtw00/dependabot/pip/backend/develop/pytest-cov-6.3.0) をマージ
+adbf9e4	2025-11-08	PR #146 (krtw00/dependabot/docker/frontend/develop/node-24) をマージ
+1ad9099	2025-11-08	PR #151 (krtw00/dependabot/npm_and_yarn/frontend/develop/vueuse/core-14.0.0) をマージ
+5e28f56	2025-11-08	PR #153 (krtw00/dependabot/npm_and_yarn/frontend/develop/eslint-9.39.1) をマージ
+c1bf279	2025-11-08	develop を pytest update branch にマージ
+883325b	2025-11-08	PR #147 (krtw00/dependabot/pip/backend/develop/pytest-8.4.2) をマージ
+59ca2cd	2025-11-08	ci: PR自動レビューコメントを警告時のみに制限して通知を削減
+a3f4118	2025-11-08	docs: GitHub通知設定ガイドを追加
+054386f	2025-11-07	chore(release): 1.0.3 [skip ci]
+3b44468	2025-11-08	docs: コーディング規約ドキュメントを生成・整備
+e27c7cf	2025-11-07	chore(release): 1.0.4 [skip ci]
+e9fe822	2025-11-08	docs: ドキュメント構成を整理・索引を最新化
+ef53a33	2025-11-08	docs: ドキュメントを用途別に階層化（案A）
+f9aeb4d	2025-11-08	docs: docs配下の古いコンテキストドキュメントを削除
+2e786b9	2025-11-08	merge: develop側の変更を優先（main のドキュメント更新をマージ）
+9f036d1	2025-11-07	chore(release): 1.0.5 [skip ci]
+76ac70d	2025-11-08	fix(security): セキュリティアラート8件を修正
+1ae65d9	2025-11-08	fix(security): duels.py のログインジェクション修正（アラート #14）
+b27b6be	2025-11-08	fix(lint): Ruff F541 エラーを修正
+4a44900	2025-11-08	fix(format): Black フォーマット違反を修正
+0aabafa	2025-11-08	fix(format): auth.py の残りの Black フォーマット違反を修正
+cf3eefe	2025-11-08	fix(format): auth.py の85文字超える行を修正
+bc236b6	2025-11-08	fix(format): Black の期待するフォーマットに完全準拠
+2e0dfcd	2025-11-08	fix(test): conftest.py の Base インポート場所を修正
+ae79765	2025-11-08	docs(test): conftest.py のインポート修正を明確にコメント追加
+ec45590	2025-11-08	fix(e2e): Playwright CI環境でのナビゲーションリンククリック失敗を解決
+2e4fad7	2025-11-08	fix(security): CodeQL セキュリティアラート 8 件を完全修正
+cc6d19e	2025-11-08	fix(e2e): E2E テスト安定性向上 - waitForLoadState を追加
+ac12ee7	2025-11-08	fix(security): Black フォーマッティングエラーを修正
+4df9993	2025-11-08	fix(e2e): ナビゲーション要素のクリック失敗を修正
+0bbe0c4	2025-11-08	fix(e2e): ナビゲーションテスト環境依存問題でスキップ
+e2032f1	2025-11-08	fix(e2e): 認証テスト失敗を修正 - 登録後の自動ログイン処理
+95f7732	2025-11-08	PR #159 (krtw00/fix/security-alerts) をマージ
+40f283d	2025-11-08	PR #160 (krtw00/fix/security-alerts) をマージ
+9598935	2025-11-08	chore(release): 1.0.6 [skip ci]
+ced4a6b	2025-11-08	ci: GitHub Actions から E2E テストワークフローを削除
+140e1f4	2025-11-08	PR #161 (krtw00/develop) をマージ
+53b4563	2025-11-08	Delete docs-structure-comparison.md
+568b7df	2025-11-08	Delete docs/.archive/coding-conventions.md
+23346fd	2025-11-08	branch 'main' を develop にマージ
+ae974be	2025-11-08	chore: 開発に関係ないファイルと個人設定をgitignoreに追加\n\n- .claude/ ディレクトリ全体をignore\n- .mcp_cache/ をignore\n\nセキュリティとリポジトリ整理の向上"
+6211b07	2025-11-08	リモート追跡ブランチ 'origin/main' を develop にマージ
+be939e0	2025-11-09	link path in development guideを修正
+1f05be8	2025-11-09	fix(frontend): ログイン画面遷移不具合の修正
+69d4379	2025-11-09	fix(frontend): ログイン後にログイン画面に戻る不具合を修正
+44792ad	2025-11-09	fix(auth): ページロード時の Cookie タイミング問題で 401 が発生した際の自動ログアウト回避
+5be31de	2025-11-09	fix(auth): すべてのリクエストで localStorage のトークンを Authorization ヘッダーに追加
+e53025c	2025-11-09	fix(auth): 未使用の shouldUseAuthorizationHeader 関数を削除
+a9347fe	2025-11-09	style(auth): Prettier によるコード形式の修正
+233522c	2025-11-09	fix(frontend): prevent login → error → リダイレクト loop by making 401 logout conditional\n\n- Only logout on 401 if initialized と either Authorization header or local token existed\n- Avoids over-eager logout on transient post-login requests (cookie timing)\n\nRefs: router guard + /auth/login flow
+f8d8846	2025-11-13	chore(deps)(deps): bump fastapi from 0.111.1 to 0.121.1 in /バックエンド (#164)
+9f3bfd2	2025-11-13	chore(deps)(deps): bump pytest-cov from 4.1.0 to 6.3.0 in /バックエンド (#166)
+4dd1254	2025-11-13	chore(deps)(deps): bump pydantic[email] from 2.5.0 to 2.12.4 in /バックエンド (#167)
+fd4224b	2025-11-13	chore(deps)(deps): bump uvicorn[standard] in /バックエンド (#169)
+542a60f	2025-11-13	chore(deps)(deps-dev): bump eslint from 9.38.0 to 9.39.1 in /フロントエンド (#168)
+1a8e6e1	2025-11-13	chore(deps)(deps): bump @vueuse/core from 13.9.0 to 14.0.0 in /フロントエンド (#171)
+b3d6da2	2025-11-13	chore(deps)(deps-dev): bump sass from 1.93.2 to 1.93.3 in /フロントエンド (#173)
+82f9337	2025-11-13	chore(deps)(deps): bump vue from 3.5.22 to 3.5.24 in /フロントエンド (#176)
+c77424c	2025-11-13	chore(deps)(deps-dev): bump jsdom from 27.0.1 to 27.1.0 in /フロントエンド (#177)
+12b1f84	2025-11-13	chore(deps)(deps-dev): bump @pinia/testing in /フロントエンド (#178)
+1cb707e	2025-11-13	chore(deps)(deps-dev): bump eslint-plugin-jsdoc in /フロントエンド (#179)
+504d54b	2025-11-13	chore(ci)(deps): bump amannn/action-semantic-pull-request from 5 to 6 (#180)
+5c9bbc0	2025-11-13	chore(ci)(deps): bump actions/checkout from 4 to 5 (#181)
+7f4aa7c	2025-11-13	chore(ci)(deps): bump github/codeql-action from 3 to 4 (#182)
+fb64c04	2025-11-13	chore(deps)(deps): bump python-multipart in /バックエンド (#172)
+f757a1b	2025-11-13	chore(deps)(deps-dev): bump vite from 7.1.12 to 7.2.2 in /フロントエンド (#175)
+c000443	2025-11-13	chore(deps)(deps): bump pytest from 7.4.3 to 9.0.0 in /バックエンド (#170)
+7a69a36	2025-11-13	chore(deps)(deps): bump pydantic-設定 in /バックエンド (#165)
+7e0c501	2025-11-13	chore(deps)(deps): bump apexcharts from 5.3.5 to 5.3.6 in /フロントエンド (#174)
+fe4aec6	2025-11-13	fix(backend): mypy型チェックエラーを修正 (#183)
+58dbfef	2025-11-13	fix(backend): bcrypt 5.0.0のパスワード長制限に対応 (#184)
+918f032	2025-11-13	feat(shared): main app from shared statistics page (#162)にlinkを追加
+f600c95	2025-11-13	refactor(backend): passlib dependency と use bcrypt directly (#185)を削除
+ada446c	2025-11-13	chore: developブランチの変更をmainにマージ (#186)
+345ac47	2025-12-10	chore(deps)(deps): bump fastapi from 0.121.1 to 0.124.0 in /バックエンド (#204)
+e9bfd30	2025-12-10	chore(deps)(deps): bump pytest from 9.0.1 to 9.0.2 in /バックエンド (#203)
+a70e682	2025-12-10	chore(deps)(deps): bump pydantic[email] in /バックエンド (#202)
+6d10c1d	2025-12-10	chore(deps)(deps-dev): bump vite from 7.2.2 to 7.2.4 in /フロントエンド (#200)
+3e2baf5	2025-12-10	chore(deps)(deps-dev): bump @types/node in /フロントエンド (#195)
+886ddc9	2025-12-10	chore(deps)(deps): bump alembic from 1.11.1 to 1.17.2 in /バックエンド (#194)
+f00abf4	2025-12-10	chore(deps)(deps-dev): bump @typescript-eslint/parser in /フロントエンド (#193)
+704f9ae	2025-12-10	chore(deps)(deps): bump faker from 37.12.0 to 38.2.0 in /バックエンド (#191)
+a5db512	2025-12-10	chore(deps)(deps-dev): bump jsdom from 27.1.0 to 27.2.0 in /フロントエンド (#190)
+35a2a81	2025-12-10	chore(deps)(deps-dev): bump sass from 1.93.3 to 1.94.2 in /フロントエンド (#189)
+efa2175	2025-12-10	chore(ci)(deps): bump actions/checkout from 5 to 6 (#188)
+dd7de8e	2025-12-10	chore(deps)(deps-dev): bump @typescript-eslint/eslint-plugin (#199)
+8af63a2	2025-12-10	chore(deps)(deps-dev): bump @vitejs/plugin-vue in /フロントエンド (#187)
+d26cca4	2025-12-10	chore(deps)(deps-dev): bump typescript-eslint in /フロントエンド (#198)
+0cff0a9	2025-12-10	fix(frontend): イベントタブでの対戦記録追加時にデッキが固定されない問題を修正 (#205)
+54cb610	2025-12-10	branch 'main' を develop にマージ
+e2ebb22	2025-12-10	fix(test): useLatestDuelValues テストを修正
+c16e8b4	2025-12-10	Develop (#206)
+dcf9b4e	2025-12-10	fix(duel): EVENTモードの最新デッキ情報取得に対応
+225f999	2025-12-10	style(test): Black でフォーマット
+1eb4000	2025-12-10	Develop (#207)
+041917d	2025-12-19	fix(duel): DCタブでDCポイントが表示されない問題を修正
+0c50a40	2025-12-19	PR #221 (krtw00/fix/dc-point-display) をマージ
+ad83392	2025-12-19	chore(release): 1.1.0 [skip ci]
+dac1491	2025-12-25	fix(duel): DCポイントを整数型に変更
+6c033dd	2025-12-25	PR #226 (krtw00/develop) をマージ
+e2242b5	2025-12-25	chore(release): 1.1.1 [skip ci]
+5391f1d	2025-12-25	chore(deps)(deps): bump uvicorn[standard] in /バックエンド (#225)
+7e00e01	2025-12-25	chore(deps)(deps): bump faker from 38.2.0 to 39.0.0 in /バックエンド (#224)
+0841e69	2025-12-25	chore(deps)(deps): bump python-multipart in /バックエンド (#223)
+5f8868e	2025-12-25	chore(deps)(deps): bump @vueuse/core from 14.0.0 to 14.1.0 in /フロントエンド (#220)
+92bf8b4	2025-12-25	chore(deps)(deps-dev): bump eslint from 9.39.1 to 9.39.2 in /フロントエンド (#219)
+11f2ce3	2025-12-25	chore(deps)(deps-dev): bump vue-tsc from 3.1.3 to 3.1.8 in /フロントエンド (#218)
+910d045	2025-12-25	chore(deps)(deps-dev): bump prettier from 3.6.2 to 3.7.4 in /フロントエンド (#217)
+73c3645	2025-12-25	chore(deps)(deps-dev): bump @vitest/coverage-v8 in /フロントエンド (#216)
+bdb74c3	2025-12-25	chore(deps)(deps): bump vuetify from 3.10.9 to 3.11.3 in /フロントエンド (#215)
+305b22c	2025-12-25	chore(deps)(deps-dev): bump @playwright/テスト in /フロントエンド (#214)
+adc112a	2025-12-25	chore(deps)(deps-dev): bump eslint-plugin-jsdoc in /フロントエンド (#213)
+c10f8c7	2025-12-25	chore(deps)(deps-dev): bump vite from 7.2.4 to 7.2.7 in /フロントエンド (#212)
+d8c24c2	2025-12-25	chore(deps)(deps-dev): bump eslint-plugin-vue in /フロントエンド (#211)
+6c9e1ad	2025-12-25	chore(ci)(deps): bump actions/upload-artifact from 5 to 6 (#208)
+7c2b0c0	2025-12-25	chore(deps)(deps): bump fastapi from 0.124.0 to 0.127.0 in /バックエンド
+5065bea	2025-12-25	fix(deps): FastAPI 0.127.0アップグレードに伴う修正
+c974587	2025-12-25	style(backend): Black でフォーマット
+7228a92	2025-12-25	fix(deps): vitest/coverage-v8を3.x系に戻し、型エラーを修正
+1900f25	2025-12-25	chore(deps)(deps): bump sqlalchemy from 2.0.44 to 2.0.45 in /バックエンド (#209)
+a051bca	2025-12-25	fix(frontend): DCポイント入力で小数点を入力できないように修正
+740a9bb	2025-12-25	style(frontend): Prettierでフォーマット
+716fc67	2025-12-25	fix(frontend): DCポイント入力で小数点を入力できないように修正 (#227)
+9c7a2b2	2025-12-25	chore(release): 1.1.2 [skip ci]
+6a9d990	2025-12-29	chore(deps)(deps): bump vue from 3.5.24 to 3.5.26 in /フロントエンド
+ce69eb5	2025-12-29	chore(deps)(deps): bump fastapi from 0.124.0 to 0.128.0 in /バックエンド
+f50508f	2025-12-29	chore(deps)(deps-dev): bump @types/node in /フロントエンド
+2f58940	2025-12-29	chore(deps)(deps-dev): bump sass from 1.95.0 to 1.97.1 in /フロントエンド
+a5c5268	2025-12-29	chore(deps)(deps): bump vuetify from 3.11.3 to 3.11.5 in /フロントエンド
+b48b433	2025-12-29	chore(deps)(deps-dev): bump @vitejs/plugin-vue in /フロントエンド
+8728b76	2025-12-29	chore(deps)(deps-dev): bump vue-tsc from 3.1.8 to 3.2.1 in /フロントエンド
+0d9eca1	2026-01-05	chore(deps)(deps): bump faker from 39.0.0 to 40.1.0 in /バックエンド
+4257bb0	2026-01-07	fix: reduce デュエル edit dialog lag
+8521ab5	2026-01-07	perf: reuse デッキ list to speed デュエル edit
+ac7c6b0	2026-01-07	perf: avoid full refresh after デュエル save
+01dd953	2026-01-07	ブランチ 'fix/edit-dialog-lag' をマージ
+08e7958	2026-01-07	Merge remote-tracking branch 'origin/main'
+2ef5550	2026-01-07	chore(release): 1.1.3 [skip ci]
+98f5eb6	2026-01-07	branch 'main' を develop にマージ
+b31465a	2026-01-07	feat: auto set turn order from coin
+07ab507	2026-01-07	feat: coin default トグル near add デュエル
+d68c4f9	2026-01-07	ui: move default turn トグル next to add
+4aad825	2026-01-07	ui: use segmented default turn selector
+81826e7	2026-01-07	ui: emphasize default turn segment color
+4ca3833	2026-01-07	ui: default labelを設定 tooltipに置き換え
+ada2e10	2026-01-07	ui: improve segment contrast in dark/light
+3f4004b	2026-01-07	ui: force segment text black/white by theme
+d2da445	2026-01-07	ui: tooltip text contrast by themeを修正
+974e7f3	2026-01-07	ui: force tooltip colors with higher specificity
+cc13ac6	2026-01-07	branch 'feature/issue-47-coin-turn-order' を develop にマージ
+9688657	2026-01-07	feat: show percentage in pie tooltip
+bcc336e	2026-01-07	branch 'feature/issue-41-pie-percent' を develop にマージ
+8e7527f	2026-01-07	feat: keep statistics tab across navigation
+8fa7ae7	2026-01-07	branch 'feature/issue-48-keep-statistics-tab' を develop にマージ
+11e6fe2	2026-01-07	feat: colorize matchup win rates
+b50b291	2026-01-07	fix: make seed dc_value integer
+ed35460	2026-01-07	feat: colorize matchup win rates in statistics view
+4ac7322	2026-01-07	feat: colorize my デッキ win rates
+6c21d46	2026-01-07	feat: invert win-rate colors (advantage=blue)
+d2f22f6	2026-01-07	feat: improve win-rate color coding
+3ac1f1b	2026-01-08	fix: keep available decks sorted by name
+005dade	2026-01-08	fix: sort available decks by total duels
+9df13ad	2026-01-08	fix: sort available decks by total duels
+d56092c	2026-01-08	feat: shared statisticsにapp logo linkを追加
+1d50723	2026-01-08	fix: harden dev login against bad API URL と CORS
+2aa1231	2026-01-08	fix: prevent false login と proxy API in docker dev
+9f0b2b3	2026-01-08	fix: clear stale token when /me fails
+f0364fe	2026-01-08	fix: ensure /api baseURL works with leading-slash paths
+aa56ffa	2026-01-08	fix: enable /api proxy by using vite.config.js
+99c898a	2026-01-08	fix: stabilize dev auth via /api proxy
+26c5a69	2026-01-08	feat: shared statisticsにapp logo linkを追加
+98533d7	2026-01-08	fix(frontend): default VITE_API_URL for テスト
+e1e0f0c	2026-01-08	fix(frontend): avoid バックエンド:8000 in browser dev
+3fd0651	2026-01-08	fix(frontend): rewrite バックエンド host in browser
+f45b8d2	2026-01-08	chore(frontend): log resolved API baseURL
+ea068b7	2026-01-08	fix(dev): make Vite proxy target configurable
+ffc8f32	2026-01-08	fix(frontend): call /statistics without trailing slash
+41d4bf8	2026-01-08	PR #228 (krtw00/dependabot/npm_and_yarn/frontend/develop/vue-3.5.26) をマージ
+b5acb6b	2026-01-08	PR #229 (krtw00/dependabot/pip/backend/develop/fastapi-0.128.0) をマージ
+52723bb	2026-01-08	PR #231 (krtw00/dependabot/npm_and_yarn/frontend/develop/types/node-25.0.3) をマージ
+22737a2	2026-01-08	PR #232 (krtw00/dependabot/npm_and_yarn/frontend/develop/sass-1.97.1) をマージ
+543db38	2026-01-08	PR #233 (krtw00/dependabot/npm_and_yarn/frontend/develop/vuetify-3.11.5) をマージ
+b7b3660	2026-01-08	PR #234 (krtw00/dependabot/npm_and_yarn/frontend/develop/vitejs/plugin-vue-6.0.3) をマージ
+1c48df6	2026-01-07	chore(deps)(deps-dev): bump vite from 7.2.7 to 7.3.0 in /フロントエンド
+f972379	2026-01-07	chore(deps)(deps-dev): bump @typescript-eslint/parser in /フロントエンド
+4ccfd31	2026-01-07	chore(deps)(deps-dev): bump @typescript-eslint/eslint-plugin
+0eb592e	2026-01-07	chore(deps)(deps): bump vue-router from 4.6.3 to 4.6.4 in /フロントエンド
+41d9eee	2026-01-08	PR #238 (krtw00/dependabot/npm_and_yarn/frontend/develop/vue-tsc-3.2.1) をマージ
+ecfe189	2026-01-08	PR #239 (krtw00/dependabot/pip/backend/develop/faker-40.1.0) をマージ
+16aade4	2026-01-08	PR #236 (krtw00/dependabot/npm_and_yarn/frontend/develop/vite-7.3.0) をマージ
+7595b11	2026-01-08	style(test): 整形 statistics available decks テスト
+181589e	2026-01-08	リモート追跡ブランチ 'origin/develop' を dependabot/npm_and_yarn/frontend/develop/vue-router-4.6.4 にマージ
+ab52634	2026-01-08	リモート追跡ブランチ 'origin/develop' を dependabot/npm_and_yarn/frontend/develop/typescript-eslint/parser-8.50.1 にマージ
+594fc63	2026-01-08	リモート追跡ブランチ 'origin/develop' を dependabot/npm_and_yarn/frontend/develop/typescript-eslint/eslint-plugin-8.50.1 にマージ
+f6c8df4	2026-01-08	PR #230 (krtw00/dependabot/npm_and_yarn/frontend/develop/vue-router-4.6.4) をマージ
+7e08286	2026-01-08	style(frontend): run prettier on views と store
+8793356	2026-01-08	リモート追跡ブランチ 'origin/develop' を dependabot/npm_and_yarn/frontend/develop/typescript-eslint/parser-8.50.1 にマージ
+6d2aa6b	2026-01-08	リモート追跡ブランチ 'origin/develop' を dependabot/npm_and_yarn/frontend/develop/typescript-eslint/eslint-plugin-8.50.1 にマージ
+1501b8f	2026-01-08	fix(frontend): resolve vue-tsc type errors
+14b3d18	2026-01-08	リモート追跡ブランチ 'origin/develop' を dependabot/npm_and_yarn/frontend/develop/typescript-eslint/parser-8.50.1 にマージ
+81673f6	2026-01-08	リモート追跡ブランチ 'origin/develop' を dependabot/npm_and_yarn/frontend/develop/typescript-eslint/eslint-plugin-8.50.1 にマージ
+4418508	2026-01-08	PR #235 (krtw00/dependabot/npm_and_yarn/frontend/develop/typescript-eslint/parser-8.50.1) をマージ
+86ccecc	2026-01-08	origin/develop を dependabot eslint-plugin PR にマージ
+28d2c10	2026-01-08	PR #237 (krtw00/dependabot/npm_and_yarn/frontend/develop/typescript-eslint/eslint-plugin-8.50.1) をマージ
+2af65c3	2026-01-08	refactor: cleanup stats, auth, と layout
+ef5bd3c	2026-01-08	branch 'feature/refactor-stats-auth-ui' を develop にマージ
+5dbbd55	2026-01-08	fix: show percent in pie hover
+b2d98a2	2026-01-08	branch 'fix/monthly-deck-distribution-hover' を develop にマージ
+d2a4aad	2026-01-08	merge: dependabot fastapi 0.127.0
+81147f7	2026-01-08	branch 'fix/seed-dc-value-int' を develop にマージ
+64d508c	2026-01-08	fix: stabilize ci と build config
+24daabb	2026-01-08	style: 整形フロントエンド sources
+6fcc277	2026-01-08	PR #244 (krtw00/develop) をマージ
+d6b648e	2026-01-08	chore(release): 1.2.0 [skip ci]
+5abb635	2026-01-10	fix(frontend): resolve デッキ id after duplicate
+78f280e	2026-01-10	feat(frontend): デュエル entry 画面解析を追加
+99500e3	2026-01-10	docs: screen recording analysis notesを追加
+0548f99	2026-01-10	fix(frontend): clear 対戦相手デッキと adjust turn defaults
+2693e3e	2026-01-10	ブランチ 'develop' をマージ
+3174a9c	2026-01-09	chore(release): 1.2.1 [skip ci]
+3095713	2026-01-10	chore(frontend): 画面解析にテスト noticeを追加
+90ba1ac	2026-01-10	fix(frontend): hide 画面解析 in edit dialog
+79c23d0	2026-01-10	fix(frontend): hide game モード tabs in edit dialog
+d2c70c9	2026-01-10	refactor(frontend): デュエル formからgame モード tabsを削除
+5f1368a	2026-01-10	chore(frontend): drop raw 画面解析 templates
+1f855b2	2026-01-10	merge: 機能/image-recognition into develop
+3e6099c	2026-01-10	ブランチ 'develop' をマージ
+5d1216d	2026-01-09	chore(release): 1.3.0 [skip ci]
+18da9d8	2026-01-10	fix(frontend): unused saveLastUsedValuesを削除
+77d895a	2026-01-09	chore(release): 1.3.1 [skip ci]
+a898f02	2026-01-10	fix(frontend): unused saveLastUsedValuesを削除
+107eef1	2026-01-10	style(frontend): 整形画面解析 sources
+4227462	2026-01-10	fix(security): scope decks by user
+ade6084	2026-01-09	chore(release): 1.3.2 [skip ci]
+1f1d0b0	2026-01-10	style(backend): sort imports
+5b96d5f	2026-01-10	style(backend): 整形 with black
+cc3bff7	2026-01-10	branch 'main' を develop にマージ
+8d52a6a	2026-01-10	fix(frontend): restore saveLastUsedValues
+32d317a	2026-01-10	fix(frontend): hide archived デッキ options
+738c93f	2026-01-09	chore(release): 1.3.3 [skip ci]
+03d9f7a	2026-01-10	branch 'main' を develop にマージ
+fb5c713	2026-01-10	feat(frontend): persist new decks from edit dialog
+e7460db	2026-01-10	fix(frontend): unused saveLastUsedValuesを削除
+5986f63	2026-01-10	fix(frontend): restore saveLastUsedValues
+935b6e3	2026-01-10	feat(frontend): persist new decks from edit dialog
+21ee73e	2026-01-09	chore(release): 1.4.0 [skip ci]
+bd07b75	2026-01-10	fix: allow archived decks
+d7d0947	2026-01-10	branch 'main' を develop にマージ
+11fa004	2026-01-09	chore(release): 1.4.1 [skip ci]
+c6bbbb1	2026-01-10	docs(architecture): archive merge 機能向けにdesignを追加
+8a7b843	2026-01-10	fix(backend): auto-stamp db when alembic_version is missing
+488a08c	2026-01-10	style(backend): blackでstart.pyを整形
+58a0e14	2026-01-10	PR #245 (krtw00/develop) をマージ
+eec4f8a	2026-01-09	chore(release): 1.5.0 [skip ci]
+b355a7c	2026-01-10	feat(backend): merge duplicate archived decksにスクリプトを追加
+3cb63ee	2026-01-10	fix(backend): resolve lintエラー in merge スクリプト
+865aadc	2026-01-10	chore(ci): force re-run of CI with corrected スクリプト
+bd40d60	2026-01-10	fix(backend): unused import in merge スクリプトを削除
+6f5aeb7	2026-01-10	PR #246 (krtw00/develop) をマージ
+3a010c0	2026-01-09	chore(release): 1.6.0 [skip ci]
+8ac38fd	2026-01-10	feat: admin GUI with user-based 認証を追加
+ff3d0cf	2026-01-10	PR #247 (krtw00/develop) をマージ
+08a0561	2026-01-09	chore(release): 1.7.0 [skip ci]
+f2747e4	2026-01-10	fix(frontend): missing is_admin field in テストとtypesを追加
+bcbc970	2026-01-10	PR #248 (krtw00/develop) をマージ
+1a8b01c	2026-01-09	chore(release): 1.7.1 [skip ci]
+7937555	2026-01-10	fix(backend): exception chaining in admin routerを追加
+6f271c9	2026-01-10	PR #249 (krtw00/develop) をマージ
+394abed	2026-01-09	chore(release): 1.7.2 [skip ci]
+2398fff	2026-01-10	fix(backend): use correct field name in merge スクリプト
+d133fc1	2026-01-10	PR #250 (krtw00/develop) をマージ
+92728ef	2026-01-09	chore(release): 1.7.3 [skip ci]
+3861bb6	2026-01-10	fix(backend): correct opponent_deck_id field name in merge スクリプト
+b476bc6	2026-01-10	PR #251 (krtw00/develop) をマージ
+f39b539	2026-01-09	chore(release): 1.7.4 [skip ci]
+c6af3f7	2026-01-10	style(backend): Blackでmigration fileを整形
+dd7d05b	2026-01-10	PR #252 (krtw00/develop) をマージ
+65379f4	2026-01-10	style(frontend): PrettierでAdminView.vueを整形
+5053f46	2026-01-10	PR #253 (krtw00/develop) をマージ
+d3ff336	2026-01-10	docs: 管理画面とarchive merge 設計ドキュメントを追加
+79700af	2026-01-10	feat(backend): archived decks用のauto-mergeを実装
+0b92ece	2026-01-10	feat(backend): 管理画面用のユーザー管理 APIを実装
+941c44a	2026-01-10	feat(admin): ユーザー管理フロントエンドを実装
+1762a2d	2026-01-10	ブランチ 'develop' をマージ
+da619f7	2026-01-10	fix(frontend): clear 対戦相手デッキ after デュエル登録
+dd474ad	2026-01-10	feat(admin): Vuetify-based 管理画面 UIを実装
+596ceb2	2026-01-10	chore(release): 1.8.0 [skip ci]
+9fef6c1	2026-01-10	feat(frontend): 画面解析機能向けに説明を追加
+8401311	2026-01-10	fix(backend): ruff lintエラー in admin codeを修正
+23067b6	2026-01-10	style(backend): BlackでPython filesを整形
+e5d650a	2026-01-10	fix(backend): テスト失敗と 非推奨警告を修正
+b5058fb	2026-01-10	style(frontend): Prettierでadmin filesを整形
+21e641e	2026-01-10	test(frontend): テスト for クリア済み対戦相手デッキ機能を修正
+14063f2	2026-01-10	test(frontend): 残っていた RANK モードテスト for クリア済み対戦相手デッキを修正
+15785c6	2026-01-10	feat(frontend): 画面解析機能向けに説明を追加
+5ce10ff	2026-01-10	fix(backend): ruff lintエラー in admin codeを修正
+a436f07	2026-01-10	style(backend): BlackでPython filesを整形
+c736a0f	2026-01-10	fix(backend): テスト失敗と 非推奨警告を修正
+3b23367	2026-01-10	style(frontend): Prettierでadmin filesを整形
+40850c1	2026-01-10	test(frontend): テスト for クリア済み対戦相手デッキ機能を修正
+5700a41	2026-01-10	test(frontend): 残っていた RANK モードテスト for クリア済み対戦相手デッキを修正
+8ac2e8d	2026-01-10	chore(release): 1.9.0 [skip ci]
+d92622b	2026-01-10	feat(screen-analysis): variable 画面解像度 (1280x720-3840x2160)に対応
+ffdcad1	2026-01-10	fix(screen-analysis): 閾値を調整し、低解像度向けのdownscaleを削除
+f1b0d86	2026-01-10	feat(screen-analysis): マルチ解像度テンプレートマッチング用のMIPMAP approachを実装
+978571a	2026-01-10	feat(screen-analysis): テンプレートマッチングのすべてのゲーム解像度に対応
+4fc128a	2026-01-10	feat(screen-analysis): turnChoice と okButtonにMIPMAP approachを適用
+aaaa7b1	2026-01-10	feat(screen-analysis): 低解像度向けにGaussian blur と dynamic sigma scalingを追加
+2ef7541	2026-01-10	refactor(frontend): console.log/errorを集中ロガーに置き換え
+47a4c7e	2026-01-11	feat(screen-analysis): OKボタン検出を結果ロック機構に置き換え
+4b9ca58	2026-01-11	リモート追跡ブランチ 'origin/develop' を develop にマージ
+c39840a	2026-01-11	feat(screen-analysis): TensorFlow.js image classification プロトタイプを追加
+b611820	2026-01-11	feat(ml): TensorFlow.js image classification modelsを追加
+0f07de0	2026-01-11	fix(ml): TensorFlow.js classification modelsを更新
+182d0a7	2026-01-11	refactor(ml): モデル読み込み向けに詳細ログ出力を追加
+32766c5	2026-01-11	fix(screen-analysis): コイン検出の誤検出を低減
+ae6007f	2026-01-11	feat(ui): MLモードトグルと学習データ収集UIを追加
+035281a	2026-01-11	chore(ml-training): 依存関係を更新し、直接変換スクリプトを追加
+37c0846	2026-01-11	docs: 不要になった画像認識計画ドキュメントを削除
+527147a	2026-01-12	chore: .gitignoreにフロントエンド/public/ml-traningを追加
+199ceff	2026-01-12	feat(settings): 画面解析機能のトグルを追加
+daa9be9	2026-01-12	develop を main にマージ
+83f498d	2026-01-12	chore(release): 1.10.0 [skip ci]
+0fe93b3	2026-01-12	fix(api): 307 リダイレクトを避けるため、/me エンドポイントから末尾スラッシュを削除
+42c7cf6	2026-01-12	chore(release): 1.10.1 [skip ci]
+4b22ec1	2026-01-12	fix(types): 認証ストアのユーザー型にenable_screen_analysisを追加
+7f8e1b9	2026-01-13	docs: i18n とフィードバック機能の設計ドキュメントを追加
+66e057a	2026-01-13	feat(auth): フロントエンド認証をSupabase Authへ移行

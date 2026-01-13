@@ -25,6 +25,9 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    supabase_uuid: Mapped[str | None] = mapped_column(
+        String(36), unique=True, nullable=True, index=True
+    )
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String, unique=True, nullable=True)
     passwordhash: Mapped[str] = mapped_column(String, nullable=False)
