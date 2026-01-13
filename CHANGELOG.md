@@ -1,3 +1,10 @@
+## [2.0.25](https://github.com/krtw00/duel-log-app/compare/v2.0.24...v2.0.25) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **lint:** resolve ruff linting errors ([c4c9c40](https://github.com/krtw00/duel-log-app/commit/c4c9c40278efe4d89ee89ff4ca6e57f94bc79416))
+
 ## [2.0.24](https://github.com/krtw00/duel-log-app/compare/v2.0.23...v2.0.24) (2026-01-13)
 
 
