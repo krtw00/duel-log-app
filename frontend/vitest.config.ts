@@ -20,9 +20,12 @@ export default defineConfig({
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
       '**/e2e/**', // Playwright E2Eテストを除外
     ],
-    deps: {
-      inline: ['vuetify'],
+    server: {
+      deps: {
+        inline: ['vuetify'],
+      },
     },
+    css: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
