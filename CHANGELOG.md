@@ -1,3 +1,10 @@
+## [2.0.13](https://github.com/krtw00/duel-log-app/compare/v2.0.12...v2.0.13) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** add missing resend package for email functionality ([230553d](https://github.com/krtw00/duel-log-app/commit/230553de853e05e89d9100e25ca2061fa7877209))
+
 ## [2.0.12](https://github.com/krtw00/duel-log-app/compare/v2.0.11...v2.0.12) (2026-01-13)
 
 
