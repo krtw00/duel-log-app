@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/krtw00/duel-log-app/compare/v2.0.0...v2.0.1) (2026-01-13)
+
+
+### 📝 Documentation
+
+* Supabase移行後のデプロイメント設定ドキュメントを追加 ([5a387dc](https://github.com/krtw00/duel-log-app/commit/5a387dc1cca5cf98273168201910385859ce1ebd))
+
 ## [2.0.0](https://github.com/krtw00/duel-log-app/compare/v1.10.1...v2.0.0) (2026-01-13)
 
 
