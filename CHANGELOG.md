@@ -1,3 +1,10 @@
+## [2.0.17](https://github.com/krtw00/duel-log-app/compare/v2.0.16...v2.0.17) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* correct supabase jwt verification ([0168776](https://github.com/krtw00/duel-log-app/commit/01687763fc00a28269a480c8fdde99969cf7ac5d))
+
 ## [2.0.16](https://github.com/krtw00/duel-log-app/compare/v2.0.15...v2.0.16) (2026-01-13)
 
 
