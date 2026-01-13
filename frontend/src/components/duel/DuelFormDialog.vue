@@ -185,7 +185,9 @@
                     マスターデュエルのウィンドウを選択して、画面を自動解析します。
                     勝敗結果を検出すると自動で対戦記録を登録できます。
                     <br />
-                    <strong>{{ analysisMethod === 'template' ? 'テンプレートマッチング' : '機械学習(TF.js)' }}</strong>
+                    <strong>{{
+                      analysisMethod === 'template' ? 'テンプレートマッチング' : '機械学習(TF.js)'
+                    }}</strong>
                     モードで解析します。
                   </span>
                 </div>
@@ -457,10 +459,8 @@ const tfjsAnalysis = useScreenCaptureAnalysisTfjs();
 // 現在の解析手法に応じた状態を公開する computed
 const analysisRunning = computed(
   () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.isRunning
-      : tfjsAnalysis.isRunning
-    ).value,
+    (analysisMethod.value === 'template' ? templateAnalysis.isRunning : tfjsAnalysis.isRunning)
+      .value,
 );
 const analysisError = computed(
   () =>

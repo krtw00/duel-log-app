@@ -1,10 +1,6 @@
 <template>
   <div class="callback-container">
-    <v-progress-circular
-      indeterminate
-      size="64"
-      color="primary"
-    />
+    <v-progress-circular indeterminate size="64" color="primary" />
     <p class="mt-4 text-grey">認証中...</p>
   </div>
 </template>

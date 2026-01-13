@@ -144,7 +144,9 @@ const handleRegister = async () => {
 
     if (result.requiresConfirmation) {
       // メール確認が必要な場合
-      notificationStore.success('確認メールを送信しました。メールを確認してアカウントを有効化してください。');
+      notificationStore.success(
+        '確認メールを送信しました。メールを確認してアカウントを有効化してください。',
+      );
       setTimeout(() => {
         router.push('/login');
       }, 3000);
