@@ -136,6 +136,10 @@ Renderプロジェクトの **Environment** で以下を設定:
 | `ALGORITHM` | `HS256` | JWT署名アルゴリズム |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | OBSトークンの有効期限（分） |
 
+**SUPABASE_JWT_SECRETの注意:**
+- Supabaseダッシュボードの「JWT Secret」をそのまま設定します（Base64デコード不要）
+- `SUPABASE_ANON_KEY`や`SERVICE_ROLE_KEY`を誤って設定しないよう注意してください
+
 **DATABASE_URLの取得方法:**
 1. Supabaseダッシュボードの **Project Settings** → **Database** を開く
 2. **Connection String** → **URI** の値をコピー
