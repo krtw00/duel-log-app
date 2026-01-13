@@ -13,6 +13,7 @@ import ForgotPasswordView from '../views/ForgotPasswordView.vue';
 import ResetPasswordView from '../views/ResetPasswordView.vue';
 import SharedStatisticsView from '../views/SharedStatisticsView.vue';
 import OBSOverlayView from '../views/OBSOverlayView.vue';
+import StreamerPopupView from '../views/StreamerPopupView.vue';
 import AdminView from '../views/AdminView.vue';
 import AuthCallbackView from '../views/AuthCallbackView.vue';
 
@@ -94,6 +95,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'OBSOverlay',
     component: OBSOverlayView,
     meta: { requiresAuth: false },
+  },
+  {
+    path: '/streamer-popup',
+    name: 'StreamerPopup',
+    component: StreamerPopupView,
+    meta: { requiresAuth: true, hideLayout: true },
   },
   {
     path: '/:pathMatch(.*)*',
