@@ -1,3 +1,52 @@
+## [2.0.0](https://github.com/krtw00/duel-log-app/compare/v1.10.1...v2.0.0) (2026-01-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **auth:** User.id is now UUID string instead of integer
+
+## Frontend Changes
+- Add @supabase/supabase-js SDK
+- Create Supabase client configuration (src/lib/supabase.ts)
+- Update auth store to use Supabase Auth (signInWithPassword, signUp, etc.)
+- Add OAuth login support (Google, Discord)
+- Create AuthCallbackView for OAuth redirect handling
+- Update RegisterView, LoginView, ForgotPasswordView, ResetPasswordView
+- Update API service to use Supabase access tokens
+
+## Type Changes
+- User.id: number → string (UUID)
+- Deck.user_id: number → string
+- Duel.user_id: number → string
+
+## Test Updates
+- Update auth.test.ts to mock Supabase client
+- Update test fixtures with UUID strings for user_id
+- Configure vitest with Supabase environment variables
+
+## Migration Scripts
+- Add scripts for migrating data from Neon to Supabase
+- Include migration mapping for ID conversions
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### ✨ Features
+
+* **auth:** フロントエンド認証をSupabase Authへ移行 ([66e057a](https://github.com/krtw00/duel-log-app/commit/66e057a3d274eee2707dbd4dd6937c8a621eb6c7))
+* **backend:** add Supabase Auth support ([16e013b](https://github.com/krtw00/duel-log-app/commit/16e013bfed801e4f2d2ca954ffed951f80b6fa7d))
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** prevent white screen when Supabase env vars missing ([8bf5347](https://github.com/krtw00/duel-log-app/commit/8bf5347f959e1503e6e0fd5684c286530ea00cf1))
+* **types:** auth user型にenable_screen_analysisを追加 ([5dfc5e1](https://github.com/krtw00/duel-log-app/commit/5dfc5e1a5dd26b88fa4f8ff98b35bf614169a379))
+* **types:** 認証ストアのユーザー型にenable_screen_analysisを追加 ([4b22ec1](https://github.com/krtw00/duel-log-app/commit/4b22ec126309698c77cca69264287378cca611db))
+
+
+### 📝 Documentation
+
+* i18n とフィードバック機能の設計ドキュメントを追加 ([7f8e1b9](https://github.com/krtw00/duel-log-app/commit/7f8e1b9960344d930b26686e4824f8cf1013370f))
+
 ## 1.0.0 (2026-01-13)
 
 
