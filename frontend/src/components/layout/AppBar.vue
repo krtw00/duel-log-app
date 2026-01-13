@@ -102,7 +102,7 @@ const navItems = [
 ];
 
 const displayEmail = computed(() => {
-  if (!authStore.user) return '';
+  if (!authStore.user || !authStore.user.email) return '';
   return authStore.isStreamerModeEnabled ? maskEmail(authStore.user.email) : authStore.user.email;
 });
 </script>
