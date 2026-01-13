@@ -1,3 +1,10 @@
+## [2.0.10](https://github.com/krtw00/duel-log-app/compare/v2.0.9...v2.0.10) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **docker:** improve Docker Integration Tests reliability ([1d5163c](https://github.com/krtw00/duel-log-app/commit/1d5163c58286e8117c95cb47d5cf39089bccb9f6))
+
 ## [2.0.9](https://github.com/krtw00/duel-log-app/compare/v2.0.8...v2.0.9) (2026-01-13)
 
 
