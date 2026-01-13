@@ -1,3 +1,10 @@
+## [2.0.6](https://github.com/krtw00/duel-log-app/compare/v2.0.5...v2.0.6) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **alembic:** detect schema state to correctly stamp merge migration ([24c4114](https://github.com/krtw00/duel-log-app/commit/24c41141710aedc6e9f90eef9bbccb1f437bd42b))
+
 ## [2.0.5](https://github.com/krtw00/duel-log-app/compare/v2.0.4...v2.0.5) (2026-01-13)
 
 
