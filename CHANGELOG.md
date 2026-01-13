@@ -1,3 +1,10 @@
+## [2.0.4](https://github.com/krtw00/duel-log-app/compare/v2.0.3...v2.0.4) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **deploy:** resolve alembic multiple heads and optimize build ([0ee9adc](https://github.com/krtw00/duel-log-app/commit/0ee9adca47af90db6b1ae00bf50717bc708b099f))
+
 ## [2.0.3](https://github.com/krtw00/duel-log-app/compare/v2.0.2...v2.0.3) (2026-01-13)
 
 
