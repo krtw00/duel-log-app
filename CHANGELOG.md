@@ -1,3 +1,10 @@
+## [2.0.14](https://github.com/krtw00/duel-log-app/compare/v2.0.13...v2.0.14) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** add JIT Provisioning for Supabase users ([132917d](https://github.com/krtw00/duel-log-app/commit/132917dd2f025214a4bdafd6ec34f3780104feff))
+
 ## [2.0.13](https://github.com/krtw00/duel-log-app/compare/v2.0.12...v2.0.13) (2026-01-13)
 
 
