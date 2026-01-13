@@ -299,12 +299,19 @@ def fix_alembic_version_if_needed():
                         # スタンプするリビジョンを決定
                         stamp_target = None
 
-                        # opponent_deck_id が存在する場合、Branch B側にいる
+                        # opponent_deck_id が存在する場合、Branch B側にいる（最新）
                         if column_name == "opponent_deck_id":
-                            # マージマイグレーション e2f3g4h5i6j7 にスタンプ
-                            stamp_target = "e2f3g4h5i6j7"
+                            # 現在のバージョンがheadでない場合はheadにスタンプ
+                            # マイグレーション履歴に関係なく、スキーマが最新状態なのでheadを使用
+                            stamp_target = "head"
                             logger.info(
-                                f"   Schema matches Branch B (current). Stamping to merge revision: {stamp_target}"
+                                f"   Schema has 'opponent_deck_id' (current state). Stamping to head."
+                            )
+                        elif column_name == "opponentDeck_id":
+                            # 古いカラム名の場合、その前のリビジョンにスタンプ
+                            stamp_target = "5c16ff509f3d"
+                            logger.info(
+                                f"   Schema has 'opponentDeck_id' (old state). Stamping to: {stamp_target}"
                             )
                         elif not current_version:
                             # バージョン情報がない場合は head にスタンプ
@@ -419,9 +426,9 @@ def run_migrations():
     sys.stdout.flush()
     check_for_multiple_heads()
 
-    # テーブルが存在するがバージョンがない/不一致の場合、事前に修復
-    if tables_exist and not current_version:
-        logger.info("🔧 Tables exist but no version found. Fixing before migration...")
+    # テーブルが存在する場合、常にスキーマ状態を確認して修復
+    if tables_exist:
+        logger.info("🔧 Tables exist. Checking schema state before migration...")
         sys.stdout.flush()
         fix_alembic_version_if_needed()
 
