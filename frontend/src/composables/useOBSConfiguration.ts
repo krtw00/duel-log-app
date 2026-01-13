@@ -26,6 +26,10 @@ export function useOBSConfiguration() {
   const urlCopied = ref(false);
   const obsStartId = ref<number | null>(null);
 
+  // OBS専用トークン（バックエンドで発行した短寿命トークン）
+  const obsToken = ref<string>('');
+  const obsTokenExpiresAt = ref<number>(0);
+
   // 設定オプション
   const periodTypeOptions = [
     { title: '月間集計', value: 'monthly' },
@@ -179,18 +183,10 @@ export function useOBSConfiguration() {
    */
   const obsUrl = computed(() => {
     const baseUrl = window.location.origin;
-    // localStorageから直接トークンを取得
-    const accessToken = localStorage.getItem('access_token') || '';
-
-    logger.log('Generating OBS URL');
-    logger.log('Access token exists:', !!accessToken);
-    logger.log('Token length:', accessToken.length);
-    if (accessToken) {
-      logger.log('Token preview:', accessToken.substring(0, 20) + '...');
-    }
+    const token = obsToken.value;
 
     const params = new URLSearchParams({
-      token: accessToken,
+      token,
       period_type: obsPeriodType.value,
       refresh: obsRefreshInterval.value.toString(),
     });
@@ -232,11 +228,39 @@ export function useOBSConfiguration() {
     return url;
   });
 
+  const fetchObsToken = async () => {
+    const now = Date.now();
+    if (obsToken.value && obsTokenExpiresAt.value > now) {
+      return;
+    }
+
+    try {
+      const response = await api.post('/auth/obs-token');
+      const newToken: string | undefined = response.data?.obs_token;
+      const expiresIn: number | undefined = response.data?.expires_in;
+
+      if (!newToken || typeof newToken !== 'string') {
+        throw new Error('トークンの取得に失敗しました');
+      }
+
+      obsToken.value = newToken;
+      obsTokenExpiresAt.value =
+        typeof expiresIn === 'number'
+          ? now + expiresIn * 1000 - 30_000
+          : now + 23 * 60 * 60 * 1000;
+    } catch (error) {
+      logger.error('Failed to fetch OBS token:', error);
+      notificationStore.error('OBS用トークンの取得に失敗しました。再ログインしてください');
+      throw error;
+    }
+  };
+
   /**
    * OBS URLをクリップボードにコピー
    */
   const copyOBSUrl = async () => {
     try {
+      await fetchObsToken();
       await navigator.clipboard.writeText(obsUrl.value);
       urlCopied.value = true;
       notificationStore.success('URLをコピーしました');
@@ -279,6 +303,7 @@ export function useOBSConfiguration() {
     obsUrl,
 
     // Functions
+    fetchObsToken,
     handleDragStart,
     handleDragOver,
     handleDragEnter,
