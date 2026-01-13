@@ -23,7 +23,9 @@ def upgrade() -> None:
         "users",
         sa.Column("supabase_uuid", sa.String(length=36), nullable=True),
     )
-    op.create_index(op.f("ix_users_supabase_uuid"), "users", ["supabase_uuid"], unique=True)
+    op.create_index(
+        op.f("ix_users_supabase_uuid"), "users", ["supabase_uuid"], unique=True
+    )
     # ### end Alembic commands ###
 
 
