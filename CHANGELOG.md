@@ -1,3 +1,10 @@
+## [2.0.20](https://github.com/krtw00/duel-log-app/compare/v2.0.19...v2.0.20) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* correct url normalization regex ([f96a746](https://github.com/krtw00/duel-log-app/commit/f96a74639309058eb0ef6714048f83fbb2d91c73))
+
 ## [2.0.19](https://github.com/krtw00/duel-log-app/compare/v2.0.18...v2.0.19) (2026-01-13)
 
 
