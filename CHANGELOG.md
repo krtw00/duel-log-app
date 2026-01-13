@@ -1,3 +1,15 @@
+## [2.0.3](https://github.com/krtw00/duel-log-app/compare/v2.0.2...v2.0.3) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **backend:** stamp database to head when tables exist but no version recorded ([025936a](https://github.com/krtw00/duel-log-app/commit/025936a9adc0b567b4e637f2a093aa95f8d99b15))
+
+
+### 📝 Documentation
+
+* add Supabase OAuth setup guide and frontend .gitignore ([96e39e2](https://github.com/krtw00/duel-log-app/commit/96e39e2edd5ece3cbaa66033c824ada0bfbf1a4f))
+
 ## [2.0.2](https://github.com/krtw00/duel-log-app/compare/v2.0.1...v2.0.2) (2026-01-13)
 
 
