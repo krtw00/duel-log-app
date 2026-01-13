@@ -5,6 +5,11 @@
 import os
 from unittest.mock import patch
 
+# Supabase設定をテスト用にモック（settingsインポート前に設定）
+os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
+os.environ.setdefault("SUPABASE_ANON_KEY", "test-anon-key")
+os.environ.setdefault("SUPABASE_JWT_SECRET", "test-jwt-secret-for-testing-only-32chars")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine

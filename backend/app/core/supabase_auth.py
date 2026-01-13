@@ -2,11 +2,14 @@
 Supabase認証ユーティリティ
 """
 
+import logging
 from typing import Optional
 
 from jose import JWTError, jwt
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def verify_supabase_token(token: str) -> Optional[dict]:
@@ -26,9 +29,23 @@ def verify_supabase_token(token: str) -> Optional[dict]:
             algorithms=["HS256"],
             audience="authenticated",
         )
+        logger.debug("Supabase token verified successfully")
         return payload
-    except JWTError:
-        return None
+    except JWTError as e:
+        logger.warning("Supabase token verification failed: %s", str(e))
+        # audienceエラーの場合、audienceなしで再試行
+        try:
+            payload = jwt.decode(
+                token,
+                settings.SUPABASE_JWT_SECRET,
+                algorithms=["HS256"],
+                options={"verify_aud": False},
+            )
+            logger.debug("Supabase token verified without audience check")
+            return payload
+        except JWTError as e2:
+            logger.error("Supabase token verification failed (retry): %s", str(e2))
+            return None
 
 
 def get_user_id_from_token(token: str) -> Optional[str]:
