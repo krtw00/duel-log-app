@@ -33,7 +33,9 @@ class Settings(BaseSettings):
     # Supabase設定
     SUPABASE_URL: str = Field(..., description="SupabaseプロジェクトURL")
     SUPABASE_ANON_KEY: str = Field(..., description="Supabase匿名キー（公開キー）")
-    SUPABASE_JWT_SECRET: str = Field(..., description="Supabase JWT署名検証用シークレット")
+    SUPABASE_JWT_SECRET: str = Field(
+        ..., description="Supabase JWT署名検証用シークレット"
+    )
 
     # CORS設定
     CORS_ORIGINS: List[str] = Field(
@@ -52,12 +54,8 @@ class Settings(BaseSettings):
 
     # メール設定 (オプション - 旧パスワードリセット機能用)
     # 注: Supabase Auth移行後は使用されていません
-    MAIL_USERNAME: str = Field(
-        default="", description="メールユーザー名（未使用）"
-    )
-    MAIL_PASSWORD: str = Field(
-        default="", description="メールパスワード（未使用）"
-    )
+    MAIL_USERNAME: str = Field(default="", description="メールユーザー名（未使用）")
+    MAIL_PASSWORD: str = Field(default="", description="メールパスワード（未使用）")
     MAIL_FROM: str = Field(
         default="noreply@example.com", description="送信元メールアドレス（未使用）"
     )
@@ -65,9 +63,15 @@ class Settings(BaseSettings):
     MAIL_SERVER: str = Field(
         default="smtp.example.com", description="メールサーバーのホスト（未使用）"
     )
-    MAIL_STARTTLS: bool = Field(default=True, description="STARTTLSを使用するかどうか（未使用）")
-    MAIL_SSL_TLS: bool = Field(default=False, description="SSL/TLSを使用するかどうか（未使用）")
-    MAIL_FROM_NAME: str = Field(default="Duel Log App", description="送信元名（未使用）")
+    MAIL_STARTTLS: bool = Field(
+        default=True, description="STARTTLSを使用するかどうか（未使用）"
+    )
+    MAIL_SSL_TLS: bool = Field(
+        default=False, description="SSL/TLSを使用するかどうか（未使用）"
+    )
+    MAIL_FROM_NAME: str = Field(
+        default="Duel Log App", description="送信元名（未使用）"
+    )
     RESEND_API_KEY: str = Field(default="", description="Resend APIキー（未使用）")
 
     # ログ設定

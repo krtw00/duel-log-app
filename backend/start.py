@@ -280,17 +280,21 @@ def fix_alembic_version_if_needed():
                             logger.info("   No version found in alembic_version table")
 
                         # opponent_deck_id カラムの存在確認（スキーマ状態の判定）
-                        cur.execute("""
+                        cur.execute(
+                            """
                             SELECT column_name
                             FROM information_schema.columns
                             WHERE table_name = 'duels'
                             AND column_name IN ('opponent_deck_id', 'opponentDeck_id')
-                        """)
+                        """
+                        )
                         column_result = cur.fetchone()
                         column_name = column_result[0] if column_result else None
 
                         if column_name:
-                            logger.info(f"   Detected column in duels table: {column_name}")
+                            logger.info(
+                                f"   Detected column in duels table: {column_name}"
+                            )
 
                         # スタンプするリビジョンを決定
                         stamp_target = None
@@ -299,7 +303,9 @@ def fix_alembic_version_if_needed():
                         if column_name == "opponent_deck_id":
                             # マージマイグレーション e2f3g4h5i6j7 にスタンプ
                             stamp_target = "e2f3g4h5i6j7"
-                            logger.info(f"   Schema matches Branch B (current). Stamping to merge revision: {stamp_target}")
+                            logger.info(
+                                f"   Schema matches Branch B (current). Stamping to merge revision: {stamp_target}"
+                            )
                         elif not current_version:
                             # バージョン情報がない場合は head にスタンプ
                             stamp_target = "head"
@@ -314,15 +320,21 @@ def fix_alembic_version_if_needed():
                                     capture_output=True,
                                     text=True,
                                 )
-                                logger.info(f"   ✅ Database stamped successfully to {stamp_target}")
+                                logger.info(
+                                    f"   ✅ Database stamped successfully to {stamp_target}"
+                                )
                             except subprocess.CalledProcessError as stamp_e:
-                                logger.error(f"   ❌ Failed to stamp database: {stamp_e.stderr}")
+                                logger.error(
+                                    f"   ❌ Failed to stamp database: {stamp_e.stderr}"
+                                )
                                 raise
                             except FileNotFoundError:
                                 logger.error("   ❌ 'alembic' command not found.")
                                 raise
                         else:
-                            logger.info("   No stamping needed, current version is valid")
+                            logger.info(
+                                "   No stamping needed, current version is valid"
+                            )
 
                         sys.stdout.flush()
                     except Exception as e:
