@@ -1,9 +1,11 @@
 """
 セキュリティ関連のユーティリティ関数
 パスワードのハッシュ化、JWT生成・検証など
+
+注意: メイン認証はSupabase Authに移行済み。
+このファイルにはOBSトークン生成とレガシー互換性のための関数を残しています。
 """
 
-import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
@@ -14,13 +16,6 @@ from app.core.config import settings
 
 # bcryptは最大72バイトまでしか扱えない
 MAX_BCRYPT_BYTES = 72
-
-
-def generate_password_reset_token() -> str:
-    """
-    安全なランダム文字列でパスワードリセットトークンを生成する
-    """
-    return secrets.token_urlsafe(32)
 
 
 def _truncate_password(password: str) -> str:
