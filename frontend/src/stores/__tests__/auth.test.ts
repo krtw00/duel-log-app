@@ -157,7 +157,7 @@ describe('authStore', () => {
 
     const authStore = useAuthStore();
     await expect(authStore.login('test@example.com', 'wrongpassword')).rejects.toThrow(
-      'メールアドレスまたはパスワードが正しくありません'
+      'メールアドレスまたはパスワードが正しくありません',
     );
 
     expect(authStore.user).toBeNull();

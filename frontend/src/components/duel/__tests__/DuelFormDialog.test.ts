@@ -104,7 +104,13 @@ describe('DuelFormDialog.vue', () => {
       update_date: '2023-01-01T12:00:00Z',
       user_id: 'user-uuid-1',
       deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 'user-uuid-1' },
-      opponent_deck: { id: 2, name: 'Opponent Deck', is_opponent: true, active: true, user_id: 'user-uuid-1' },
+      opponent_deck: {
+        id: 2,
+        name: 'Opponent Deck',
+        is_opponent: true,
+        active: true,
+        user_id: 'user-uuid-1',
+      },
     };
 
     const wrapper = mount(DuelFormDialog, {
@@ -141,7 +147,13 @@ describe('DuelFormDialog.vue', () => {
       update_date: '2023-01-01T12:00:00Z',
       user_id: 'user-uuid-1',
       deck: { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 'user-uuid-1' },
-      opponent_deck: { id: 2, name: 'Opponent Deck', is_opponent: true, active: true, user_id: 'user-uuid-1' },
+      opponent_deck: {
+        id: 2,
+        name: 'Opponent Deck',
+        is_opponent: true,
+        active: true,
+        user_id: 'user-uuid-1',
+      },
     };
 
     const wrapper = mount(DuelFormDialog, {
@@ -253,7 +265,13 @@ describe('DuelFormDialog.vue', () => {
   });
 
   it('prefills decks in create mode and filters by current user', async () => {
-    const myDeck = { id: 1, name: 'My Deck', is_opponent: false, active: true, user_id: 'user-uuid-1' };
+    const myDeck = {
+      id: 1,
+      name: 'My Deck',
+      is_opponent: false,
+      active: true,
+      user_id: 'user-uuid-1',
+    };
     const otherUsersMyDeck = {
       id: 999,
       name: 'Other My Deck',
