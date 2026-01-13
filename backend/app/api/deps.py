@@ -9,7 +9,7 @@ from fastapi import Cookie, Depends, Header
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ForbiddenException, UnauthorizedException
-from app.core.security import decode_access_token
+from app.core.supabase_auth import verify_supabase_token
 from app.db.session import get_db
 from app.models.user import User
 
@@ -63,23 +63,20 @@ def get_current_user(
 
     logger.debug("Access token received (length: %d)", len(token))
 
-    # トークンをデコード
-    payload = decode_access_token(token)
+    # Supabase JWTトークンを検証
+    payload = verify_supabase_token(token)
     if payload is None:
         raise UnauthorizedException(message="トークンが無効または期限切れです")
 
-    # ペイロードからユーザーIDを取得
-    user_id: Optional[str] = payload.get("sub")
-    if user_id is None:
+    # ペイロードからSupabase UUIDを取得
+    supabase_uuid: Optional[str] = payload.get("sub")
+    if supabase_uuid is None:
         raise UnauthorizedException(message="トークンにユーザーIDが含まれていません")
 
-    # データベースからユーザーを取得
-    try:
-        user_id_int = int(user_id)
-    except ValueError as e:
-        raise UnauthorizedException(message="ユーザーIDの形式が不正です") from e
+    logger.debug("Supabase UUID from token: %s", supabase_uuid)
 
-    user = db.query(User).filter(User.id == user_id_int).first()
+    # データベースからユーザーを取得（Supabase UUIDで検索）
+    user = db.query(User).filter(User.supabase_uuid == supabase_uuid).first()
 
     if user is None:
         raise UnauthorizedException(message="ユーザーが見つかりません")
