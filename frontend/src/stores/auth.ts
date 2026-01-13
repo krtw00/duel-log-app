@@ -8,10 +8,10 @@ import type { User, Session, Provider } from '@supabase/supabase-js';
 const logger = createLogger('Auth');
 
 const joinUrl = (base: string, path: string) =>
-  `${base.replace(/\\/+$/, '')}/${path.replace(/^\\/+/, '')}`;
+  `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 
 const normalizeApiBase = (raw: string) =>
-  raw.trim().replace('://localhost', '://127.0.0.1').replace(/\\/+$/, '');
+  raw.trim().replace('://localhost', '://127.0.0.1').replace(/\/+$/, '');
 
 const clearLegacyBackendCookie = async () => {
   const rawBase = import.meta.env.VITE_API_URL ?? '/api';
