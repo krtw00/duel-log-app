@@ -40,13 +40,18 @@ onMounted(async () => {
 
     // detectSessionInUrl: trueにより、Supabaseが自動でコードを処理している可能性がある
     // まず既存のセッションを確認
-    console.log('[AuthCallback] Checking for existing session (detectSessionInUrl may have processed code)...');
+    console.log(
+      '[AuthCallback] Checking for existing session (detectSessionInUrl may have processed code)...',
+    );
     statusMessage.value = 'セッションを確認中...';
 
     const { data: existingSession, error: sessionError } = await supabase.auth.getSession();
 
     console.log('[AuthCallback] getSession result - error:', sessionError);
-    console.log('[AuthCallback] getSession result - session:', existingSession?.session ? 'present' : 'missing');
+    console.log(
+      '[AuthCallback] getSession result - session:',
+      existingSession?.session ? 'present' : 'missing',
+    );
 
     if (sessionError) {
       console.error('[AuthCallback] Session check error:', sessionError);
@@ -74,7 +79,10 @@ onMounted(async () => {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       console.log('[AuthCallback] Exchange result - error:', error);
-      console.log('[AuthCallback] Exchange result - session:', data?.session ? 'present' : 'missing');
+      console.log(
+        '[AuthCallback] Exchange result - session:',
+        data?.session ? 'present' : 'missing',
+      );
 
       if (error) {
         console.error('[AuthCallback] Code exchange error:', error);
