@@ -1,0 +1,2 @@
+origin	https://github.com/krtw00/duel-log-app.git (fetch)
+origin	https://github.com/krtw00/duel-log-app.git (push)
