@@ -1,3 +1,10 @@
+## [2.0.19](https://github.com/krtw00/duel-log-app/compare/v2.0.18...v2.0.19) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* use obs token for overlay ([a2c0b95](https://github.com/krtw00/duel-log-app/commit/a2c0b9526fd8c151808cb94c576cc628b4201ce6))
+
 ## [2.0.18](https://github.com/krtw00/duel-log-app/compare/v2.0.17...v2.0.18) (2026-01-13)
 
 
