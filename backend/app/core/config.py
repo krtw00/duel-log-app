@@ -52,28 +52,6 @@ class Settings(BaseSettings):
         default="http://localhost:5173", description="フロントエンドのURL"
     )
 
-    # メール設定 (オプション - 旧パスワードリセット機能用)
-    # 注: Supabase Auth移行後は使用されていません
-    MAIL_USERNAME: str = Field(default="", description="メールユーザー名（未使用）")
-    MAIL_PASSWORD: str = Field(default="", description="メールパスワード（未使用）")
-    MAIL_FROM: str = Field(
-        default="noreply@example.com", description="送信元メールアドレス（未使用）"
-    )
-    MAIL_PORT: int = Field(default=587, description="メールサーバーのポート（未使用）")
-    MAIL_SERVER: str = Field(
-        default="smtp.example.com", description="メールサーバーのホスト（未使用）"
-    )
-    MAIL_STARTTLS: bool = Field(
-        default=True, description="STARTTLSを使用するかどうか（未使用）"
-    )
-    MAIL_SSL_TLS: bool = Field(
-        default=False, description="SSL/TLSを使用するかどうか（未使用）"
-    )
-    MAIL_FROM_NAME: str = Field(
-        default="Duel Log App", description="送信元名（未使用）"
-    )
-    RESEND_API_KEY: str = Field(default="", description="Resend APIキー（未使用）")
-
     # ログ設定
     LOG_LEVEL: str = Field(default="INFO", description="ログレベル")
 
