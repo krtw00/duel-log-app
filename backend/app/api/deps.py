@@ -10,8 +10,8 @@ from fastapi import Cookie, Depends, Header, Query
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ForbiddenException, UnauthorizedException
-from app.core.supabase_auth import verify_supabase_token
 from app.core.security import decode_access_token
+from app.core.supabase_auth import verify_supabase_token
 from app.db.session import get_db
 from app.models.user import User
 
@@ -160,7 +160,7 @@ def get_current_user(
             user = _create_user_from_supabase(db, supabase_uuid, email, username)
         except Exception as e:
             logger.error("JIT Provisioning failed: %s", str(e))
-            raise UnauthorizedException(message="ユーザーの作成に失敗しました")
+            raise UnauthorizedException(message="ユーザーの作成に失敗しました") from e
 
     return user
 
@@ -226,8 +226,8 @@ def get_obs_overlay_user(
         sub = app_payload.get("sub")
         try:
             user_id = int(sub)
-        except (TypeError, ValueError):
-            raise UnauthorizedException(message="トークンが不正です")
+        except (TypeError, ValueError) as e:
+            raise UnauthorizedException(message="トークンが不正です") from e
 
         user = db.query(User).filter(User.id == user_id).first()
         if user is None:
@@ -258,7 +258,7 @@ def get_obs_overlay_user(
             user = _create_user_from_supabase(db, supabase_uuid, email, username)
         except Exception as e:
             logger.error("JIT Provisioning failed (OBS overlay): %s", str(e))
-            raise UnauthorizedException(message="ユーザーの作成に失敗しました")
+            raise UnauthorizedException(message="ユーザーの作成に失敗しました") from e
 
     return user
 
