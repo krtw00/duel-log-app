@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
+from app.api.deps import get_obs_overlay_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.duel import DuelWithDeckNames
@@ -274,7 +275,7 @@ def get_obs_statistics(
         None, description="開始ID（このID以降のデータのみ）"
     ),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_obs_overlay_user),
 ):
     """
     OBSオーバーレイ用の統計情報を取得

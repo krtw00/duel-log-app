@@ -6,11 +6,12 @@ import logging
 import secrets
 from typing import Optional
 
-from fastapi import Cookie, Depends, Header
+from fastapi import Cookie, Depends, Header, Query
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ForbiddenException, UnauthorizedException
 from app.core.supabase_auth import verify_supabase_token
+from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.user import User
 
@@ -191,6 +192,77 @@ def get_current_user_optional(
         return None
 
 
+def get_obs_overlay_user(
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+) -> User:
+    """
+    OBSオーバーレイ向けのユーザー取得
+
+    優先順位:
+    1) クエリ `token`（OBS URL に埋め込む）
+    2) Authorization ヘッダー（Bearer）
+
+    受け入れるトークン:
+    - OBS専用トークン（/auth/obs-token が発行する、scope=obs_overlay のアプリJWT）
+    - （互換）Supabase JWT（通常ログイン時のアクセストークン）
+    """
+    raw_token: Optional[str] = None
+
+    if token:
+        raw_token = token
+    elif authorization:
+        parts = authorization.split()
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            raw_token = parts[1]
+
+    if not raw_token:
+        raise UnauthorizedException(message="認証されていません")
+
+    # 1) OBS専用トークン（アプリJWT）として検証
+    app_payload = decode_access_token(raw_token)
+    if app_payload is not None and app_payload.get("scope") == "obs_overlay":
+        sub = app_payload.get("sub")
+        try:
+            user_id = int(sub)
+        except (TypeError, ValueError):
+            raise UnauthorizedException(message="トークンが不正です")
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise UnauthorizedException(message="ユーザーが見つかりません")
+        return user
+
+    # 2) Supabase JWTとして検証（互換）
+    supabase_payload = verify_supabase_token(raw_token)
+    if supabase_payload is None:
+        raise UnauthorizedException(message="トークンが無効または期限切れです")
+
+    supabase_uuid: Optional[str] = supabase_payload.get("sub")
+    if supabase_uuid is None:
+        raise UnauthorizedException(message="トークンにユーザーIDが含まれていません")
+
+    user = db.query(User).filter(User.supabase_uuid == supabase_uuid).first()
+    if user is None:
+        logger.info(
+            "User not found for Supabase UUID: %s, attempting JIT provisioning (OBS overlay)",
+            supabase_uuid,
+        )
+        email: Optional[str] = supabase_payload.get("email")
+        user_metadata = supabase_payload.get("user_metadata", {})
+        username: Optional[str] = (
+            user_metadata.get("username") if isinstance(user_metadata, dict) else None
+        )
+        try:
+            user = _create_user_from_supabase(db, supabase_uuid, email, username)
+        except Exception as e:
+            logger.error("JIT Provisioning failed (OBS overlay): %s", str(e))
+            raise UnauthorizedException(message="ユーザーの作成に失敗しました")
+
+    return user
+
+
 def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
     """
     現在のユーザーが管理者であるかを確認する
@@ -213,5 +285,6 @@ __all__ = [
     "get_db",
     "get_current_user",
     "get_current_user_optional",
+    "get_obs_overlay_user",
     "get_admin_user",
 ]
