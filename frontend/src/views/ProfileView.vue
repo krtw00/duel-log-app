@@ -327,8 +327,8 @@ const actualEmail = ref('');
 onMounted(() => {
   if (authStore.user) {
     form.value.username = authStore.user.username;
-    actualEmail.value = authStore.user.email;
-    form.value.email = authStore.user.email;
+    actualEmail.value = authStore.user.email ?? '';
+    form.value.email = authStore.user.email ?? '';
     form.value.streamerMode = authStore.user.streamer_mode;
     form.value.enableScreenAnalysis = authStore.user.enable_screen_analysis;
   }

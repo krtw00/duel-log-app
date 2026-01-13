@@ -64,7 +64,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotificationStore } from '@/stores/notification';
 import { createLogger } from '@/utils/logger';
-import api from '@/services/api';
+import { supabase } from '@/lib/supabase';
 
 const logger = createLogger('ForgotPassword');
 const router = useRouter();
@@ -86,12 +86,22 @@ const handleForgotPassword = async () => {
   loading.value = true;
 
   try {
-    await api.post('/auth/forgot-password', { email: email.value });
-    notificationStore.success('パスワード再設定の案内をメールで送信しました。');
-    router.push('/login'); // ログインページに戻る
+    // Supabaseのパスワードリセットメール送信
+    const redirectUrl = `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
+      redirectTo: redirectUrl,
+    });
+
+    if (error) {
+      logger.error('Forgot password error', error);
+      notificationStore.error('パスワードリセットメールの送信に失敗しました');
+    } else {
+      notificationStore.success('パスワード再設定の案内をメールで送信しました。');
+      router.push('/login');
+    }
   } catch (error: unknown) {
-    // エラーはAPIインターセプターで処理されるため、ここでは何もしない
-    logger.error('Forgot password error');
+    logger.error('Forgot password error', error);
+    notificationStore.error('予期せぬエラーが発生しました');
   } finally {
     loading.value = false;
   }
