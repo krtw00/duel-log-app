@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/krtw00/duel-log-app/compare/v2.0.1...v2.0.2) (2026-01-13)
+
+
+### ♻️ Code Refactoring
+
+* **config:** メール関連の環境変数をオプションに変更 ([c24ccbe](https://github.com/krtw00/duel-log-app/commit/c24ccbece21b513d389167e11595fe97c6077589))
+
 ## [2.0.1](https://github.com/krtw00/duel-log-app/compare/v2.0.0...v2.0.1) (2026-01-13)
 
 
