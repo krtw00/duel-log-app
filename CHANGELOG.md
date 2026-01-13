@@ -1,3 +1,10 @@
+## [2.0.16](https://github.com/krtw00/duel-log-app/compare/v2.0.15...v2.0.16) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** switch to PyJWT for Supabase token verification ([05facec](https://github.com/krtw00/duel-log-app/commit/05facecedae1f36662550997a987ffe59594c3b0))
+
 ## [2.0.15](https://github.com/krtw00/duel-log-app/compare/v2.0.14...v2.0.15) (2026-01-13)
 
 
