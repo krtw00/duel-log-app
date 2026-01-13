@@ -1,24 +1,51 @@
+# ========================================
+# ビルドステージ：依存関係のコンパイル
+# ========================================
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+# ビルドツールのインストール
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# 依存関係のインストール（wheelとして保存）
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# ========================================
+# 実行ステージ：最小限の本番イメージ
+# ========================================
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Set PYTHONPATH to include the current directory, making 'app' discoverable
-ENV PYTHONPATH=/app
+# PYTHONPATH設定
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# システム依存関係のインストール（PostgreSQLクライアントを含む）
+# ランタイム依存関係のみインストール（gccは不要）
 RUN apt-get update && \
-    apt-get install -y gcc libpq-dev postgresql-client && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+    libpq5 \
+    postgresql-client && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Pythonパッケージのインストール
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# ビルドステージからPythonパッケージをコピー
+COPY --from=builder /root/.local /root/.local
 
-# アプリケーションコードのコピー
-COPY ./app ./app
+# PATHに.localを追加
+ENV PATH=/root/.local/bin:$PATH
+
+# アプリケーションコードのコピー（レイヤーキャッシュ最適化）
 COPY alembic.ini .
 COPY alembic ./alembic
 COPY start.py .
+COPY ./app ./app
 
 # 起動スクリプトに実行権限付与
 RUN chmod +x start.py
