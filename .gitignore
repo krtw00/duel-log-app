@@ -61,3 +61,5 @@ ml-training/data/
 ml-training/models/
 ml-training/venv/
 frontend/public/ml-traning/
+.vercel
+.env*.local
