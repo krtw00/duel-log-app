@@ -177,7 +177,12 @@ export function useScreenCaptureAnalysis() {
       coinLose: coinLose.templateSet ? Object.keys(coinLose.templateSet) : null,
       win: win.templateSet ? Object.keys(win.templateSet) : null,
       lose: lose.templateSet ? Object.keys(lose.templateSet) : null,
-      errors: { coinWin: coinWin.error, coinLose: coinLose.error, win: win.error, lose: lose.error },
+      errors: {
+        coinWin: coinWin.error,
+        coinLose: coinLose.error,
+        win: win.error,
+        lose: lose.error,
+      },
     });
 
     const hasTemplates = (set: TemplateSet | null) => !!set && Object.keys(set).length > 0;
@@ -286,14 +291,22 @@ export function useScreenCaptureAnalysis() {
     });
 
     if (frameCount === 1) {
-      const canMatch = image.width >= coinWinTemplate.width && image.height >= coinWinTemplate.height;
-      logger.info(`analyzeTurnChoice: height=${canvas.height}->best=${bestHeight}, rect=${rect.width}x${rect.height}, image=${image.width}x${image.height}, template=${coinWinTemplate.width}x${coinWinTemplate.height}, canMatch=${canMatch}`);
+      const canMatch =
+        image.width >= coinWinTemplate.width && image.height >= coinWinTemplate.height;
+      logger.info(
+        `analyzeTurnChoice: height=${canvas.height}->best=${bestHeight}, rect=${rect.width}x${rect.height}, image=${image.width}x${image.height}, template=${coinWinTemplate.width}x${coinWinTemplate.height}, canMatch=${canMatch}`,
+      );
       // テンプレート統計情報をログ出力（std=0だとマッチング不可能）
-      logger.info(`coinWin template stats: mean=${coinWinTemplate.mean.toFixed(2)}, std=${coinWinTemplate.std.toFixed(2)}, maskSum=${coinWinTemplate.maskSum.toFixed(0)}`);
-      logger.info(`coinLose template stats: mean=${coinLoseTemplate.mean.toFixed(2)}, std=${coinLoseTemplate.std.toFixed(2)}, maskSum=${coinLoseTemplate.maskSum.toFixed(0)}`);
+      logger.info(
+        `coinWin template stats: mean=${coinWinTemplate.mean.toFixed(2)}, std=${coinWinTemplate.std.toFixed(2)}, maskSum=${coinWinTemplate.maskSum.toFixed(0)}`,
+      );
+      logger.info(
+        `coinLose template stats: mean=${coinLoseTemplate.mean.toFixed(2)}, std=${coinLoseTemplate.std.toFixed(2)}, maskSum=${coinLoseTemplate.maskSum.toFixed(0)}`,
+      );
 
       // 画像ROIの輝度分布を確認（デバッグ用）
-      let minVal = 255, maxVal = 0;
+      let minVal = 255,
+        maxVal = 0;
       for (let i = 0; i < image.data.length; i++) {
         if (image.data[i] < minVal) minVal = image.data[i];
         if (image.data[i] > maxVal) maxVal = image.data[i];
@@ -357,7 +370,10 @@ export function useScreenCaptureAnalysis() {
     if (turnChoiceAvailable.value) return;
 
     const currentHeight = canvas.height;
-    const bestHeight = findBestHeight(currentHeight, SCREEN_ANALYSIS_CONFIG.result.supportedHeights);
+    const bestHeight = findBestHeight(
+      currentHeight,
+      SCREEN_ANALYSIS_CONFIG.result.supportedHeights,
+    );
 
     const winTemplate = winTemplateSet[bestHeight.toString()];
     const loseTemplate = loseTemplateSet[bestHeight.toString()];
@@ -368,10 +384,7 @@ export function useScreenCaptureAnalysis() {
     }
 
     const rect = roiToRect(SCREEN_ANALYSIS_CONFIG.result.roi, canvas.width, canvas.height);
-    const scaledSigma = calculateScaledSigma(
-      SCREEN_ANALYSIS_CONFIG.result.blurSigma,
-      bestHeight,
-    );
+    const scaledSigma = calculateScaledSigma(SCREEN_ANALYSIS_CONFIG.result.blurSigma, bestHeight);
     const image = extractAndPreprocess(ctx, rect, {
       downscale: SCREEN_ANALYSIS_CONFIG.result.downscale,
       useEdge: SCREEN_ANALYSIS_CONFIG.result.useEdge,
@@ -379,10 +392,16 @@ export function useScreenCaptureAnalysis() {
     });
 
     if (frameCount === 1) {
-      logger.info(`analyzeResult: rect=${rect.width}x${rect.height}, image=${image.width}x${image.height}, winTemplate=${winTemplate.width}x${winTemplate.height}, loseTemplate=${loseTemplate.width}x${loseTemplate.height}`);
+      logger.info(
+        `analyzeResult: rect=${rect.width}x${rect.height}, image=${image.width}x${image.height}, winTemplate=${winTemplate.width}x${winTemplate.height}, loseTemplate=${loseTemplate.width}x${loseTemplate.height}`,
+      );
       // テンプレート統計情報をログ出力（std=0だとマッチング不可能）
-      logger.info(`win template stats: mean=${winTemplate.mean.toFixed(2)}, std=${winTemplate.std.toFixed(2)}, maskSum=${winTemplate.maskSum.toFixed(0)}`);
-      logger.info(`lose template stats: mean=${loseTemplate.mean.toFixed(2)}, std=${loseTemplate.std.toFixed(2)}, maskSum=${loseTemplate.maskSum.toFixed(0)}`);
+      logger.info(
+        `win template stats: mean=${winTemplate.mean.toFixed(2)}, std=${winTemplate.std.toFixed(2)}, maskSum=${winTemplate.maskSum.toFixed(0)}`,
+      );
+      logger.info(
+        `lose template stats: mean=${loseTemplate.mean.toFixed(2)}, std=${loseTemplate.std.toFixed(2)}, maskSum=${loseTemplate.maskSum.toFixed(0)}`,
+      );
     }
 
     const winScore = matchTemplateNcc(image, winTemplate, SCREEN_ANALYSIS_CONFIG.result.stride);
@@ -429,12 +448,16 @@ export function useScreenCaptureAnalysis() {
     }
     if (!ctx || !canvas || !video) {
       if (frameCount <= 3) {
-        logger.warn(`analyzeFrame early return: ctx=${!!ctx}, canvas=${!!canvas}, video=${!!video}`);
+        logger.warn(
+          `analyzeFrame early return: ctx=${!!ctx}, canvas=${!!canvas}, video=${!!video}`,
+        );
       }
       return;
     }
     if (frameCount % 25 === 1) {
-      logger.info(`Frame ${frameCount}: canvas=${canvas.width}x${canvas.height}, templatesLoaded=${templatesLoaded.value}, scores=${JSON.stringify(lastScores.value)}`);
+      logger.info(
+        `Frame ${frameCount}: canvas=${canvas.width}x${canvas.height}, templatesLoaded=${templatesLoaded.value}, scores=${JSON.stringify(lastScores.value)}`,
+      );
     }
     if (drawParams) {
       ctx.drawImage(
@@ -524,7 +547,9 @@ export function useScreenCaptureAnalysis() {
 
       isRunning.value = true;
       const intervalMs = 1000 / SCREEN_ANALYSIS_CONFIG.scanFps;
-      logger.info(`Setting up analysis interval: ${intervalMs}ms (${SCREEN_ANALYSIS_CONFIG.scanFps} FPS)`);
+      logger.info(
+        `Setting up analysis interval: ${intervalMs}ms (${SCREEN_ANALYSIS_CONFIG.scanFps} FPS)`,
+      );
       intervalId = window.setInterval(analyzeFrame, intervalMs);
     } catch (error) {
       logger.error('Failed to start capture', error);

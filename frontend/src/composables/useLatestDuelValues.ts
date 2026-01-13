@@ -35,7 +35,7 @@ export function useLatestDuelValues() {
   const latestValues = ref<LatestValues>({});
   const authStore = useAuthStore();
 
-  const buildStorageKey = (base: string, userId: number | null) => {
+  const buildStorageKey = (base: string, userId: string | null) => {
     return userId ? `${base}:${userId}` : base;
   };
 

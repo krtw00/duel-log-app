@@ -269,7 +269,10 @@ const fetchStats = async () => {
     loading.value = false;
   } catch (error) {
     const axiosError = error as AxiosError<ApiErrorResponse>;
-    logger.error('Failed to fetch OBS statistics:', axiosError.response?.status || axiosError.message);
+    logger.error(
+      'Failed to fetch OBS statistics:',
+      axiosError.response?.status || axiosError.message,
+    );
 
     // エラーメッセージを設定
     if (axiosError.response?.status === 401) {
