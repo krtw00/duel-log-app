@@ -150,11 +150,16 @@ def get_current_user(
 
     if user is None:
         # JIT Provisioning: ユーザーが見つからない場合は自動作成
-        logger.info("User not found for Supabase UUID: %s, attempting JIT provisioning", supabase_uuid)
+        logger.info(
+            "User not found for Supabase UUID: %s, attempting JIT provisioning",
+            supabase_uuid,
+        )
         email: Optional[str] = payload.get("email")
         # user_metadataからユーザー名を取得（Supabase signup時に設定される）
         user_metadata = payload.get("user_metadata", {})
-        username: Optional[str] = user_metadata.get("username") if isinstance(user_metadata, dict) else None
+        username: Optional[str] = (
+            user_metadata.get("username") if isinstance(user_metadata, dict) else None
+        )
 
         try:
             user = _create_user_from_supabase(db, supabase_uuid, email, username)
