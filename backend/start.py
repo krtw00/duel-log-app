@@ -276,14 +276,26 @@ def fix_alembic_version_if_needed():
                         if current:
                             logger.info(f"   Current version: {current[0]}")
                         else:
-                            logger.info("   No version found, setting to initial")
-                            # バージョンがない場合は初期リビジョンに設定
-                            cur.execute("DELETE FROM alembic_version")
-                            cur.execute(
-                                "INSERT INTO alembic_version (version_num) VALUES ('5c16ff509f3d')"
-                            )
-                            conn.commit()
-                            logger.info("   Set to initial revision: 5c16ff509f3d")
+                            logger.info("   No version found, stamping to head")
+                            logger.info("   (Tables exist, so marking as current)")
+                            sys.stdout.flush()
+                            # テーブルが存在する場合は最新のヘッドにスタンプ
+                            try:
+                                subprocess.run(
+                                    ["alembic", "stamp", "head"],
+                                    check=True,
+                                    capture_output=True,
+                                    text=True,
+                                )
+                                logger.info("   ✅ Database stamped successfully to head.")
+                            except subprocess.CalledProcessError as stamp_e:
+                                logger.error(
+                                    f"   ❌ Failed to stamp database: {stamp_e.stderr}"
+                                )
+                            except FileNotFoundError:
+                                logger.error(
+                                    "   ❌ 'alembic' command not found."
+                                )
                         sys.stdout.flush()
                     except Exception as e:
                         logger.warning(f"   Could not check version: {e}")
