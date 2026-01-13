@@ -1,5 +1,8 @@
 """
 認証関連のPydanticスキーマ定義
+
+注意: パスワードリセットはSupabase Authに移行済み。
+レガシー互換性のためにLoginRequest等は残しています。
 """
 
 from typing import Optional
@@ -8,7 +11,7 @@ from pydantic import BaseModel, EmailStr
 
 
 class LoginRequest(BaseModel):
-    """ログインリクエスト"""
+    """ログインリクエスト（レガシー互換用）"""
 
     email: EmailStr
     password: str
@@ -26,17 +29,3 @@ class TokenData(BaseModel):
 
     user_id: Optional[int] = None
     email: Optional[str] = None
-
-
-class ForgotPasswordRequest(BaseModel):
-    """パスワード再設定リクエスト"""
-
-    email: EmailStr
-
-
-class ResetPasswordRequest(BaseModel):
-    """パスワードリセットリクエスト"""
-
-    token: str
-    new_password: str
-    confirm_password: str
