@@ -18,7 +18,28 @@ const notificationStore = useNotificationStore();
 
 onMounted(async () => {
   try {
-    // URLからセッションを取得
+    // URLからcodeパラメータを取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      // PKCEフロー: codeをセッションに交換
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error('Code exchange error:', error);
+        throw error;
+      }
+
+      if (data.session) {
+        await authStore.fetchUser();
+        notificationStore.success('ログインに成功しました');
+        router.push('/');
+        return;
+      }
+    }
+
+    // codeがない場合は既存のセッションを確認
     const { data, error } = await supabase.auth.getSession();
 
     if (error) {
@@ -26,12 +47,10 @@ onMounted(async () => {
     }
 
     if (data.session) {
-      // セッションがあれば認証成功
       await authStore.fetchUser();
       notificationStore.success('ログインに成功しました');
       router.push('/');
     } else {
-      // セッションがなければログインページへ
       notificationStore.error('認証に失敗しました');
       router.push('/login');
     }
