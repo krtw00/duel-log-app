@@ -2,6 +2,7 @@
 Supabase認証ユーティリティ
 """
 
+import base64
 import logging
 from typing import Optional
 
@@ -10,6 +11,23 @@ from jose import JWTError, jwt
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Supabase JWT secretはBase64エンコードされているため、デコードしてバイト列として使用
+_decoded_jwt_secret: Optional[bytes] = None
+
+
+def _get_decoded_jwt_secret() -> bytes:
+    """
+    Base64エンコードされたJWTシークレットをデコードして返す
+
+    Returns:
+        bytes: デコードされたJWTシークレット
+    """
+    global _decoded_jwt_secret
+    if _decoded_jwt_secret is None:
+        _decoded_jwt_secret = base64.b64decode(settings.SUPABASE_JWT_SECRET)
+        logger.debug("Decoded JWT secret (length: %d bytes)", len(_decoded_jwt_secret))
+    return _decoded_jwt_secret
 
 
 def verify_supabase_token(token: str) -> Optional[dict]:
@@ -22,10 +40,12 @@ def verify_supabase_token(token: str) -> Optional[dict]:
     Returns:
         Optional[dict]: デコードされたペイロード。検証失敗時はNone
     """
+    decoded_secret = _get_decoded_jwt_secret()
+
     try:
         payload = jwt.decode(
             token,
-            settings.SUPABASE_JWT_SECRET,
+            decoded_secret,
             algorithms=["HS256"],
             audience="authenticated",
         )
@@ -37,7 +57,7 @@ def verify_supabase_token(token: str) -> Optional[dict]:
         try:
             payload = jwt.decode(
                 token,
-                settings.SUPABASE_JWT_SECRET,
+                decoded_secret,
                 algorithms=["HS256"],
                 options={"verify_aud": False},
             )
