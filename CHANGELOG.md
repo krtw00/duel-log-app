@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/krtw00/duel-log-app/compare/v3.0.0...v3.0.1) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** upgrade vitest to v4 and fix build config ([c6a8b24](https://github.com/krtw00/duel-log-app/commit/c6a8b24df92358f21502cb0c76a7296e07144d5e))
+
 ## [3.0.0](https://github.com/krtw00/duel-log-app/compare/v2.0.25...v3.0.0) (2026-01-13)
 
 
