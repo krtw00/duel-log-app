@@ -7,6 +7,28 @@ import type { User, Session, Provider } from '@supabase/supabase-js';
 
 const logger = createLogger('Auth');
 
+const joinUrl = (base: string, path: string) =>
+  `${base.replace(/\\/+$/, '')}/${path.replace(/^\\/+/, '')}`;
+
+const normalizeApiBase = (raw: string) =>
+  raw.trim().replace('://localhost', '://127.0.0.1').replace(/\\/+$/, '');
+
+const clearLegacyBackendCookie = async () => {
+  const rawBase = import.meta.env.VITE_API_URL ?? '/api';
+  const base = normalizeApiBase(rawBase);
+  const url = joinUrl(base, '/auth/logout');
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    logger.debug('Failed to clear legacy backend cookie:', error);
+  }
+};
+
 export interface UserProfile {
   id: string;
   email: string | null;
@@ -65,6 +87,10 @@ export const useAuthStore = defineStore('auth', () => {
       logger.debug('Login successful, fetching profile');
       supabaseUser.value = data.user;
       session.value = data.session;
+
+      // 旧バックエンド認証の HttpOnly Cookie が残っていると、
+      // Authorization が付与されないケースで 401→強制ログアウトになるため、ここで削除しておく。
+      await clearLegacyBackendCookie();
 
       // プロフィール情報を取得
       const profile = await fetchProfile(data.user.id);
@@ -202,6 +228,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     try {
       logger.debug('Logging out');
+      clearLegacyBackendCookie();
       await supabase.auth.signOut();
     } catch (error) {
       logger.warn('Logout API call failed, proceeding with client-side cleanup');
