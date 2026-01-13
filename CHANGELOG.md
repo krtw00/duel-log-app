@@ -1,3 +1,10 @@
+## [2.0.8](https://github.com/krtw00/duel-log-app/compare/v2.0.7...v2.0.8) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **lint:** remove unused import and fix import order ([78e95ec](https://github.com/krtw00/duel-log-app/commit/78e95ec17a8ac46e236209859c7aae711a77f77f))
+
 ## [2.0.7](https://github.com/krtw00/duel-log-app/compare/v2.0.6...v2.0.7) (2026-01-13)
 
 
