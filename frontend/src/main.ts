@@ -8,6 +8,22 @@ import './assets/styles/main.scss';
 import './assets/styles/auth.scss';
 import { useAuthStore } from './stores/auth';
 
+// Supabase URLへのプリコネクトを早期に追加（DNS解決・TCP/TLS接続を事前に確立）
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+if (supabaseUrl) {
+  const link = document.createElement('link');
+  link.rel = 'preconnect';
+  link.href = supabaseUrl;
+  link.crossOrigin = 'anonymous';
+  document.head.appendChild(link);
+
+  // DNS-prefetchも追加（フォールバック）
+  const dnsPrefetch = document.createElement('link');
+  dnsPrefetch.rel = 'dns-prefetch';
+  dnsPrefetch.href = supabaseUrl;
+  document.head.appendChild(dnsPrefetch);
+}
+
 const app = createApp(App);
 const pinia = createPinia();
 
