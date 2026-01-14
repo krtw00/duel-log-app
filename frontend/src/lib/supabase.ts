@@ -29,8 +29,8 @@ export const supabase = createClient<Database>(
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      // 二重処理を防ぐため、自動処理を無効化し AuthCallbackView.vue で手動処理
-      detectSessionInUrl: false,
+      // Supabaseが自動でURLから認証パラメータを検出・処理
+      detectSessionInUrl: true,
       flowType: 'pkce',
       // navigator.locks APIのデッドロック問題を回避
       lock: noopLock,
