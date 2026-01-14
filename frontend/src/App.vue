@@ -42,7 +42,7 @@ const route = useRoute();
 // 特定のルートでは初期ローダーを表示しない（AuthCallbackなど）
 const showInitialLoader = computed(() => {
   const skipLoaderRoutes = ['/auth/callback', '/obs-overlay'];
-  return !skipLoaderRoutes.includes(route.path);
+  return !skipLoaderRoutes.includes(route?.path ?? '');
 });
 
 // アプリ起動時にテーマを読み込む
