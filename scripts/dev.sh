@@ -24,9 +24,9 @@ cleanup() {
     echo ""
     echo -e "${YELLOW}Shutting down...${NC}"
 
-    # バックエンドコンテナを停止
-    if [ ! -z "$BACKEND_CONTAINER" ]; then
-        docker stop "$BACKEND_CONTAINER" 2>/dev/null || true
+    # バックエンドプロセスを停止
+    if [ ! -z "$BACKEND_PID" ]; then
+        kill "$BACKEND_PID" 2>/dev/null || true
     fi
 
     # フロントエンドプロセスを停止
@@ -61,6 +61,26 @@ echo ""
 # 2. バックエンドを起動（バックグラウンド）
 echo -e "${GREEN}[2/3] Starting Backend...${NC}"
 
+cd "$BACKEND_DIR"
+
+# Python仮想環境のセットアップ
+if [ ! -d "venv" ]; then
+    echo -e "${YELLOW}      Creating Python virtual environment...${NC}"
+    python3 -m venv venv
+fi
+
+# 仮想環境をアクティベート
+source venv/bin/activate
+
+# 依存関係のインストール（必要な場合）
+if [ ! -f "venv/.installed" ] || [ "requirements.txt" -nt "venv/.installed" ]; then
+    echo -e "${YELLOW}      Installing dependencies...${NC}"
+    pip install -q --upgrade pip
+    pip install -q -r requirements.txt
+    touch venv/.installed
+fi
+
+# 環境変数を設定
 export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:55322/postgres"
 export SUPABASE_URL="http://127.0.0.1:55321"
 export SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
@@ -69,24 +89,12 @@ export SECRET_KEY="hrD0GEww5vtDXQoj/UxNHBXtH+SjgXeOJUNbrIX/l+Y="
 export ENVIRONMENT="development"
 export FRONTEND_URL="http://localhost:5173"
 
-# バックエンドをDockerでバックグラウンド起動
-BACKEND_CONTAINER=$(docker run -d --rm \
-    --name duellog-backend-dev \
-    --network host \
-    -v "$BACKEND_DIR:/app" \
-    -w /app \
-    -e DATABASE_URL \
-    -e SUPABASE_URL \
-    -e SUPABASE_ANON_KEY \
-    -e SUPABASE_JWT_SECRET \
-    -e SECRET_KEY \
-    -e ENVIRONMENT \
-    -e FRONTEND_URL \
-    python:3.11-slim \
-    bash -c "pip install -q -r requirements.txt && python start.py")
+# バックエンドをバックグラウンドで起動
+python start.py &
+BACKEND_PID=$!
 
 echo -e "${YELLOW}      Waiting for backend to start...${NC}"
-sleep 5
+sleep 3
 
 # バックエンドのヘルスチェック
 for i in {1..30}; do
@@ -95,7 +103,7 @@ for i in {1..30}; do
         break
     fi
     if [ $i -eq 30 ]; then
-        echo -e "${RED}      Backend failed to start. Check logs with: docker logs duellog-backend-dev${NC}"
+        echo -e "${RED}      Backend failed to start.${NC}"
         cleanup
         exit 1
     fi
