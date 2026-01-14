@@ -182,16 +182,6 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       logger.debug(`Attempting OAuth login with ${provider}`);
 
-      // OAuth開始前に古いセッションをクリア（二重処理・デッドロック防止）
-      try {
-        await withTimeout(supabase.auth.signOut({ scope: 'local' }), 2000);
-      } catch {
-        logger.debug('Pre-OAuth signOut failed or timed out, continuing...');
-      }
-      clearSupabaseLocalStorage();
-      // 少し待ってからOAuthを開始
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
