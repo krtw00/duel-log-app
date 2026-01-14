@@ -6,19 +6,23 @@ import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import { createTestingPinia } from '@pinia/testing';
 
-// Mock vue-router
-vi.mock('vue-router', () => ({
-  useRoute: () => ({
-    path: '/',
-    name: 'home',
-    params: {},
-    query: {},
-  }),
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-  }),
-}));
+// Mock vue-router partially
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>();
+  return {
+    ...actual,
+    useRoute: () => ({
+      path: '/',
+      name: 'home',
+      params: {},
+      query: {},
+    }),
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+    }),
+  };
+});
 
 const vuetify = createVuetify({
   components,
