@@ -221,9 +221,17 @@ deck = service.get(deck_id, user_id)
 
 **ブランチ戦略:**
 - `main` - 本番環境対応コード（保護されており、PRが必要）
+- `develop` - 開発用ブランチ（日常的な開発はここで行う）
 - フィーチャーブランチ: `feature/説明`
 - バグ修正: `fix/説明`
 - ドキュメント: `docs/説明`
+
+**Claude Code向け開発フロー（重要）:**
+- **開発作業は必ず`develop`ブランチまたは`develop`から切ったブランチで行うこと**
+- **`main`ブランチへの直接コミットは禁止**（マージのみ許可）
+- 作業開始時: `git checkout develop` または `git checkout -b feature/xxx develop`
+- 作業完了後: `develop`にマージ → 必要に応じて`main`にマージ
+- 緊急のhotfix等、特例がある場合はユーザーに確認すること
 
 **コミットメッセージ:**
 [Conventional Commits](https://www.conventionalcommits.org/ja/v1.0.0/)に従う:
