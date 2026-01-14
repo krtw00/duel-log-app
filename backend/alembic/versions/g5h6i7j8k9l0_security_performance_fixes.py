@@ -17,38 +17,14 @@ depends_on = None
 
 def upgrade() -> None:
     # ========================================
-    # 1. RLSを有効化（APIからの直接アクセスをブロック）
-    # バックエンドはpostgresロールで接続するためRLSをバイパス
+    # 注意: RLSの有効化とポリシー最適化は削除しました
+    # - バックエンド専用テーブル（users, decks, duels等）はpostgresロールで
+    #   アクセスするためRLS不要
+    # - profilesのRLSポリシー最適化はSupabase Authとの互換性問題があるため見送り
     # ========================================
-    op.execute("ALTER TABLE users ENABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE decks ENABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE duels ENABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE shared_statistics ENABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE sharedurls ENABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE alembic_version ENABLE ROW LEVEL SECURITY")
 
     # ========================================
-    # 2. profilesテーブルのRLSポリシーを最適化
-    # auth.uid()を(select auth.uid())に変更して毎行の再評価を防止
-    # ========================================
-    # 既存のポリシーを削除
-    op.execute('DROP POLICY IF EXISTS "Users can view their own profile" ON profiles')
-    op.execute('DROP POLICY IF EXISTS "Users can update their own profile" ON profiles')
-
-    # 最適化されたポリシーを作成
-    op.execute("""
-        CREATE POLICY "Users can view their own profile"
-        ON profiles FOR SELECT
-        USING (id = (SELECT auth.uid()))
-    """)
-    op.execute("""
-        CREATE POLICY "Users can update their own profile"
-        ON profiles FOR UPDATE
-        USING (id = (SELECT auth.uid()))
-    """)
-
-    # ========================================
-    # 3. 関数のsearch_pathを固定
+    # 1. 関数のsearch_pathを固定
     # ========================================
     # handle_new_user関数を再作成
     op.execute("""
@@ -122,20 +98,6 @@ def downgrade() -> None:
         "CREATE INDEX IF NOT EXISTS ix_shared_statistics_id ON shared_statistics(id)"
     )
 
-    # RLSポリシーを元に戻す（非最適化版）
-    op.execute('DROP POLICY IF EXISTS "Users can view their own profile" ON profiles')
-    op.execute('DROP POLICY IF EXISTS "Users can update their own profile" ON profiles')
-    op.execute("""
-        CREATE POLICY "Users can view their own profile"
-        ON profiles FOR SELECT
-        USING (id = auth.uid())
-    """)
-    op.execute("""
-        CREATE POLICY "Users can update their own profile"
-        ON profiles FOR UPDATE
-        USING (id = auth.uid())
-    """)
-
     # 関数のsearch_pathを元に戻す（SET search_pathなし）
     op.execute("""
         CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -169,11 +131,3 @@ def downgrade() -> None:
         END;
         $$
     """)
-
-    # RLSを無効化
-    op.execute("ALTER TABLE users DISABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE decks DISABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE duels DISABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE shared_statistics DISABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE sharedurls DISABLE ROW LEVEL SECURITY")
-    op.execute("ALTER TABLE alembic_version DISABLE ROW LEVEL SECURITY")
