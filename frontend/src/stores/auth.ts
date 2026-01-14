@@ -61,7 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
       return null;
     }
 
-    return data as UserProfile;
+    return data as unknown as UserProfile;
   };
 
   /**
