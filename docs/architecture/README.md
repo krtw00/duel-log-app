@@ -15,6 +15,7 @@
 - **[admin-panel-design.md](./admin-panel-design.md)** - 管理者画面の設計、ユーザー管理、システム統計、データベースメンテナンス機能について記述します。
 - **[archive-deck-merge-design.md](./archive-deck-merge-design.md)** - デッキアーカイブ時に同じ名前のデッキを自動でマージする機能の設計について記述します。
 - **[screen-recording-analysis.md](./screen-recording-analysis.md)** - ブラウザの画面録画から、選択権画面と勝敗（VICTORY/LOSE）を検出してイベント化する設計をまとめます。
+- **[opening-hand-analysis-design.md](./opening-hand-analysis-design.md)** - デッキリスト（カード単位）管理と初手カード勝率解析機能の設計について記述します。
 
 ## 🎯 このセクションを読むべき人
 
