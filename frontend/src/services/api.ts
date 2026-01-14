@@ -138,7 +138,7 @@ api.interceptors.response.use(
     const authStore = useAuthStore();
 
     // エラーメッセージの取得
-    let message = 'エラーが発生しました';
+    let message: string;
 
     if (error.response) {
       // サーバーからのレスポンスがある場合
