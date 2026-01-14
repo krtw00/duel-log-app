@@ -33,7 +33,6 @@ export const supabase = createClient<Database>(
       // OAuth コールバック用のリダイレクトURL
       flowType: 'pkce',
       // navigator.locks APIのデッドロック問題を回避
-      // @ts-expect-error lock option exists in runtime but not in types for v2.90
       lock: noopLock,
     },
   },
