@@ -1,10 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import App from './App.vue';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import { createTestingPinia } from '@pinia/testing';
+
+// Mock vue-router
+vi.mock('vue-router', () => ({
+  useRoute: () => ({
+    path: '/',
+    name: 'home',
+    params: {},
+    query: {},
+  }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+  }),
+}));
 
 const vuetify = createVuetify({
   components,
