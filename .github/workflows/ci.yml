@@ -32,7 +32,7 @@ jobs:
       - name: Run tests
         run: pytest --tb=short
         env:
-          DATABASE_URL: "sqlite:///:memory:"
+          DATABASE_URL: "sqlite:///./test.db"
           SECRET_KEY: "ci-github-actions-secret-key-32-chars!"
           ENVIRONMENT: "development"
           SUPABASE_URL: "https://example.supabase.co"
