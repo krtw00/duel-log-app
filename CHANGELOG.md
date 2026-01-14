@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/krtw00/duel-log-app/compare/v3.0.1...v3.0.2) (2026-01-14)
+
+
+### 🐛 Bug Fixes
+
+* **security:** debugログから機密情報の可能性がある出力を削除 ([5812c2e](https://github.com/krtw00/duel-log-app/commit/5812c2e1b62ce5a4e09b71e5be8293179d5bc32a))
+
 ## [3.0.1](https://github.com/krtw00/duel-log-app/compare/v3.0.0...v3.0.1) (2026-01-13)
 
 
