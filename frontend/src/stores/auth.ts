@@ -84,23 +84,38 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       logger.debug('Attempting login with email/password', { isRetry });
 
-      // 5秒のタイムアウトを設定（古いセッションデータによるハングを防ぐ）
+      // 初回ログイン時は、古いセッションが残っている可能性があるのでクリアする
+      if (!isRetry) {
+        try {
+          // ローカルスコープでサインアウト（サーバーには通知しない）
+          await withTimeout(supabase.auth.signOut({ scope: 'local' }), 2000);
+        } catch {
+          // サインアウトに失敗しても続行
+          logger.debug('Pre-login signOut failed or timed out, continuing...');
+        }
+        // ローカルストレージもクリア
+        clearSupabaseLocalStorage();
+        // 少し待ってからログインを試行
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      // 8秒のタイムアウトを設定（古いセッションデータによるハングを防ぐ）
       let data;
       let error;
       try {
         const result = await withTimeout(
           supabase.auth.signInWithPassword({ email, password }),
-          5000,
+          8000,
         );
         data = result.data;
         error = result.error;
       } catch (timeoutError) {
-        // タイムアウトした場合、古いセッションデータが原因の可能性
+        // タイムアウトした場合、さらにストレージをクリアしてリトライ
         if (!isRetry && timeoutError instanceof Error && timeoutError.message.includes('Timeout')) {
-          logger.warn('Login timed out, clearing storage and retrying...');
+          logger.warn('Login timed out after pre-cleanup, retrying with fresh state...');
           clearSupabaseLocalStorage();
-          // 少し待ってから再試行
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          sessionStorage.clear();
+          await new Promise((resolve) => setTimeout(resolve, 200));
           return login(email, password, true);
         }
         throw timeoutError;
