@@ -12,7 +12,6 @@ from app.models import Base
 if TYPE_CHECKING:
     from app.models.deck import Deck
     from app.models.duel import Duel
-    from app.models.password_reset_token import PasswordResetToken
     from app.models.shared_statistics import SharedStatistics
     from app.models.sharedUrl import SharedUrl
 
@@ -61,9 +60,6 @@ class User(Base):
     )
     sharedurls: Mapped[list["SharedUrl"]] = relationship(
         "SharedUrl", back_populates="user", cascade="all, delete-orphan"
-    )
-    password_reset_tokens: Mapped[list["PasswordResetToken"]] = relationship(
-        "PasswordResetToken", back_populates="user", cascade="all, delete-orphan"
     )
     shared_statistics: Mapped[list["SharedStatistics"]] = relationship(
         "SharedStatistics", back_populates="user", cascade="all, delete-orphan"
