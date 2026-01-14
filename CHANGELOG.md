@@ -1,3 +1,15 @@
+## [3.1.1](https://github.com/krtw00/duel-log-app/compare/v3.1.0...v3.1.1) (2026-01-14)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** OAuthコールバック処理を改善 ([e3f970f](https://github.com/krtw00/duel-log-app/commit/e3f970f3c0c150d31fdfe1cdcec2a4905a70ed0f))
+
+
+### 📝 Documentation
+
+* Supabase OAuth設定ガイドを追加 ([76b20e2](https://github.com/krtw00/duel-log-app/commit/76b20e2d93c6796617a69aa94c90ed5899544490))
+
 ## [3.1.0](https://github.com/krtw00/duel-log-app/compare/v3.0.4...v3.1.0) (2026-01-14)
 
 
