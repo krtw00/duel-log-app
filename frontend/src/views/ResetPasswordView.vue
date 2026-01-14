@@ -154,8 +154,8 @@ const handleResetPassword = async () => {
       notificationStore.error(error.message || 'パスワードのリセットに失敗しました');
     } else {
       notificationStore.success('パスワードが正常にリセットされました。');
-      // ログアウトしてログインページへ
-      await supabase.auth.signOut();
+      // ログアウトしてログインページへ（全セッションからサインアウト）
+      await supabase.auth.signOut({ scope: 'global' });
       router.push('/login');
     }
   } catch (error: unknown) {

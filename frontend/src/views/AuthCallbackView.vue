@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { supabase } from '@/lib/supabase';
+import { supabase, clearSupabaseLocalStorage } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 
@@ -16,6 +16,18 @@ const router = useRouter();
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 const statusMessage = ref('認証中...');
+
+/**
+ * タイムアウト付きPromiseラッパー
+ */
+const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs),
+    ),
+  ]);
+};
 
 /**
  * URLからパラメータを取得（クエリパラメータとハッシュフラグメントの両方をチェック）
@@ -42,9 +54,14 @@ const getUrlParams = () => {
  */
 const waitForSession = async (maxAttempts = 10, delayMs = 500): Promise<boolean> => {
   for (let i = 0; i < maxAttempts; i++) {
-    const { data } = await supabase.auth.getSession();
-    if (data?.session) {
-      return true;
+    try {
+      // 各getSession呼び出しにタイムアウトを設定
+      const { data } = await withTimeout(supabase.auth.getSession(), 3000);
+      if (data?.session) {
+        return true;
+      }
+    } catch (error) {
+      console.warn(`[AuthCallback] getSession attempt ${i + 1} failed:`, error);
     }
     console.log(`[AuthCallback] Waiting for session... attempt ${i + 1}/${maxAttempts}`);
     await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -59,6 +76,16 @@ onMounted(async () => {
   console.log('[AuthCallback] Search:', window.location.search);
 
   try {
+    // 古いセッションデータをクリア（navigator.locks APIデッドロック回避）
+    console.log('[AuthCallback] Clearing old session data...');
+    try {
+      await withTimeout(supabase.auth.signOut({ scope: 'local' }), 2000);
+    } catch {
+      console.debug('[AuthCallback] Pre-callback signOut failed or timed out, continuing...');
+    }
+    clearSupabaseLocalStorage();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     const params = getUrlParams();
 
     console.log('[AuthCallback] Parsed params:', {
@@ -97,7 +124,23 @@ onMounted(async () => {
       console.log('[AuthCallback] Code found, exchanging for session...');
       statusMessage.value = 'セッションを確立中...';
 
-      const { data, error } = await supabase.auth.exchangeCodeForSession(params.code);
+      // 8秒のタイムアウトを設定（古いセッションデータによるハングを防ぐ）
+      let data;
+      let error;
+      try {
+        const result = await withTimeout(
+          supabase.auth.exchangeCodeForSession(params.code),
+          8000,
+        );
+        data = result.data;
+        error = result.error;
+      } catch (timeoutError) {
+        console.error('[AuthCallback] Code exchange timed out:', timeoutError);
+        // タイムアウト時は再度クリアしてエラーを投げる
+        clearSupabaseLocalStorage();
+        sessionStorage.clear();
+        throw new Error('認証がタイムアウトしました。もう一度お試しください。');
+      }
 
       if (error) {
         console.error('[AuthCallback] Code exchange error:', error);
@@ -118,7 +161,7 @@ onMounted(async () => {
     console.log('[AuthCallback] Checking for existing session...');
     statusMessage.value = 'セッションを確認中...';
 
-    const { data: existingSession } = await supabase.auth.getSession();
+    const { data: existingSession } = await withTimeout(supabase.auth.getSession(), 3000).catch(() => ({ data: null }));
 
     if (existingSession?.session) {
       console.log('[AuthCallback] Existing session found');
