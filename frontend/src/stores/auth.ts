@@ -317,13 +317,16 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const fetchUser = async () => {
     try {
+      const startTime = performance.now();
       logger.debug('Fetching current session');
 
-      // 5秒のタイムアウトを設定（ネットワーク問題でのハングを防ぐ）
+      // 10秒のタイムアウトを設定
+      const getSessionStart = performance.now();
       const {
         data: { session: currentSession },
         error,
-      } = await withTimeout(supabase.auth.getSession(), 5000);
+      } = await withTimeout(supabase.auth.getSession(), 10000);
+      logger.debug(`getSession completed in ${(performance.now() - getSessionStart).toFixed(0)}ms`);
 
       if (error) {
         throw error;
@@ -342,9 +345,11 @@ export const useAuthStore = defineStore('auth', () => {
       supabaseUser.value = currentSession.user;
       session.value = currentSession;
 
-      // プロフィール取得にも3秒のタイムアウトを設定
+      // プロフィール取得にも10秒のタイムアウトを設定
       try {
-        const profile = await withTimeout(fetchProfile(currentSession.user.id), 3000);
+        const profileStart = performance.now();
+        const profile = await withTimeout(fetchProfile(currentSession.user.id), 10000);
+        logger.debug(`fetchProfile completed in ${(performance.now() - profileStart).toFixed(0)}ms`);
         if (profile) {
           user.value = profile;
         } else {
@@ -378,6 +383,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       isInitialized.value = true;
+      logger.debug(`fetchUser total: ${(performance.now() - startTime).toFixed(0)}ms`);
     } catch (error) {
       logger.debug('Failed to fetch session:', error);
       user.value = null;
