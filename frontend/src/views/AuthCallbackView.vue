@@ -17,72 +17,87 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 const statusMessage = ref('認証中...');
 
+/**
+ * URLからパラメータを取得（クエリパラメータとハッシュフラグメントの両方をチェック）
+ */
+const getUrlParams = () => {
+  // クエリパラメータをチェック
+  const searchParams = new URLSearchParams(window.location.search);
+
+  // ハッシュフラグメントをチェック（#access_token=... or #code=... 形式）
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+
+  return {
+    code: searchParams.get('code') || hashParams.get('code'),
+    accessToken: hashParams.get('access_token'),
+    refreshToken: hashParams.get('refresh_token'),
+    error: searchParams.get('error') || hashParams.get('error'),
+    errorDescription:
+      searchParams.get('error_description') || hashParams.get('error_description'),
+  };
+};
+
+/**
+ * セッションを待機（detectSessionInUrlが処理するのを待つ）
+ */
+const waitForSession = async (maxAttempts = 10, delayMs = 500): Promise<boolean> => {
+  for (let i = 0; i < maxAttempts; i++) {
+    const { data } = await supabase.auth.getSession();
+    if (data?.session) {
+      return true;
+    }
+    console.log(`[AuthCallback] Waiting for session... attempt ${i + 1}/${maxAttempts}`);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  return false;
+};
+
 onMounted(async () => {
   console.log('[AuthCallback] Component mounted');
   console.log('[AuthCallback] Current URL:', window.location.href);
+  console.log('[AuthCallback] Hash:', window.location.hash);
+  console.log('[AuthCallback] Search:', window.location.search);
 
   try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const errorParam = urlParams.get('error');
-    const errorDescription = urlParams.get('error_description');
+    const params = getUrlParams();
 
-    console.log('[AuthCallback] URL params - code:', code ? 'present' : 'missing');
-    console.log('[AuthCallback] URL params - error:', errorParam);
+    console.log('[AuthCallback] Parsed params:', {
+      code: params.code ? 'present' : 'missing',
+      accessToken: params.accessToken ? 'present' : 'missing',
+      error: params.error,
+    });
 
     // OAuthエラーチェック
-    if (errorParam) {
-      console.error('[AuthCallback] OAuth error:', errorParam, errorDescription);
-      notificationStore.error(errorDescription || 'OAuth認証エラーが発生しました');
-      router.push('/login');
+    if (params.error) {
+      console.error('[AuthCallback] OAuth error:', params.error, params.errorDescription);
+      notificationStore.error(params.errorDescription || 'OAuth認証エラーが発生しました');
+      await router.push('/login');
       return;
     }
 
-    // detectSessionInUrl: trueにより、Supabaseが自動でコードを処理している可能性がある
-    // まず既存のセッションを確認
-    console.log(
-      '[AuthCallback] Checking for existing session (detectSessionInUrl may have processed code)...',
-    );
-    statusMessage.value = 'セッションを確認中...';
-
-    const { data: existingSession, error: sessionError } = await supabase.auth.getSession();
-
-    console.log('[AuthCallback] getSession result - error:', sessionError);
-    console.log(
-      '[AuthCallback] getSession result - session:',
-      existingSession?.session ? 'present' : 'missing',
-    );
-
-    if (sessionError) {
-      console.error('[AuthCallback] Session check error:', sessionError);
-      throw sessionError;
-    }
-
-    // セッションが既に存在する場合（detectSessionInUrlが処理済み）
-    if (existingSession?.session) {
-      console.log('[AuthCallback] Session already established, fetching user...');
-      statusMessage.value = 'ユーザー情報を取得中...';
-
-      await authStore.fetchUser();
-
-      console.log('[AuthCallback] User fetched, redirecting to dashboard...');
-      notificationStore.success('ログインに成功しました');
-      await router.push('/');
-      return;
-    }
-
-    // セッションがない場合、コードがあれば手動で交換を試みる
-    if (code) {
-      console.log('[AuthCallback] No session yet, exchanging code for session...');
+    // ハッシュフラグメントにアクセストークンがある場合（implicit flow）
+    // detectSessionInUrlが自動で処理するはずなので、セッションを待機
+    if (params.accessToken || window.location.hash.includes('access_token')) {
+      console.log('[AuthCallback] Access token in hash, waiting for Supabase to process...');
       statusMessage.value = 'セッションを確立中...';
 
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      const hasSession = await waitForSession();
+      if (hasSession) {
+        console.log('[AuthCallback] Session established via hash fragment');
+        statusMessage.value = 'ユーザー情報を取得中...';
+        await authStore.fetchUser();
+        notificationStore.success('ログインに成功しました');
+        await router.push('/');
+        return;
+      }
+    }
 
-      console.log('[AuthCallback] Exchange result - error:', error);
-      console.log(
-        '[AuthCallback] Exchange result - session:',
-        data?.session ? 'present' : 'missing',
-      );
+    // PKCEフローのコードがある場合
+    if (params.code) {
+      console.log('[AuthCallback] Code found, exchanging for session...');
+      statusMessage.value = 'セッションを確立中...';
+
+      const { data, error } = await supabase.auth.exchangeCodeForSession(params.code);
 
       if (error) {
         console.error('[AuthCallback] Code exchange error:', error);
@@ -90,26 +105,53 @@ onMounted(async () => {
       }
 
       if (data.session) {
-        console.log('[AuthCallback] Session established, fetching user...');
+        console.log('[AuthCallback] Session established via code exchange');
         statusMessage.value = 'ユーザー情報を取得中...';
-
         await authStore.fetchUser();
-
-        console.log('[AuthCallback] User fetched, redirecting to dashboard...');
         notificationStore.success('ログインに成功しました');
         await router.push('/');
         return;
       }
     }
 
-    // コードもセッションもない場合
-    console.log('[AuthCallback] No session and no code, redirecting to login...');
-    notificationStore.error('認証に失敗しました');
+    // 既存セッションをチェック（ページリロード時など）
+    console.log('[AuthCallback] Checking for existing session...');
+    statusMessage.value = 'セッションを確認中...';
+
+    const { data: existingSession } = await supabase.auth.getSession();
+
+    if (existingSession?.session) {
+      console.log('[AuthCallback] Existing session found');
+      statusMessage.value = 'ユーザー情報を取得中...';
+      await authStore.fetchUser();
+      notificationStore.success('ログインに成功しました');
+      await router.push('/');
+      return;
+    }
+
+    // 何も見つからない場合、少し待ってからもう一度チェック
+    console.log('[AuthCallback] No immediate session, waiting for detectSessionInUrl...');
+    statusMessage.value = 'セッションを待機中...';
+
+    const hasSession = await waitForSession(5, 300);
+    if (hasSession) {
+      console.log('[AuthCallback] Session found after waiting');
+      statusMessage.value = 'ユーザー情報を取得中...';
+      await authStore.fetchUser();
+      notificationStore.success('ログインに成功しました');
+      await router.push('/');
+      return;
+    }
+
+    // 最終的にセッションが見つからない場合
+    console.log('[AuthCallback] No session found, redirecting to login');
+    notificationStore.error('認証に失敗しました。もう一度お試しください。');
     await router.push('/login');
   } catch (error) {
     console.error('[AuthCallback] Error:', error);
     statusMessage.value = 'エラーが発生しました';
-    notificationStore.error('認証処理中にエラーが発生しました');
+    const errorMessage = error instanceof Error ? error.message : '認証処理中にエラーが発生しました';
+    notificationStore.error(errorMessage);
     await router.push('/login');
   }
 });
