@@ -112,6 +112,13 @@ onMounted(async () => {
     // PKCEフローのコードがある場合
     if (params.code) {
       console.log('[AuthCallback] Code found, exchanging for session...');
+
+      // PKCEのcode_verifierが存在するか確認（デバッグ用）
+      const codeVerifierKeys = Object.keys(localStorage).filter((key) =>
+        key.includes('code-verifier'),
+      );
+      console.log('[AuthCallback] Code verifier keys in localStorage:', codeVerifierKeys);
+
       statusMessage.value = 'セッションを確立中...';
 
       // 8秒のタイムアウトを設定（古いセッションデータによるハングを防ぐ）
