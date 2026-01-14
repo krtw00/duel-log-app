@@ -20,6 +20,7 @@ docs/
 ├── guides/                 📋 開発ガイドライン
 │   ├── development-guide.md
 │   ├── environment-setup.md
+│   ├── local-development.md
 │   └── development-tutorial.md
 │
 ├── design/                 💡 設計思想・ベストプラクティス
@@ -40,9 +41,10 @@ docs/
 ## 🎯 クイックスタート
 
 ### 🆕 新規開発者の方
-1. **[guides/environment-setup.md](./guides/environment-setup.md)** - 開発環境をセットアップ
-2. **[guides/development-guide.md](./guides/development-guide.md)** - ブランチ戦略とワークフローを理解
-3. **[architecture/](./architecture/)** - システムアーキテクチャを学習
+1. **[guides/local-development.md](./guides/local-development.md)** - ローカル開発環境をセットアップ
+2. **[guides/environment-setup.md](./guides/environment-setup.md)** - 環境変数を設定
+3. **[guides/development-guide.md](./guides/development-guide.md)** - ブランチ戦略とワークフローを理解
+4. **[architecture/](./architecture/)** - システムアーキテクチャを学習
 
 ### 👨‍💻 既存開発者の方
 - **[guides/development-guide.md](./guides/development-guide.md)** - コミット規約やブランチ戦略の確認
@@ -90,6 +92,7 @@ docs/
 開発を始めるために必要な環境構築、ブランチ戦略、コーディング規約について説明します。
 
 **含まれる内容:**
+- ローカルSupabase環境での開発方法
 - 環境変数設定とセットアップ手順
 - ブランチ戦略（main/develop/フィーチャーブランチ）
 - Git ワークフロー（Conventional Commits）
@@ -176,7 +179,8 @@ docs/
 
 | 探している情報 | 読むべきドキュメント |
 |--------------|------------------|
-| 環境構築方法 | [guides/environment-setup.md](./guides/environment-setup.md) |
+| ローカル開発環境 | [guides/local-development.md](./guides/local-development.md) |
+| 環境変数設定 | [guides/environment-setup.md](./guides/environment-setup.md) |
 | ブランチ戦略、Git ワークフロー | [guides/development-guide.md](./guides/development-guide.md) |
 | コーディング規約 | [.claude/coding-rules.md](../.claude/coding-rules.md) |
 | API仕様 | [api/api-reference.md](./api/api-reference.md) |
