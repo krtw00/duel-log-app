@@ -1,27 +1,49 @@
 <template>
-  <div class="login-container">
-    <!-- 背景装飾 -->
-    <div class="background-overlay">
-      <div class="grid-pattern"></div>
-      <div class="glow-orb glow-orb-1"></div>
-      <div class="glow-orb glow-orb-2"></div>
+  <div class="login-page">
+    <!-- デスクトップ: 左側ブランディング -->
+    <div class="branding-section">
+      <div class="branding-content">
+        <h1 class="app-title">
+          <span class="title-duel">DUEL</span>
+          <span class="title-log">LOG</span>
+        </h1>
+        <p class="app-subtitle">Track. Analyze. Dominate.</p>
+
+        <div class="features-list">
+          <div class="feature-item">
+            <v-icon color="#00d9ff" size="20">mdi-chart-line</v-icon>
+            <span>詳細な統計分析</span>
+          </div>
+          <div class="feature-item">
+            <v-icon color="#b536ff" size="20">mdi-cards</v-icon>
+            <span>デッキ管理・相性分析</span>
+          </div>
+          <div class="feature-item">
+            <v-icon color="#4ade80" size="20">mdi-monitor</v-icon>
+            <span>OBS配信連携</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 背景装飾 -->
+      <div class="branding-bg-decor">
+        <div class="glow-orb glow-orb-1"></div>
+        <div class="glow-orb glow-orb-2"></div>
+      </div>
     </div>
 
-    <!-- ログインカード -->
-    <v-card class="login-card" elevation="24">
-      <div class="card-glow"></div>
+    <!-- 右側（モバイルでは全体）: フォーム -->
+    <div class="form-section">
+      <!-- モバイル用ヘッダー -->
+      <div class="mobile-header">
+        <h1 class="mobile-title">
+          <span class="title-duel">DUEL</span>
+          <span class="title-log">LOG</span>
+        </h1>
+        <p class="mobile-subtitle">Track. Analyze. Dominate.</p>
+      </div>
 
-      <v-card-text class="pa-8">
-        <!-- ロゴ・タイトル -->
-        <div class="text-center mb-8">
-          <h1 class="app-title">
-            <span class="text-primary">DUEL</span>
-            <span class="text-secondary">LOG</span>
-          </h1>
-          <p class="app-subtitle">Track. Analyze. Dominate.</p>
-        </div>
-
-        <!-- ログインフォーム -->
+      <div class="form-container">
         <v-form ref="formRef" @submit.prevent="handleLogin">
           <v-text-field
             v-model="email"
@@ -34,8 +56,7 @@
             :rules="[rules.required, rules.email]"
             class="mb-2"
             :class="{ 'streamer-mode-input': localStreamerMode }"
-            :hint="localStreamerMode ? '配信者モードが有効なため、入力内容は非表示になります' : ''"
-            persistent-hint
+            density="comfortable"
             autocomplete="email"
           />
 
@@ -50,10 +71,10 @@
             color="primary"
             :rules="[rules.required]"
             class="mb-4"
+            density="comfortable"
             @click:append-inner="showPassword = !showPassword"
           />
 
-          <!-- ログインボタン -->
           <v-btn
             type="submit"
             block
@@ -66,86 +87,104 @@
             ログイン
           </v-btn>
 
-          <!-- OAuth ログイン -->
+          <!-- OAuth -->
           <div class="oauth-divider mb-4">
             <v-divider />
-            <span class="oauth-divider-text">または</span>
+            <span class="oauth-text">または</span>
             <v-divider />
           </div>
 
           <div class="oauth-buttons mb-4">
-            <v-btn
-              block
-              size="large"
-              variant="outlined"
-              class="oauth-btn google-btn mb-2"
-              :loading="oauthLoading === 'google'"
-              :disabled="loading || !!oauthLoading"
-              @click="handleOAuthLogin('google')"
-            >
-              <v-icon start>mdi-google</v-icon>
-              Googleでログイン
-            </v-btn>
+            <v-tooltip text="Googleでログイン" location="bottom">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  variant="outlined"
+                  class="oauth-btn google-btn"
+                  :loading="oauthLoading === 'google'"
+                  :disabled="loading || !!oauthLoading"
+                  @click="handleOAuthLogin('google')"
+                >
+                  <v-icon>mdi-google</v-icon>
+                </v-btn>
+              </template>
+            </v-tooltip>
 
-            <v-btn
-              block
-              size="large"
-              variant="outlined"
-              class="oauth-btn discord-btn"
-              :loading="oauthLoading === 'discord'"
-              :disabled="loading || !!oauthLoading"
-              @click="handleOAuthLogin('discord')"
-            >
-              <svg
-                class="discord-icon mr-2"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"
-                />
-              </svg>
-              Discordでログイン
-            </v-btn>
+            <v-tooltip text="Discordでログイン" location="bottom">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  variant="outlined"
+                  class="oauth-btn discord-btn"
+                  :loading="oauthLoading === 'discord'"
+                  :disabled="loading || !!oauthLoading"
+                  @click="handleOAuthLogin('discord')"
+                >
+                  <svg
+                    class="discord-icon"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"
+                    />
+                  </svg>
+                </v-btn>
+              </template>
+            </v-tooltip>
           </div>
 
-          <!-- 配信者モード切り替え -->
-          <div class="mb-4">
-            <v-switch v-model="localStreamerMode" color="purple" density="compact" hide-details>
-              <template #label>
-                <div class="d-flex align-center">
-                  <v-icon size="small" class="mr-2">mdi-video</v-icon>
-                  <span class="text-caption">配信者モード</span>
-                </div>
-              </template>
-            </v-switch>
-            <p class="text-caption text-grey ml-8 mt-1">
-              入力内容を非表示にし、再ログイン時にメールアドレスを保持します
-            </p>
+          <!-- 新規登録（目立たせる） -->
+          <div class="register-section mb-4">
+            <p class="register-label">アカウントをお持ちでない方</p>
+            <v-btn
+              to="/register"
+              block
+              variant="tonal"
+              color="secondary"
+              class="register-btn"
+            >
+              <v-icon start>mdi-account-plus</v-icon>
+              新規登録
+            </v-btn>
           </div>
 
           <!-- リンク -->
-          <div class="text-center">
-            <router-link to="/forgot-password" class="text-caption text-grey"
-              >パスワードを忘れた場合</router-link
-            >
-            <v-divider class="my-3" />
-            <p class="text-caption text-grey">
-              アカウントをお持ちでない方は
-              <router-link to="/register" class="text-secondary">新規登録</router-link>
-            </p>
-            <v-divider class="my-3" />
-            <p class="text-caption text-grey">
-              ログインすることで
-              <a class="terms-link" @click="showTermsDialog = true">利用規約</a>
-              に同意したものとみなされます
-            </p>
+          <div class="links-section">
+            <router-link to="/forgot-password" class="link-item">パスワードを忘れた場合</router-link>
           </div>
+
+          <!-- 配信者モード（コンパクト） -->
+          <v-tooltip text="配信中にメールアドレスを非表示にします" location="bottom">
+            <template #activator="{ props }">
+              <div v-bind="props" class="streamer-toggle">
+                <v-switch
+                  v-model="localStreamerMode"
+                  color="purple"
+                  density="compact"
+                  hide-details
+                  inline
+                >
+                  <template #label>
+                    <v-icon size="16" class="mr-1">mdi-video</v-icon>
+                    <span>配信者モード</span>
+                  </template>
+                </v-switch>
+              </div>
+            </template>
+          </v-tooltip>
+
+          <!-- 利用規約 -->
+          <p class="terms-text">
+            ログインすることで
+            <a class="terms-link" @click="showTermsDialog = true">利用規約</a>
+            に同意したものとみなされます
+          </p>
         </v-form>
-      </v-card-text>
-    </v-card>
+      </div>
+    </div>
 
     <!-- 利用規約モーダル -->
     <v-dialog v-model="showTermsDialog" max-width="800px" scrollable>
@@ -308,7 +347,6 @@ const oauthLoading = ref<string | null>(null);
 const localStreamerMode = ref(authStore.localStreamerMode);
 const showTermsDialog = ref(false);
 
-// ローカルストレージから最後のメールアドレスを読み込む
 onMounted(() => {
   const savedEmail = localStorage.getItem('lastEmail');
   if (savedEmail) {
@@ -316,7 +354,6 @@ onMounted(() => {
   }
 });
 
-// ローカル配信者モードの変更を監視してストアに反映
 watch(localStreamerMode, (newValue) => {
   authStore.toggleStreamerMode(newValue);
 });
@@ -333,9 +370,7 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    // ログイン前にメールアドレスをローカルストレージに保存
     localStorage.setItem('lastEmail', email.value);
-
     await authStore.login(email.value, password.value);
     notificationStore.success('ログインに成功しました');
   } catch (error: unknown) {
@@ -351,7 +386,6 @@ const handleOAuthLogin = async (provider: Provider) => {
 
   try {
     await authStore.loginWithOAuth(provider);
-    // OAuth はリダイレクトするので、ここには戻ってこない
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
     notificationStore.error(errorMessage);
@@ -361,69 +395,117 @@ const handleOAuthLogin = async (provider: Provider) => {
 </script>
 
 <style scoped lang="scss">
-.login-container {
+.login-page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
   background: rgb(var(--v-theme-background));
 }
 
-.background-overlay {
+// ========================================
+// 左側: ブランディングセクション
+// ========================================
+.branding-section {
+  display: none;
+  width: 50%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  position: relative;
+  overflow: hidden;
+
+  @media (min-width: 900px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.branding-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 40px;
+}
+
+.app-title {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+}
+
+.title-duel {
+  color: #00d9ff;
+  text-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+}
+
+.title-log {
+  color: #b536ff;
+  text-shadow: 0 0 30px rgba(181, 54, 255, 0.5);
+}
+
+.app-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+  }
+}
+
+.branding-bg-decor {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 0;
-}
-
-.grid-pattern {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image:
-    linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridScroll 20s linear infinite;
-}
-
-@keyframes gridScroll {
-  0% {
-    transform: translate(0, 0);
-  }
-  100% {
-    transform: translate(50px, 50px);
-  }
+  z-index: 1;
 }
 
 .glow-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15;
-  animation: float 8s ease-in-out infinite;
+  filter: blur(100px);
+  opacity: 0.3;
+  animation: float 10s ease-in-out infinite;
 }
 
 .glow-orb-1 {
-  width: 400px;
-  height: 400px;
+  width: 300px;
+  height: 300px;
   background: #00d9ff;
   top: 10%;
   left: 10%;
-  animation-delay: 0s;
 }
 
 .glow-orb-2 {
-  width: 300px;
-  height: 300px;
+  width: 250px;
+  height: 250px;
   background: #b536ff;
-  bottom: 15%;
-  right: 15%;
-  animation-delay: -4s;
+  bottom: 10%;
+  right: 10%;
+  animation-delay: -5s;
 }
 
 @keyframes float {
@@ -432,62 +514,55 @@ const handleOAuthLogin = async (provider: Provider) => {
     transform: translate(0, 0);
   }
   50% {
-    transform: translate(30px, 30px);
+    transform: translate(20px, 20px);
   }
 }
 
-.login-card {
-  position: relative;
-  z-index: 1;
+// ========================================
+// 右側: フォームセクション
+// ========================================
+.form-section {
   width: 100%;
-  max-width: 450px;
-  margin: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 16px !important;
-  overflow: hidden;
-}
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
 
-.card-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #00d9ff, #b536ff, #ff2d95);
-  animation: shimmer 3s linear infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.5;
+  @media (min-width: 900px) {
+    width: 50%;
+    padding: 48px;
   }
 }
 
-.app-title {
-  font-size: 3rem;
+// モバイル用ヘッダー
+.mobile-header {
+  text-align: center;
+  margin-bottom: 32px;
+
+  @media (min-width: 900px) {
+    display: none;
+  }
+}
+
+.mobile-title {
+  font-size: 2.5rem;
   font-weight: 900;
   letter-spacing: 2px;
-  margin: 0;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #00d9ff 0%, #b536ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
-.app-subtitle {
+.mobile-subtitle {
   color: rgba(var(--v-theme-on-surface), 0.6);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   letter-spacing: 3px;
   text-transform: uppercase;
-  margin-top: 8px;
+  margin-top: 4px;
+}
+
+// フォームコンテナ
+.form-container {
+  width: 100%;
+  max-width: 380px;
 }
 
 .login-btn {
@@ -501,69 +576,125 @@ const handleOAuthLogin = async (provider: Provider) => {
   }
 }
 
-// OAuth Divider
+// OAuth
 .oauth-divider {
   display: flex;
   align-items: center;
   gap: 16px;
-
-  .oauth-divider-text {
-    color: rgba(var(--v-theme-on-surface), 0.5);
-    font-size: 0.875rem;
-    white-space: nowrap;
-  }
 }
 
-// OAuth Buttons
+.oauth-text {
+  color: rgba(var(--v-theme-on-surface), 0.5);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
 .oauth-buttons {
-  .oauth-btn {
-    font-weight: 500;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-    }
-  }
-
-  .google-btn {
-    border-color: rgba(66, 133, 244, 0.5);
-    color: #4285f4;
-
-    &:hover {
-      background: rgba(66, 133, 244, 0.1);
-      border-color: #4285f4;
-    }
-  }
-
-  .discord-btn {
-    border-color: rgba(88, 101, 242, 0.5);
-    color: #5865f2;
-
-    &:hover {
-      background: rgba(88, 101, 242, 0.1);
-      border-color: #5865f2;
-    }
-
-    .discord-icon {
-      flex-shrink: 0;
-    }
-  }
+  display: flex;
+  gap: 12px;
+  justify-content: center;
 }
 
-:deep(.v-field--variant-outlined) {
-  border-radius: 8px;
+.oauth-btn {
+  flex: 1;
+  max-width: 120px;
+  height: 48px !important;
   transition: all 0.3s ease;
 
   &:hover {
-    box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
-  }
-
-  &.v-field--focused {
-    box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
+    transform: translateY(-2px);
   }
 }
 
-// 配信者モード用のスタイル
+.google-btn {
+  border-color: rgba(66, 133, 244, 0.5);
+  color: #4285f4;
+
+  &:hover {
+    background: rgba(66, 133, 244, 0.1);
+    border-color: #4285f4;
+  }
+}
+
+.discord-btn {
+  border-color: rgba(88, 101, 242, 0.5);
+  color: #5865f2;
+
+  &:hover {
+    background: rgba(88, 101, 242, 0.1);
+    border-color: #5865f2;
+  }
+}
+
+// 新規登録セクション
+.register-section {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--v-theme-on-surface), 0.1);
+}
+
+.register-label {
+  font-size: 0.85rem;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  margin-bottom: 12px;
+}
+
+.register-btn {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+// リンク
+.links-section {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+}
+
+.link-item {
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: rgb(var(--v-theme-primary));
+  }
+}
+
+// 配信者モード
+.streamer-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  :deep(.v-switch) {
+    .v-label {
+      font-size: 0.8rem;
+      color: rgba(var(--v-theme-on-surface), 0.6);
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
+// 利用規約
+.terms-text {
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.5);
+}
+
+.terms-link {
+  color: rgb(var(--v-theme-primary));
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// 配信者モード入力スタイル
 .streamer-mode-input {
   :deep(input) {
     color: transparent !important;
@@ -575,7 +706,6 @@ const handleOAuthLogin = async (provider: Provider) => {
       color: transparent;
     }
 
-    // プレースホルダーは表示
     &::placeholder {
       color: rgba(228, 231, 236, 0.3) !important;
       text-shadow: none;
@@ -584,21 +714,7 @@ const handleOAuthLogin = async (provider: Provider) => {
   }
 }
 
-// 利用規約リンクのスタイル
-.terms-link {
-  color: rgb(var(--v-theme-primary));
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid transparent;
-
-  &:hover {
-    border-bottom-color: rgb(var(--v-theme-primary));
-    opacity: 0.8;
-  }
-}
-
-// 利用規約モーダルのコンテンツスタイル
+// 利用規約モーダル
 .terms-content {
   h3 {
     color: rgb(var(--v-theme-primary));
@@ -620,5 +736,31 @@ const handleOAuthLogin = async (provider: Provider) => {
       margin-bottom: 8px;
     }
   }
+}
+
+// テキストフィールドのスタイル
+:deep(.v-field--variant-outlined) {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
+  }
+
+  &.v-field--focused {
+    box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
+  }
+}
+
+</style>
+
+<!-- グローバルスタイル（ツールチップ用） -->
+<style lang="scss">
+.v-tooltip > .v-overlay__content {
+  background: rgba(30, 30, 30, 0.95) !important;
+  color: #ffffff !important;
+  font-size: 0.8rem !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
 }
 </style>
