@@ -228,16 +228,27 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     try {
       logger.debug('Logging out');
-      clearLegacyBackendCookie();
-      await supabase.auth.signOut();
+      await clearLegacyBackendCookie();
+      // scope: 'global' で全てのセッション（他デバイス含む）からサインアウト
+      await supabase.auth.signOut({ scope: 'global' });
     } catch (error) {
-      logger.warn('Logout API call failed, proceeding with client-side cleanup');
+      logger.warn('Logout API call failed, proceeding with client-side cleanup:', error);
     } finally {
       user.value = null;
       supabaseUser.value = null;
       session.value = null;
       isInitialized.value = true;
       sessionStorage.clear();
+
+      // Supabaseのセッションデータを確実にクリア（signOutが失敗した場合の保険）
+      try {
+        const supabaseKeys = Object.keys(localStorage).filter(
+          (key) => key.startsWith('sb-') || key.includes('supabase'),
+        );
+        supabaseKeys.forEach((key) => localStorage.removeItem(key));
+      } catch (e) {
+        logger.debug('Failed to clear localStorage:', e);
+      }
 
       window.location.assign('/login');
     }

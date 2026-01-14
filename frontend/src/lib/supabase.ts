@@ -20,6 +20,10 @@ export const supabase = createClient<Database>(
       detectSessionInUrl: true,
       // OAuth コールバック用のリダイレクトURL
       flowType: 'pkce',
+      // ロック取得のタイムアウト（ミリ秒）- 古いセッションデータによるハングを防ぐ
+      lock: {
+        acquireTimeoutMs: 5000,
+      },
     },
   },
 );
