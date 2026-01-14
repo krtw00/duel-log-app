@@ -1,3 +1,25 @@
+## [3.1.0](https://github.com/krtw00/duel-log-app/compare/v3.0.4...v3.1.0) (2026-01-14)
+
+
+### ✨ Features
+
+* **backend:** Supabase Auth対応のダミーデータ生成スクリプトを実装 ([29cd095](https://github.com/krtw00/duel-log-app/commit/29cd09583c2efcfaf42a9b6e60420ff5c0ff986c))
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** upgrade vitest to v4 and fix build config ([ff9cd90](https://github.com/krtw00/duel-log-app/commit/ff9cd909939dcd2039660e9d338b669cb80bb94a))
+
+
+### 📝 Documentation
+
+* Git運用フローにClaude Code向け開発ルールを追加 ([2b24e93](https://github.com/krtw00/duel-log-app/commit/2b24e9393e8b528349cce00e52ad47a967b68ae7))
+
+
+### ♻️ Code Refactoring
+
+* Docker開発環境を廃止しローカルSupabase環境に移行 ([8ac9548](https://github.com/krtw00/duel-log-app/commit/8ac954869cdf5ac7c50fffc2b677c57c20904ea0))
+
 ## [3.0.4](https://github.com/krtw00/duel-log-app/compare/v3.0.3...v3.0.4) (2026-01-14)
 
 
