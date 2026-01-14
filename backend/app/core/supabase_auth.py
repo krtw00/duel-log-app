@@ -144,10 +144,10 @@ def _get_jwt_secret_candidates() -> list[tuple[str, str | bytes]]:
     _jwt_secret_candidates = candidates
     logger.info(
         "Supabase JWT secret loaded (candidates=%d, raw_length=%d)",
-        len(candidates),
+        len(_jwt_secret_candidates),
         len(secret_raw),
     )
-    return candidates
+    return _jwt_secret_candidates
 
 
 def _verify_with_es256(token: str) -> Optional[dict]:
@@ -205,7 +205,7 @@ def _verify_with_hs256(token: str) -> Optional[dict]:
                 algorithms=["HS256"],
                 audience="authenticated",
             )
-            logger.debug("Supabase token verified with HS256 (key=%s)", label)
+            logger.debug("Supabase token verified with HS256 (method=%s)", label)
             return payload
         except jwt.InvalidAudienceError:
             try:
@@ -216,7 +216,7 @@ def _verify_with_hs256(token: str) -> Optional[dict]:
                     options={"verify_aud": False},
                 )
                 logger.debug(
-                    "Supabase token verified with HS256 without audience check (key=%s)",
+                    "Supabase token verified with HS256 without audience check (method=%s)",
                     label,
                 )
                 return payload
@@ -229,9 +229,9 @@ def _verify_with_hs256(token: str) -> Optional[dict]:
 
     if last_error is not None:
         logger.debug(
-            "HS256 verification failed: %s (keys_tried=%s)",
-            str(last_error),
-            [label for label, _ in secrets],
+            "HS256 verification failed: %s (methods_tried=%d)",
+            type(last_error).__name__,
+            len(secrets),
         )
     return None
 

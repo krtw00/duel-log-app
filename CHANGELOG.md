@@ -1,3 +1,53 @@
+## [3.0.2](https://github.com/krtw00/duel-log-app/compare/v3.0.1...v3.0.2) (2026-01-14)
+
+
+### 🐛 Bug Fixes
+
+* **security:** debugログから機密情報の可能性がある出力を削除 ([5812c2e](https://github.com/krtw00/duel-log-app/commit/5812c2e1b62ce5a4e09b71e5be8293179d5bc32a))
+
+## [3.0.1](https://github.com/krtw00/duel-log-app/compare/v3.0.0...v3.0.1) (2026-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **frontend:** upgrade vitest to v4 and fix build config ([c6a8b24](https://github.com/krtw00/duel-log-app/commit/c6a8b24df92358f21502cb0c76a7296e07144d5e))
+
+## [3.0.0](https://github.com/krtw00/duel-log-app/compare/v2.0.25...v3.0.0) (2026-01-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **auth:** Remove password reset endpoints from backend
+
+- Remove /auth/forgot-password and /auth/reset-password endpoints
+  (now handled by Supabase Auth in frontend)
+- Remove /auth/login endpoint (Supabase Auth handles authentication)
+- Keep /auth/logout for legacy cookie clearing
+- Keep /auth/obs-token for OBS overlay authentication
+- Remove PasswordResetToken model and migration to drop table
+- Remove Resend email service dependency
+- Remove mail-related settings from config
+- Update tests to reflect removed functionality
+
+Frontend already uses Supabase Auth for password reset flow.
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### ✨ Features
+
+* **backend:** add Supabase Auth support ([f8f71f5](https://github.com/krtw00/duel-log-app/commit/f8f71f5f214ae46309a06b2857531be967673c35))
+* **frontend:** add streamer popup window feature ([82c3e4e](https://github.com/krtw00/duel-log-app/commit/82c3e4eb771dca2a0cde22e0af80ef185e5c4658))
+
+
+### 🐛 Bug Fixes
+
+* **types:** auth user型にenable_screen_analysisを追加 ([8c88d2a](https://github.com/krtw00/duel-log-app/commit/8c88d2a7f58d9c69060bd56e22f9bac3bea01ecc))
+
+
+### ♻️ Code Refactoring
+
+* **auth:** migrate from Resend to Supabase Auth ([560d8a0](https://github.com/krtw00/duel-log-app/commit/560d8a0e579f62f5a5554b93d80bd60d3013c549))
+
 ## [2.0.25](https://github.com/krtw00/duel-log-app/compare/v2.0.24...v2.0.25) (2026-01-13)
 
 
