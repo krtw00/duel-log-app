@@ -110,11 +110,9 @@ onMounted(async () => {
     }
 
     // PKCEフローのコードがある場合
-    // detectSessionInUrl: true により Supabase が自動的にコード交換を行うため、
-    // 手動で exchangeCodeForSession を呼び出さず、セッション確立を待機する
     if (params.code) {
       const startTime = performance.now();
-      console.log('[AuthCallback] Code found, waiting for Supabase auto-exchange (detectSessionInUrl)...');
+      console.log('[AuthCallback] Code found, exchanging for session...');
 
       // PKCEのcode_verifierが存在するか確認（デバッグ用）
       const codeVerifierKeys = Object.keys(localStorage).filter((key) =>
@@ -124,11 +122,35 @@ onMounted(async () => {
 
       statusMessage.value = 'セッションを確立中...';
 
-      // detectSessionInUrl の自動処理が完了するのを待つ（最大30秒）
-      const hasSession = await waitForSession(60, 500); // 60回 × 500ms = 30秒
+      // 30秒のタイムアウトを設定
+      let data;
+      let error;
+      try {
+        console.log('[AuthCallback] Starting exchangeCodeForSession...');
+        const exchangeStart = performance.now();
+        const result = await withTimeout(
+          supabase.auth.exchangeCodeForSession(params.code),
+          30000,
+        );
+        console.log(`[AuthCallback] exchangeCodeForSession completed in ${(performance.now() - exchangeStart).toFixed(0)}ms`);
+        data = result.data;
+        error = result.error;
+        console.log('[AuthCallback] Result:', { hasSession: !!data?.session, hasError: !!error });
+      } catch (timeoutError) {
+        console.error('[AuthCallback] Code exchange timed out:', timeoutError);
+        // タイムアウト時は再度クリアしてエラーを投げる
+        clearSupabaseLocalStorage();
+        sessionStorage.clear();
+        throw new Error('認証がタイムアウトしました。もう一度お試しください。');
+      }
 
-      if (hasSession) {
-        console.log(`[AuthCallback] Session established via detectSessionInUrl (${(performance.now() - startTime).toFixed(0)}ms)`);
+      if (error) {
+        console.error('[AuthCallback] Code exchange error:', error);
+        throw error;
+      }
+
+      if (data.session) {
+        console.log(`[AuthCallback] Session established (${(performance.now() - startTime).toFixed(0)}ms)`);
         statusMessage.value = 'ユーザー情報を取得中...';
 
         const fetchStart = performance.now();
@@ -141,8 +163,7 @@ onMounted(async () => {
         await router.push('/');
         return;
       } else {
-        console.error('[AuthCallback] Session not established after waiting');
-        throw new Error('セッションの確立に失敗しました。もう一度お試しください。');
+        console.error('[AuthCallback] No session in response despite no error');
       }
     }
 
