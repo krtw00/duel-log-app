@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
+    "@supabase/supabase-js": "^2.90.1",
     "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-backend-webgl": "^4.22.0",
     "@vueuse/core": "^14.1.0",

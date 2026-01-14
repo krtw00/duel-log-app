@@ -1,12 +1,4 @@
 # 本番依存関係を含む
 -r requirements.txt
 
-# テスト
-pytest==9.0.2
-pytest-cov==6.3.0
-httpx==0.25.2
-Faker==39.0.0
-
-# リンター・フォーマッター
-ruff
-black
+# 開発用追加ツール（テスト・リンターはrequirements.txtに含まれる）
