@@ -111,6 +111,7 @@ onMounted(async () => {
 
     // PKCEフローのコードがある場合
     if (params.code) {
+      const startTime = performance.now();
       console.log('[AuthCallback] Code found, exchanging for session...');
 
       // PKCEのcode_verifierが存在するか確認（デバッグ用）
@@ -121,16 +122,20 @@ onMounted(async () => {
 
       statusMessage.value = 'セッションを確立中...';
 
-      // 20秒のタイムアウトを設定（Supabase無料プランはコールドスタートで時間がかかる場合がある）
+      // 30秒のタイムアウトを設定
       let data;
       let error;
       try {
+        console.log('[AuthCallback] Starting exchangeCodeForSession...');
+        const exchangeStart = performance.now();
         const result = await withTimeout(
           supabase.auth.exchangeCodeForSession(params.code),
-          20000,
+          30000,
         );
+        console.log(`[AuthCallback] exchangeCodeForSession completed in ${(performance.now() - exchangeStart).toFixed(0)}ms`);
         data = result.data;
         error = result.error;
+        console.log('[AuthCallback] Result:', { hasSession: !!data?.session, hasError: !!error });
       } catch (timeoutError) {
         console.error('[AuthCallback] Code exchange timed out:', timeoutError);
         // タイムアウト時は再度クリアしてエラーを投げる
@@ -145,12 +150,20 @@ onMounted(async () => {
       }
 
       if (data.session) {
-        console.log('[AuthCallback] Session established via code exchange');
+        console.log(`[AuthCallback] Session established (${(performance.now() - startTime).toFixed(0)}ms)`);
         statusMessage.value = 'ユーザー情報を取得中...';
+
+        const fetchStart = performance.now();
+        console.log('[AuthCallback] Starting fetchUser...');
         await authStore.fetchUser();
+        console.log(`[AuthCallback] fetchUser completed in ${(performance.now() - fetchStart).toFixed(0)}ms`);
+
         notificationStore.success('ログインに成功しました');
+        console.log(`[AuthCallback] Total: ${(performance.now() - startTime).toFixed(0)}ms`);
         await router.push('/');
         return;
+      } else {
+        console.error('[AuthCallback] No session in response despite no error');
       }
     }
 
