@@ -1,3 +1,10 @@
+## [3.0.3](https://github.com/krtw00/duel-log-app/compare/v3.0.2...v3.0.3) (2026-01-14)
+
+
+### 🐛 Bug Fixes
+
+* **lint:** Code Scanning警告を修正 ([2543db5](https://github.com/krtw00/duel-log-app/commit/2543db5e3a818bc880d966b3b98badd63cca4417))
+
 ## [3.0.2](https://github.com/krtw00/duel-log-app/compare/v3.0.1...v3.0.2) (2026-01-14)
 
 
