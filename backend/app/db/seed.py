@@ -1,31 +1,208 @@
+"""
+ダミーデータ生成スクリプト（Supabase Auth対応版）
+
+Supabase Admin APIを使用してユーザーを作成し、
+ローカルDBにも同期してダミーデータを投入します。
+"""
+
 import logging
 import os
 import random
-
-# プロジェクトのルートパスをsys.pathに追加
 import sys
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+import httpx
 from faker import Faker
 from sqlalchemy.orm import Session
 
+# プロジェクトのルートパスをsys.pathに追加
 sys.path.append(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
 from app.db.session import SessionLocal
+from app.models.user import User
 from app.schemas.duel import DuelCreate
-from app.schemas.user import UserCreate
 from app.services.deck_service import deck_service
 from app.services.duel_service import duel_service
-from app.services.user_service import user_service
 
 # ロギング設定
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 fake = Faker("ja_JP")
+
+# ローカルSupabase設定
+SUPABASE_URL = os.getenv("SUPABASE_URL", "http://127.0.0.1:55321")
+# ローカルSupabaseのデフォルトservice_roleキー
+SUPABASE_SERVICE_ROLE_KEY = os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+)
+
+
+def create_supabase_user(email: str, password: str, username: str) -> str | None:
+    """
+    Supabase Admin APIを使用してユーザーを作成
+
+    Args:
+        email: メールアドレス
+        password: パスワード
+        username: ユーザー名
+
+    Returns:
+        作成されたユーザーのUUID、失敗時はNone
+    """
+    url = f"{SUPABASE_URL}/auth/v1/admin/users"
+    headers = {
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "email": email,
+        "password": password,
+        "email_confirm": True,  # メール確認済みとしてマーク
+        "user_metadata": {"username": username},
+    }
+
+    try:
+        with httpx.Client() as client:
+            response = client.post(url, json=payload, headers=headers)
+
+            if response.status_code == 200:
+                user_data = response.json()
+                supabase_uuid = user_data.get("id")
+                logger.info(f"✅ Supabase user created: {email} (UUID: {supabase_uuid})")
+                return supabase_uuid
+            elif response.status_code == 422:
+                # ユーザーが既に存在する場合、既存ユーザーを取得
+                logger.info(f"User {email} already exists in Supabase, fetching...")
+                return get_supabase_user_by_email(email)
+            else:
+                logger.error(
+                    f"❌ Failed to create Supabase user: {response.status_code} - {response.text}"
+                )
+                return None
+    except Exception as e:
+        logger.error(f"❌ Error creating Supabase user: {e}")
+        return None
+
+
+def get_supabase_user_by_email(email: str) -> str | None:
+    """
+    メールアドレスでSupabaseユーザーを検索
+
+    Args:
+        email: メールアドレス
+
+    Returns:
+        ユーザーのUUID、見つからない場合はNone
+    """
+    # Admin API: list users with filter
+    url = f"{SUPABASE_URL}/auth/v1/admin/users"
+    headers = {
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+    }
+
+    try:
+        with httpx.Client() as client:
+            response = client.get(url, headers=headers)
+
+            if response.status_code == 200:
+                data = response.json()
+                users = data.get("users", [])
+                for user in users:
+                    if user.get("email") == email:
+                        return user.get("id")
+            logger.warning(f"User {email} not found in Supabase")
+            return None
+    except Exception as e:
+        logger.error(f"❌ Error fetching Supabase user: {e}")
+        return None
+
+
+def delete_supabase_user(supabase_uuid: str) -> bool:
+    """
+    Supabase Admin APIを使用してユーザーを削除
+
+    Args:
+        supabase_uuid: 削除するユーザーのUUID
+
+    Returns:
+        削除成功時True
+    """
+    url = f"{SUPABASE_URL}/auth/v1/admin/users/{supabase_uuid}"
+    headers = {
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+    }
+
+    try:
+        with httpx.Client() as client:
+            response = client.delete(url, headers=headers)
+            if response.status_code == 200:
+                logger.info(f"✅ Supabase user deleted: {supabase_uuid}")
+                return True
+            else:
+                logger.error(
+                    f"❌ Failed to delete Supabase user: {response.status_code}"
+                )
+                return False
+    except Exception as e:
+        logger.error(f"❌ Error deleting Supabase user: {e}")
+        return False
+
+
+def get_or_create_local_user(
+    db: Session, supabase_uuid: str, email: str, username: str
+) -> User:
+    """
+    ローカルDBでユーザーを取得または作成
+
+    Args:
+        db: データベースセッション
+        supabase_uuid: SupabaseのユーザーUUID
+        email: メールアドレス
+        username: ユーザー名
+
+    Returns:
+        ユーザーオブジェクト
+    """
+    # まずsupabase_uuidで検索
+    user = db.query(User).filter(User.supabase_uuid == supabase_uuid).first()
+    if user:
+        logger.info(f"Found existing user by supabase_uuid: {user.username}")
+        return user
+
+    # 次にメールアドレスで検索
+    user = db.query(User).filter(User.email == email).first()
+    if user:
+        # 既存ユーザーにsupabase_uuidを紐付け
+        user.supabase_uuid = supabase_uuid
+        db.commit()
+        db.refresh(user)
+        logger.info(f"Linked existing user to Supabase: {user.username}")
+        return user
+
+    # 新規作成
+    user = User(
+        supabase_uuid=supabase_uuid,
+        username=username,
+        email=email,
+        passwordhash="supabase_auth_user",  # Supabase認証ユーザーを示すマーカー
+        streamer_mode=False,
+        theme_preference="dark",
+        is_admin=False,
+        enable_screen_analysis=False,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Created new local user: {user.username}")
+    return user
 
 
 def seed_data(db: Session):
@@ -34,25 +211,22 @@ def seed_data(db: Session):
     jst = ZoneInfo("Asia/Tokyo")
 
     try:
-        # --- 1. 固定ユーザーの取得または作成 ---
-        logger.info("Getting or creating a fixed user...")
+        # --- 1. Supabase Authでユーザーを作成 ---
+        logger.info("Creating user via Supabase Auth...")
         password = "password123"
         fixed_email = "test@example.com"
         fixed_username = "testuser"
 
-        user = (
-            db.query(user_service.model)
-            .filter(user_service.model.email == fixed_email)
-            .first()
-        )
-        if user:
-            logger.info(f"User '{user.username}' already exists.")
-        else:
-            user_in = UserCreate(
-                username=fixed_username, email=fixed_email, password=password
-            )
-            user = user_service.create(db, obj_in=user_in)
-            logger.info(f"User '{user.username}' created.")
+        # Supabaseにユーザーを作成
+        supabase_uuid = create_supabase_user(fixed_email, password, fixed_username)
+
+        if not supabase_uuid:
+            logger.error("❌ Failed to create/get Supabase user. Aborting seed.")
+            return
+
+        # ローカルDBにユーザーを同期
+        user = get_or_create_local_user(db, supabase_uuid, fixed_email, fixed_username)
+        logger.info(f"User ready: {user.username} (ID: {user.id}, UUID: {supabase_uuid})")
 
         # --- 2. ダミーデッキの作成 (自分用と相手用) ---
         logger.info("Creating dummy decks...")
@@ -179,9 +353,9 @@ def seed_data(db: Session):
         logger.info(f"{total_created_count} duels created in total.")
         logger.info("\n" + "=" * 50)
         logger.info("✅ Dummy data seeding complete!")
-        # メールアドレスは test@example.com などのダミーデータなのでマスキング
-        logger.info(f"  Login with Email: {fixed_email[0]}***@example.com")
-        # 機密情報（パスワード）はログに出力しない
+        logger.info(f"  Email: {fixed_email}")
+        logger.info(f"  Password: {password}")
+        logger.info(f"  Supabase UUID: {supabase_uuid}")
         logger.info("=" * 50)
 
     except Exception as e:
@@ -191,7 +365,46 @@ def seed_data(db: Session):
         db.close()
 
 
+def clean_seed_data(db: Session):
+    """
+    シードデータを削除（Supabase Authからも削除）
+    """
+    fixed_email = "test@example.com"
+
+    try:
+        # ローカルDBからユーザーを検索
+        user = db.query(User).filter(User.email == fixed_email).first()
+
+        if user:
+            supabase_uuid = user.supabase_uuid
+
+            # Supabaseからユーザーを削除
+            if supabase_uuid:
+                delete_supabase_user(supabase_uuid)
+
+            # ローカルDBからユーザーを削除（カスケードでデッキとデュエルも削除）
+            db.delete(user)
+            db.commit()
+            logger.info(f"✅ Cleaned up seed data for {fixed_email}")
+        else:
+            logger.info(f"No seed data found for {fixed_email}")
+
+    except Exception as e:
+        logger.error(f"Error cleaning seed data: {e}", exc_info=True)
+        db.rollback()
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Seed dummy data with Supabase Auth")
+    parser.add_argument(
+        "--clean", action="store_true", help="Clean up seed data instead of creating"
+    )
+    args = parser.parse_args()
+
     logger.info("Initializing database...")
     from app.db.session import engine
     from app.models import Base
@@ -199,7 +412,13 @@ if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created.")
 
-    logger.info("Starting data seeding process...")
     db_session = SessionLocal()
-    seed_data(db_session)
-    logger.info("Data seeding process finished.")
+
+    if args.clean:
+        logger.info("Starting cleanup process...")
+        clean_seed_data(db_session)
+    else:
+        logger.info("Starting data seeding process...")
+        seed_data(db_session)
+
+    logger.info("Process finished.")
