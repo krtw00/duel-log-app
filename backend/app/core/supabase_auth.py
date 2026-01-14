@@ -144,10 +144,10 @@ def _get_jwt_secret_candidates() -> list[tuple[str, str | bytes]]:
     _jwt_secret_candidates = candidates
     logger.info(
         "Supabase JWT secret loaded (candidates=%d, raw_length=%d)",
-        len(candidates),
+        len(_jwt_secret_candidates),
         len(secret_raw),
     )
-    return candidates
+    return _jwt_secret_candidates
 
 
 def _verify_with_es256(token: str) -> Optional[dict]:
