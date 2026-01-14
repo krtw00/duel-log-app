@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { supabase } from '../lib/supabase';
+import { supabase, clearSupabaseLocalStorage } from '../lib/supabase';
 import router from '../router';
 import { createLogger } from '../utils/logger';
 import type { User, Session, Provider } from '@supabase/supabase-js';
@@ -65,16 +65,46 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   /**
-   * メール/パスワードでログイン
+   * タイムアウト付きPromiseラッパー
    */
-  const login = async (email: string, password: string) => {
-    try {
-      logger.debug('Attempting login with email/password');
+  const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs),
+      ),
+    ]);
+  };
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+  /**
+   * メール/パスワードでログイン
+   * タイムアウト時は古いセッションデータをクリアして自動リトライ
+   */
+  const login = async (email: string, password: string, isRetry = false) => {
+    try {
+      logger.debug('Attempting login with email/password', { isRetry });
+
+      // 5秒のタイムアウトを設定（古いセッションデータによるハングを防ぐ）
+      let data;
+      let error;
+      try {
+        const result = await withTimeout(
+          supabase.auth.signInWithPassword({ email, password }),
+          5000,
+        );
+        data = result.data;
+        error = result.error;
+      } catch (timeoutError) {
+        // タイムアウトした場合、古いセッションデータが原因の可能性
+        if (!isRetry && timeoutError instanceof Error && timeoutError.message.includes('Timeout')) {
+          logger.warn('Login timed out, clearing storage and retrying...');
+          clearSupabaseLocalStorage();
+          // 少し待ってから再試行
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          return login(email, password, true);
+        }
+        throw timeoutError;
+      }
 
       if (error) {
         throw new Error(error.message);
@@ -266,18 +296,6 @@ export const useAuthStore = defineStore('auth', () => {
   const isStreamerModeEnabled = computed(() => {
     return user.value ? user.value.streamer_mode : localStreamerMode.value;
   });
-
-  /**
-   * タイムアウト付きPromiseラッパー
-   */
-  const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
-    return Promise.race([
-      promise,
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs),
-      ),
-    ]);
-  };
 
   /**
    * 現在のセッションを取得して認証状態を復元
