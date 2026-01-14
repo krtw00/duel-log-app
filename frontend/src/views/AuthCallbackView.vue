@@ -120,6 +120,10 @@ onMounted(async () => {
       );
       console.log('[AuthCallback] Code verifier keys in localStorage:', codeVerifierKeys);
 
+      // 古いセッションデータをクリア（code-verifierは保持）- 二重処理防止
+      console.log('[AuthCallback] Clearing old session data before exchange...');
+      clearSupabaseLocalStorage();
+
       statusMessage.value = 'セッションを確立中...';
 
       // 30秒のタイムアウトを設定
