@@ -76,16 +76,6 @@ onMounted(async () => {
   console.log('[AuthCallback] Search:', window.location.search);
 
   try {
-    // 古いセッションデータをクリア（navigator.locks APIデッドロック回避）
-    console.log('[AuthCallback] Clearing old session data...');
-    try {
-      await withTimeout(supabase.auth.signOut({ scope: 'local' }), 2000);
-    } catch {
-      console.debug('[AuthCallback] Pre-callback signOut failed or timed out, continuing...');
-    }
-    clearSupabaseLocalStorage();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     const params = getUrlParams();
 
     console.log('[AuthCallback] Parsed params:', {
