@@ -40,40 +40,133 @@ const getErrorParams = () => {
     error: searchParams.get('error') || hashParams.get('error'),
     errorDescription:
       searchParams.get('error_description') || hashParams.get('error_description'),
+    errorCode: searchParams.get('error_code') || hashParams.get('error_code'),
   };
+};
+
+/**
+ * URLから認証パラメータを取得（デバッグ用）
+ */
+const checkUrlParams = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+
+  const params = {
+    code: searchParams.get('code') || hashParams.get('code'),
+    access_token: searchParams.get('access_token') || hashParams.get('access_token'),
+    refresh_token: searchParams.get('refresh_token') || hashParams.get('refresh_token'),
+    error: searchParams.get('error') || hashParams.get('error'),
+    error_description: searchParams.get('error_description') || hashParams.get('error_description'),
+  };
+  
+  console.log('[AuthCallback] URL parameters:', params);
+  return params;
 };
 
 /**
  * セッションを待機（detectSessionInUrl: true が処理するのを待つ）
  * Supabaseが自動でURLから認証パラメータを検出・処理する
+ * onAuthStateChangeイベントを使用してより効率的にセッション確立を検知
  */
-const waitForSession = async (maxAttempts = 15, delayMs = 400): Promise<boolean> => {
-  for (let i = 0; i < maxAttempts; i++) {
-    try {
-      const { data } = await withTimeout(supabase.auth.getSession(), 5000);
-      if (data?.session) {
-        console.log(`[AuthCallback] Session found on attempt ${i + 1}`);
-        return true;
+const waitForSession = async (timeoutMs = 30000): Promise<boolean> => {
+  return new Promise((resolve) => {
+    let resolved = false;
+    let subscription: ReturnType<typeof supabase.auth.onAuthStateChange>['data']['subscription'] | null = null;
+
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        console.warn('[AuthCallback] Session wait timeout after', timeoutMs, 'ms');
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+        resolve(false);
       }
-    } catch (error) {
-      console.warn(`[AuthCallback] getSession attempt ${i + 1} failed:`, error);
-    }
-    console.log(`[AuthCallback] Waiting for session... attempt ${i + 1}/${maxAttempts}`);
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-  }
-  return false;
+    }, timeoutMs);
+
+    // まず現在のセッションを確認
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.warn('[AuthCallback] getSession error:', error);
+      }
+
+      if (data?.session && !resolved) {
+        resolved = true;
+        clearTimeout(timeoutId);
+        console.log('[AuthCallback] Session already exists');
+        resolve(true);
+        return;
+      }
+
+      // セッションがない場合、onAuthStateChangeで待機
+      console.log('[AuthCallback] Waiting for session via onAuthStateChange...');
+      const {
+        data: { subscription: sub },
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log(`[AuthCallback] Auth state changed: ${event}`, session ? 'has session' : 'no session');
+        
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && !resolved) {
+          resolved = true;
+          clearTimeout(timeoutId);
+          if (sub) {
+            sub.unsubscribe();
+          }
+          console.log(`[AuthCallback] Session established via ${event} event`);
+          resolve(true);
+        } else if (event === 'TOKEN_REFRESHED' && session && !resolved) {
+          // 既にセッションがある場合のトークンリフレッシュ
+          resolved = true;
+          clearTimeout(timeoutId);
+          if (sub) {
+            sub.unsubscribe();
+          }
+          console.log('[AuthCallback] Session refreshed');
+          resolve(true);
+        }
+      });
+
+      subscription = sub;
+    }).catch((error) => {
+      console.error('[AuthCallback] Error in waitForSession:', error);
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeoutId);
+        if (subscription) {
+          subscription.unsubscribe();
+        }
+        resolve(false);
+      }
+    });
+  });
 };
 
 onMounted(async () => {
   console.log('[AuthCallback] Component mounted');
-  console.log('[AuthCallback] URL:', window.location.href);
+  console.log('[AuthCallback] Full URL:', window.location.href);
+  console.log('[AuthCallback] Origin:', window.location.origin);
+  console.log('[AuthCallback] Pathname:', window.location.pathname);
 
   try {
     // OAuthエラーチェック
     const errorParams = getErrorParams();
     if (errorParams.error) {
-      console.error('[AuthCallback] OAuth error:', errorParams.error, errorParams.errorDescription);
-      notificationStore.error(errorParams.errorDescription || 'OAuth認証エラーが発生しました');
+      console.error('[AuthCallback] OAuth error detected:', {
+        error: errorParams.error,
+        description: errorParams.errorDescription,
+        code: errorParams.errorCode,
+      });
+      
+      // エラーの種類に応じたメッセージを表示
+      let errorMessage = 'OAuth認証エラーが発生しました';
+      if (errorParams.error === 'access_denied') {
+        errorMessage = '認証がキャンセルされました';
+      } else if (errorParams.error === 'redirect_uri_mismatch') {
+        errorMessage = 'リダイレクトURLの設定が正しくありません。管理者にお問い合わせください。';
+      } else if (errorParams.errorDescription) {
+        errorMessage = errorParams.errorDescription;
+      }
+      
+      notificationStore.error(errorMessage);
       await router.push('/login');
       return;
     }
@@ -81,25 +174,51 @@ onMounted(async () => {
     // detectSessionInUrl: true により、Supabaseが自動でセッションを処理
     // ここではセッションが確立されるのを待機するだけ
     console.log('[AuthCallback] Waiting for Supabase to process authentication...');
-    statusMessage.value = 'セッションを確立中...';
+    statusMessage.value = '認証情報を処理中...';
 
     const hasSession = await waitForSession();
 
     if (hasSession) {
       console.log('[AuthCallback] Session established successfully');
       statusMessage.value = 'ユーザー情報を取得中...';
-      await authStore.fetchUser();
-      notificationStore.success('ログインに成功しました');
-      await router.push('/');
-      return;
+      
+      try {
+        // fetchUserにもタイムアウトを設定（10秒）
+        await withTimeout(authStore.fetchUser(), 10000);
+        notificationStore.success('ログインに成功しました');
+        await router.push('/');
+        return;
+      } catch (fetchError) {
+        console.error('[AuthCallback] Failed to fetch user:', fetchError);
+        // セッションは確立されているので、プロフィール取得に失敗してもログインは成功とみなす
+        if (fetchError instanceof Error && fetchError.message.includes('Timeout')) {
+          console.warn('[AuthCallback] fetchUser timed out, but session is valid');
+          notificationStore.success('ログインに成功しました');
+          await router.push('/');
+        } else {
+          notificationStore.error('ユーザー情報の取得に失敗しました。もう一度お試しください。');
+          await router.push('/login');
+        }
+        return;
+      }
     }
 
     // セッションが見つからない場合
-    console.log('[AuthCallback] No session found after waiting');
-    notificationStore.error('認証に失敗しました。もう一度お試しください。');
+    console.error('[AuthCallback] No session found after waiting');
+    
+    // URLパラメータを再確認して、より詳細なエラーメッセージを提供
+    const urlParams = checkUrlParams();
+    let errorMessage = '認証に失敗しました。もう一度お試しください。';
+    
+    if (!urlParams.code && !urlParams.access_token) {
+      errorMessage = '認証情報がURLに含まれていません。SupabaseのRedirect URLs設定を確認してください。';
+      console.error('[AuthCallback] Missing authentication parameters in URL');
+    }
+    
+    notificationStore.error(errorMessage);
     await router.push('/login');
   } catch (error) {
-    console.error('[AuthCallback] Error:', error);
+    console.error('[AuthCallback] Unexpected error:', error);
     statusMessage.value = 'エラーが発生しました';
     const errorMessage = error instanceof Error ? error.message : '認証処理中にエラーが発生しました';
     notificationStore.error(errorMessage);
