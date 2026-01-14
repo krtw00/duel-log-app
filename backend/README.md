@@ -27,60 +27,77 @@ FastAPI + SQLAlchemy + PostgreSQL を使用したデュエルログアプリケ�
 ### 前提条件
 
 - Python 3.11以上
-- PostgreSQL 13以上
-- pip
+- Supabase CLI（ローカル開発用）
+- Docker（ローカルSupabase実行用）
 
-### インストール
+### 推奨: 開発スクリプトを使用
+
+プロジェクトルートから開発スクリプトを実行するのが最も簡単です：
+
+```bash
+# プロジェクトルートで実行
+./scripts/dev.sh
+```
+
+このスクリプトは以下を自動的に実行します：
+1. ローカルSupabaseの起動
+2. Python仮想環境の作成
+3. 依存関係のインストール
+4. データベースマイグレーション
+5. 開発サーバーの起動
+
+### 手動セットアップ
+
+#### 1. Python仮想環境の作成
 
 ```bash
 cd backend
+python3 -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate   # Windows
+```
+
+#### 2. 依存関係のインストール
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 環境変数の設定
+#### 3. ローカルSupabaseの起動
 
-プロジェクトルートに `.env` ファイルを作成：
+```bash
+# プロジェクトルートで実行
+supabase start
+```
+
+#### 4. 環境変数の設定
+
+`backend/.env` ファイルを作成：
 
 ```env
+# データベース接続URL（ローカルSupabase）
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
+
+# Supabase設定
+SUPABASE_URL=http://127.0.0.1:55321
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+
+# JWT設定
+SECRET_KEY=your-secret-key-here-at-least-32-characters-long
+
 # アプリケーション設定
 ENVIRONMENT=development
-
-# データベース設定
-DATABASE_URL=postgresql://user:password@localhost:5432/duellog_db
-
-# JWT設定（SECRET_KEYは必ず変更してください）
-SECRET_KEY=your-secret-key-here-at-least-32-characters-long
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# CORS設定
 FRONTEND_URL=http://localhost:5173
-
-# ログ設定
-LOG_LEVEL=INFO
 ```
 
 **SECRET_KEYの生成**:
 
 ```bash
-# Linux/macOS
 openssl rand -hex 32
-
-# Windows PowerShell
--join ((33..126) | Get-Random -Count 32 | ForEach-Object {[char]$_})
 ```
 
-### データベースのセットアップ
-
-```bash
-# データベースの作成
-createdb duellog_db
-
-# マイグレーションの実行
-alembic upgrade head
-```
-
-### 開発サーバーの起動
+#### 5. 開発サーバーの起動
 
 ```bash
 # start.pyを使用（推奨）
@@ -95,6 +112,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - **API**: http://localhost:8000
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
+- **Supabase Studio**: http://127.0.0.1:55323
 
 ## 📁 プロジェクト構造
 
@@ -139,7 +157,6 @@ backend/
 │   └── main.py                # エントリーポイント
 ├── tests/                     # テストコード
 ├── requirements.txt           # Python依存関係
-├── Dockerfile                 # Dockerイメージ
 └── start.py                   # 開発サーバー起動
 ```
 
