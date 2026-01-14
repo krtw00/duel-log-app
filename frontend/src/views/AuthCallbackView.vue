@@ -121,13 +121,13 @@ onMounted(async () => {
 
       statusMessage.value = 'セッションを確立中...';
 
-      // 8秒のタイムアウトを設定（古いセッションデータによるハングを防ぐ）
+      // 20秒のタイムアウトを設定（Supabase無料プランはコールドスタートで時間がかかる場合がある）
       let data;
       let error;
       try {
         const result = await withTimeout(
           supabase.auth.exchangeCodeForSession(params.code),
-          8000,
+          20000,
         );
         data = result.data;
         error = result.error;
