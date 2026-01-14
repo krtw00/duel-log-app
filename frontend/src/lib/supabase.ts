@@ -35,6 +35,15 @@ export const supabase = createClient<Database>(
       // navigator.locks APIのデッドロック問題を回避
       lock: noopLock,
     },
+    global: {
+      fetch: (url, options = {}) => {
+        // Keep-Alive接続を有効化し、接続の再利用を促進
+        return fetch(url, {
+          ...options,
+          keepalive: true,
+        });
+      },
+    },
   },
 );
 
