@@ -13,10 +13,10 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, Header, Response
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.core.security import create_access_token
 from app.models.user import User
 from app.utils.auth_cookies import resolve_cookie_policy
-from app.core.config import settings
 
 # ルーター定義
 router = APIRouter(prefix="/auth", tags=["authentication"])
