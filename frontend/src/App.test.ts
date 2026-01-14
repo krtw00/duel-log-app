@@ -33,7 +33,14 @@ describe('App.vue', () => {
   it('renders ToastNotification and LoadingOverlay components', () => {
     const wrapper = mount(App, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [
+          vuetify,
+          createTestingPinia({
+            initialState: {
+              auth: { isInitialized: true },
+            },
+          }),
+        ],
         stubs: {
           RouterView: true,
           ToastNotification: true,
@@ -46,10 +53,17 @@ describe('App.vue', () => {
     expect(wrapper.findComponent({ name: 'LoadingOverlay' }).exists()).toBe(true);
   });
 
-  it('renders router-view', () => {
+  it('renders router-view when auth is initialized', () => {
     const wrapper = mount(App, {
       global: {
-        plugins: [vuetify, createTestingPinia()],
+        plugins: [
+          vuetify,
+          createTestingPinia({
+            initialState: {
+              auth: { isInitialized: true },
+            },
+          }),
+        ],
         stubs: {
           RouterView: true,
           ToastNotification: true,
@@ -58,5 +72,29 @@ describe('App.vue', () => {
       },
     });
     expect(wrapper.findComponent({ name: 'RouterView' }).exists()).toBe(true);
+  });
+
+  it('shows loading state when auth is not initialized', () => {
+    const wrapper = mount(App, {
+      global: {
+        plugins: [
+          vuetify,
+          createTestingPinia({
+            initialState: {
+              auth: { isInitialized: false },
+            },
+          }),
+        ],
+        stubs: {
+          RouterView: true,
+          ToastNotification: true,
+          LoadingOverlay: true,
+        },
+      },
+    });
+    // router-view should not be rendered when not initialized
+    expect(wrapper.findComponent({ name: 'RouterView' }).exists()).toBe(false);
+    // Loading indicator should be shown
+    expect(wrapper.find('.v-progress-circular').exists()).toBe(true);
   });
 });
