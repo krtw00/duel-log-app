@@ -19,11 +19,12 @@ const vuetify = createVuetify({ components, directives });
 
 const stubs = {
   AppBar: true,
+  AppLayout: { template: '<div><slot /><slot name="overlay" /></div>' },
   DashboardHeader: true,
   StatisticsSection: true,
   DuelEntrySection: true,
   DuelHistorySection: true,
-  OBSSection: true,
+  StreamerSection: true,
   ShareStatsDialog: true,
   VNavigationDrawer: true,
   VMain: { template: '<div><slot /></div>' },
@@ -85,7 +86,7 @@ describe('DashboardView.vue', () => {
     expect(wrapper.findComponent({ name: 'StatisticsSection' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'DuelEntrySection' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'DuelHistorySection' }).exists()).toBe(true);
-    expect(wrapper.findComponent({ name: 'OBSSection' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'StreamerSection' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'ShareStatsDialog' }).exists()).toBe(true);
   });
 
