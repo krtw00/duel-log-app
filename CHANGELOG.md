@@ -1,3 +1,10 @@
+## [3.0.4](https://github.com/krtw00/duel-log-app/compare/v3.0.3...v3.0.4) (2026-01-14)
+
+
+### 📝 Documentation
+
+* Git運用フローにClaude Code向け開発ルールを追加 ([2c39b75](https://github.com/krtw00/duel-log-app/commit/2c39b75dd2b22048d76d3fe33636cf1ed97e1782))
+
 ## [3.0.3](https://github.com/krtw00/duel-log-app/compare/v3.0.2...v3.0.3) (2026-01-14)
 
 
