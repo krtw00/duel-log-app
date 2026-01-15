@@ -7,6 +7,7 @@ import App from './App.vue';
 import './assets/styles/main.scss';
 import './assets/styles/auth.scss';
 import { useAuthStore } from './stores/auth';
+import { initI18n } from './i18n';
 
 // Supabase URLへのプリコネクトを早期に追加（DNS解決・TCP/TLS接続を事前に確立）
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -36,7 +37,10 @@ app.use(VueApexCharts);
 const authStore = useAuthStore(pinia);
 authStore.setupAuthListener();
 
-app.mount('#app');
+// Initialize i18n before mounting
+initI18n().then(() => {
+  app.mount('#app');
+});
 
 // Register service worker
 /*
