@@ -453,34 +453,54 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 認証状態の変更を監視
+   *
+   * 重要: onAuthStateChangeコールバックは同期的でなければならない。
+   * Supabase SDKはnavigator.locksを使用しており、コールバック内で
+   * supabase.from()やauth.getSession()などのSupabase APIを呼び出すと
+   * 同じロックを取得しようとしてデッドロックが発生する。
+   *
+   * 解決策: プロフィール取得などのSupabase API呼び出しはqueueMicrotaskで
+   * ロック解放後に遅延実行する。
    */
   const setupAuthListener = () => {
     try {
-      supabase.auth.onAuthStateChange(async (event, newSession) => {
+      supabase.auth.onAuthStateChange((event, newSession) => {
         logger.debug('Auth state changed:', event);
 
         if (event === 'SIGNED_IN' && newSession) {
+          // 同期的に状態を更新（ロック保持中でも安全）
           supabaseUser.value = newSession.user;
           session.value = newSession;
 
-          const profile = await fetchProfile(newSession.user.id);
-          if (profile) {
-            user.value = profile;
-          } else {
-            user.value = {
-              id: newSession.user.id,
-              email: newSession.user.email || null,
-              username:
-                newSession.user.user_metadata?.username ||
-                newSession.user.email?.split('@')[0] ||
-                'ユーザー',
-              streamer_mode: false,
-              theme_preference: 'dark',
-              is_admin: false,
-              enable_screen_analysis: false,
-            };
-          }
+          // 仮のユーザー情報を即座に設定（UIの応答性向上）
+          user.value = {
+            id: newSession.user.id,
+            email: newSession.user.email || null,
+            username:
+              newSession.user.user_metadata?.username ||
+              newSession.user.email?.split('@')[0] ||
+              'ユーザー',
+            streamer_mode: false,
+            theme_preference: 'dark',
+            is_admin: false,
+            enable_screen_analysis: false,
+          };
           isInitialized.value = true;
+
+          // プロフィール取得はロック解放後に遅延実行
+          // queueMicrotaskでマイクロタスクキューに追加し、
+          // 現在の同期処理（ロック保持中）が完了してから実行
+          queueMicrotask(async () => {
+            try {
+              const profile = await fetchProfile(newSession.user.id);
+              if (profile) {
+                user.value = profile;
+              }
+            } catch (error) {
+              logger.warn('Failed to fetch profile in auth listener:', error);
+              // プロフィール取得失敗時は仮のユーザー情報を維持
+            }
+          });
         } else if (event === 'SIGNED_OUT') {
           user.value = null;
           supabaseUser.value = null;
