@@ -85,7 +85,7 @@
 
     <v-divider />
     <v-card-actions class="pa-4">
-      <v-btn variant="text" color="grey" prepend-icon="mdi-refresh" @click="resetToDefaults">
+      <v-btn variant="outlined" color="warning" prepend-icon="mdi-refresh" @click="resetToDefaults">
         リセット
       </v-btn>
       <v-spacer />
