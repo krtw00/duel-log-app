@@ -2,13 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useThemeStore } from '../theme';
 import { useAuthStore } from '../auth';
-import { api } from '@/services/api';
+import * as userService from '@/services/userService';
 
-vi.mock('@/services/api', () => ({
-  __esModule: true,
-  api: {
-    put: vi.fn(),
-  },
+vi.mock('@/services/userService', () => ({
+  updateThemePreference: vi.fn(),
 }));
 
 const createUser = () => ({
@@ -54,13 +51,13 @@ describe('theme store', () => {
     const authStore = useAuthStore();
     authStore.user = createUser();
 
-    const putMock = api.put as unknown as ReturnType<typeof vi.fn>;
-    putMock.mockResolvedValue(undefined);
+    const updateMock = userService.updateThemePreference as unknown as ReturnType<typeof vi.fn>;
+    updateMock.mockResolvedValue(undefined);
     const fetchUserSpy = vi.spyOn(authStore, 'fetchUser').mockResolvedValue(undefined);
 
     await themeStore.toggleTheme();
 
-    expect(putMock).toHaveBeenCalledWith('/me', { theme_preference: 'light' });
+    expect(updateMock).toHaveBeenCalledWith('light');
     expect(fetchUserSpy).toHaveBeenCalled();
     expect(themeStore.isDark).toBe(false);
   });
