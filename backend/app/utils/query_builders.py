@@ -6,7 +6,7 @@
 from typing import List, Optional
 
 from sqlalchemy import extract
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Query, joinedload
 
 from app.models.duel import Duel
 from app.utils.datetime_utils import month_range_utc, year_range_utc
@@ -65,7 +65,13 @@ def apply_duel_filters(
     return query
 
 
-def build_base_duels_query(db, user_id: int, game_mode: Optional[str] = None) -> Query:
+def build_base_duels_query(
+    db,
+    user_id: int,
+    game_mode: Optional[str] = None,
+    *,
+    load_decks: bool = False,
+) -> Query:
     """
     デュエルの基本クエリを構築
 
@@ -73,11 +79,19 @@ def build_base_duels_query(db, user_id: int, game_mode: Optional[str] = None) ->
         db: データベースセッション
         user_id: ユーザーID
         game_mode: ゲームモード（オプション）
+        load_decks: デッキリレーションを事前ロードするか（N+1回避用）
 
     Returns:
         基本クエリ
     """
     query = db.query(Duel).filter(Duel.user_id == user_id)
+
+    if load_decks:
+        query = query.options(
+            joinedload(Duel.deck),
+            joinedload(Duel.opponent_deck),
+        )
+
     if game_mode:
         query = query.filter(Duel.game_mode == game_mode)
     return query

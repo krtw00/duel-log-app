@@ -4,7 +4,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.duel import Duel
 from app.utils.datetime_utils import month_range_utc
@@ -191,7 +191,11 @@ class GeneralStatsService:
         stats = self.calculate_general_stats(duels)
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
-        latest_duel = query.order_by(Duel.played_date.desc()).first()
+        latest_duel = (
+            query.options(joinedload(Duel.deck))
+            .order_by(Duel.played_date.desc())
+            .first()
+        )
         current_deck = (
             latest_duel.deck.name if latest_duel and latest_duel.deck else None
         )
@@ -233,7 +237,11 @@ class GeneralStatsService:
         stats = self.calculate_general_stats(duels)
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
-        latest_duel = query.order_by(Duel.played_date.desc()).first()
+        latest_duel = (
+            query.options(joinedload(Duel.deck))
+            .order_by(Duel.played_date.desc())
+            .first()
+        )
         current_deck = (
             latest_duel.deck.name if latest_duel and latest_duel.deck else None
         )
@@ -267,8 +275,13 @@ class GeneralStatsService:
         if start_id is not None:
             query = query.filter(Duel.id > start_id)
 
-        # 日時順で並び替えて直近N戦を取得
-        duels = query.order_by(Duel.played_date.desc()).limit(limit).all()
+        # 日時順で並び替えて直近N戦を取得（デッキリレーションを事前ロード）
+        duels = (
+            query.options(joinedload(Duel.deck))
+            .order_by(Duel.played_date.desc())
+            .limit(limit)
+            .all()
+        )
         stats = self.calculate_general_stats(duels)
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
