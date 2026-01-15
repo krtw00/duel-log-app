@@ -4,6 +4,22 @@
 
 管理者がシステム全体を監視・管理するためのWebベースの管理画面の設計ドキュメント。
 
+## 実装状況
+
+| フェーズ | 機能 | 実装状況 | 備考 |
+|---------|------|---------|------|
+| フェーズ1 | ユーザー管理 | ✅ 完全実装 | ユーザー一覧、管理者権限付与/削除 |
+| フェーズ2 | システム統計ダッシュボード | ❌ 未実装 | UIのみ「近日公開」表示 |
+| フェーズ3 | データベースメンテナンス | ⚠️ 部分実装 | デッキマージのみ実装 |
+
+**実装済みファイル:**
+- `backend/app/api/routers/admin.py` - 管理者API
+- `backend/app/api/deps.py` - `get_admin_user()` 依存性
+- `frontend/src/views/AdminView.vue` - 管理者画面
+- `frontend/src/components/admin/UserManagementSection.vue` - ユーザー管理
+- `frontend/src/components/admin/MaintenanceSection.vue` - メンテナンス
+- `frontend/src/services/adminApi.ts` - APIクライアント
+
 ## 目的
 
 - システム全体の健全性を監視
