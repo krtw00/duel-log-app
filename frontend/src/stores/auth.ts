@@ -29,6 +29,9 @@ const clearLegacyBackendCookie = async () => {
   }
 };
 
+/**
+ *
+ */
 export interface UserProfile {
   id: string;
   email: string | null;
@@ -52,9 +55,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * プロフィール情報を取得
+   * @param userId
    */
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('supabase_uuid', userId)
+      .single();
 
     if (error) {
       logger.error('Failed to fetch profile:', error.message);
@@ -66,6 +74,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * タイムアウト付きPromiseラッパー
+   * @param promise
+   * @param timeoutMs
    */
   const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
     return Promise.race([
@@ -79,6 +89,9 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * メール/パスワードでログイン
    * タイムアウト時は古いセッションデータをクリアして自動リトライ
+   * @param email
+   * @param password
+   * @param isRetry
    */
   const login = async (email: string, password: string, isRetry = false) => {
     try {
@@ -177,6 +190,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * OAuth プロバイダーでログイン
+   * @param provider
    */
   const loginWithOAuth = async (provider: Provider) => {
     try {
@@ -205,6 +219,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 新規登録
+   * @param email
+   * @param password
+   * @param username
    */
   const register = async (email: string, password: string, username: string) => {
     try {
@@ -301,15 +318,39 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 配信者モードの切り替え
+   * ローカルストレージとDBの両方に保存
+   * @param enabled
    */
-  const toggleStreamerMode = (enabled: boolean) => {
+  const toggleStreamerMode = async (enabled: boolean) => {
+    // ローカルストレージに即座に保存（オフライン対応）
     localStreamerMode.value = enabled;
     localStorage.setItem('streamerMode', enabled.toString());
+
+    // ログイン中の場合はDBにも保存
+    if (user.value) {
+      try {
+        const { error } = await supabase
+          .from('users')
+          // @ts-expect-error Supabase types don't match our schema exactly
+          .update({ streamer_mode: enabled })
+          .eq('supabase_uuid', user.value.id);
+
+        if (error) {
+          logger.warn('Failed to save streamer mode to DB:', error.message);
+        } else {
+          // ローカル状態も更新
+          user.value = { ...user.value, streamer_mode: enabled };
+        }
+      } catch (error) {
+        logger.warn('Failed to save streamer mode:', error);
+      }
+    }
   };
 
   // 配信者モードが有効かどうかを判定
+  // ローカル設定またはDB設定のどちらかがtrueならtrue
   const isStreamerModeEnabled = computed(() => {
-    return user.value ? user.value.streamer_mode : localStreamerMode.value;
+    return localStreamerMode.value || (user.value?.streamer_mode ?? false);
   });
 
   /**
@@ -395,6 +436,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * パスワードリセットメール送信
+   * @param email
    */
   const sendPasswordResetEmail = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -408,6 +450,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * パスワード更新
+   * @param newPassword
    */
   const updatePassword = async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({
@@ -421,6 +464,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * プロフィール更新
+   * @param updates
    */
   const updateProfile = async (updates: Partial<Omit<UserProfile, 'id'>>) => {
     if (!user.value) {
@@ -428,10 +472,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     const { error } = await supabase
-      .from('profiles')
+      .from('users')
       // @ts-expect-error Supabase types don't match our schema exactly
       .update(updates)
-      .eq('id', user.value.id);
+      .eq('supabase_uuid', user.value.id);
 
     if (error) {
       throw new Error(error.message);
@@ -540,6 +584,7 @@ export const useAuthStore = defineStore('auth', () => {
 
 /**
  * Supabase認証エラーメッセージを日本語に変換
+ * @param message
  */
 function translateAuthError(message: string): string {
   const translations: Record<string, string> = {
