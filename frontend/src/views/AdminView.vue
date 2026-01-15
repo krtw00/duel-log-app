@@ -4,22 +4,22 @@
       <v-card class="admin-card mb-4">
         <v-card-title class="d-flex align-center pa-6">
           <v-icon class="mr-3" color="primary" size="large">mdi-shield-crown</v-icon>
-          <span class="text-h4">管理者画面</span>
+          <span class="text-h4">{{ LL?.admin.title() }}</span>
         </v-card-title>
       </v-card>
 
       <v-tabs v-model="currentTab" bg-color="transparent" color="primary" class="mb-4">
         <v-tab value="users">
           <v-icon start>mdi-account-multiple</v-icon>
-          ユーザー管理
+          {{ LL?.admin.users.title() }}
         </v-tab>
         <v-tab value="statistics" disabled>
           <v-icon start>mdi-chart-box</v-icon>
-          統計
+          {{ LL?.admin.statistics.title() }}
         </v-tab>
         <v-tab value="maintenance">
           <v-icon start>mdi-tools</v-icon>
-          メンテナンス
+          {{ LL?.admin.maintenance.title() }}
         </v-tab>
       </v-tabs>
 
@@ -32,7 +32,7 @@
           <v-card class="pa-6">
             <v-card-text class="text-center">
               <v-icon size="64" color="grey">mdi-chart-box</v-icon>
-              <p class="text-h6 mt-4">統計機能は近日公開予定です</p>
+              <p class="text-h6 mt-4">{{ LL?.admin.statistics.comingSoon() }}</p>
             </v-card-text>
           </v-card>
         </v-window-item>
@@ -50,7 +50,9 @@ import { ref } from 'vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import UserManagementSection from '@/components/admin/UserManagementSection.vue';
 import MaintenanceSection from '@/components/admin/MaintenanceSection.vue';
+import { useLocale } from '@/composables/useLocale';
 
+const { LL } = useLocale();
 const currentTab = ref('users');
 </script>
 

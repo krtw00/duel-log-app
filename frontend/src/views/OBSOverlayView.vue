@@ -2,13 +2,13 @@
   <div class="obs-overlay" :class="['layout-' + layout, 'theme-' + theme]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
-      <div class="loading-text">読み込み中...</div>
+      <div class="loading-text">{{ LL?.common.loading() }}</div>
     </div>
 
     <!-- エラー（トークンなし、認証エラーなど） -->
     <div v-else-if="hasError" class="error-container">
-      <div class="error-text">{{ errorMessage || 'データの取得に失敗しました' }}</div>
-      <div v-if="!token" class="error-detail">URLにトークンが含まれていません</div>
+      <div class="error-text">{{ errorMessage || LL?.common.dataFetchError() }}</div>
+      <div v-if="!token" class="error-detail">{{ LL?.obs.noToken() }}</div>
     </div>
 
     <!-- データ表示（空データでも表示） -->
@@ -39,10 +39,12 @@ import { useRoute } from 'vue-router';
 import axios, { AxiosError } from 'axios';
 import { getRankName } from '@/utils/ranks';
 import { createLogger } from '@/utils/logger';
+import { useLocale } from '@/composables/useLocale';
 import type { OBSStatsResponse, OBSDisplayItemDefinition, OBSQueryParams } from '@/types/obs';
 import type { ApiErrorResponse } from '@/types/api';
 import type { GameMode } from '@/types';
 
+const { LL } = useLocale();
 const logger = createLogger('OBS');
 
 const route = useRoute();
@@ -71,15 +73,15 @@ const layout = ref((route.query.layout as string) || 'grid');
 const theme = ref((route.query.theme as string) || 'dark');
 const refreshInterval = ref(Number(route.query.refresh) || 30000); // デフォルト30秒
 
-const rankTierLabelMap: Record<string, string> = {
-  BEGINNER: 'ビギナー',
-  BRONZE: 'ブロンズ',
-  SILVER: 'シルバー',
-  GOLD: 'ゴールド',
-  PLATINUM: 'プラチナ',
-  DIAMOND: 'ダイヤ',
-  MASTER: 'マスター',
-};
+const rankTierLabelMap = computed(() => ({
+  BEGINNER: LL.value?.obs.ranks.beginner() || 'Beginner',
+  BRONZE: LL.value?.obs.ranks.bronze() || 'Bronze',
+  SILVER: LL.value?.obs.ranks.silver() || 'Silver',
+  GOLD: LL.value?.obs.ranks.gold() || 'Gold',
+  PLATINUM: LL.value?.obs.ranks.platinum() || 'Platinum',
+  DIAMOND: LL.value?.obs.ranks.diamond() || 'Diamond',
+  MASTER: LL.value?.obs.ranks.master() || 'Master',
+}));
 
 const normalizeNumericValue = (value: string | number | null | undefined): number | null => {
   if (value === undefined || value === null || value === '') {
@@ -142,7 +144,7 @@ const formatRankValue = (value: string | number | null | undefined): string => {
     const match = /^([A-Z]+)[ _-]?([0-9]+)$/.exec(upper);
     if (match) {
       const [, tier, stage] = match;
-      const tierLabel = rankTierLabelMap[tier];
+      const tierLabel = rankTierLabelMap.value[tier as keyof typeof rankTierLabelMap.value];
       if (tierLabel) {
         return `${tierLabel}${stage}`;
       }
@@ -161,55 +163,55 @@ const formatRankValue = (value: string | number | null | undefined): string => {
 };
 
 // 表示項目のリスト
-const allDisplayItems: OBSDisplayItemDefinition[] = [
+const allDisplayItems = computed<OBSDisplayItemDefinition[]>(() => [
   {
     key: 'current_deck',
-    label: '使用デッキ',
-    format: (v) => (v as string | undefined) || '未設定',
+    label: LL.value?.duels.myDeck() || 'My Deck',
+    format: (v) => (v as string | undefined) || (LL.value?.common.noData() || '-'),
   },
   {
     key: 'total_duels',
-    label: '総試合数',
+    label: LL.value?.statistics.overview.totalMatches() || 'Total Matches',
     format: (v) => formatIntegerValue(v),
   },
   {
     key: 'win_rate',
-    label: '勝率',
+    label: LL.value?.dashboard.streamer.winRate() || 'Win Rate',
     format: (v) => formatPercentageValue(v),
   },
   {
     key: 'first_turn_win_rate',
-    label: '先攻勝率',
+    label: LL.value?.dashboard.streamer.firstWinRate() || 'First Win Rate',
     format: (v) => formatPercentageValue(v),
   },
   {
     key: 'second_turn_win_rate',
-    label: '後攻勝率',
+    label: LL.value?.dashboard.streamer.secondWinRate() || 'Second Win Rate',
     format: (v) => formatPercentageValue(v),
   },
   {
     key: 'coin_win_rate',
-    label: 'コイン勝率',
+    label: LL.value?.dashboard.streamer.coinWinRate() || 'Coin Win Rate',
     format: (v) => formatPercentageValue(v),
   },
   {
     key: 'go_first_rate',
-    label: '先攻率',
+    label: LL.value?.dashboard.streamer.firstRate() || 'First Rate',
     format: (v) => formatPercentageValue(v),
   },
-];
+]);
 
 // ゲームモードに応じた値の設定を取得
 const getGameModeValueConfig = (mode: string | undefined): OBSDisplayItemDefinition | null => {
   switch (mode) {
     case 'RANK':
-      return { key: 'current_rank', label: 'ランク', format: (v) => formatRankValue(v) };
+      return { key: 'current_rank', label: LL.value?.duels.gameMode.rank() || 'Rank', format: (v) => formatRankValue(v) };
     case 'RATE':
-      return { key: 'current_rate', label: 'レート', format: (v) => formatDecimalValue(v) };
+      return { key: 'current_rate', label: LL.value?.duels.gameMode.rate() || 'Rate', format: (v) => formatDecimalValue(v) };
     case 'DC':
-      return { key: 'current_dc', label: 'DC', format: (v) => formatDecimalValue(v) };
+      return { key: 'current_dc', label: LL.value?.duels.gameMode.dc() || 'DC', format: (v) => formatDecimalValue(v) };
     case 'EVENT':
-      return null; // EVENTモードでは表示しない
+      return null;
     default:
       return null;
   }
@@ -219,7 +221,7 @@ const getGameModeValueConfig = (mode: string | undefined): OBSDisplayItemDefinit
 const displayItems = computed(() => {
   if (!displayItemsParam.value) {
     // パラメータがない場合は全項目（総試合数を除く）
-    return allDisplayItems.filter((item) => item.key !== 'total_duels');
+    return allDisplayItems.value.filter((item) => item.key !== 'total_duels');
   }
   const selectedKeys = displayItemsParam.value.split(',');
   const items: OBSDisplayItemDefinition[] = [];
@@ -232,7 +234,7 @@ const displayItems = computed(() => {
         items.push(config);
       }
     } else {
-      const item = allDisplayItems.find((item) => item.key === key);
+      const item = allDisplayItems.value.find((item) => item.key === key);
       if (item) {
         items.push(item);
       }
