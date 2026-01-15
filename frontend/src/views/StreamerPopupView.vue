@@ -18,12 +18,6 @@
 
     <!-- データ表示（空データでも表示） -->
     <div v-else ref="statsContainer" class="stats-container">
-      <!-- ヘッダー -->
-      <div class="popup-header">
-        <span class="header-icon">⚔</span>
-        <span class="header-title">Duel Log</span>
-      </div>
-
       <!-- 統計カード -->
       <div v-if="showStats" class="stats-card">
         <div
@@ -32,7 +26,9 @@
           class="stat-item"
           :class="{ 'deck-item': item.key === 'current_deck' }"
         >
-          <div class="stat-icon">{{ item.icon }}</div>
+          <div class="stat-icon-wrapper">
+            <span class="mdi" :class="item.icon"></span>
+          </div>
           <div class="stat-content">
             <div class="stat-label">{{ item.label }}</div>
             <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">
@@ -45,7 +41,7 @@
       <!-- 対戦履歴 -->
       <div v-if="showHistory && recentDuels.length > 0" class="history-container">
         <div class="history-title">
-          <span class="history-icon">📋</span>
+          <span class="mdi mdi-history"></span>
           対戦履歴
         </div>
         <div class="history-list">
@@ -180,18 +176,18 @@ const allDisplayItems: DisplayItemDef[] = [
   {
     key: 'current_deck',
     label: '使用デッキ',
-    icon: '🎴',
+    icon: 'mdi-cards-playing-outline',
     format: (v) => (v as string | undefined) || '未設定',
   },
-  { key: 'current_rank', label: 'ランク', icon: '👑', format: formatRankValue },
-  { key: 'current_rate', label: 'レート', icon: '📊', format: (v) => formatDecimalValue(v) },
-  { key: 'current_dc', label: 'DC', icon: '🏆', format: (v) => formatDecimalValue(v) },
-  { key: 'total_duels', label: '総試合数', icon: '⚔️', format: formatIntegerValue },
-  { key: 'win_rate', label: '勝率', icon: '🏅', format: (v) => formatPercentageValue(v) },
-  { key: 'first_turn_win_rate', label: '先攻勝率', icon: '⚡', format: (v) => formatPercentageValue(v) },
-  { key: 'second_turn_win_rate', label: '後攻勝率', icon: '🛡️', format: (v) => formatPercentageValue(v) },
-  { key: 'coin_win_rate', label: 'コイン勝率', icon: '🪙', format: (v) => formatPercentageValue(v) },
-  { key: 'go_first_rate', label: '先攻率', icon: '🎯', format: (v) => formatPercentageValue(v) },
+  { key: 'current_rank', label: 'ランク', icon: 'mdi-crown', format: formatRankValue },
+  { key: 'current_rate', label: 'レート', icon: 'mdi-chart-line', format: (v) => formatDecimalValue(v) },
+  { key: 'current_dc', label: 'DC', icon: 'mdi-medal', format: (v) => formatDecimalValue(v) },
+  { key: 'total_duels', label: '総試合数', icon: 'mdi-sword-cross', format: formatIntegerValue },
+  { key: 'win_rate', label: '勝率', icon: 'mdi-trophy', format: (v) => formatPercentageValue(v) },
+  { key: 'first_turn_win_rate', label: '先攻勝率', icon: 'mdi-lightning-bolt', format: (v) => formatPercentageValue(v) },
+  { key: 'second_turn_win_rate', label: '後攻勝率', icon: 'mdi-shield', format: (v) => formatPercentageValue(v) },
+  { key: 'coin_win_rate', label: 'コイン勝率', icon: 'mdi-poker-chip', format: (v) => formatPercentageValue(v) },
+  { key: 'go_first_rate', label: '先攻率', icon: 'mdi-arrow-up-bold-hexagon-outline', format: (v) => formatPercentageValue(v) },
 ];
 
 const statsItems = computed(() => {
@@ -383,31 +379,6 @@ onUnmounted(() => {
   width: 100%;
 }
 
-// ヘッダー
-.popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--border-item);
-}
-
-.header-icon {
-  font-size: 24px;
-}
-
-.header-title {
-  font-size: 20px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: 2px;
-}
-
 // レスポンシブグリッド - ウィンドウ幅に応じて自動的に列数が変化
 .stats-card {
   display: grid;
@@ -446,9 +417,24 @@ onUnmounted(() => {
   }
 }
 
-.stat-icon {
-  font-size: 24px;
+.stat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--v-theme-on-surface), 0.08);
+  border: 1px solid var(--border-item);
+  border-radius: 50%;
   flex-shrink: 0;
+
+  .mdi {
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
 .stat-content {
@@ -505,7 +491,7 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
 }
 
-.history-icon {
+.history-title .mdi {
   font-size: 14px;
 }
 
