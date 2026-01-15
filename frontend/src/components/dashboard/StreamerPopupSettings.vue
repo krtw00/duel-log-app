@@ -3,7 +3,7 @@
     <v-card-title class="pa-4">
       <div class="d-flex align-center">
         <v-icon class="mr-2" color="purple">mdi-monitor-cellphone</v-icon>
-        <span class="text-h6">配信用ポップアップ設定</span>
+        <span class="text-h6">{{ LL?.obs.streamerPopup.title() }}</span>
       </div>
     </v-card-title>
     <v-divider />
@@ -14,7 +14,7 @@
           <v-select
             v-model="gameMode"
             :items="gameModeOptions"
-            label="ゲームモード"
+            :label="LL?.obs.streamerPopup.gameMode()"
             variant="outlined"
             density="compact"
             hide-details
@@ -24,7 +24,7 @@
           <v-select
             v-model="theme"
             :items="themeOptions"
-            label="テーマ"
+            :label="LL?.obs.settings.theme()"
             variant="outlined"
             density="compact"
             hide-details
@@ -34,7 +34,7 @@
           <v-select
             v-model="layout"
             :items="layoutOptions"
-            label="レイアウト"
+            :label="LL?.obs.streamerPopup.layout()"
             variant="outlined"
             density="compact"
             hide-details
@@ -44,7 +44,7 @@
           <v-select
             v-model="refreshInterval"
             :items="refreshOptions"
-            label="自動更新間隔"
+            :label="LL?.obs.streamerPopup.refreshInterval()"
             variant="outlined"
             density="compact"
             hide-details
@@ -58,7 +58,7 @@
           <v-expansion-panel-title class="py-2">
             <div class="d-flex align-center">
               <v-icon size="small" class="mr-2" color="grey">mdi-checkbox-marked-outline</v-icon>
-              <span class="text-body-2">表示項目（{{ selectedCount }}個選択中）</span>
+              <span class="text-body-2">{{ LL?.obs.streamerPopup.displayItems() }}（{{ LL?.obs.streamerPopup.displayItemsCount({ count: selectedCount }) }}）</span>
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
@@ -95,11 +95,11 @@
     <v-divider />
     <v-card-actions class="pa-4">
       <v-btn variant="outlined" color="warning" prepend-icon="mdi-refresh" @click="resetToDefaults">
-        リセット
+        {{ LL?.common.reset() }}
       </v-btn>
       <v-spacer />
       <v-btn color="purple" variant="elevated" prepend-icon="mdi-open-in-new" @click="openPopup">
-        ポップアップを開く
+        {{ LL?.obs.streamerPopup.openPopup() }}
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -107,6 +107,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import { useLocale } from '@/composables/useLocale';
+
+const { LL } = useLocale();
 
 const STORAGE_KEY = 'duellog.streamerPopupSettings';
 
@@ -116,29 +119,68 @@ interface DisplayItem {
   selected: boolean;
 }
 
-// 初期表示項目の定義
-const initialDisplayItems: DisplayItem[] = [
-  { key: 'current_deck', label: '使用デッキ', selected: false },
-  { key: 'game_mode_value', label: 'ランク/レート/DC（ゲームモードに連動）', selected: false },
-  { key: 'total_duels', label: '総試合数', selected: false },
-  { key: 'win_rate', label: '勝率', selected: true },
-  { key: 'first_turn_win_rate', label: '先攻勝率', selected: false },
-  { key: 'second_turn_win_rate', label: '後攻勝率', selected: false },
-  { key: 'coin_win_rate', label: 'コイン勝率', selected: false },
-  { key: 'go_first_rate', label: '先攻率', selected: false },
+// 表示項目のキーと選択状態のみを保持（ラベルは動的に取得）
+const displayItemKeys = [
+  { key: 'current_deck', selected: false },
+  { key: 'game_mode_value', selected: false },
+  { key: 'total_duels', selected: false },
+  { key: 'win_rate', selected: true },
+  { key: 'first_turn_win_rate', selected: false },
+  { key: 'second_turn_win_rate', selected: false },
+  { key: 'coin_win_rate', selected: false },
+  { key: 'go_first_rate', selected: false },
 ];
+
+// キーからラベルを取得するマッピング
+const getItemLabel = (key: string): string => {
+  const labels: Record<string, () => string | undefined> = {
+    current_deck: () => LL.value?.obs.streamerPopup.items.currentDeck(),
+    game_mode_value: () => LL.value?.obs.streamerPopup.items.gameModeValue(),
+    total_duels: () => LL.value?.obs.streamerPopup.items.totalDuels(),
+    win_rate: () => LL.value?.obs.streamerPopup.items.winRate(),
+    first_turn_win_rate: () => LL.value?.obs.streamerPopup.items.firstTurnWinRate(),
+    second_turn_win_rate: () => LL.value?.obs.streamerPopup.items.secondTurnWinRate(),
+    coin_win_rate: () => LL.value?.obs.streamerPopup.items.coinWinRate(),
+    go_first_rate: () => LL.value?.obs.streamerPopup.items.goFirstRate(),
+  };
+  return labels[key]?.() ?? key;
+};
+
+// 初期表示項目の定義（ラベルを動的に生成）
+const initialDisplayItems = computed<DisplayItem[]>(() =>
+  displayItemKeys.map((item) => ({
+    key: item.key,
+    label: getItemLabel(item.key),
+    selected: item.selected,
+  })),
+);
 
 // デフォルト値
 const defaultSettings = {
-  displayItems: initialDisplayItems.map((item) => ({ ...item })),
   gameMode: 'RANK',
   theme: 'dark',
   layout: 'grid',
   refreshInterval: 30000,
 };
 
-// 表示項目（順序と選択状態を保持）
-const displayItems = ref<DisplayItem[]>(initialDisplayItems.map((item) => ({ ...item })));
+// 表示項目（順序と選択状態を保持）- ラベルは後で動的に更新
+const displayItems = ref<DisplayItem[]>(displayItemKeys.map((item) => ({
+  key: item.key,
+  label: '',
+  selected: item.selected,
+})));
+
+// ラベルを最新の翻訳で更新
+watch(
+  () => LL.value,
+  () => {
+    displayItems.value = displayItems.value.map((item) => ({
+      ...item,
+      label: getItemLabel(item.key),
+    }));
+  },
+  { immediate: true },
+);
 const gameMode = ref(defaultSettings.gameMode);
 const theme = ref(defaultSettings.theme);
 const layout = ref(defaultSettings.layout);
@@ -154,31 +196,31 @@ const displayItemsPanel = ref<string | undefined>(undefined);
 // 選択中のアイテム数
 const selectedCount = computed(() => displayItems.value.filter((item) => item.selected).length);
 
-// オプション
-const gameModeOptions = [
-  { title: 'ランクマッチ', value: 'RANK' },
-  { title: 'レートマッチ', value: 'RATE' },
-  { title: 'イベント', value: 'EVENT' },
-  { title: 'デュエリストカップ', value: 'DC' },
-];
+// オプション（国際化対応）
+const gameModeOptions = computed(() => [
+  { title: LL.value?.obs.streamerPopup.gameModes.rank() ?? 'Rank Match', value: 'RANK' },
+  { title: LL.value?.obs.streamerPopup.gameModes.rate() ?? 'Rate Match', value: 'RATE' },
+  { title: LL.value?.obs.streamerPopup.gameModes.event() ?? 'Event', value: 'EVENT' },
+  { title: LL.value?.obs.streamerPopup.gameModes.dc() ?? 'Duelist Cup', value: 'DC' },
+]);
 
-const themeOptions = [
-  { title: 'ダーク', value: 'dark' },
-  { title: 'ライト', value: 'light' },
-];
+const themeOptions = computed(() => [
+  { title: LL.value?.obs.settings.themeDark() ?? 'Dark', value: 'dark' },
+  { title: LL.value?.obs.settings.themeLight() ?? 'Light', value: 'light' },
+]);
 
-const layoutOptions = [
-  { title: 'グリッド（自動調整）', value: 'grid' },
-  { title: '横並び', value: 'horizontal' },
-  { title: '縦並び', value: 'vertical' },
-];
+const layoutOptions = computed(() => [
+  { title: LL.value?.obs.streamerPopup.layouts.grid() ?? 'Grid', value: 'grid' },
+  { title: LL.value?.obs.streamerPopup.layouts.horizontal() ?? 'Horizontal', value: 'horizontal' },
+  { title: LL.value?.obs.streamerPopup.layouts.vertical() ?? 'Vertical', value: 'vertical' },
+]);
 
-const refreshOptions = [
-  { title: '10秒', value: 10000 },
-  { title: '30秒', value: 30000 },
-  { title: '1分', value: 60000 },
-  { title: '5分', value: 300000 },
-];
+const refreshOptions = computed(() => [
+  { title: LL.value?.obs.streamerPopup.intervals.sec10() ?? '10s', value: 10000 },
+  { title: LL.value?.obs.streamerPopup.intervals.sec30() ?? '30s', value: 30000 },
+  { title: LL.value?.obs.streamerPopup.intervals.min1() ?? '1m', value: 60000 },
+  { title: LL.value?.obs.streamerPopup.intervals.min5() ?? '5m', value: 300000 },
+]);
 
 // ドラッグ&ドロップハンドラ
 const handleDragStart = (index: number) => {
@@ -249,7 +291,7 @@ const migrateOldSettings = (settings: Record<string, unknown>): void => {
 
     // 保存された順序で追加
     for (const saved of savedItems) {
-      const template = initialDisplayItems.find((t) => t.key === saved.key);
+      const template = initialDisplayItems.value.find((t) => t.key === saved.key);
       if (template) {
         newItems.push({ ...template, selected: saved.selected });
         usedKeys.add(saved.key);
@@ -257,7 +299,7 @@ const migrateOldSettings = (settings: Record<string, unknown>): void => {
     }
 
     // 新しく追加された項目があれば末尾に追加
-    for (const template of initialDisplayItems) {
+    for (const template of initialDisplayItems.value) {
       if (!usedKeys.has(template.key)) {
         newItems.push({ ...template });
       }
@@ -317,7 +359,7 @@ const saveSettings = () => {
  * デフォルト設定にリセットする
  */
 const resetToDefaults = () => {
-  displayItems.value = defaultSettings.displayItems.map((item) => ({ ...item }));
+  displayItems.value = initialDisplayItems.value.map((item) => ({ ...item }));
   gameMode.value = defaultSettings.gameMode;
   theme.value = defaultSettings.theme;
   layout.value = defaultSettings.layout;

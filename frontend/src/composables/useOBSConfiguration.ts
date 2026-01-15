@@ -8,11 +8,13 @@ import { useNotificationStore } from '../stores/notification';
 import { createLogger } from '../utils/logger';
 import { api } from '../services/api';
 import { GAME_MODE_OPTIONS } from '../utils/gameMode';
+import { useLocale } from './useLocale';
 
 const logger = createLogger('OBSConfiguration');
 
 export function useOBSConfiguration() {
   const notificationStore = useNotificationStore();
+  const { LL } = useLocale();
 
   // OBS設定状態
   const showOBSDialog = ref(false);
@@ -31,26 +33,26 @@ export function useOBSConfiguration() {
   const obsToken = ref<string>('');
   const obsTokenExpiresAt = ref<number>(0);
 
-  // 設定オプション
-  const periodTypeOptions = [
-    { title: '月間集計', value: 'monthly' },
-    { title: '直近N戦', value: 'recent' },
-    { title: '配信開始から', value: 'from_start' },
-  ];
+  // 設定オプション（国際化対応）
+  const periodTypeOptions = computed(() => [
+    { title: LL.value?.obs.configPanel.periodMonthly() ?? 'Monthly', value: 'monthly' },
+    { title: LL.value?.obs.configPanel.periodRecent() ?? 'Recent N matches', value: 'recent' },
+    { title: LL.value?.obs.configPanel.periodFromStart() ?? 'From start', value: 'from_start' },
+  ]);
 
   // ゲームモードオプションは共通ユーティリティから取得
   const gameModeOptions = GAME_MODE_OPTIONS;
 
-  const layoutOptions = [
-    { title: 'グリッド（自動）', value: 'grid' },
-    { title: '横1列（右に伸ばす）', value: 'horizontal' },
-    { title: '縦1列（下に伸ばす）', value: 'vertical' },
-  ];
+  const layoutOptions = computed(() => [
+    { title: LL.value?.obs.streamerPopup.layouts.grid() ?? 'Grid', value: 'grid' },
+    { title: LL.value?.obs.streamerPopup.layouts.horizontal() ?? 'Horizontal', value: 'horizontal' },
+    { title: LL.value?.obs.streamerPopup.layouts.vertical() ?? 'Vertical', value: 'vertical' },
+  ]);
 
-  const themeOptions = [
-    { title: 'ダークモード', value: 'dark' },
-    { title: 'ライトモード', value: 'light' },
-  ];
+  const themeOptions = computed(() => [
+    { title: LL.value?.obs.settings.themeDark() ?? 'Dark', value: 'dark' },
+    { title: LL.value?.obs.settings.themeLight() ?? 'Light', value: 'light' },
+  ]);
 
   // 年と月の選択肢
   const years = computed(() => {
@@ -68,17 +70,48 @@ export function useOBSConfiguration() {
     return 'info';
   });
 
-  // 表示項目（初期値を設定）
-  const displayItems = ref([
-    { label: '使用デッキ', value: 'current_deck', selected: true },
-    { label: 'ランク/レート/DC（ゲームモードに連動）', value: 'game_mode_value', selected: true },
-    { label: '総試合数', value: 'total_duels', selected: false },
-    { label: '勝率', value: 'win_rate', selected: true },
-    { label: '先攻勝率', value: 'first_turn_win_rate', selected: true },
-    { label: '後攻勝率', value: 'second_turn_win_rate', selected: true },
-    { label: 'コイン勝率', value: 'coin_win_rate', selected: true },
-    { label: '先攻率', value: 'go_first_rate', selected: true },
+  // 表示項目のキーからラベルを取得
+  const getDisplayItemLabel = (key: string): string => {
+    const labels: Record<string, () => string | undefined> = {
+      current_deck: () => LL.value?.obs.configPanel.items.deck(),
+      game_mode_value: () => LL.value?.obs.streamerPopup.items.gameModeValue(),
+      total_duels: () => LL.value?.obs.configPanel.items.record(),
+      win_rate: () => LL.value?.obs.configPanel.items.winRate(),
+      first_turn_win_rate: () => LL.value?.obs.configPanel.items.firstTurnWinRate(),
+      second_turn_win_rate: () => LL.value?.obs.configPanel.items.secondTurnWinRate(),
+      coin_win_rate: () => LL.value?.obs.configPanel.items.coinTossWinRate(),
+      go_first_rate: () => LL.value?.obs.configPanel.items.goFirstRate(),
+    };
+    return labels[key]?.() ?? key;
+  };
+
+  // 表示項目（選択状態のみ保持、ラベルは動的に更新）
+  const displayItemsState = ref([
+    { value: 'current_deck', selected: true },
+    { value: 'game_mode_value', selected: true },
+    { value: 'total_duels', selected: false },
+    { value: 'win_rate', selected: true },
+    { value: 'first_turn_win_rate', selected: true },
+    { value: 'second_turn_win_rate', selected: true },
+    { value: 'coin_win_rate', selected: true },
+    { value: 'go_first_rate', selected: true },
   ]);
+
+  // 表示項目（ラベルを動的に取得）
+  const displayItems = computed({
+    get: () =>
+      displayItemsState.value.map((item) => ({
+        label: getDisplayItemLabel(item.value),
+        value: item.value,
+        selected: item.selected,
+      })),
+    set: (newItems) => {
+      displayItemsState.value = newItems.map((item) => ({
+        value: item.value,
+        selected: item.selected,
+      }));
+    },
+  });
 
   // ドラッグ&ドロップの状態管理
   const draggedIndex = ref<number | null>(null);
@@ -143,12 +176,12 @@ export function useOBSConfiguration() {
   const recommendedSizeText = computed(() => {
     switch (obsLayout.value) {
       case 'horizontal':
-        return '幅: 1920px、高さ: 200px を推奨（下部に配置）';
+        return LL.value?.obs.configPanel.recommendedSizeHorizontal() ?? 'Recommended: 1920px width, 200px height';
       case 'vertical':
-        return '幅: 250px、高さ: 1080px を推奨（右端に配置）';
+        return LL.value?.obs.configPanel.recommendedSizeVertical() ?? 'Recommended: 250px width, 1080px height';
       case 'grid':
       default:
-        return '幅: 800px、高さ: 600px を推奨';
+        return LL.value?.obs.configPanel.recommendedSizeGrid() ?? 'Recommended: 800px width, 600px height';
     }
   });
 
@@ -243,7 +276,7 @@ export function useOBSConfiguration() {
         typeof expiresIn === 'number' ? now + expiresIn * 1000 - 30_000 : now + 23 * 60 * 60 * 1000;
     } catch (error) {
       logger.error('Failed to fetch OBS token:', error);
-      notificationStore.error('OBS用トークンの取得に失敗しました。再ログインしてください');
+      notificationStore.error(LL.value?.obs.configPanel.tokenFetchError() ?? 'Failed to fetch OBS token');
       throw error;
     }
   };
@@ -256,12 +289,12 @@ export function useOBSConfiguration() {
       await fetchObsToken();
       await navigator.clipboard.writeText(obsUrl.value);
       urlCopied.value = true;
-      notificationStore.success('URLをコピーしました');
+      notificationStore.success(LL.value?.obs.configPanel.urlCopySuccess() ?? 'URL copied');
       setTimeout(() => {
         urlCopied.value = false;
       }, 2000);
     } catch (error) {
-      notificationStore.error('URLのコピーに失敗しました');
+      notificationStore.error(LL.value?.obs.configPanel.urlCopyError() ?? 'Failed to copy URL');
     }
   };
 

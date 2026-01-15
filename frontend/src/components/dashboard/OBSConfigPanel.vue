@@ -7,23 +7,23 @@
     <v-card>
       <v-card-title class="d-flex align-center pa-4">
         <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
-        <span class="text-h5">OBS連携設定</span>
+        <span class="text-h5">{{ LL?.obs.configPanel.title() }}</span>
         <v-spacer />
-        <v-btn icon variant="text" aria-label="閉じる" @click="$emit('update:modelValue', false)">
+        <v-btn icon variant="text" :aria-label="LL?.common.close()" @click="$emit('update:modelValue', false)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
       <v-divider />
       <v-card-text class="pa-6">
         <p class="text-body-2 mb-4">
-          OBSのブラウザソースで統計情報をリアルタイムでオーバーレイ表示できます。表示する項目と集計期間をカスタマイズできます。
+          {{ LL?.obs.configPanel.description() }}
         </p>
 
         <!-- 集計期間選択 -->
         <v-select
           :model-value="periodType"
           :items="periodTypeOptions"
-          label="集計期間"
+          :label="LL?.obs.configPanel.periodType()"
           variant="outlined"
           density="compact"
           hide-details
@@ -37,7 +37,7 @@
             <v-select
               :model-value="year"
               :items="years"
-              label="年"
+              :label="LL?.obs.configPanel.year()"
               variant="outlined"
               density="compact"
               hide-details
@@ -48,7 +48,7 @@
             <v-select
               :model-value="month"
               :items="months"
-              label="月"
+              :label="LL?.obs.configPanel.month()"
               variant="outlined"
               density="compact"
               hide-details
@@ -61,7 +61,7 @@
         <v-text-field
           v-if="periodType === 'recent'"
           :model-value="limit"
-          label="表示する試合数"
+          :label="LL?.obs.configPanel.matchCount()"
           variant="outlined"
           density="compact"
           hide-details
@@ -76,7 +76,7 @@
         <v-select
           :model-value="gameMode"
           :items="gameModeOptions"
-          label="ゲームモード（任意）"
+          :label="LL?.obs.configPanel.gameModeOptional()"
           variant="outlined"
           density="compact"
           hide-details
@@ -89,7 +89,7 @@
         <v-select
           :model-value="layout"
           :items="layoutOptions"
-          label="レイアウト"
+          :label="LL?.obs.streamerPopup.layout()"
           variant="outlined"
           density="compact"
           hide-details
@@ -101,7 +101,7 @@
         <v-select
           :model-value="theme"
           :items="themeOptions"
-          label="テーマ"
+          :label="LL?.obs.settings.theme()"
           variant="outlined"
           density="compact"
           hide-details
@@ -112,7 +112,7 @@
         <!-- 表示項目選択 -->
         <v-card variant="outlined" class="mb-4">
           <v-card-title class="text-subtitle-2 pa-3">
-            表示する項目を選択（ドラッグで並び替え可能）
+            {{ LL?.obs.configPanel.displayItemsTitle() }}
           </v-card-title>
           <v-card-text class="pa-3">
             <div class="d-flex flex-column ga-2">
@@ -146,7 +146,7 @@
         <!-- 更新間隔 -->
         <v-text-field
           :model-value="refreshInterval"
-          label="更新間隔（ミリ秒）"
+          :label="LL?.obs.configPanel.refreshIntervalMs()"
           variant="outlined"
           density="compact"
           hide-details
@@ -157,13 +157,13 @@
 
         <v-alert type="info" variant="tonal" class="mb-4">
           <div class="text-body-2">
-            <strong>OBSでの設定方法：</strong>
+            <strong>{{ LL?.obs.configPanel.obsSetupGuide() }}</strong>
             <ol class="ml-4 mt-2">
-              <li>OBSで「ソース」→「+」→「ブラウザ」を選択</li>
-              <li>以下のURLをコピーして「URL」欄に貼り付け</li>
+              <li>{{ LL?.obs.configPanel.obsStep1() }}</li>
+              <li>{{ LL?.obs.configPanel.obsStep2() }}</li>
               <li>{{ recommendedSizeText }}</li>
               <li>
-                「カスタムCSS」で背景を透過: <code>body { background-color: transparent; }</code>
+                {{ LL?.obs.configPanel.obsStep4() }} <code>body { background-color: transparent; }</code>
               </li>
             </ol>
           </div>
@@ -171,28 +171,28 @@
 
         <v-text-field
           :model-value="obsUrl"
-          label="OBS用URL"
+          :label="LL?.obs.configPanel.obsUrl()"
           variant="outlined"
           density="compact"
           readonly
           class="mb-2"
         >
           <template #append-inner>
-            <v-btn icon variant="text" size="small" aria-label="URLをコピー" @click="$emit('copy-url')">
+            <v-btn icon variant="text" size="small" :aria-label="LL?.obs.copyUrl()" @click="$emit('copy-url')">
               <v-icon>{{ urlCopied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
             </v-btn>
           </template>
         </v-text-field>
 
         <p class="text-caption text-grey">
-          ※ このURLには認証トークンが含まれています。他人と共有しないでください。
+          {{ LL?.obs.configPanel.urlWarning() }}
         </p>
       </v-card-text>
       <v-divider />
       <v-card-actions class="pa-4">
         <v-spacer />
         <v-btn color="primary" variant="elevated" @click="$emit('update:modelValue', false)">
-          閉じる
+          {{ LL?.common.close() }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -200,6 +200,10 @@
 </template>
 
 <script setup lang="ts">
+import { useLocale } from '@/composables/useLocale';
+
+const { LL } = useLocale();
+
 interface DisplayItem {
   label: string;
   value: string;
