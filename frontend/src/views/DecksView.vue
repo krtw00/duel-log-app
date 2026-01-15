@@ -10,9 +10,9 @@
             </template>
             <div class="d-flex align-center justify-space-between flex-wrap ga-4">
               <div>
-                <div class="text-h6 mb-1">月次リセット機能</div>
+                <div class="text-h6 mb-1">{{ LL?.decks.archive.title() }}</div>
                 <div class="text-body-2">
-                  新弾リリース時など、全デッキを一括アーカイブできます。アーカイブしても過去の対戦記録は保持されます。
+                  {{ LL?.decks.archive.description() }}
                 </div>
               </div>
               <v-btn
@@ -22,7 +22,7 @@
                 size="large"
                 @click="confirmArchiveAll"
               >
-                全デッキをアーカイブ
+                {{ LL?.decks.archive.button() }}
               </v-btn>
             </div>
           </v-alert>
@@ -35,7 +35,7 @@
           <v-card class="deck-card">
             <v-card-title class="d-flex align-center pa-4">
               <v-icon class="mr-2" color="primary">mdi-cards</v-icon>
-              <span class="text-h6">自分のデッキ</span>
+              <span class="text-h6">{{ LL?.decks.myDecks() }}</span>
               <v-spacer />
               <v-btn
                 color="primary"
@@ -43,7 +43,7 @@
                 class="add-btn"
                 @click="openDeckDialog(false)"
               >
-                追加
+                {{ LL?.decks.addDeck() }}
               </v-btn>
             </v-card-title>
 
@@ -62,17 +62,17 @@
                     {{ deck.name }}
                   </v-list-item-title>
                   <v-list-item-subtitle class="text-caption">
-                    登録日: {{ formatDate(deck.createdat) }}
+                    {{ LL?.decks.registeredDate() }}: {{ formatDate(deck.createdat) }}
                   </v-list-item-subtitle>
 
                   <template #append>
-                    <v-btn icon="mdi-pencil" size="small" variant="text" aria-label="デッキを編集" @click="editDeck(deck)" />
+                    <v-btn icon="mdi-pencil" size="small" variant="text" :aria-label="LL?.decks.editDeck()" @click="editDeck(deck)" />
                     <v-btn
                       icon="mdi-delete"
                       size="small"
                       variant="text"
                       color="error"
-                      aria-label="デッキを削除"
+                      :aria-label="LL?.decks.deleteDeck()"
                       @click="deleteDeck(deck.id)"
                     />
                   </template>
@@ -81,8 +81,8 @@
 
               <div v-else class="text-center pa-8">
                 <v-icon size="64" color="grey">mdi-cards-outline</v-icon>
-                <p class="text-body-1 text-grey mt-4">デッキが登録されていません</p>
-                <p class="text-caption text-grey">「追加」ボタンからデッキを登録しましょう</p>
+                <p class="text-body-1 text-grey mt-4">{{ LL?.decks.noDeck() }}</p>
+                <p class="text-caption text-grey">{{ LL?.decks.noDeckHint() }}</p>
               </div>
             </v-card-text>
           </v-card>
@@ -93,7 +93,7 @@
           <v-card class="deck-card">
             <v-card-title class="d-flex align-center pa-4">
               <v-icon class="mr-2" color="secondary">mdi-account</v-icon>
-              <span class="text-h6">相手のデッキ</span>
+              <span class="text-h6">{{ LL?.decks.opponentDecks() }}</span>
               <v-spacer />
               <v-btn
                 color="secondary"
@@ -101,7 +101,7 @@
                 class="add-btn"
                 @click="openDeckDialog(true)"
               >
-                追加
+                {{ LL?.decks.addDeck() }}
               </v-btn>
             </v-card-title>
 
@@ -120,17 +120,17 @@
                     {{ deck.name }}
                   </v-list-item-title>
                   <v-list-item-subtitle class="text-caption">
-                    登録日: {{ formatDate(deck.createdat) }}
+                    {{ LL?.decks.registeredDate() }}: {{ formatDate(deck.createdat) }}
                   </v-list-item-subtitle>
 
                   <template #append>
-                    <v-btn icon="mdi-pencil" size="small" variant="text" aria-label="デッキを編集" @click="editDeck(deck)" />
+                    <v-btn icon="mdi-pencil" size="small" variant="text" :aria-label="LL?.decks.editDeck()" @click="editDeck(deck)" />
                     <v-btn
                       icon="mdi-delete"
                       size="small"
                       variant="text"
                       color="error"
-                      aria-label="デッキを削除"
+                      :aria-label="LL?.decks.deleteDeck()"
                       @click="deleteDeck(deck.id)"
                     />
                   </template>
@@ -139,8 +139,8 @@
 
               <div v-else class="text-center pa-8">
                 <v-icon size="64" color="grey">mdi-account-outline</v-icon>
-                <p class="text-body-1 text-grey mt-4">相手のデッキが登録されていません</p>
-                <p class="text-caption text-grey">「追加」ボタンから相手のデッキを登録しましょう</p>
+                <p class="text-body-1 text-grey mt-4">{{ LL?.decks.noOpponentDeck() }}</p>
+                <p class="text-caption text-grey">{{ LL?.decks.noOpponentDeckHint() }}</p>
               </div>
             </v-card-text>
           </v-card>
@@ -159,7 +159,11 @@
           </v-icon>
           <span class="text-h5">
             {{
-              isEdit ? 'デッキを編集' : isOpponentDeck ? '相手のデッキを追加' : '自分のデッキを追加'
+              isEdit
+                ? LL?.decks.editDeck()
+                : isOpponentDeck
+                  ? LL?.decks.addOpponentDeck()
+                  : LL?.decks.addMyDeck()
             }}
           </span>
         </v-card-title>
@@ -170,12 +174,12 @@
           <v-form ref="formRef" @submit.prevent="handleSubmit">
             <v-text-field
               v-model="deckName"
-              label="デッキ名"
+              :label="LL?.decks.deckName()"
               prepend-inner-icon="mdi-text"
               variant="outlined"
               :color="isOpponentDeck ? 'secondary' : 'primary'"
               :rules="[rules.required, rules.duplicate]"
-              placeholder="例: 烙印、エルド、白き森"
+              :placeholder="LL?.decks.deckNamePlaceholder()"
               @input="validateDuplicate"
             />
           </v-form>
@@ -185,14 +189,14 @@
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" @click="closeDialog"> キャンセル </v-btn>
+          <v-btn variant="text" @click="closeDialog">{{ LL?.common.cancel() }}</v-btn>
           <v-btn
             :color="isOpponentDeck ? 'secondary' : 'primary'"
             :loading="loading"
             @click="handleSubmit"
           >
             <v-icon start>mdi-content-save</v-icon>
-            {{ isEdit ? '更新' : '登録' }}
+            {{ isEdit ? LL?.common.update() : LL?.common.add() }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -207,9 +211,11 @@ import { createLogger } from '@/utils/logger';
 import { Deck } from '@/types';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { useNotificationStore } from '@/stores/notification';
+import { useLocale } from '@/composables/useLocale';
 
 const logger = createLogger('Decks');
 const notificationStore = useNotificationStore();
+const { LL, currentLocale } = useLocale();
 
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
@@ -240,17 +246,18 @@ const isDuplicateName = (name: string): boolean => {
   });
 };
 
-const rules = {
-  required: (v: string) => !!v || '入力必須です',
+const rules = computed(() => ({
+  required: (v: string) => !!v || LL.value?.validation.required() || '',
   duplicate: (v: string) => {
     if (!v) return true; // 空の場合はrequiredルールでチェック
     if (isDuplicateName(v)) {
-      const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ';
-      return `同じ名前の${deckType}が既に存在します`;
+      return isOpponentDeck.value
+        ? LL.value?.decks.duplicateOpponentDeck() || ''
+        : LL.value?.decks.duplicateMyDeck() || '';
     }
     return true;
   },
-};
+}));
 
 // 入力時に重複チェックをトリガー
 const validateDuplicate = () => {
@@ -292,8 +299,10 @@ const handleSubmit = async () => {
 
   // 念のため送信前にも重複チェック
   if (isDuplicateName(deckName.value)) {
-    const deckType = isOpponentDeck.value ? '相手のデッキ' : '自分のデッキ';
-    notificationStore.error(`同じ名前の${deckType}が既に存在します`);
+    const errorMsg = isOpponentDeck.value
+      ? LL.value?.decks.duplicateOpponentDeck()
+      : LL.value?.decks.duplicateMyDeck();
+    notificationStore.error(errorMsg || '');
     return;
   }
 
@@ -314,7 +323,9 @@ const handleSubmit = async () => {
 
     await fetchDecks();
     closeDialog();
-    notificationStore.success(isEdit.value ? 'デッキを更新しました' : 'デッキを登録しました');
+    notificationStore.success(
+      isEdit.value ? LL.value?.decks.updateSuccess() || '' : LL.value?.decks.saveSuccess() || '',
+    );
   } catch (error) {
     logger.error('Failed to save deck');
   } finally {
@@ -323,12 +334,12 @@ const handleSubmit = async () => {
 };
 
 const deleteDeck = async (deckId: number) => {
-  if (!confirm('このデッキを削除しますか？')) return;
+  if (!confirm(LL.value?.decks.deleteConfirm() || '')) return;
 
   try {
     await api.delete(`/decks/${deckId}`);
     await fetchDecks();
-    notificationStore.success('デッキを削除しました');
+    notificationStore.success(LL.value?.decks.deleteSuccess() || '');
   } catch (error) {
     logger.error('Failed to delete deck');
   }
@@ -344,7 +355,8 @@ const closeDialog = () => {
 const formatDate = (dateString: string | undefined) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('ja-JP', {
+  const localeMap: Record<string, string> = { ja: 'ja-JP', en: 'en-US', ko: 'ko-KR' };
+  return date.toLocaleDateString(localeMap[currentLocale.value] || 'ja-JP', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -354,15 +366,11 @@ const formatDate = (dateString: string | undefined) => {
 const confirmArchiveAll = async () => {
   const totalDecks = myDecks.value.length + opponentDecks.value.length;
   if (totalDecks === 0) {
-    notificationStore.info('アーカイブするデッキがありません');
+    notificationStore.info(LL.value?.decks.archive.noDecks() || '');
     return;
   }
 
-  if (
-    !confirm(
-      `${totalDecks}件のデッキをアーカイブしますか？\n\nアーカイブしても過去の対戦記録は保持されます。`,
-    )
-  ) {
+  if (!confirm(LL.value?.decks.archive.confirmWithCount({ count: totalDecks }) || '')) {
     return;
   }
 
@@ -372,7 +380,7 @@ const confirmArchiveAll = async () => {
     await fetchDecks();
   } catch (error) {
     logger.error('Failed to archive decks');
-    notificationStore.error('アーカイブに失敗しました');
+    notificationStore.error(LL.value?.decks.archive.failed() || '');
   }
 };
 

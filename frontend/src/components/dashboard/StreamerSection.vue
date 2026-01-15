@@ -7,8 +7,8 @@
           <v-expansion-panel-title>
             <div class="d-flex align-center">
               <v-icon class="mr-2" color="purple">mdi-monitor-cellphone</v-icon>
-              <span class="text-subtitle-1 font-weight-medium"> 配信用ポップアップウィンドウ </span>
-              <v-chip class="ml-2" color="success" size="x-small" variant="flat">推奨</v-chip>
+              <span class="text-subtitle-1 font-weight-medium">{{ LL?.dashboard.streamer.popupWindow() }}</span>
+              <v-chip class="ml-2" color="success" size="x-small" variant="flat">{{ LL?.dashboard.streamer.recommended() }}</v-chip>
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
@@ -21,37 +21,37 @@
           <v-expansion-panel-title>
             <div class="d-flex align-center">
               <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
-              <span class="text-subtitle-1 font-weight-medium">OBSブラウザソース</span>
-              <v-chip class="ml-2" color="warning" size="x-small" variant="flat"> 廃止予定 </v-chip>
+              <span class="text-subtitle-1 font-weight-medium">{{ LL?.dashboard.streamer.obsBrowserSource() }}</span>
+              <v-chip class="ml-2" color="warning" size="x-small" variant="flat">{{ LL?.dashboard.streamer.deprecated() }}</v-chip>
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
             <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
-              この機能は将来廃止予定です。新しい「配信用ポップアップウィンドウ」の使用をお勧めします。
+              {{ LL?.dashboard.streamer.deprecationWarning() }}
             </v-alert>
             <p class="text-body-2 mb-3">
-              OBSのブラウザソースで統計情報をリアルタイム表示できます。
+              {{ LL?.dashboard.streamer.obsDescription() }}
             </p>
             <div class="d-flex flex-wrap ga-2 mb-4">
               <v-chip color="success" variant="outlined" size="small">
                 <v-icon start size="small">mdi-trophy</v-icon>
-                勝率
+                {{ LL?.dashboard.streamer.winRate() }}
               </v-chip>
               <v-chip color="warning" variant="outlined" size="small">
                 <v-icon start size="small">mdi-lightning-bolt</v-icon>
-                先攻勝率
+                {{ LL?.dashboard.streamer.firstWinRate() }}
               </v-chip>
               <v-chip color="secondary" variant="outlined" size="small">
                 <v-icon start size="small">mdi-shield</v-icon>
-                後攻勝率
+                {{ LL?.dashboard.streamer.secondWinRate() }}
               </v-chip>
               <v-chip :color="coinWinRateColor" variant="outlined" size="small">
                 <v-icon start size="small">mdi-poker-chip</v-icon>
-                コイン勝率
+                {{ LL?.dashboard.streamer.coinWinRate() }}
               </v-chip>
               <v-chip color="teal" variant="outlined" size="small">
                 <v-icon start size="small">mdi-arrow-up-bold-hexagon-outline</v-icon>
-                先攻率
+                {{ LL?.dashboard.streamer.firstRate() }}
               </v-chip>
             </div>
             <v-btn
@@ -60,7 +60,7 @@
               prepend-icon="mdi-open-in-new"
               @click="showOBSDialog = true"
             >
-              OBS URLを取得
+              {{ LL?.dashboard.streamer.getObsUrl() }}
             </v-btn>
           </v-expansion-panel-text>
         </v-expansion-panel>
@@ -105,6 +105,9 @@ import { ref } from 'vue';
 import StreamerPopupSettings from './StreamerPopupSettings.vue';
 import OBSConfigPanel from './OBSConfigPanel.vue';
 import { useOBSConfiguration } from '@/composables/useOBSConfiguration';
+import { useLocale } from '@/composables/useLocale';
+
+const { LL } = useLocale();
 
 interface Props {
   streamerModeEnabled: boolean;

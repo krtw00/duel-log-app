@@ -5,7 +5,7 @@
       <v-card-title class="pa-4">
         <div class="d-flex align-center mb-3">
           <v-icon class="mr-2" color="primary">mdi-table</v-icon>
-          <span class="text-h6">対戦履歴</span>
+          <span class="text-h6">{{ LL?.dashboard.history.title() }}</span>
         </div>
         <duel-actions-bar
           ref="actionsBarRef"
@@ -51,6 +51,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { Duel, Deck, GameMode } from '@/types';
+import { useLocale } from '@/composables/useLocale';
+
+const { LL } = useLocale();
 
 // Components
 import DuelActionsBar from '@/components/dashboard/DuelActionsBar.vue';

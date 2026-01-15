@@ -3,13 +3,13 @@
     <v-card class="entry-toolbar">
       <v-card-title class="pa-4 entry-toolbar__title">
         <v-icon class="mr-2" color="primary">mdi-tune-variant</v-icon>
-        <span class="text-subtitle-1">新規追加時の初期値</span>
+        <span class="text-subtitle-1">{{ LL?.dashboard.duelEntry.defaultSettings() }}</span>
       </v-card-title>
       <v-divider />
       <v-card-text class="pa-4">
         <div class="default-toggle d-flex align-center ga-2">
           <v-tooltip
-            text="先攻/後攻の初期値（コイン表時の基準）"
+            :text="LL?.dashboard.duelEntry.defaultTurnTooltip()"
             location="top"
             content-class="default-turn-tooltip"
           >
@@ -33,8 +33,8 @@
             selected-class="default-toggle__selected"
             class="default-toggle__toggle"
           >
-            <v-btn :value="0" size="small">後攻</v-btn>
-            <v-btn :value="1" size="small">先攻</v-btn>
+            <v-btn :value="0" size="small">{{ LL?.duels.turnOrder.second() }}</v-btn>
+            <v-btn :value="1" size="small">{{ LL?.duels.turnOrder.first() }}</v-btn>
           </v-btn-toggle>
         </div>
       </v-card-text>
@@ -57,6 +57,9 @@
 import { computed } from 'vue';
 import type { Deck, Duel, GameMode } from '@/types';
 import DuelFormDialog from '@/components/duel/DuelFormDialog.vue';
+import { useLocale } from '@/composables/useLocale';
+
+const { LL } = useLocale();
 
 interface Props {
   decks: Deck[];

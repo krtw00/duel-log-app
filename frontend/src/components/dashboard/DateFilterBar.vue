@@ -4,7 +4,7 @@
       <v-select
         :model-value="year"
         :items="years"
-        label="年"
+        :label="LL?.common.year()"
         variant="outlined"
         density="compact"
         hide-details
@@ -15,7 +15,7 @@
       <v-select
         :model-value="month"
         :items="months"
-        label="月"
+        :label="LL?.common.month()"
         variant="outlined"
         density="compact"
         hide-details
@@ -26,6 +26,10 @@
 </template>
 
 <script setup lang="ts">
+import { useLocale } from '@/composables/useLocale';
+
+const { LL } = useLocale();
+
 interface Props {
   year: number;
   month: number;
