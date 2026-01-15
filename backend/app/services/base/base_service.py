@@ -3,12 +3,28 @@
 共通のCRUD操作を提供
 """
 
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, List, Optional, Protocol, Type, TypeVar, runtime_checkable
 
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-ModelType = TypeVar("ModelType")
+
+@runtime_checkable
+class HasId(Protocol):
+    """IDを持つモデルのプロトコル"""
+
+    id: int
+
+
+@runtime_checkable
+class HasUserId(Protocol):
+    """user_idを持つモデルのプロトコル"""
+
+    id: int
+    user_id: int
+
+
+ModelType = TypeVar("ModelType", bound=HasId)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
@@ -41,10 +57,10 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             エンティティまたはNone
         """
-        query = db.query(self.model).filter(self.model.id == id)  # type: ignore[attr-defined]
+        query = db.query(self.model).filter(self.model.id == id)
 
-        if user_id is not None:
-            query = query.filter(self.model.user_id == user_id)  # type: ignore[attr-defined]
+        if user_id is not None and hasattr(self.model, "user_id"):
+            query = query.filter(self.model.user_id == user_id)
 
         return query.first()
 
@@ -69,8 +85,8 @@ class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         query = db.query(self.model)
 
-        if user_id is not None:
-            query = query.filter(self.model.user_id == user_id)  # type: ignore[attr-defined]
+        if user_id is not None and hasattr(self.model, "user_id"):
+            query = query.filter(self.model.user_id == user_id)
 
         return query.offset(skip).limit(limit).all()
 

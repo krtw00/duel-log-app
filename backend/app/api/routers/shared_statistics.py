@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.api.routers.statistics import get_all_statistics
-from app.auth import get_current_user
+from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.shared_statistics import (
@@ -83,8 +83,8 @@ def get_shared_statistics(
             )
 
     filters = StatisticsFilters(
-        year=shared_link.year,  # type: ignore[arg-type]
-        month=shared_link.month,  # type: ignore[arg-type]
+        year=shared_link.year,
+        month=shared_link.month,
         my_deck_id=my_deck_id,
         opponent_deck_id=opponent_deck_id,
         range_start=range_start,
@@ -95,14 +95,14 @@ def get_shared_statistics(
     )
 
     return SharedStatisticsResponse(
-        id=shared_link.id,  # type: ignore[arg-type]
-        share_id=shared_link.share_id,  # type: ignore[arg-type]
-        user_id=shared_link.user_id,  # type: ignore[arg-type]
-        year=shared_link.year,  # type: ignore[arg-type]
-        month=shared_link.month,  # type: ignore[arg-type]
-        game_mode=shared_link.game_mode,  # type: ignore[arg-type]
-        created_at=shared_link.created_at,  # type: ignore[arg-type]
-        expires_at=shared_link.expires_at,  # type: ignore[arg-type]
+        id=shared_link.id,
+        share_id=shared_link.share_id,
+        user_id=shared_link.user_id,
+        year=shared_link.year,
+        month=shared_link.month,
+        game_mode=shared_link.game_mode,
+        created_at=shared_link.created_at,
+        expires_at=shared_link.expires_at,
         statistics_data=statistics_data,
     )
 
@@ -166,10 +166,10 @@ def export_shared_duels_csv(
     try:
         csv_data = duel_service.export_duels_to_csv(
             db=db,
-            user_id=user_id,  # type: ignore[arg-type]
-            year=target_year,  # type: ignore[arg-type]
-            month=target_month,  # type: ignore[arg-type]
-            game_mode=target_game_mode,  # type: ignore[arg-type]
+            user_id=user_id,
+            year=target_year,
+            month=target_month,
+            game_mode=target_game_mode,
         )
 
         filename = f"duels_{target_year}_{target_month}.csv"
