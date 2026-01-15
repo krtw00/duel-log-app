@@ -11,7 +11,7 @@
 
       <v-card-title class="pa-6">
         <v-icon class="mr-2" color="primary">mdi-file-document-edit</v-icon>
-        <span class="text-h5">{{ isEdit ? '対戦記録を編集' : '新規対戦記録' }}</span>
+        <span class="text-h5">{{ isEdit ? LL?.duels.form.editTitle() : LL?.duels.form.newTitle() }}</span>
       </v-card-title>
 
       <v-divider />
@@ -26,18 +26,18 @@
                 :items="myDeckItems"
                 item-title="name"
                 item-value="id"
-                label="使用デッキ"
+                :label="LL?.duels.myDeck()"
                 prepend-inner-icon="mdi-cards"
                 variant="outlined"
                 color="primary"
                 :rules="[rules.required]"
                 clearable
-                placeholder="デッキを選択または入力"
+                :placeholder="LL?.duels.form.selectOrInputDeck()"
               >
                 <template #no-data>
                   <v-list-item>
                     <v-list-item-title>
-                      新しいデッキ名を入力できます（登録時に自動追加）
+                      {{ LL?.duels.form.newDeckHint() }}
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -51,18 +51,18 @@
                 :items="opponentDeckItems"
                 item-title="name"
                 item-value="id"
-                label="相手デッキ"
+                :label="LL?.duels.opponentDeck()"
                 prepend-inner-icon="mdi-account"
                 variant="outlined"
                 color="secondary"
                 :rules="[rules.required]"
                 clearable
-                placeholder="デッキを選択または入力"
+                :placeholder="LL?.duels.form.selectOrInputDeck()"
               >
                 <template #no-data>
                   <v-list-item>
                     <v-list-item-title>
-                      新しいデッキ名を入力できます（登録時に自動追加）
+                      {{ LL?.duels.form.newDeckHint() }}
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -74,7 +74,7 @@
               <div class="radio-group-wrapper">
                 <label class="radio-label">
                   <v-icon class="mr-2" size="small">mdi-poker-chip</v-icon>
-                  コイン
+                  {{ LL?.duels.coinToss.label() }}
                 </label>
                 <v-radio-group
                   v-model.number="form.coin"
@@ -83,8 +83,8 @@
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
-                  <v-radio label="表" :value="1"></v-radio>
-                  <v-radio label="裏" :value="0"></v-radio>
+                  <v-radio :label="LL?.duels.coinToss.win()" :value="1"></v-radio>
+                  <v-radio :label="LL?.duels.coinToss.lose()" :value="0"></v-radio>
                 </v-radio-group>
               </div>
             </v-col>
@@ -94,7 +94,7 @@
               <div class="radio-group-wrapper">
                 <label class="radio-label">
                   <v-icon class="mr-2" size="small">mdi-swap-horizontal</v-icon>
-                  先攻/後攻
+                  {{ LL?.duels.turnOrder.label() }}
                 </label>
                 <v-radio-group
                   v-model.number="form.first_or_second"
@@ -103,8 +103,8 @@
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
-                  <v-radio label="先攻" :value="1"></v-radio>
-                  <v-radio label="後攻" :value="0"></v-radio>
+                  <v-radio :label="LL?.duels.turnOrder.first()" :value="1"></v-radio>
+                  <v-radio :label="LL?.duels.turnOrder.second()" :value="0"></v-radio>
                 </v-radio-group>
               </div>
             </v-col>
@@ -114,7 +114,7 @@
               <div class="radio-group-wrapper">
                 <label class="radio-label">
                   <v-icon class="mr-2" size="small">mdi-trophy</v-icon>
-                  勝敗
+                  {{ LL?.duels.result.label() }}
                 </label>
                 <v-radio-group
                   v-model.number="form.result"
@@ -122,8 +122,8 @@
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
-                  <v-radio label="勝ち" :value="1" color="success"></v-radio>
-                  <v-radio label="負け" :value="0" color="error"></v-radio>
+                  <v-radio :label="LL?.duels.result.win()" :value="1" color="success"></v-radio>
+                  <v-radio :label="LL?.duels.result.lose()" :value="0" color="error"></v-radio>
                 </v-radio-group>
               </div>
             </v-col>
@@ -134,8 +134,8 @@
                 <div class="analysis-header">
                   <div class="analysis-title">
                     <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
-                    <span class="text-subtitle-2">画面解析</span>
-                    <span class="text-caption text-error ml-2">※テスト機能</span>
+                    <span class="text-subtitle-2">{{ LL?.duels.screenAnalysis.title() }}</span>
+                    <span class="text-caption text-error ml-2">{{ LL?.duels.screenAnalysis.testFeature() }}</span>
                   </div>
                   <v-spacer />
                   <v-btn-toggle
@@ -147,11 +147,11 @@
                   >
                     <v-btn value="template" size="small" variant="tonal">
                       <v-icon start size="small">mdi-image-search</v-icon>
-                      テンプレート
+                      {{ LL?.duels.screenAnalysis.template() }}
                     </v-btn>
                     <v-btn value="tfjs" size="small" variant="tonal">
                       <v-icon start size="small">mdi-brain</v-icon>
-                      ML
+                      {{ LL?.duels.screenAnalysis.ml() }}
                     </v-btn>
                   </v-btn-toggle>
                   <v-btn
@@ -164,7 +164,7 @@
                     <v-icon start>
                       {{ autoRegisterEnabled ? 'mdi-robot' : 'mdi-robot-off' }}
                     </v-icon>
-                    自動登録{{ autoRegisterEnabled ? 'ON' : 'OFF' }}
+                    {{ LL?.duels.screenAnalysis.autoRegister() }}{{ autoRegisterEnabled ? LL?.duels.screenAnalysis.on() : LL?.duels.screenAnalysis.off() }}
                   </v-btn>
                   <v-btn
                     size="small"
@@ -175,20 +175,19 @@
                     <v-icon start>
                       {{ analysisRunning ? 'mdi-stop-circle-outline' : 'mdi-monitor-screenshot' }}
                     </v-icon>
-                    {{ analysisRunning ? '停止' : '開始' }}
+                    {{ analysisRunning ? LL?.duels.screenAnalysis.stop() : LL?.duels.screenAnalysis.start() }}
                   </v-btn>
                 </div>
 
                 <div class="analysis-description">
                   <v-icon class="mr-1" size="small" color="info">mdi-information</v-icon>
                   <span class="text-caption">
-                    マスターデュエルのウィンドウを選択して、画面を自動解析します。
-                    勝敗結果を検出すると自動で対戦記録を登録できます。
+                    {{ LL?.duels.screenAnalysis.description() }}
                     <br />
                     <strong>{{
-                      analysisMethod === 'template' ? 'テンプレートマッチング' : '機械学習(TF.js)'
+                      analysisMethod === 'template' ? LL?.duels.screenAnalysis.templateMode() : LL?.duels.screenAnalysis.mlMode()
                     }}</strong>
-                    モードで解析します。
+                    {{ LL?.duels.screenAnalysis.modeDescription() }}
                   </span>
                 </div>
 
@@ -198,28 +197,28 @@
                     :color="analysisRunning ? 'success' : undefined"
                     variant="tonal"
                   >
-                    {{ analysisRunning ? '解析中' : '停止中' }}
+                    {{ analysisRunning ? LL?.duels.screenAnalysis.running() : LL?.duels.screenAnalysis.stopped() }}
                   </v-chip>
                   <v-chip
                     size="small"
                     :color="turnChoiceAvailable ? 'info' : undefined"
                     variant="tonal"
                   >
-                    {{ turnChoiceAvailable ? '選択権: 検出' : '選択権: 未検出' }}
+                    {{ turnChoiceAvailable ? LL?.duels.screenAnalysis.turnChoiceDetected() : LL?.duels.screenAnalysis.turnChoiceNotDetected() }}
                   </v-chip>
                   <v-chip
                     size="small"
                     :color="analysisResultLabel.color ?? undefined"
                     variant="tonal"
                   >
-                    勝敗: {{ analysisResultLabel.text }}
+                    {{ LL?.duels.screenAnalysis.resultLabel() }}: {{ analysisResultLabel.text }}
                   </v-chip>
                   <v-chip
                     size="small"
                     :color="resultLockState === 'locked' ? 'warning' : 'success'"
                     variant="tonal"
                   >
-                    {{ resultLockState === 'locked' ? '登録済' : '登録可' }}
+                    {{ resultLockState === 'locked' ? LL?.duels.screenAnalysis.registered() : LL?.duels.screenAnalysis.canRegister() }}
                   </v-chip>
                   <v-chip v-if="missingTemplateLabel" size="small" color="warning" variant="tonal">
                     {{ missingTemplateLabel }}
@@ -231,7 +230,7 @@
 
                 <div class="analysis-actions" v-if="turnChoiceAvailable && !isEdit">
                   <v-btn size="small" color="secondary" variant="outlined" @click="setSecondTurn">
-                    後攻に切替
+                    {{ LL?.duels.screenAnalysis.switchToSecond() }}
                   </v-btn>
                 </div>
 
@@ -259,7 +258,7 @@
                 :items="RANKS"
                 item-title="label"
                 item-value="value"
-                label="ランク"
+                :label="LL?.duels.gameMode.rank()"
                 prepend-inner-icon="mdi-crown"
                 variant="outlined"
                 color="warning"
@@ -271,7 +270,7 @@
             <v-col v-if="form.game_mode === 'RATE'" cols="12" md="6">
               <v-text-field
                 v-model.number="form.rate_value"
-                label="レート"
+                :label="LL?.duels.rateValue()"
                 prepend-inner-icon="mdi-chart-line"
                 variant="outlined"
                 color="info"
@@ -287,7 +286,7 @@
             <v-col v-if="form.game_mode === 'DC'" cols="12" md="6">
               <v-text-field
                 v-model.number="form.dc_value"
-                label="DCポイント"
+                :label="LL?.duels.dcValue()"
                 prepend-inner-icon="mdi-trophy-variant"
                 variant="outlined"
                 color="warning"
@@ -306,7 +305,7 @@
             <v-col v-if="isEdit" cols="12" :md="form.game_mode === 'EVENT' ? 12 : 6">
               <v-text-field
                 v-model="form.played_date"
-                label="対戦日時"
+                :label="LL?.duels.playedAt()"
                 prepend-inner-icon="mdi-calendar"
                 variant="outlined"
                 type="datetime-local"
@@ -318,12 +317,12 @@
             <v-col cols="12">
               <v-textarea
                 v-model="form.notes"
-                label="備考"
+                :label="LL?.duels.memo()"
                 prepend-inner-icon="mdi-note-text"
                 variant="outlined"
                 rows="3"
                 counter="1000"
-                placeholder="メモやコメントを入力"
+                :placeholder="LL?.duels.form.memoPlaceholder()"
                 :rules="[rules.maxLength]"
               />
             </v-col>
@@ -336,11 +335,11 @@
       <v-card-actions class="pa-4">
         <v-spacer />
         <v-btn variant="text" @click="closeDialog">
-          {{ inline ? 'リセット' : 'キャンセル' }}
+          {{ inline ? LL?.common.reset() : LL?.common.cancel() }}
         </v-btn>
         <v-btn color="primary" :loading="loading" @click="handleSubmit">
           <v-icon start>mdi-content-save</v-icon>
-          {{ isEdit ? '更新' : '登録' }}
+          {{ isEdit ? LL?.common.update() : LL?.duels.form.register() }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -361,6 +360,7 @@ import { useLatestDuelValues } from '@/composables/useLatestDuelValues';
 import { useScreenCaptureAnalysis } from '@/composables/useScreenCaptureAnalysis';
 import { useScreenCaptureAnalysisTfjs } from '@/composables/useScreenCaptureAnalysisTfjs';
 import { useAuthStore } from '@/stores/auth';
+import { useLocale } from '@/composables/useLocale';
 import MLTrainingDataButtons, { type DebugLabel } from '@/components/duel/MLTrainingDataButtons.vue';
 
 // 解析手法の型
@@ -390,6 +390,7 @@ const emit = defineEmits<{
 
 const notificationStore = useNotificationStore();
 const authStore = useAuthStore();
+const { LL } = useLocale();
 const { rules } = useDuelFormValidation();
 const { getCurrentLocalDateTime, localDateTimeToISO, isoToLocalDateTime } = useDateTimeFormat();
 const { resolveDeckId } = useDeckResolution();
@@ -519,17 +520,17 @@ const autoRegisterTimeoutId = ref<number | null>(null);
 
 const missingTemplateLabel = computed(() => {
   if (missingTemplates.value.length === 0) return '';
-  return `テンプレ未設定: ${missingTemplates.value.join(', ')}`;
+  return `${LL.value?.duels.screenAnalysis.missingTemplate()}: ${missingTemplates.value.join(', ')}`;
 });
 
 const analysisResultLabel = computed(() => {
   if (lastResult.value === 'win') {
-    return { text: '勝ち', color: 'success' };
+    return { text: LL.value?.duels.result.win() ?? '勝ち', color: 'success' };
   }
   if (lastResult.value === 'lose') {
-    return { text: '負け', color: 'error' };
+    return { text: LL.value?.duels.result.lose() ?? '負け', color: 'error' };
   }
-  return { text: '未検出', color: undefined };
+  return { text: LL.value?.duels.screenAnalysis.notDetected() ?? '未検出', color: undefined };
 });
 
 const analysisScoreLabel = computed(() => {
@@ -573,16 +574,16 @@ const trainingFolderSelected = computed(() => tfjsAnalysis.hasTrainingDataFolder
 const selectTrainingFolder = async () => {
   const success = await tfjsAnalysis.selectTrainingDataFolder();
   if (success) {
-    notificationStore.success('学習データ保存先フォルダを設定しました');
+    notificationStore.success(LL.value?.duels.screenAnalysis.trainingFolderSet() ?? '学習データ保存先フォルダを設定しました');
   } else {
-    notificationStore.warning('フォルダの選択がキャンセルされました');
+    notificationStore.warning(LL.value?.duels.screenAnalysis.trainingFolderCancelled() ?? 'フォルダの選択がキャンセルされました');
   }
 };
 
 const saveDebugImage = async (label: DebugLabel) => {
   if (analysisMethod.value !== 'tfjs') return;
   await tfjsAnalysis.saveDebugImages(label);
-  notificationStore.success(`学習データを保存しました: ${label}`);
+  notificationStore.success(`${LL.value?.duels.screenAnalysis.trainingDataSaved() ?? '学習データを保存しました'}: ${label}`);
 };
 
 const setSecondTurn = () => {
@@ -648,7 +649,7 @@ const buildDeckPayload = (
   isOpponent: boolean,
 ): Deck => {
   if (resolvedDeck) return resolvedDeck;
-  let name = '不明';
+  let name = LL.value?.duels.table.unknown() ?? '不明';
 
   if (typeof selected === 'object' && selected?.name) {
     name = selected.name;
@@ -883,7 +884,7 @@ const resetFormForNextDuel = async () => {
   // 最新の値を取得してフォームを再初期化
   await initializeForm();
   resetScreenAnalysis();
-  notificationStore.success('次の対戦を待機中...');
+  notificationStore.success(LL.value?.duels.form.waitingNext() ?? '次の対戦を待機中...');
 };
 
 // 自動登録処理
@@ -893,14 +894,15 @@ const autoRegisterDuel = async () => {
 
   // 使用デッキが設定されていない場合は登録しない
   if (!selectedMyDeck.value) {
-    notificationStore.warning('自動登録: 使用デッキが設定されていません');
+    notificationStore.warning(LL.value?.duels.form.autoRegisterNoDeck() ?? '自動登録: 使用デッキが設定されていません');
     return;
   }
 
   // 相手デッキが空欄の場合は「不明」に自動設定
   if (!selectedOpponentDeck.value) {
-    const unknownDeck = opponentDecksForUser.value.find((d) => d.name === '不明' && d.is_opponent);
-    selectedOpponentDeck.value = unknownDeck ?? '不明';
+    const unknownLabel = LL.value?.duels.table.unknown() ?? '不明';
+    const unknownDeck = opponentDecksForUser.value.find((d) => d.name === unknownLabel && d.is_opponent);
+    selectedOpponentDeck.value = unknownDeck ?? unknownLabel;
   }
 
   // フォームのバリデーション
@@ -908,7 +910,7 @@ const autoRegisterDuel = async () => {
   if (!valid) {
     const errorMessages = formRef.value.errors.map((e: any) => e.errorMessages).flat();
     notificationStore.warning(
-      `自動登録: ${errorMessages.join(', ') || '入力内容に不備があります'}`,
+      `${LL.value?.duels.form.autoRegisterFailed() ?? '自動登録に失敗しました'}: ${errorMessages.join(', ') || '入力内容に不備があります'}`,
     );
     return;
   }
@@ -924,7 +926,7 @@ const autoRegisterDuel = async () => {
     const myDeckId = resolvedMyDeck?.id ?? null;
     const opponentDeckId = resolvedOpponentDeck?.id ?? null;
     if (!myDeckId || !opponentDeckId) {
-      notificationStore.error('自動登録: デッキの解決に失敗しました');
+      notificationStore.error(LL.value?.duels.form.deckResolveFailed() ?? 'デッキの登録に失敗しました');
       return;
     }
 
@@ -943,7 +945,7 @@ const autoRegisterDuel = async () => {
     };
 
     const response = await api.post('/duels/', submitData);
-    notificationStore.success('対戦記録を自動登録しました');
+    notificationStore.success(LL.value?.duels.form.autoRegisterSuccess() ?? '対戦記録を自動登録しました');
     const savedDuel = response.data as Duel;
 
     const deckPayload = buildDeckPayload(resolvedMyDeck, selectedMyDeck.value, myDeckId, false);
@@ -969,7 +971,7 @@ const autoRegisterDuel = async () => {
     await resetFormForNextDuel();
   } catch (error) {
     logger.error('Failed to auto-register duel');
-    notificationStore.error('自動登録に失敗しました');
+    notificationStore.error(LL.value?.duels.form.autoRegisterFailed() ?? '自動登録に失敗しました');
   } finally {
     loading.value = false;
   }
@@ -1022,7 +1024,7 @@ const handleSubmit = async () => {
     const opponentDeckId = resolvedOpponentDeck?.id ?? null;
 
     if (!myDeckId || !opponentDeckId) {
-      notificationStore.error('デッキの登録に失敗しました');
+      notificationStore.error(LL.value?.duels.form.deckResolveFailed() ?? 'デッキの登録に失敗しました');
       loading.value = false;
       return;
     }
@@ -1059,7 +1061,7 @@ const handleSubmit = async () => {
 
     if (isEdit.value && props.duel) {
       const response = await api.put(`/duels/${props.duel.id}`, submitData);
-      notificationStore.success('対戦記録を更新しました');
+      notificationStore.success(LL.value?.duels.saveSuccess() ?? '対戦記録を保存しました');
       savedDuel = {
         ...(props.duel as Duel),
         ...(response.data as Partial<Duel>),
@@ -1070,7 +1072,7 @@ const handleSubmit = async () => {
       };
     } else {
       const response = await api.post('/duels/', submitData);
-      notificationStore.success('対戦記録を登録しました');
+      notificationStore.success(LL.value?.duels.saveSuccess() ?? '対戦記録を保存しました');
       savedDuel = {
         ...(response.data as Duel),
         ...submitData,
