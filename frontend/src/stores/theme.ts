@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { api } from '@/services/api';
+import { updateThemePreference } from '@/services/userService';
 import { useAuthStore } from './auth';
 import { createLogger } from '@/utils/logger';
 
@@ -66,7 +66,7 @@ export const useThemeStore = defineStore('theme', () => {
 
     if (authStore.user) {
       try {
-        await api.put('/me', { theme_preference: nextTheme });
+        await updateThemePreference(nextTheme);
         await authStore.fetchUser();
         applyTheme(nextTheme);
       } catch (error) {
