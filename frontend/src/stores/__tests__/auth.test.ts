@@ -165,23 +165,30 @@ describe('authStore', () => {
     expect(authStore.isAuthenticated).toBe(false);
   });
 
-  it('isStreamerModeEnabled uses user setting when authenticated', () => {
+  it('isStreamerModeEnabled uses local or user setting (either true = enabled)', () => {
     const authStore = useAuthStore();
 
-    // ログインしていない場合はローカル設定を使用
+    // 両方falseの場合はfalse
     expect(authStore.isStreamerModeEnabled).toBe(false);
 
+    // ローカル設定がtrueの場合はtrue
     authStore.toggleStreamerMode(true);
     expect(authStore.isStreamerModeEnabled).toBe(true);
 
-    // ユーザーがログインしている場合はユーザー設定を使用
+    // ローカルがtrueでユーザーがfalseでもtrue（OR条件）
     (authStore as any).user = {
       id: 'test-uuid',
       streamer_mode: false,
     };
-    expect(authStore.isStreamerModeEnabled).toBe(false);
+    expect(authStore.isStreamerModeEnabled).toBe(true);
 
+    // ローカルをfalseにしてもユーザーがtrueならtrue
+    authStore.toggleStreamerMode(false);
     (authStore as any).user.streamer_mode = true;
     expect(authStore.isStreamerModeEnabled).toBe(true);
+
+    // 両方falseの場合はfalse
+    (authStore as any).user.streamer_mode = false;
+    expect(authStore.isStreamerModeEnabled).toBe(false);
   });
 });

@@ -111,6 +111,8 @@ describe('OBSOverlayView.vue', () => {
         token: 'test-token-123',
         period_type: 'recent',
         limit: '30',
+        game_mode: 'RANK',
+        display_items: 'current_deck,game_mode_value,win_rate',
       },
     });
     await router.isReady();
@@ -124,8 +126,6 @@ describe('OBSOverlayView.vue', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('マスター5');
-    expect(wrapper.text()).toContain('1520.50');
-    expect(wrapper.text()).toContain('120.25');
     expect(wrapper.text()).toContain('55.0%');
   });
 
@@ -370,6 +370,8 @@ describe('OBSOverlayView.vue', () => {
       path: '/obs-overlay',
       query: {
         token: 'test-token-123',
+        game_mode: 'RANK',
+        display_items: 'game_mode_value',
       },
     });
 
