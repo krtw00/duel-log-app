@@ -29,11 +29,11 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         is_opponent: Optional[bool] = None,
         active_only: bool = True,
     ) -> List[Deck]:
-        """ユーザーのデッキを取得。"""
-        if is_opponent:
-            start_utc, end_utc = current_month_range_utc()
+        """ユーザーのデッキを取得（当月の対戦数が多い順）。"""
+        start_utc, end_utc = current_month_range_utc()
 
-            # CTE to count duels for each opponent deck in the current (local) month
+        if is_opponent is True:
+            # 相手デッキ: opponent_deck_id で対戦数をカウント
             duel_counts = (
                 db.query(
                     Duel.opponent_deck_id.label("deck_id"),
@@ -51,7 +51,6 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
             query = db.query(Deck).outerjoin(
                 duel_counts, Deck.id == duel_counts.c.deck_id
             )
-
             query = query.filter(Deck.user_id == user_id)
             query = query.filter(Deck.is_opponent.is_(True))
 
@@ -64,11 +63,39 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
 
             return query.all()
 
-        # Original logic for other cases
-        query = db.query(Deck).filter(Deck.user_id == user_id)
+        elif is_opponent is False:
+            # 使用デッキ: deck_id で対戦数をカウント
+            duel_counts = (
+                db.query(
+                    Duel.deck_id.label("deck_id"),
+                    func.count(Duel.id).label("duel_count"),
+                )
+                .filter(
+                    Duel.user_id == user_id,
+                    Duel.played_date >= start_utc,
+                    Duel.played_date < end_utc,
+                )
+                .group_by(Duel.deck_id)
+                .subquery("duel_counts")
+            )
 
-        if is_opponent is not None:
-            query = query.filter(Deck.is_opponent == is_opponent)
+            query = db.query(Deck).outerjoin(
+                duel_counts, Deck.id == duel_counts.c.deck_id
+            )
+            query = query.filter(Deck.user_id == user_id)
+            query = query.filter(Deck.is_opponent.is_(False))
+
+            if active_only:
+                query = query.filter(Deck.active.is_(True))
+
+            query = query.order_by(
+                func.coalesce(duel_counts.c.duel_count, 0).desc(), Deck.name
+            )
+
+            return query.all()
+
+        # is_opponent=None の場合（全デッキ取得）
+        query = db.query(Deck).filter(Deck.user_id == user_id)
 
         if active_only:
             query = query.filter(Deck.active.is_(True))
