@@ -27,9 +27,9 @@ const loadFormatters = (locale: Locales): void => {
 }
 
 export const i18n = () => {
-  return (locale: Locales) => i18nObject<Locales, Translations>(locale, loadedLocales[locale], loadedFormatters[locale])
+  return (locale: Locales) => i18nObject<Locales, Translations>(locale, loadedLocales[locale]!, loadedFormatters[locale]!)
 }
 
 export const i18nString = (locale: Locales) => {
-  return i18nObject<Locales, Translations>(locale, loadedLocales[locale], loadedFormatters[locale])
+  return i18nObject<Locales, Translations>(locale, loadedLocales[locale]!, loadedFormatters[locale]!)
 }

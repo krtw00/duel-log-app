@@ -8,16 +8,12 @@ import ja from './ja'
 
 export const locales: Locales[] = ['en', 'ja', 'ko']
 
-export const loadedLocales: Record<Locales, Translations> = {
+export const loadedLocales: Partial<Record<Locales, Translations>> = {
   ja: ja as Translations,
-  en: {} as Translations,
-  ko: {} as Translations,
 }
 
-export const loadedFormatters: Record<Locales, Formatters> = {
+export const loadedFormatters: Partial<Record<Locales, Formatters>> = {
   ja: initFormatters('ja'),
-  en: {} as Formatters,
-  ko: {} as Formatters,
 }
 
 export const loadLocale = (locale: Locales): void => {
