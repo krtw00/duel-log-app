@@ -250,11 +250,21 @@ onMounted(() => {
 
 // ウィンドウサイズの計算
 const getWindowDimensions = () => {
+  // 選択項目数に基づいて自動サイズを計算
+  const itemCount = selectedItems.value.filter((item) => item !== 'history').length;
+  const hasHistory = selectedItems.value.includes('history');
+
+  // 基本サイズの計算（2列表示を想定）
+  const cols = Math.min(itemCount, 3);
+  const rows = Math.ceil(itemCount / 3);
+  const autoWidth = Math.max(350, cols * 160 + 60);
+  const autoHeight = Math.max(200, rows * 100 + (hasHistory ? 250 : 50));
+
   const sizeMap: Record<string, { width: number; height: number }> = {
-    small: { width: 300, height: 400 },
-    medium: { width: 450, height: 600 },
-    large: { width: 600, height: 800 },
-    auto: { width: 400, height: 500 },
+    small: { width: 350, height: 400 },
+    medium: { width: 500, height: 600 },
+    large: { width: 700, height: 800 },
+    auto: { width: autoWidth, height: autoHeight },
   };
   return sizeMap[windowSize.value] || sizeMap.auto;
 };
