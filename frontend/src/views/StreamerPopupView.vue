@@ -159,9 +159,6 @@ const allDisplayItems: DisplayItemDef[] = [
     icon: 'mdi-cards-playing-outline',
     format: (v) => (v as string | undefined) || '未設定',
   },
-  { key: 'current_rank', label: 'ランク', icon: 'mdi-crown', format: formatRankValue },
-  { key: 'current_rate', label: 'レート', icon: 'mdi-chart-line', format: (v) => formatDecimalValue(v) },
-  { key: 'current_dc', label: 'DC', icon: 'mdi-medal', format: (v) => formatDecimalValue(v) },
   { key: 'total_duels', label: '総試合数', icon: 'mdi-sword-cross', format: formatIntegerValue },
   { key: 'win_rate', label: '勝率', icon: 'mdi-trophy', format: (v) => formatPercentageValue(v) },
   { key: 'first_turn_win_rate', label: '先攻勝率', icon: 'mdi-lightning-bolt', format: (v) => formatPercentageValue(v) },
@@ -170,28 +167,41 @@ const allDisplayItems: DisplayItemDef[] = [
   { key: 'go_first_rate', label: '先攻率', icon: 'mdi-arrow-up-bold-hexagon-outline', format: (v) => formatPercentageValue(v) },
 ];
 
-// ゲームモードに応じて非表示にする項目
-const getHiddenItemsByGameMode = (mode: GameMode): string[] => {
+// ゲームモードに応じた値の設定を取得
+const getGameModeValueConfig = (mode: GameMode): { key: string; label: string; icon: string; format: (v: unknown) => string } | null => {
   switch (mode) {
     case 'RANK':
-      return ['current_rate', 'current_dc'];
+      return { key: 'current_rank', label: 'ランク', icon: 'mdi-crown', format: formatRankValue };
     case 'RATE':
-      return ['current_rank', 'current_dc'];
+      return { key: 'current_rate', label: 'レート', icon: 'mdi-chart-line', format: (v) => formatDecimalValue(v) };
     case 'DC':
-      return ['current_rank', 'current_rate'];
+      return { key: 'current_dc', label: 'DC', icon: 'mdi-medal', format: (v) => formatDecimalValue(v) };
     case 'EVENT':
-      return ['current_rank', 'current_rate', 'current_dc'];
+      return null; // EVENTモードでは表示しない
     default:
-      return [];
+      return null;
   }
 };
 
 const statsItems = computed(() => {
-  const hiddenItems = getHiddenItemsByGameMode(gameMode.value);
-  return selectedItems.value
-    .filter((key) => !hiddenItems.includes(key))
-    .map((key) => allDisplayItems.find((item) => item.key === key))
-    .filter((item): item is DisplayItemDef => item !== undefined);
+  const items: DisplayItemDef[] = [];
+
+  for (const key of selectedItems.value) {
+    if (key === 'game_mode_value') {
+      // ゲームモードに応じた値を追加
+      const config = getGameModeValueConfig(gameMode.value);
+      if (config) {
+        items.push(config);
+      }
+    } else {
+      const item = allDisplayItems.find((item) => item.key === key);
+      if (item) {
+        items.push(item);
+      }
+    }
+  }
+
+  return items;
 });
 
 /**
@@ -381,7 +391,14 @@ onUnmounted(() => {
   gap: 10px;
   background: transparent;
 
-  // 横並び（デフォルト）
+  // グリッド（自動調整）- ウィンドウサイズに応じて列数を自動調整
+  &.layout-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+
+  // 横並び
   &.layout-horizontal {
     flex-direction: row;
     flex-wrap: wrap;
@@ -404,6 +421,12 @@ onUnmounted(() => {
   border: 1px solid var(--border-item);
   transition: all 0.3s ease;
   min-width: max-content;
+
+  // グリッドレイアウト時は幅を自動調整
+  .layout-grid & {
+    min-width: 0;
+    justify-content: center;
+  }
 
   &:hover {
     background: var(--bg-item-hover);
