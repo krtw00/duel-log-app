@@ -238,16 +238,28 @@ const ja = {
       lose: '負け',
     },
     matchup: {
-      title: '相性表',
+      title: 'デッキ相性表',
+      myDeck: '使用デッキ',
       opponent: '相手デッキ',
       matches: '対戦数',
       winRate: '勝率',
+      firstWinRate: '先攻勝率',
+      secondWinRate: '後攻勝率',
+      noData: '相性データがありません',
     },
     distribution: {
       title: 'デッキ分布',
+      monthlyTitle: '月間デッキ分布',
       deckName: 'デッキ名',
       count: '対戦数',
       percentage: '割合',
+    },
+    duelList: {
+      title: '月間対戦一覧',
+      totalCount: '全 {count:number} 件',
+    },
+    myDeckWinRates: {
+      title: '自分のデッキ勝率',
     },
     rateChart: {
       title: 'レート推移',

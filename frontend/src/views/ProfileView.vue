@@ -6,7 +6,7 @@
           <div class="card-glow"></div>
           <v-card-title class="pa-6">
             <v-icon class="mr-2" color="primary">mdi-account-edit</v-icon>
-            <span class="text-h5">プロフィール編集</span>
+            <span class="text-h5">{{ LL?.profile.title() }}</span>
           </v-card-title>
 
           <v-divider />
@@ -15,7 +15,7 @@
             <v-form ref="formRef" @submit.prevent="handleUpdate">
               <v-text-field
                 v-model="form.username"
-                label="ユーザー名"
+                :label="LL?.profile.username()"
                 prepend-inner-icon="mdi-account"
                 variant="outlined"
                 color="primary"
@@ -25,7 +25,7 @@
 
               <v-text-field
                 v-model="form.email"
-                label="メールアドレス"
+                :label="LL?.profile.email()"
                 prepend-inner-icon="mdi-email"
                 variant="outlined"
                 color="primary"
@@ -35,7 +35,7 @@
                 :readonly="form.streamerMode"
                 :hint="
                   form.streamerMode
-                    ? '配信者モードが有効なため、メールアドレスはマスクされています'
+                    ? LL?.profile.streamerMode.emailMaskedHint()
                     : ''
                 "
                 persistent-hint
@@ -43,20 +43,20 @@
 
               <v-text-field
                 v-model="form.password"
-                label="新しいパスワード (変更する場合のみ)"
+                :label="LL?.profile.newPassword()"
                 prepend-inner-icon="mdi-lock"
                 variant="outlined"
                 color="primary"
                 type="password"
                 :rules="[rules.password]"
-                placeholder="8文字以上、72文字以下"
+                :placeholder="LL?.profile.newPasswordHint()"
                 class="mb-4"
                 clearable
               ></v-text-field>
 
               <v-text-field
                 v-model="form.passwordConfirm"
-                label="新しいパスワードの確認"
+                :label="LL?.profile.confirmPassword()"
                 prepend-inner-icon="mdi-lock-check"
                 variant="outlined"
                 color="primary"
@@ -71,15 +71,15 @@
               <div class="streamer-mode-section">
                 <div class="d-flex align-center mb-2">
                   <v-icon color="purple" class="mr-2">mdi-video</v-icon>
-                  <span class="text-h6">配信者モード</span>
+                  <span class="text-h6">{{ LL?.profile.streamerMode.title() }}</span>
                 </div>
                 <p class="text-caption text-grey mb-3">
-                  有効にすると、アプリ内のメールアドレスが自動的にマスクされます。配信や録画時のプライバシー保護に便利です。
+                  {{ LL?.profile.streamerMode.description() }}
                 </p>
                 <v-switch
                   v-model="form.streamerMode"
                   color="purple"
-                  label="配信者モードを有効にする"
+                  :label="LL?.profile.streamerMode.enable()"
                   hide-details
                 ></v-switch>
               </div>
@@ -89,16 +89,16 @@
               <div class="screen-analysis-section">
                 <div class="d-flex align-center mb-2">
                   <v-icon color="warning" class="mr-2">mdi-flask</v-icon>
-                  <span class="text-h6">実験的機能</span>
-                  <v-chip size="x-small" color="warning" class="ml-2">テスト</v-chip>
+                  <span class="text-h6">{{ LL?.profile.experimental.title() }}</span>
+                  <v-chip size="x-small" color="warning" class="ml-2">{{ LL?.profile.experimental.badge() }}</v-chip>
                 </div>
                 <p class="text-caption text-grey mb-3">
-                  画面解析機能を有効にすると、対戦記録作成時に画面キャプチャによる自動入力機能が使用できます。この機能は開発中のため、誤判定が発生する可能性があります。
+                  {{ LL?.profile.experimental.screenAnalysis.description() }}
                 </p>
                 <v-switch
                   v-model="form.enableScreenAnalysis"
                   color="warning"
-                  label="画面解析機能を有効にする"
+                  :label="LL?.profile.experimental.screenAnalysis.enable()"
                   hide-details
                 ></v-switch>
               </div>
@@ -111,7 +111,7 @@
             <v-spacer />
             <v-btn color="primary" :loading="loading" size="large" @click="handleUpdate">
               <v-icon start>mdi-content-save</v-icon>
-              更新
+              {{ LL?.common.update() }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -120,16 +120,16 @@
         <v-card class="delete-card">
           <v-card-title class="pa-6">
             <v-icon class="mr-2" color="error">mdi-alert-octagon</v-icon>
-            <span class="text-h5">アカウント削除</span>
+            <span class="text-h5">{{ LL?.profile.accountDeletion.title() }}</span>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-6">
             <p class="text-body-1 mb-4">
-              この操作は元に戻せません。アカウントを削除すると、すべてのデッキと対戦履歴が完全に削除されます。
+              {{ LL?.profile.accountDeletion.warning() }}
             </p>
             <v-btn color="error" block size="large" @click="deleteDialog = true">
               <v-icon start>mdi-delete-forever</v-icon>
-              アカウントを削除する
+              {{ LL?.profile.accountDeletion.button() }}
             </v-btn>
           </v-card-text>
         </v-card>
@@ -138,24 +138,24 @@
         <v-card class="data-management-card mt-6">
           <v-card-title class="pa-6">
             <v-icon class="mr-2" color="primary">mdi-database</v-icon>
-            <span class="text-h5">データ管理</span>
+            <span class="text-h5">{{ LL?.profile.dataManagement.title() }}</span>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-6">
             <p class="text-body-1 mb-4">
-              全データをCSVファイルとしてエクスポート（バックアップ）したり、インポート（復元）したりできます。
+              {{ LL?.profile.dataManagement.description() }}
             </p>
             <v-row>
               <v-col cols="6">
                 <v-btn color="primary" block size="large" @click="exportAllData">
                   <v-icon start>mdi-export</v-icon>
-                  エクスポート
+                  {{ LL?.profile.dataManagement.export() }}
                 </v-btn>
               </v-col>
               <v-col cols="6">
                 <v-btn color="secondary" block size="large" @click="triggerImportFileInput">
                   <v-icon start>mdi-import</v-icon>
-                  インポート
+                  {{ LL?.profile.dataManagement.import() }}
                 </v-btn>
               </v-col>
             </v-row>
@@ -174,30 +174,28 @@
     <!-- Deletion Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="500" persistent>
       <v-card class="delete-dialog-card">
-        <v-card-title class="text-h5"> 本当にアカウントを削除しますか？ </v-card-title>
+        <v-card-title class="text-h5">{{ LL?.profile.accountDeletion.confirm() }}</v-card-title>
         <v-card-text>
           <p class="mb-4">
-            この操作は取り消せません。続行するには、以下のボックスに「<strong class="text-error"
-              >DELETE</strong
-            >」と入力してください。
+            {{ LL?.profile.accountDeletion.confirmInput() }}
           </p>
           <v-text-field
             v-model="deleteConfirmText"
-            label="確認のため 'DELETE' と入力"
+            label="DELETE"
             variant="outlined"
             autofocus
           ></v-text-field>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn variant="text" @click="deleteDialog = false">キャンセル</v-btn>
+          <v-btn variant="text" @click="deleteDialog = false">{{ LL?.common.cancel() }}</v-btn>
           <v-btn
             color="error"
             :disabled="deleteConfirmText !== 'DELETE'"
             :loading="deleting"
             @click="handleDeleteAccount"
           >
-            削除を実行
+            {{ LL?.common.delete() }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -206,14 +204,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { maskEmail } from '@/utils/maskEmail';
+import { useLocale } from '@/composables/useLocale';
 
+const { LL } = useLocale();
 const logger = createLogger('Profile');
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
@@ -240,7 +240,7 @@ const triggerImportFileInput = () => {
 };
 
 const exportAllData = async () => {
-  notificationStore.info('全データのバックアップを生成しています...');
+  notificationStore.info(LL.value?.common.loading() || '');
   try {
     const response = await api.get('/me/export', { responseType: 'blob' });
     const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -251,10 +251,10 @@ const exportAllData = async () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    notificationStore.success('バックアップファイルをダウンロードしました。');
+    notificationStore.success(LL.value?.profile.dataManagement.exportSuccess() || '');
   } catch (error) {
     logger.error('Failed to export data');
-    notificationStore.error('データのエクスポートに失敗しました。');
+    notificationStore.error(LL.value?.common.error() || '');
   }
 };
 
@@ -263,8 +263,7 @@ const importBackup = async (event: Event) => {
   const file = target.files?.[0];
   if (!file) return;
 
-  if (!confirm('本当にバックアップから復元しますか？現在のデータはすべて削除されます。')) {
-    // Clear the file input so the same file can be selected again
+  if (!confirm(LL.value?.profile.dataManagement.importConfirm() || '')) {
     if (importFileInput.value) {
       importFileInput.value.value = '';
     }
@@ -282,23 +281,19 @@ const importBackup = async (event: Event) => {
       },
     });
 
-    const { created, errors } = response.data;
+    const { errors } = response.data;
 
     if (errors && errors.length > 0) {
-      notificationStore.error('復元中にエラーが発生しました。');
+      notificationStore.error(LL.value?.common.error() || '');
       logger.error('Import Errors:', errors.length);
     } else {
-      notificationStore.success(`${created}件の対戦記録を復元しました`);
+      notificationStore.success(LL.value?.profile.dataManagement.importSuccess() || '');
     }
 
-    // Refresh data on the dashboard
-    // This is a bit of a hack, but it's the easiest way to refresh the data
-    // after a successful import on a different view.
-    // A better solution would be a shared service or a more robust state management.
-    await authStore.fetchUser(); // to refresh user related data if any
+    await authStore.fetchUser();
   } catch (error) {
     logger.error('Failed to import data');
-    notificationStore.error('データのインポートに失敗しました。');
+    notificationStore.error(LL.value?.common.error() || '');
   } finally {
     loading.value = false;
     if (importFileInput.value) {
@@ -307,20 +302,22 @@ const importBackup = async (event: Event) => {
   }
 };
 
-const rules = {
-  required: (v: unknown) => !!v || '入力必須です',
-  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
+const rules = computed(() => ({
+  required: (v: unknown) => !!v || LL.value?.validation.required() || '',
+  email: (v: string) => /.+@.+\..+/.test(v) || LL.value?.validation.email() || '',
   password: (v: string) => {
-    if (!v) return true; // パスワードは任意
+    if (!v) return true;
     return (
-      (v.length >= 8 && v.length <= 72) || 'パスワードは8文字以上、72文字以下で入力してください'
+      (v.length >= 8 && v.length <= 72) ||
+      LL.value?.validation.minLength({ min: 8 }) + ' ' + LL.value?.validation.maxLength({ max: 72 }) ||
+      ''
     );
   },
   passwordConfirm: (v: string) => {
     if (!form.value.password) return true;
-    return v === form.value.password || 'パスワードが一致しません';
+    return v === form.value.password || LL.value?.validation.passwordMatch() || '';
   },
-};
+}));
 
 const actualEmail = ref('');
 
@@ -381,7 +378,7 @@ const handleUpdate = async () => {
       ? maskEmail(response.data.email)
       : response.data.email;
 
-    notificationStore.success('プロフィールを更新しました');
+    notificationStore.success(LL.value?.profile.saveSuccess() || '');
 
     // パスワードフィールドをクリア
     form.value.password = '';
@@ -401,7 +398,7 @@ const handleDeleteAccount = async () => {
   deleting.value = true;
   try {
     await api.delete('/me');
-    notificationStore.success('アカウントが正常に削除されました');
+    notificationStore.success(LL.value?.common.success() || '');
     // ログアウト処理でリダイレクト
     await authStore.logout();
   } catch (error) {

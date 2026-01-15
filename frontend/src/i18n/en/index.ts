@@ -238,16 +238,28 @@ const en = {
       lose: 'Lost',
     },
     matchup: {
-      title: 'Matchup Chart',
+      title: 'Deck Matchup Chart',
+      myDeck: 'My Deck',
       opponent: 'Opponent Deck',
       matches: 'Matches',
       winRate: 'Win Rate',
+      firstWinRate: 'Going First Win Rate',
+      secondWinRate: 'Going Second Win Rate',
+      noData: 'No matchup data available',
     },
     distribution: {
       title: 'Deck Distribution',
+      monthlyTitle: 'Monthly Deck Distribution',
       deckName: 'Deck Name',
       count: 'Matches',
       percentage: 'Percentage',
+    },
+    duelList: {
+      title: 'Monthly Duel List',
+      totalCount: 'Total {count}',
+    },
+    myDeckWinRates: {
+      title: 'My Deck Win Rates',
     },
     rateChart: {
       title: 'Rating History',

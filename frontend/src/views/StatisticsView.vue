@@ -1,7 +1,7 @@
 <template>
   <app-layout current-view="statistics">
     <v-container fluid class="pa-6">
-      <h1 class="statistics-title text-h4 mb-6">統計情報</h1>
+      <h1 class="statistics-title text-h4 mb-6">{{ LL?.statistics.title() }}</h1>
 
       <!-- 年月選択 -->
       <v-row class="mb-4">
@@ -9,7 +9,7 @@
           <v-select
             v-model="selectedYear"
             :items="years"
-            label="年"
+            :label="LL?.common.year()"
             variant="outlined"
             density="compact"
             hide-details
@@ -20,7 +20,7 @@
           <v-select
             v-model="selectedMonth"
             :items="months"
-            label="月"
+            :label="LL?.common.month()"
             variant="outlined"
             density="compact"
             hide-details
@@ -48,19 +48,19 @@
         <v-tabs v-model="currentTab" color="primary" align-tabs="center" height="64">
           <v-tab value="RANK" class="custom-tab">
             <v-icon start>mdi-crown</v-icon>
-            ランク
+            {{ LL?.duels.gameMode.rank() }}
           </v-tab>
           <v-tab value="RATE" class="custom-tab">
             <v-icon start>mdi-chart-line</v-icon>
-            レート
+            {{ LL?.duels.gameMode.rate() }}
           </v-tab>
           <v-tab value="EVENT" class="custom-tab">
             <v-icon start>mdi-calendar-star</v-icon>
-            イベント
+            {{ LL?.duels.gameMode.event() }}
           </v-tab>
           <v-tab value="DC" class="custom-tab">
             <v-icon start>mdi-trophy-variant</v-icon>
-            DC
+            {{ LL?.duels.gameMode.dc() }}
           </v-tab>
         </v-tabs>
       </v-card>
@@ -124,6 +124,9 @@ import { useUiStore } from '@/stores/ui';
 import { useChartOptions } from '@/composables/useChartOptions';
 import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
 import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
+import { useLocale } from '@/composables/useLocale';
+
+const { LL, currentLocale } = useLocale();
 
 const themeStore = useThemeStore();
 const uiStore = useUiStore();
@@ -211,7 +214,29 @@ const years = computed(() => {
   return Array.from({ length: 5 }, (_, i) => currentYear - i);
 });
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
-const currentMonth = computed(() => `${selectedYear.value}年${selectedMonth.value}月`);
+const currentMonth = computed(() => {
+  if (currentLocale.value === 'ja') {
+    return `${selectedYear.value}年${selectedMonth.value}月`;
+  } else if (currentLocale.value === 'ko') {
+    return `${selectedYear.value}년 ${selectedMonth.value}월`;
+  } else {
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return `${monthNames[selectedMonth.value - 1]} ${selectedYear.value}`;
+  }
+});
 
 // --- Filter Settings ---
 const filterPeriodType = ref<'all' | 'range'>('all');
@@ -318,12 +343,12 @@ const handleMyDeckFilterChange = async () => {
 
 const resolveDeckName = (deckId: number): string => {
   const deck = availableMyDecks.value.find((d) => d.id === deckId);
-  return deck ? deck.name : '不明';
+  return deck ? deck.name : LL.value?.common.noData() || '';
 };
 
 const resolveOpponentDeckName = (deckId: number): string => {
   const deck = availableOpponentDecks.value.find((d) => d.id === deckId);
-  return deck ? deck.name : '不明';
+  return deck ? deck.name : LL.value?.common.noData() || '';
 };
 
 const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: string): Deck => ({

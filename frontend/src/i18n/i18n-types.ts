@@ -249,15 +249,27 @@ type RootTranslation = {
     }
     matchup: {
       title: string
+      myDeck: string
       opponent: string
       matches: string
       winRate: string
+      firstWinRate: string
+      secondWinRate: string
+      noData: string
     }
     distribution: {
       title: string
+      monthlyTitle: string
       deckName: string
       count: string
       percentage: string
+    }
+    duelList: {
+      title: string
+      totalCount: RequiredParams<'count'>
+    }
+    myDeckWinRates: {
+      title: string
     }
     rateChart: {
       title: string
@@ -642,15 +654,27 @@ export type TranslationFunctions = {
     }
     matchup: {
       title: () => LocalizedString
+      myDeck: () => LocalizedString
       opponent: () => LocalizedString
       matches: () => LocalizedString
       winRate: () => LocalizedString
+      firstWinRate: () => LocalizedString
+      secondWinRate: () => LocalizedString
+      noData: () => LocalizedString
     }
     distribution: {
       title: () => LocalizedString
+      monthlyTitle: () => LocalizedString
       deckName: () => LocalizedString
       count: () => LocalizedString
       percentage: () => LocalizedString
+    }
+    duelList: {
+      title: () => LocalizedString
+      totalCount: (arg: { count: number }) => LocalizedString
+    }
+    myDeckWinRates: {
+      title: () => LocalizedString
     }
     rateChart: {
       title: () => LocalizedString
