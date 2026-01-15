@@ -264,12 +264,12 @@ onMounted(async () => {
 
     // セッションが見つからない場合
     console.error('[AuthCallback] No session found after waiting');
-    
+
     // URLパラメータを再確認して、より詳細なエラーメッセージを提供
-    const urlParams = checkUrlParams();
+    const finalUrlParams = checkUrlParams();
     let errorMessage = '認証に失敗しました。もう一度お試しください。';
-    
-    if (!urlParams.code && !urlParams.access_token) {
+
+    if (!finalUrlParams.code && !finalUrlParams.access_token) {
       errorMessage = '認証情報がURLに含まれていません。SupabaseのRedirect URLs設定を確認してください。';
       console.error('[AuthCallback] Missing authentication parameters in URL');
     }
