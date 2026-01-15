@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { supabase } from '@/lib/supabase';
+import { supabase, clearSupabaseLocalStorage } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 
@@ -195,6 +195,8 @@ onMounted(async () => {
         errorMessage = errorParams.errorDescription;
       }
       
+      // エラー時は古いキャッシュをクリアして再ログインに備える
+      clearSupabaseLocalStorage();
       notificationStore.error(errorMessage);
       await router.push('/login');
       return;
@@ -280,12 +282,18 @@ onMounted(async () => {
       errorMessage = '認証情報がURLに含まれていません。SupabaseのRedirect URLs設定を確認してください。';
       console.error('[AuthCallback] Missing authentication parameters in URL');
     }
-    
+
+    // 認証失敗時は古いキャッシュをクリアして再ログインに備える
+    clearSupabaseLocalStorage();
+    console.log('[AuthCallback] Cleared cache after auth failure');
     notificationStore.error(errorMessage);
     await router.push('/login');
   } catch (error) {
     console.error('[AuthCallback] Unexpected error:', error);
     statusMessage.value = 'エラーが発生しました';
+    // エラー時は古いキャッシュをクリアして再ログインに備える
+    clearSupabaseLocalStorage();
+    console.log('[AuthCallback] Cleared cache after unexpected error');
     const errorMessage = error instanceof Error ? error.message : '認証処理中にエラーが発生しました';
     notificationStore.error(errorMessage);
     await router.push('/login');
