@@ -202,36 +202,43 @@ onMounted(async () => {
 
     // URLパラメータを確認
     const urlParams = checkUrlParams();
-    
-    // codeパラメータがある場合、Supabaseが処理するのを待つ
+
+    // codeパラメータがある場合、明示的にexchangeCodeForSessionを呼び出す
+    // detectSessionInUrlに依存せず、確実にcode→session交換を行う
     if (urlParams.code) {
-      console.log('[AuthCallback] Code parameter found, waiting for Supabase to process...');
+      console.log('[AuthCallback] Code parameter found, exchanging code for session...');
       statusMessage.value = '認証情報を処理中...';
-      
-      // detectSessionInUrl: trueにより、Supabaseが自動でURLから認証パラメータを検出・処理する
-      // しかし、処理が非同期で行われるため、少し待ってからセッションを確認する
-      // 明示的にgetSession()を呼び出すことで、SupabaseにURLを処理させる
+
       try {
-        // まず、SupabaseがURLを処理する時間を与える
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        
-        // getSession()を呼び出すことで、SupabaseにURLを処理させる
-        const { data: initialSession } = await supabase.auth.getSession();
-        if (initialSession?.session) {
-          console.log('[AuthCallback] Session found immediately after getSession()');
+        // 明示的にcodeをセッションに交換（PKCEフロー）
+        const { data, error } = await supabase.auth.exchangeCodeForSession(urlParams.code);
+
+        if (error) {
+          console.error('[AuthCallback] exchangeCodeForSession error:', error);
+          throw error;
+        }
+
+        if (data?.session) {
+          console.log('[AuthCallback] Session established via exchangeCodeForSession');
+
+          // URLからcodeパラメータを削除（履歴を汚さないためreplaceを使用）
+          await router.replace({ path: '/auth/callback' });
+
           statusMessage.value = 'ユーザー情報を取得中...';
-          await authStore.fetchUser();
+          await withTimeout(authStore.fetchUser(), 10000);
           notificationStore.success('ログインに成功しました');
           await router.push('/');
           return;
         }
       } catch (error) {
-        console.warn('[AuthCallback] Error checking initial session:', error);
+        console.error('[AuthCallback] Error exchanging code for session:', error);
+        // エラーの場合はフォールバックとしてwaitForSessionを試行
+        console.log('[AuthCallback] Falling back to waitForSession...');
       }
     }
 
-    // detectSessionInUrl: true により、Supabaseが自動でセッションを処理
-    // ここではセッションが確立されるのを待機するだけ
+    // フォールバック: codeがない場合やexchangeCodeForSessionが失敗した場合
+    // access_tokenがハッシュに含まれている場合（implicitフロー）などに対応
     console.log('[AuthCallback] Waiting for Supabase to process authentication...');
     statusMessage.value = '認証情報を処理中...';
 
