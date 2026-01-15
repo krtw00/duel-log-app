@@ -20,6 +20,10 @@ const ko = {
     month: '월',
     noData: '데이터가 없습니다',
     required: '필수',
+    screenCapture: {
+      templateLoadError: '템플릿 로드 실패',
+      startError: '화면 공유 시작에 실패했습니다',
+    },
   },
   nav: {
     dashboard: '대시보드',
@@ -30,6 +34,7 @@ const ko = {
     logout: '로그아웃',
   },
   auth: {
+    checkingStatus: '인증 상태 확인 중...',
     login: {
       title: '로그인',
       email: '이메일',
@@ -392,6 +397,7 @@ const ko = {
       platinum: '플래티넘',
       diamond: '다이아몬드',
       master: '마스터',
+      unknown: '알 수 없음',
     },
     streamerPopup: {
       title: '방송용 팝업 설정',
@@ -427,7 +433,13 @@ const ko = {
         secondTurnWinRate: '후공 승률',
         coinWinRate: '코인 승률',
         goFirstRate: '선공률',
+        rank: '랭크',
+        rate: '레이팅',
+        dc: 'DC',
+        notSet: '미설정',
       },
+      loginRequired: '로그인이 필요합니다',
+      loginRequiredDetail: '로그인 상태에서 이 페이지를 열어주세요',
     },
     configPanel: {
       title: 'OBS 연동 설정',
@@ -478,6 +490,11 @@ const ko = {
     deleteConfirm: '공유를 중지하면 이 URL을 사용할 수 없게 됩니다. 계속하시겠습니까?',
     publicStats: '공개 통계',
     viewerCount: '조회수',
+    createSuccess: '공유 링크가 생성되었습니다!',
+    createError: '공유 링크 생성에 실패했습니다.',
+    fetchError: '공유 통계 데이터를 가져오는 데 실패했습니다.',
+    deleteSuccess: '공유 링크가 삭제되었습니다.',
+    deleteError: '공유 링크 삭제에 실패했습니다.',
   },
   validation: {
     required: '필수 항목입니다',
@@ -490,6 +507,8 @@ const ko = {
     username: '사용자 이름은 3자 이상이어야 합니다',
     invalidFormat: '형식이 올바르지 않습니다',
     unexpectedError: '예상치 못한 오류가 발생했습니다',
+    positiveNumber: '0 이상의 숫자를 입력해 주세요',
+    integer: '정수를 입력해 주세요',
   },
   admin: {
     title: '관리자',

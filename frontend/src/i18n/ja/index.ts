@@ -20,6 +20,10 @@ const ja = {
     month: '月',
     noData: 'データがありません',
     required: '必須',
+    screenCapture: {
+      templateLoadError: 'テンプレート読み込み失敗',
+      startError: '画面共有の開始に失敗しました',
+    },
   },
   nav: {
     dashboard: 'ダッシュボード',
@@ -30,6 +34,7 @@ const ja = {
     logout: 'ログアウト',
   },
   auth: {
+    checkingStatus: '認証状態を確認中...',
     login: {
       title: 'ログイン',
       email: 'メールアドレス',
@@ -393,6 +398,7 @@ const ja = {
       platinum: 'プラチナ',
       diamond: 'ダイヤ',
       master: 'マスター',
+      unknown: '不明',
     },
     streamerPopup: {
       title: '配信用ポップアップ設定',
@@ -428,7 +434,13 @@ const ja = {
         secondTurnWinRate: '後攻勝率',
         coinWinRate: 'コイン勝率',
         goFirstRate: '先攻率',
+        rank: 'ランク',
+        rate: 'レート',
+        dc: 'DC',
+        notSet: '未設定',
       },
+      loginRequired: 'ログインが必要です',
+      loginRequiredDetail: 'ログイン状態でこのページを開いてください',
     },
     configPanel: {
       title: 'OBS連携設定',
@@ -479,6 +491,11 @@ const ja = {
     deleteConfirm: '共有を停止すると、このURLは使用できなくなります。続行しますか？',
     publicStats: '公開統計',
     viewerCount: '閲覧数',
+    createSuccess: '共有リンクが生成されました！',
+    createError: '共有リンクの生成に失敗しました。',
+    fetchError: '共有統計データの取得に失敗しました。',
+    deleteSuccess: '共有リンクが削除されました。',
+    deleteError: '共有リンクの削除に失敗しました。',
   },
   validation: {
     required: '必須項目です',
@@ -491,6 +508,8 @@ const ja = {
     username: 'ユーザー名は3文字以上で入力してください',
     invalidFormat: '形式が正しくありません',
     unexpectedError: '予期せぬエラーが発生しました',
+    positiveNumber: '0以上の数値を入力してください',
+    integer: '整数を入力してください',
   },
   admin: {
     title: '管理者画面',
