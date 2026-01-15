@@ -17,12 +17,10 @@ export const supabase = createClient<Database>(
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      // Supabaseが自動でURLから認証パラメータを検出・処理
-      detectSessionInUrl: true,
+      // 自動検出を無効化し、AuthCallbackViewで手動でcode交換を行う
+      // これにより、二重処理によるnavigator.locksのデッドロックを回避
+      detectSessionInUrl: false,
       flowType: 'pkce',
-      // navigator.locksを使用（デフォルト）
-      // 注意: 古いセッションデータが残っているとデッドロックする可能性があるため、
-      // ログイン前に必ずclearSupabaseLocalStorage()を呼び出すこと
     },
     global: {
       fetch: (url, options = {}) => {
