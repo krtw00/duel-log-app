@@ -11,6 +11,23 @@
 
     <v-spacer />
 
+    <!-- 言語切り替えメニュー -->
+    <v-menu>
+      <template #activator="{ props }">
+        <v-btn v-bind="props" icon="mdi-translate" variant="text" class="mr-1" />
+      </template>
+      <v-list density="compact">
+        <v-list-item
+          v-for="loc in supportedLocales"
+          :key="loc"
+          :active="loc === currentLocale"
+          @click="changeLocale(loc)"
+        >
+          <v-list-item-title>{{ localeNames[loc] }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
     <!-- テーマ切り替えボタン -->
     <v-btn
       :icon="themeStore.isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
@@ -59,19 +76,19 @@
           <template #prepend>
             <v-icon>mdi-account-edit</v-icon>
           </template>
-          <v-list-item-title>プロフィール</v-list-item-title>
+          <v-list-item-title>{{ LL?.nav.profile() }}</v-list-item-title>
         </v-list-item>
         <v-list-item v-if="authStore.user?.is_admin" to="/admin">
           <template #prepend>
             <v-icon>mdi-shield-crown</v-icon>
           </template>
-          <v-list-item-title>管理者画面</v-list-item-title>
+          <v-list-item-title>{{ LL?.nav.admin() }}</v-list-item-title>
         </v-list-item>
         <v-list-item @click="authStore.logout">
           <template #prepend>
             <v-icon>mdi-logout</v-icon>
           </template>
-          <v-list-item-title>ログアウト</v-list-item-title>
+          <v-list-item-title>{{ LL?.nav.logout() }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -84,6 +101,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useThemeStore } from '@/stores/theme';
 import { maskEmail } from '@/utils/maskEmail';
+import { useLocale } from '@/composables/useLocale';
 
 defineProps<{
   currentView: 'dashboard' | 'decks' | 'statistics' | 'profile' | 'admin';
@@ -94,12 +112,16 @@ defineEmits(['toggle-drawer']);
 const router = useRouter();
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
+const { LL, currentLocale, supportedLocales, localeNames, changeLocale } = useLocale();
 
-const navItems = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
+const navItems = computed(() => {
+  if (!LL.value) return [];
+  return [
+    { name: LL.value.nav.dashboard(), path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
+    { name: LL.value.nav.decks(), path: '/decks', view: 'decks', icon: 'mdi-cards' },
+    { name: LL.value.nav.statistics(), path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+  ];
+});
 
 const displayEmail = computed(() => {
   if (!authStore.user || !authStore.user.email) return '';
