@@ -2,6 +2,10 @@
 import { vi } from 'vitest';
 import { config } from '@vue/test-utils';
 
+// i18nの初期化（日本語をデフォルトに）
+import { setLocale } from './src/i18n';
+await setLocale('ja');
+
 // ResizeObserverのモック
 global.ResizeObserver = vi.fn(() => ({
   observe: vi.fn(),

@@ -63,8 +63,8 @@ describe('DuelTable.vue', () => {
 
     expect(wrapper.text()).toContain('My Deck');
     expect(wrapper.text()).toContain('Opponent Deck');
-    expect(wrapper.text()).toContain('勝利');
-    expect(wrapper.text()).toContain('敗北');
+    expect(wrapper.text()).toContain('勝ち');
+    expect(wrapper.text()).toContain('負け');
     expect(wrapper.text()).toContain('プラチナ5'); // Rank 18
     expect(wrapper.text()).toContain('1500'); // Rate value
   });
