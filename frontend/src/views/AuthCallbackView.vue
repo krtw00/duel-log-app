@@ -205,6 +205,18 @@ onMounted(async () => {
     // URLパラメータを確認
     const urlParams = checkUrlParams();
 
+    // デバッグ: LocalStorageのSupabase関連キーを確認
+    const supabaseKeys = Object.keys(localStorage).filter(
+      key => key.startsWith('sb-') || key.includes('supabase') || key.includes('code')
+    );
+    console.log('[AuthCallback] LocalStorage Supabase keys:', supabaseKeys);
+    supabaseKeys.forEach(key => {
+      const value = localStorage.getItem(key);
+      // 値が長い場合は先頭100文字だけ表示
+      const displayValue = value && value.length > 100 ? value.substring(0, 100) + '...' : value;
+      console.log(`[AuthCallback]   ${key}: ${displayValue}`);
+    });
+
     // codeパラメータがある場合、明示的にexchangeCodeForSessionを呼び出す
     // detectSessionInUrlに依存せず、確実にcode→session交換を行う
     if (urlParams.code) {
@@ -213,7 +225,15 @@ onMounted(async () => {
 
       try {
         // 明示的にcodeをセッションに交換（PKCEフロー）
-        const { data, error } = await supabase.auth.exchangeCodeForSession(urlParams.code);
+        // タイムアウトを設定してハングを防止
+        console.log('[AuthCallback] Calling exchangeCodeForSession...');
+        const exchangeResult = await withTimeout(
+          supabase.auth.exchangeCodeForSession(urlParams.code),
+          30000
+        );
+        console.log('[AuthCallback] exchangeCodeForSession completed');
+
+        const { data, error } = exchangeResult;
 
         if (error) {
           console.error('[AuthCallback] exchangeCodeForSession error:', error);
