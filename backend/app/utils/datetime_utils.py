@@ -60,3 +60,27 @@ def current_month_range_utc(
 
     now_local = datetime.now(tz)
     return month_range_utc(now_local.year, now_local.month, tz)
+
+
+def recent_two_months_range_utc(
+    tz: ZoneInfo = DEFAULT_TIMEZONE,
+) -> Tuple[datetime, datetime]:
+    """Return the UTC start (inclusive) and end (exclusive) for the past 2 months (current + previous).
+
+    This is useful for calculating deck usage frequency including the previous month.
+    """
+    now_local = datetime.now(tz)
+
+    # 前月の年と月を計算
+    if now_local.month == 1:
+        prev_year = now_local.year - 1
+        prev_month = 12
+    else:
+        prev_year = now_local.year
+        prev_month = now_local.month - 1
+
+    # 前月の開始から当月の終了までの範囲
+    start_utc, _ = month_range_utc(prev_year, prev_month, tz)
+    _, end_utc = month_range_utc(now_local.year, now_local.month, tz)
+
+    return start_utc, end_utc
