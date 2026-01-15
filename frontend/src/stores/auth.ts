@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { supabase, clearSupabaseLocalStorage } from '../lib/supabase';
 import router from '../router';
 import { createLogger } from '../utils/logger';
+import { api } from '../services/api';
 import type { User, Session, Provider } from '@supabase/supabase-js';
 
 const logger = createLogger('Auth');
@@ -55,21 +56,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * プロフィール情報を取得
-   * @param userId
+   * バックエンドAPI `/me` を使用してユーザー情報を取得
+   * 注意: Supabase直接クエリではなくAPIを使用することでRLSの影響を回避
    */
-  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('supabase_uuid', userId)
-      .single();
-
-    if (error) {
-      logger.error('Failed to fetch profile:', error.message);
+  const fetchProfile = async (): Promise<UserProfile | null> => {
+    try {
+      const response = await api.get<UserProfile>('/me');
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to fetch profile from API');
       return null;
     }
-
-    return data as unknown as UserProfile;
   };
 
   /**
@@ -151,7 +148,7 @@ export const useAuthStore = defineStore('auth', () => {
       await clearLegacyBackendCookie();
 
       // プロフィール情報を取得
-      const profile = await fetchProfile(data.user.id);
+      const profile = await fetchProfile();
       if (profile) {
         user.value = profile;
       } else {
@@ -256,7 +253,7 @@ export const useAuthStore = defineStore('auth', () => {
       session.value = data.session;
 
       // プロフィール情報を取得（トリガーで作成されているはず）
-      const profile = await fetchProfile(data.user.id);
+      const profile = await fetchProfile();
       if (profile) {
         user.value = profile;
       } else {
@@ -389,7 +386,7 @@ export const useAuthStore = defineStore('auth', () => {
       // プロフィール取得にも10秒のタイムアウトを設定
       try {
         const profileStart = performance.now();
-        const profile = await withTimeout(fetchProfile(currentSession.user.id), 10000);
+        const profile = await withTimeout(fetchProfile(), 10000);
         logger.debug(`fetchProfile completed in ${(performance.now() - profileStart).toFixed(0)}ms`);
         if (profile) {
           user.value = profile;
@@ -536,7 +533,7 @@ export const useAuthStore = defineStore('auth', () => {
           // 現在の同期処理（ロック保持中）が完了してから実行
           queueMicrotask(async () => {
             try {
-              const profile = await fetchProfile(newSession.user.id);
+              const profile = await fetchProfile();
               if (profile) {
                 user.value = profile;
               }
