@@ -10,18 +10,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   // 本番環境では環境変数を設定してください
 }
 
-/**
- * navigator.locks APIのデッドロックを回避するためのno-opロック関数
- * 古いセッションデータが残っている場合にハングする問題を解決
- */
-const noopLock = async <R>(
-  _name: string,
-  _acquireTimeout: number,
-  fn: () => Promise<R>,
-): Promise<R> => {
-  return fn();
-};
-
 export const supabase = createClient<Database>(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-anon-key',
@@ -32,8 +20,9 @@ export const supabase = createClient<Database>(
       // Supabaseが自動でURLから認証パラメータを検出・処理
       detectSessionInUrl: true,
       flowType: 'pkce',
-      // navigator.locks APIのデッドロック問題を回避
-      lock: noopLock,
+      // navigator.locksを使用（デフォルト）
+      // 注意: 古いセッションデータが残っているとデッドロックする可能性があるため、
+      // ログイン前に必ずclearSupabaseLocalStorage()を呼び出すこと
     },
     global: {
       fetch: (url, options = {}) => {
