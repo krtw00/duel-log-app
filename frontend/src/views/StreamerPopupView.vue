@@ -38,27 +38,6 @@
         </div>
       </div>
 
-      <!-- 対戦履歴 -->
-      <div v-if="showHistory && recentDuels.length > 0" class="history-container">
-        <div class="history-title">
-          <span class="mdi mdi-history"></span>
-          対戦履歴
-        </div>
-        <div class="history-list">
-          <div
-            v-for="duel in recentDuels"
-            :key="duel.id"
-            class="history-item"
-            :class="{ win: duel.is_win, lose: !duel.is_win }"
-          >
-            <span class="result">{{ duel.is_win ? 'WIN' : 'LOSE' }}</span>
-            <span class="deck">{{ duel.deck?.name || '-' }}</span>
-            <span class="vs">vs</span>
-            <span class="opponent">{{ duel.opponent_deck?.name || '-' }}</span>
-            <span class="turn">{{ duel.is_going_first ? '先攻' : '後攻' }}</span>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -70,7 +49,7 @@ import { api } from '@/services/api';
 import { getRankName } from '@/utils/ranks';
 import { createLogger } from '@/utils/logger';
 import { useAuthStore } from '@/stores/auth';
-import type { GameMode, Duel } from '@/types';
+import type { GameMode } from '@/types';
 
 const logger = createLogger('StreamerPopup');
 
@@ -89,20 +68,20 @@ const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
 const theme = ref((route.query.theme as string) || 'dark');
 const layout = ref((route.query.layout as string) || 'horizontal');
 const refreshInterval = ref(Number(route.query.refresh) || 30000);
-const historyLimit = ref(Number(route.query.history_limit) || 5);
 const gameMode = ref<GameMode>((route.query.game_mode as GameMode) || 'RANK');
 
 // データ
 const statsData = ref<Record<string, unknown>>({});
-const recentDuels = ref<Duel[]>([]);
+
+// 初回リサイズ済みフラグ（自動更新時にサイズが変わるのを防ぐ）
+const hasResized = ref(false);
 
 // 認証状態
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 // 表示項目の設定
 const selectedItems = computed(() => itemsParam.value.split(',').filter(Boolean));
-const showStats = computed(() => selectedItems.value.some((item) => item !== 'history'));
-const showHistory = computed(() => selectedItems.value.includes('history'));
+const showStats = computed(() => selectedItems.value.length > 0);
 
 // ランクマップ
 const rankTierLabelMap: Record<string, string> = {
@@ -210,15 +189,18 @@ const getHiddenItemsByGameMode = (mode: GameMode): string[] => {
 const statsItems = computed(() => {
   const hiddenItems = getHiddenItemsByGameMode(gameMode.value);
   return selectedItems.value
-    .filter((key) => key !== 'history' && !hiddenItems.includes(key))
+    .filter((key) => !hiddenItems.includes(key))
     .map((key) => allDisplayItems.find((item) => item.key === key))
     .filter((item): item is DisplayItemDef => item !== undefined);
 });
 
 /**
- * ウィンドウサイズをコンテンツに合わせて自動調整
+ * ウィンドウサイズをコンテンツに合わせて自動調整（初回のみ）
  */
 const resizeWindowToContent = async () => {
+  // 既にリサイズ済みの場合はスキップ（自動更新時にサイズが変わるのを防ぐ）
+  if (hasResized.value) return;
+
   // ポップアップウィンドウでない場合はスキップ
   if (!window.opener) return;
 
@@ -246,6 +228,7 @@ const resizeWindowToContent = async () => {
 
   try {
     window.resizeTo(targetWidth, targetHeight);
+    hasResized.value = true; // リサイズ済みフラグを立てる
     logger.debug(`Window resized to ${targetWidth}x${targetHeight}`);
   } catch (e) {
     logger.debug('Could not resize window:', e);
@@ -295,11 +278,6 @@ const fetchData = async () => {
         coin_win_rate: overall.coin_win_rate || 0,
         go_first_rate: overall.go_first_rate || 0,
       };
-
-      // 対戦履歴
-      if (showHistory.value) {
-        recentDuels.value = duels.slice(0, historyLimit.value);
-      }
     }
 
     loading.value = false;
@@ -488,92 +466,6 @@ onUnmounted(() => {
     font-size: 16px;
     white-space: normal;
     word-break: break-word;
-  }
-}
-
-// 対戦履歴
-.history-container {
-  margin-top: 12px;
-  padding: 10px;
-  background: var(--bg-item);
-  border-radius: 8px;
-  border: 1px solid var(--border-item);
-}
-
-.history-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.history-title .mdi {
-  font-size: 14px;
-}
-
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.history-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  font-size: 13px;
-  color: var(--text-primary);
-  flex-wrap: wrap;
-
-  &.win {
-    border-left: 3px solid var(--win-color);
-  }
-
-  &.lose {
-    border-left: 3px solid var(--lose-color);
-  }
-
-  .result {
-    font-weight: 700;
-    min-width: 36px;
-  }
-
-  &.win .result {
-    color: var(--win-color);
-  }
-
-  &.lose .result {
-    color: var(--lose-color);
-  }
-
-  .deck {
-    font-weight: 500;
-    flex: 1;
-    min-width: 60px;
-  }
-
-  .vs {
-    color: var(--text-secondary);
-    font-size: 11px;
-  }
-
-  .opponent {
-    flex: 1;
-    min-width: 60px;
-    color: var(--text-secondary);
-  }
-
-  .turn {
-    font-size: 11px;
-    color: var(--text-secondary);
   }
 }
 
