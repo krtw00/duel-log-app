@@ -210,6 +210,55 @@ type RootTranslation = {
     dcValue: string
     saveSuccess: string
     deleteSuccess: string
+    form: {
+      newTitle: string
+      editTitle: string
+      selectOrInputDeck: string
+      newDeckHint: string
+      memoPlaceholder: string
+      register: string
+      autoRegisterSuccess: string
+      autoRegisterFailed: string
+      autoRegisterNoDeck: string
+      deckResolveFailed: string
+      waitingNext: string
+    }
+    table: {
+      noColumn: string
+      rankOrRate: string
+      actions: string
+      noRecords: string
+      noRecordsHint: string
+      unknown: string
+    }
+    screenAnalysis: {
+      title: string
+      testFeature: string
+      template: string
+      ml: string
+      autoRegister: string
+      on: string
+      off: string
+      start: string
+      stop: string
+      running: string
+      stopped: string
+      turnChoiceDetected: string
+      turnChoiceNotDetected: string
+      resultLabel: string
+      notDetected: string
+      registered: string
+      canRegister: string
+      switchToSecond: string
+      description: string
+      templateMode: string
+      mlMode: string
+      modeDescription: string
+      missingTemplate: string
+      trainingFolderSet: string
+      trainingFolderCancelled: string
+      trainingDataSaved: string
+    }
   }
   statistics: {
     title: string
@@ -615,6 +664,55 @@ export type TranslationFunctions = {
     dcValue: () => LocalizedString
     saveSuccess: () => LocalizedString
     deleteSuccess: () => LocalizedString
+    form: {
+      newTitle: () => LocalizedString
+      editTitle: () => LocalizedString
+      selectOrInputDeck: () => LocalizedString
+      newDeckHint: () => LocalizedString
+      memoPlaceholder: () => LocalizedString
+      register: () => LocalizedString
+      autoRegisterSuccess: () => LocalizedString
+      autoRegisterFailed: () => LocalizedString
+      autoRegisterNoDeck: () => LocalizedString
+      deckResolveFailed: () => LocalizedString
+      waitingNext: () => LocalizedString
+    }
+    table: {
+      noColumn: () => LocalizedString
+      rankOrRate: () => LocalizedString
+      actions: () => LocalizedString
+      noRecords: () => LocalizedString
+      noRecordsHint: () => LocalizedString
+      unknown: () => LocalizedString
+    }
+    screenAnalysis: {
+      title: () => LocalizedString
+      testFeature: () => LocalizedString
+      template: () => LocalizedString
+      ml: () => LocalizedString
+      autoRegister: () => LocalizedString
+      on: () => LocalizedString
+      off: () => LocalizedString
+      start: () => LocalizedString
+      stop: () => LocalizedString
+      running: () => LocalizedString
+      stopped: () => LocalizedString
+      turnChoiceDetected: () => LocalizedString
+      turnChoiceNotDetected: () => LocalizedString
+      resultLabel: () => LocalizedString
+      notDetected: () => LocalizedString
+      registered: () => LocalizedString
+      canRegister: () => LocalizedString
+      switchToSecond: () => LocalizedString
+      description: () => LocalizedString
+      templateMode: () => LocalizedString
+      mlMode: () => LocalizedString
+      modeDescription: () => LocalizedString
+      missingTemplate: () => LocalizedString
+      trainingFolderSet: () => LocalizedString
+      trainingFolderCancelled: () => LocalizedString
+      trainingDataSaved: () => LocalizedString
+    }
   }
   statistics: {
     title: () => LocalizedString
