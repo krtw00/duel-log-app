@@ -147,7 +147,7 @@ class MatchupService:
                     )
 
         # 使用率（対戦数）でソート
-        chart_data.sort(key=lambda x: x["total_duels"], reverse=True)  # type: ignore[arg-type, return-value]
+        chart_data.sort(key=lambda x: int(x["total_duels"]), reverse=True)
 
         return chart_data
 
