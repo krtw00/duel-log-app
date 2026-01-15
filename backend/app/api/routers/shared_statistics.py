@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.api.routers.statistics import get_all_statistics
 from app.api.deps import get_current_user
+from app.api.routers.statistics import get_all_statistics
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.shared_statistics import (
