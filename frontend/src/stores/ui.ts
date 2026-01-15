@@ -1,12 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { GameMode } from '@/types';
+import { isValidGameMode } from '@/utils/gameMode';
 
 const LAST_GAME_MODE_STORAGE_KEY = 'duellog.lastGameMode';
 const DEFAULT_GAME_MODE: GameMode = 'RANK';
-
-const isGameMode = (value: unknown): value is GameMode =>
-  value === 'RANK' || value === 'RATE' || value === 'EVENT' || value === 'DC';
 
 const readStoredGameMode = (): GameMode => {
   if (typeof window === 'undefined') {
@@ -15,7 +13,7 @@ const readStoredGameMode = (): GameMode => {
 
   try {
     const stored = window.localStorage.getItem(LAST_GAME_MODE_STORAGE_KEY);
-    return isGameMode(stored) ? stored : DEFAULT_GAME_MODE;
+    return isValidGameMode(stored) ? stored : DEFAULT_GAME_MODE;
   } catch {
     return DEFAULT_GAME_MODE;
   }
