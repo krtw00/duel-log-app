@@ -428,15 +428,10 @@ const formRef = ref();
 const loading = ref(false);
 const myDecks = ref<Deck[]>([]);
 const opponentDecks = ref<Deck[]>([]);
-const currentUserId = computed(() => authStore.user?.id ?? props.duel?.user_id ?? null);
 const screenAnalysisEnabled = computed(() => authStore.user?.enable_screen_analysis ?? false);
-const filterDecksForUser = (decks: Deck[]) => {
-  const userId = currentUserId.value;
-  if (!userId) return decks;
-  return decks.filter((deck) => deck.user_id === userId);
-};
-const myDecksForUser = computed(() => filterDecksForUser(myDecks.value));
-const opponentDecksForUser = computed(() => filterDecksForUser(opponentDecks.value));
+// バックエンドが既に認証ユーザーのデッキのみを返すため、フロントエンドでのフィルタリングは不要
+const myDecksForUser = computed(() => myDecks.value);
+const opponentDecksForUser = computed(() => opponentDecks.value);
 const decksLoadedTarget = ref<'none' | 'active' | 'all'>('none');
 let decksFetchPromise: Promise<void> | null = null;
 const suppressCoinSync = ref(false);
@@ -703,7 +698,7 @@ const buildDeckPayload = (
     name,
     is_opponent: isOpponent,
     active: true,
-    user_id: currentUserId.value ?? undefined,
+    user_id: authStore.user?.id,
   };
 };
 
@@ -717,8 +712,8 @@ const fetchDecks = async (activeOnly: boolean) => {
       api.get(`/decks/?is_opponent=true&${params}`),
     ]);
 
-    myDecks.value = filterDecksForUser(myDecksResponse.data);
-    opponentDecks.value = filterDecksForUser(opponentDecksResponse.data);
+    myDecks.value = myDecksResponse.data;
+    opponentDecks.value = opponentDecksResponse.data;
   } catch (error) {
     logger.error('Failed to fetch decks');
   }
@@ -733,10 +728,8 @@ const seedDecksFromProps = () => {
 
   if (!hasInitialDecks) return;
 
-  myDecks.value = filterDecksForUser(props.initialMyDecks ? [...props.initialMyDecks] : []);
-  opponentDecks.value = filterDecksForUser(
-    props.initialOpponentDecks ? [...props.initialOpponentDecks] : [],
-  );
+  myDecks.value = props.initialMyDecks ? [...props.initialMyDecks] : [];
+  opponentDecks.value = props.initialOpponentDecks ? [...props.initialOpponentDecks] : [];
 
   if (decksLoadedTarget.value === 'none') {
     decksLoadedTarget.value = 'active';

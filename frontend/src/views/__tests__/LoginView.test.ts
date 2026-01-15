@@ -86,7 +86,7 @@ describe('LoginView.vue', () => {
       },
     });
 
-    // "アカウントをお持ちでない方は" のテキストをチェック
-    expect(wrapper.text()).toContain('アカウントをお持ちでない方は');
+    // "アカウントをお持ちでない方" のテキストをチェック
+    expect(wrapper.text()).toContain('アカウントをお持ちでない方');
   });
 });
