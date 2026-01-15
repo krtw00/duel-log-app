@@ -97,8 +97,8 @@
 
     <!-- アクションカラム -->
     <template v-if="showActionButtons" #[`item.actions`]="{ item }">
-      <v-btn icon="mdi-pencil" variant="text" @click="$emit('edit', item)" />
-      <v-btn icon="mdi-delete" variant="text" color="error" @click="$emit('delete', item.id)" />
+      <v-btn icon="mdi-pencil" variant="text" aria-label="編集" @click="$emit('edit', item)" />
+      <v-btn icon="mdi-delete" variant="text" color="error" aria-label="削除" @click="$emit('delete', item.id)" />
     </template>
 
     <!-- ローディング -->

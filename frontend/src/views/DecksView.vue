@@ -66,12 +66,13 @@
                   </v-list-item-subtitle>
 
                   <template #append>
-                    <v-btn icon="mdi-pencil" size="small" variant="text" @click="editDeck(deck)" />
+                    <v-btn icon="mdi-pencil" size="small" variant="text" aria-label="デッキを編集" @click="editDeck(deck)" />
                     <v-btn
                       icon="mdi-delete"
                       size="small"
                       variant="text"
                       color="error"
+                      aria-label="デッキを削除"
                       @click="deleteDeck(deck.id)"
                     />
                   </template>
@@ -123,12 +124,13 @@
                   </v-list-item-subtitle>
 
                   <template #append>
-                    <v-btn icon="mdi-pencil" size="small" variant="text" @click="editDeck(deck)" />
+                    <v-btn icon="mdi-pencil" size="small" variant="text" aria-label="デッキを編集" @click="editDeck(deck)" />
                     <v-btn
                       icon="mdi-delete"
                       size="small"
                       variant="text"
                       color="error"
+                      aria-label="デッキを削除"
                       @click="deleteDeck(deck.id)"
                     />
                   </template>

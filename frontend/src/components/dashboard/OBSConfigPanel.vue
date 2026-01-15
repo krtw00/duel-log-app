@@ -9,7 +9,7 @@
         <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
         <span class="text-h5">OBS連携設定</span>
         <v-spacer />
-        <v-btn icon variant="text" @click="$emit('update:modelValue', false)">
+        <v-btn icon variant="text" aria-label="閉じる" @click="$emit('update:modelValue', false)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -178,7 +178,7 @@
           class="mb-2"
         >
           <template #append-inner>
-            <v-btn icon variant="text" size="small" @click="$emit('copy-url')">
+            <v-btn icon variant="text" size="small" aria-label="URLをコピー" @click="$emit('copy-url')">
               <v-icon>{{ urlCopied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
             </v-btn>
           </template>

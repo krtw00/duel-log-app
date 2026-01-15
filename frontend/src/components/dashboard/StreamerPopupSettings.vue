@@ -94,7 +94,7 @@
           hide-details
         >
           <template #append-inner>
-            <v-btn icon="mdi-content-copy" size="small" variant="text" @click="copyUrl" />
+            <v-btn icon="mdi-content-copy" size="small" variant="text" aria-label="URLをコピー" @click="copyUrl" />
           </template>
         </v-text-field>
       </div>
