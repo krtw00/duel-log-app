@@ -4,8 +4,27 @@
 
 対象は以下です。
 
-- **先攻/後攻の選択権がある画面の検出**（※先攻後攻の“結果”は推定しない）
+- **先攻/後攻の選択権がある画面の検出**（※先攻後攻の"結果"は推定しない）
 - **勝敗（`VICTORY` / `LOSE`）の判定**
+
+## 実装状況
+
+| 機能 | 実装状況 | 備考 |
+|------|---------|------|
+| コイントス結果検出（win/lose） | ✅ 実装済み | `turnChoice`設定で実装 |
+| 勝敗判定（VICTORY/LOSE） | ✅ 実装済み | テンプレートマッチング、エッジ検出使用 |
+| 複数解像度対応（720p〜2160p） | ✅ 実装済み | MIPMAPアプローチで動的生成 |
+| ユーザー設定ON/OFF | ✅ 実装済み | `enable_screen_analysis`フラグ |
+| 対戦入力UIへの統合 | ✅ 実装済み | DuelFormDialog.vue |
+| 自動対戦記録作成 | ❌ 未実装 | 検出結果から自動入力機能 |
+| FSM状態管理 | ⚠️ 部分実装 | 基本的な状態管理のみ |
+
+**実装済みファイル:**
+- `frontend/src/utils/screenAnalysis.ts` - 解析ロジック（636行）
+- `frontend/src/views/ProfileView.vue` - 設定UI
+- `frontend/src/components/duel/DuelFormDialog.vue` - 対戦入力統合
+- `backend/app/models/user.py` - `enable_screen_analysis`フラグ
+- `public/screen-analysis/` - テンプレート画像
 
 ---
 

@@ -12,7 +12,10 @@ docs/
 │   ├── backend-architecture.md
 │   ├── frontend-architecture.md
 │   ├── db-schema.md
-│   └── screen-recording-analysis.md
+│   ├── screen-recording-analysis.md      # 画面録画分析
+│   ├── opening-hand-analysis-design.md   # 初手カード勝率分析（未実装）
+│   ├── archive-deck-merge-design.md      # デッキアーカイブマージ（実装済み）
+│   └── admin-panel-design.md             # 管理者画面（部分実装）
 │
 ├── api/                    🔌 API・統合
 │   └── api-reference.md
@@ -25,16 +28,43 @@ docs/
 │
 ├── design/                 💡 設計思想・ベストプラクティス
 │   ├── error-handling.md
-│   └── code-readability-guide.md
+│   ├── code-readability-guide.md
+│   ├── feedback-and-contact.md           # フィードバック機能（未実装）
+│   └── internationalization.md           # 多言語対応（未実装）
 │
 ├── deployment/             🚀 デプロイ・運用
 │   ├── deployment.md
 │   ├── ci-cd-guide.md
-│   └── notification-settings.md
+│   ├── notification-settings.md
+│   └── supabase-deployment-guide.md
 │
 └── operations/             🐛 運用ツール・管理
     └── bug-tracking-setup.md
 ```
+
+---
+
+## 📊 機能実装状況
+
+設計ドキュメントに対する実装状況の一覧です。
+
+| 機能 | 設計ドキュメント | 実装状況 | 備考 |
+|------|-----------------|---------|------|
+| デッキアーカイブマージ | [archive-deck-merge-design.md](./architecture/archive-deck-merge-design.md) | ✅ 完全実装 | `deck_service.delete()` および管理者APIで実装 |
+| 管理者画面 | [admin-panel-design.md](./architecture/admin-panel-design.md) | ⚠️ 部分実装 | フェーズ1（ユーザー管理）のみ実装。統計・メンテナンスは未実装 |
+| 画面録画分析 | [screen-recording-analysis.md](./architecture/screen-recording-analysis.md) | ⚠️ 部分実装 | コイントス/勝敗検出は実装済み。自動記録作成は未実装 |
+| 初手カード勝率分析 | [opening-hand-analysis-design.md](./architecture/opening-hand-analysis-design.md) | ❌ 未実装 | DB/API/UIすべて未実装 |
+| フィードバック機能 | [feedback-and-contact.md](./design/feedback-and-contact.md) | ❌ 未実装 | GitHub Issues連携含め未実装 |
+| 多言語対応（i18n） | [internationalization.md](./design/internationalization.md) | ❌ 未実装 | vue-i18n未導入 |
+
+### 実装済み機能（設計ドキュメントなし）
+
+以下の機能は設計ドキュメントなしで実装されています：
+
+- **OBSオーバーレイ**: 配信用のオーバーレイ表示機能
+- **統計情報共有**: URLベースの統計情報公開機能
+- **CSVインポート/エクスポート**: データのバックアップ・復元機能
+- **配信者モード**: プライバシー保護機能
 
 ---
 
