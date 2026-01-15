@@ -19,7 +19,7 @@
     <!-- データ表示（空データでも表示） -->
     <div v-else ref="statsContainer" class="stats-container">
       <!-- 統計カード -->
-      <div v-if="showStats" class="stats-card">
+      <div v-if="showStats" class="stats-card" :class="`layout-${layout}`">
         <div
           v-for="item in statsItems"
           :key="item.key"
@@ -87,6 +87,7 @@ const statsContainer = ref<HTMLElement | null>(null);
 // クエリパラメータから設定を取得
 const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
 const theme = ref((route.query.theme as string) || 'dark');
+const layout = ref((route.query.layout as string) || 'horizontal');
 const refreshInterval = ref(Number(route.query.refresh) || 30000);
 const historyLimit = ref(Number(route.query.history_limit) || 5);
 const gameMode = ref<GameMode>((route.query.game_mode as GameMode) || 'RANK');
@@ -396,18 +397,21 @@ onUnmounted(() => {
   width: 100%;
 }
 
-// レスポンシブグリッド - ウィンドウ幅に応じて自動的に列数が変化
+// レスポンシブグリッド
 .stats-card {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  display: flex;
   gap: 10px;
   background: transparent;
-  width: fit-content;
-  min-width: 100%;
 
-  // 狭いウィンドウでは1列
-  @media (max-width: 320px) {
-    grid-template-columns: 1fr;
+  // 横並び（デフォルト）
+  &.layout-horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  // 縦並び
+  &.layout-vertical {
+    flex-direction: column;
   }
 }
 
