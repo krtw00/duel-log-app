@@ -24,6 +24,7 @@ type RootTranslation = {
     update: string
     close: string
     error: string
+    unknownError: string
     success: string
     dataFetchError: string
     year: string
@@ -51,7 +52,17 @@ type RootTranslation = {
       termsAgreement: string
       termsLink: string
       termsAgreementEnd: string
+      termsTitle: string
       error: string
+      successMessage: string
+      orDivider: string
+      oauthGoogle: string
+      oauthDiscord: string
+      features: {
+        statistics: string
+        deckManagement: string
+        obsIntegration: string
+      }
     }
     register: {
       title: string
@@ -62,21 +73,32 @@ type RootTranslation = {
       confirmPassword: string
       submit: string
       hasAccount: string
+      login: string
       success: string
+      successWithConfirmation: string
     }
     forgotPassword: {
       title: string
+      subtitle: string
       description: string
+      email: string
       submit: string
       success: string
+      error: string
       backToLogin: string
     }
     resetPassword: {
       title: string
+      subtitle: string
       newPassword: string
       confirmPassword: string
       submit: string
       success: string
+      error: string
+      checkingSession: string
+      sessionError: string
+      invalidLink: string
+      backToLogin: string
     }
     streamerMode: {
       label: string
@@ -89,6 +111,29 @@ type RootTranslation = {
     quickStats: string
     noDuels: string
     recordFirst: string
+    streamer: {
+      popupWindow: string
+      recommended: string
+      obsBrowserSource: string
+      deprecated: string
+      deprecationWarning: string
+      obsDescription: string
+      getObsUrl: string
+      winRate: string
+      firstWinRate: string
+      secondWinRate: string
+      coinWinRate: string
+      firstRate: string
+    }
+    duelEntry: {
+      title: string
+      quickEntry: string
+    }
+    history: {
+      title: string
+      noRecords: string
+      deleteConfirm: string
+    }
   }
   decks: {
     title: string
@@ -297,8 +342,10 @@ type RootTranslation = {
     maxLength: RequiredParams<'max'>
     passwordMatch: string
     passwordMinLength: string
+    passwordMinLength6: string
     username: string
     invalidFormat: string
+    unexpectedError: string
   }
   admin: {
     title: string
@@ -355,6 +402,7 @@ export type TranslationFunctions = {
     update: () => LocalizedString
     close: () => LocalizedString
     error: () => LocalizedString
+    unknownError: () => LocalizedString
     success: () => LocalizedString
     dataFetchError: () => LocalizedString
     year: () => LocalizedString
@@ -382,7 +430,17 @@ export type TranslationFunctions = {
       termsAgreement: () => LocalizedString
       termsLink: () => LocalizedString
       termsAgreementEnd: () => LocalizedString
+      termsTitle: () => LocalizedString
       error: () => LocalizedString
+      successMessage: () => LocalizedString
+      orDivider: () => LocalizedString
+      oauthGoogle: () => LocalizedString
+      oauthDiscord: () => LocalizedString
+      features: {
+        statistics: () => LocalizedString
+        deckManagement: () => LocalizedString
+        obsIntegration: () => LocalizedString
+      }
     }
     register: {
       title: () => LocalizedString
@@ -393,21 +451,32 @@ export type TranslationFunctions = {
       confirmPassword: () => LocalizedString
       submit: () => LocalizedString
       hasAccount: () => LocalizedString
+      login: () => LocalizedString
       success: () => LocalizedString
+      successWithConfirmation: () => LocalizedString
     }
     forgotPassword: {
       title: () => LocalizedString
+      subtitle: () => LocalizedString
       description: () => LocalizedString
+      email: () => LocalizedString
       submit: () => LocalizedString
       success: () => LocalizedString
+      error: () => LocalizedString
       backToLogin: () => LocalizedString
     }
     resetPassword: {
       title: () => LocalizedString
+      subtitle: () => LocalizedString
       newPassword: () => LocalizedString
       confirmPassword: () => LocalizedString
       submit: () => LocalizedString
       success: () => LocalizedString
+      error: () => LocalizedString
+      checkingSession: () => LocalizedString
+      sessionError: () => LocalizedString
+      invalidLink: () => LocalizedString
+      backToLogin: () => LocalizedString
     }
     streamerMode: {
       label: () => LocalizedString
@@ -420,6 +489,29 @@ export type TranslationFunctions = {
     quickStats: () => LocalizedString
     noDuels: () => LocalizedString
     recordFirst: () => LocalizedString
+    streamer: {
+      popupWindow: () => LocalizedString
+      recommended: () => LocalizedString
+      obsBrowserSource: () => LocalizedString
+      deprecated: () => LocalizedString
+      deprecationWarning: () => LocalizedString
+      obsDescription: () => LocalizedString
+      getObsUrl: () => LocalizedString
+      winRate: () => LocalizedString
+      firstWinRate: () => LocalizedString
+      secondWinRate: () => LocalizedString
+      coinWinRate: () => LocalizedString
+      firstRate: () => LocalizedString
+    }
+    duelEntry: {
+      title: () => LocalizedString
+      quickEntry: () => LocalizedString
+    }
+    history: {
+      title: () => LocalizedString
+      noRecords: () => LocalizedString
+      deleteConfirm: () => LocalizedString
+    }
   }
   decks: {
     title: () => LocalizedString
@@ -628,8 +720,10 @@ export type TranslationFunctions = {
     maxLength: (arg: { max: number }) => LocalizedString
     passwordMatch: () => LocalizedString
     passwordMinLength: () => LocalizedString
+    passwordMinLength6: () => LocalizedString
     username: () => LocalizedString
     invalidFormat: () => LocalizedString
+    unexpectedError: () => LocalizedString
   }
   admin: {
     title: () => LocalizedString
