@@ -10,7 +10,7 @@
     <v-card-text class="pa-4">
       <!-- 基本設定 -->
       <v-row>
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="6" md="4">
           <v-select
             v-model="gameMode"
             :items="gameModeOptions"
@@ -20,7 +20,7 @@
             hide-details
           />
         </v-col>
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="6" md="4">
           <v-select
             v-model="theme"
             :items="themeOptions"
@@ -30,17 +30,7 @@
             hide-details
           />
         </v-col>
-        <v-col cols="12" sm="6" md="3">
-          <v-select
-            v-model="windowSize"
-            :items="windowSizeOptions"
-            label="ウィンドウサイズ"
-            variant="outlined"
-            density="compact"
-            hide-details
-          />
-        </v-col>
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="6" md="4">
           <v-select
             v-model="refreshInterval"
             :items="refreshOptions"
@@ -131,7 +121,6 @@ const defaultSettings = {
   selectedItems: ['win_rate', 'total_duels'],
   gameMode: 'RANK',
   theme: 'dark',
-  windowSize: 'auto',
   historyLimit: 5,
   refreshInterval: 30000,
 };
@@ -140,7 +129,6 @@ const defaultSettings = {
 const selectedItems = ref<string[]>([...defaultSettings.selectedItems]);
 const gameMode = ref(defaultSettings.gameMode);
 const theme = ref(defaultSettings.theme);
-const windowSize = ref(defaultSettings.windowSize);
 const historyLimit = ref(defaultSettings.historyLimit);
 const refreshInterval = ref(defaultSettings.refreshInterval);
 
@@ -155,13 +143,6 @@ const gameModeOptions = [
 const themeOptions = [
   { title: 'ダーク', value: 'dark' },
   { title: 'ライト', value: 'light' },
-];
-
-const windowSizeOptions = [
-  { title: '自動（コンテンツに合わせる）', value: 'auto' },
-  { title: '小（300x400）', value: 'small' },
-  { title: '中（450x600）', value: 'medium' },
-  { title: '大（600x800）', value: 'large' },
 ];
 
 const refreshOptions = [
@@ -188,9 +169,6 @@ const loadSettings = () => {
       if (settings.theme) {
         theme.value = settings.theme;
       }
-      if (settings.windowSize) {
-        windowSize.value = settings.windowSize;
-      }
       if (typeof settings.historyLimit === 'number') {
         historyLimit.value = settings.historyLimit;
       }
@@ -212,7 +190,6 @@ const saveSettings = () => {
       selectedItems: selectedItems.value,
       gameMode: gameMode.value,
       theme: theme.value,
-      windowSize: windowSize.value,
       historyLimit: historyLimit.value,
       refreshInterval: refreshInterval.value,
     };
@@ -229,14 +206,13 @@ const resetToDefaults = () => {
   selectedItems.value = [...defaultSettings.selectedItems];
   gameMode.value = defaultSettings.gameMode;
   theme.value = defaultSettings.theme;
-  windowSize.value = defaultSettings.windowSize;
   historyLimit.value = defaultSettings.historyLimit;
   refreshInterval.value = defaultSettings.refreshInterval;
 };
 
 // 設定変更時に自動保存
 watch(
-  [selectedItems, gameMode, theme, windowSize, historyLimit, refreshInterval],
+  [selectedItems, gameMode, theme, historyLimit, refreshInterval],
   () => {
     saveSettings();
   },
@@ -248,27 +224,6 @@ onMounted(() => {
   loadSettings();
 });
 
-// ウィンドウサイズの計算
-const getWindowDimensions = () => {
-  // 選択項目数に基づいて自動サイズを計算
-  const itemCount = selectedItems.value.filter((item) => item !== 'history').length;
-  const hasHistory = selectedItems.value.includes('history');
-
-  // 基本サイズの計算（2列表示を想定）
-  const cols = Math.min(itemCount, 3);
-  const rows = Math.ceil(itemCount / 3);
-  const autoWidth = Math.max(350, cols * 160 + 60);
-  const autoHeight = Math.max(200, rows * 100 + (hasHistory ? 250 : 50));
-
-  const sizeMap: Record<string, { width: number; height: number }> = {
-    small: { width: 350, height: 400 },
-    medium: { width: 500, height: 600 },
-    large: { width: 700, height: 800 },
-    auto: { width: autoWidth, height: autoHeight },
-  };
-  return sizeMap[windowSize.value] || sizeMap.auto;
-};
-
 // ポップアップURL生成
 const popupUrl = computed(() => {
   const baseUrl = window.location.origin;
@@ -276,20 +231,19 @@ const popupUrl = computed(() => {
     items: selectedItems.value.join(','),
     game_mode: gameMode.value,
     theme: theme.value,
-    window_size: windowSize.value,
     refresh: refreshInterval.value.toString(),
     history_limit: historyLimit.value.toString(),
   });
   return `${baseUrl}/streamer-popup?${params.toString()}`;
 });
 
-// ポップアップを開く
+// ポップアップを開く（コンテンツに合わせて自動リサイズされる）
 const openPopup = () => {
-  const { width, height } = getWindowDimensions();
+  // 初期サイズは大きめに設定し、コンテンツ読み込み後に自動調整される
   window.open(
     popupUrl.value,
     'streamer-popup',
-    `width=${width},height=${height},menubar=no,toolbar=no,resizable=yes`,
+    'width=600,height=500,menubar=no,toolbar=no,resizable=yes',
   );
 };
 </script>

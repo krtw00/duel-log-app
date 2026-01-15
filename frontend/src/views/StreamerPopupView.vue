@@ -79,7 +79,6 @@ const statsContainer = ref<HTMLElement | null>(null);
 // クエリパラメータから設定を取得
 const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
 const theme = ref((route.query.theme as string) || 'dark');
-const windowSize = ref((route.query.window_size as string) || 'auto');
 const refreshInterval = ref(Number(route.query.refresh) || 30000);
 const historyLimit = ref(Number(route.query.history_limit) || 5);
 const gameMode = ref<GameMode>((route.query.game_mode as GameMode) || 'RANK');
@@ -192,8 +191,8 @@ const statsItems = computed(() => {
  * ウィンドウサイズをコンテンツに合わせて自動調整
  */
 const resizeWindowToContent = async () => {
-  // ポップアップウィンドウでない場合、または自動サイズでない場合はスキップ
-  if (!window.opener || windowSize.value !== 'auto') return;
+  // ポップアップウィンドウでない場合はスキップ
+  if (!window.opener) return;
 
   await nextTick();
 
@@ -201,16 +200,15 @@ const resizeWindowToContent = async () => {
   const container = statsContainer.value || popupContainer.value;
   if (!container) return;
 
-  // コンテンツの実際のサイズを測定
-  const rect = container.getBoundingClientRect();
-  const contentWidth = Math.ceil(rect.width);
-  const contentHeight = Math.ceil(rect.height);
+  // コンテンツの実際のサイズを測定（scrollWidth/scrollHeightでオーバーフロー含む）
+  const contentWidth = Math.max(container.scrollWidth, container.offsetWidth);
+  const contentHeight = Math.max(container.scrollHeight, container.offsetHeight);
 
   // パディングとマージンを考慮
-  const padding = 60;
-  const minWidth = 320;
+  const padding = 80;
+  const minWidth = 350;
   const minHeight = 150;
-  const maxWidth = 1000;
+  const maxWidth = 1200;
   const maxHeight = 900;
 
   // ウィンドウサイズを計算（ブラウザのUIを考慮）
@@ -278,8 +276,10 @@ const fetchData = async () => {
     loading.value = false;
     logger.debug('Data fetched successfully');
 
-    // コンテンツに合わせてウィンドウサイズを調整
-    resizeWindowToContent();
+    // コンテンツに合わせてウィンドウサイズを調整（CSSレンダリング完了を待つ）
+    setTimeout(() => {
+      resizeWindowToContent();
+    }, 100);
   } catch (error) {
     logger.error('Failed to fetch data:', error);
     errorMessage.value = 'データの取得に失敗しました';
