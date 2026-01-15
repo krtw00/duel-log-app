@@ -238,16 +238,28 @@ const ko = {
       lose: '패',
     },
     matchup: {
-      title: '상성표',
+      title: '덱 상성표',
+      myDeck: '사용 덱',
       opponent: '상대 덱',
       matches: '듀얼 수',
       winRate: '승률',
+      firstWinRate: '선공 승률',
+      secondWinRate: '후공 승률',
+      noData: '상성 데이터가 없습니다',
     },
     distribution: {
       title: '덱 분포',
+      monthlyTitle: '월간 덱 분포',
       deckName: '덱 이름',
       count: '듀얼 수',
       percentage: '비율',
+    },
+    duelList: {
+      title: '월간 듀얼 목록',
+      totalCount: '총 {count}건',
+    },
+    myDeckWinRates: {
+      title: '내 덱 승률',
     },
     rateChart: {
       title: '레이트 추이',
