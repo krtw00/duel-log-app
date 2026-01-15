@@ -12,7 +12,7 @@ from app.models.deck import Deck
 from app.models.duel import Duel
 from app.schemas.deck import DeckCreate, DeckUpdate
 from app.services.base import BaseService
-from app.utils.datetime_utils import current_month_range_utc
+from app.utils.datetime_utils import recent_two_months_range_utc
 
 
 class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
@@ -29,8 +29,8 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
         is_opponent: Optional[bool] = None,
         active_only: bool = True,
     ) -> List[Deck]:
-        """ユーザーのデッキを取得（当月の対戦数が多い順）。"""
-        start_utc, end_utc = current_month_range_utc()
+        """ユーザーのデッキを取得（直近2ヶ月の対戦数が多い順）。"""
+        start_utc, end_utc = recent_two_months_range_utc()
 
         if is_opponent is True:
             # 相手デッキ: opponent_deck_id で対戦数をカウント
