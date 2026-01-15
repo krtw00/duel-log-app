@@ -1,4 +1,5 @@
 import logging
+from typing import Callable, Optional, Protocol
 
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
@@ -12,8 +13,38 @@ from app.services.base import BaseService
 logger = logging.getLogger(__name__)
 
 
+class DuelExportImportProtocol(Protocol):
+    """デュエルのエクスポート/インポート機能のプロトコル"""
+
+    def export_duels_to_csv(self, db: Session, user_id: int) -> str: ...
+    def import_duels_from_csv(
+        self, db: Session, user_id: int, csv_content: str
+    ) -> dict: ...
+
+
 class UserService(BaseService[User, UserCreate, UserUpdate]):
     """ユーザーサービスクラス"""
+
+    _duel_service_factory: Optional[Callable[[], DuelExportImportProtocol]] = None
+
+    @classmethod
+    def set_duel_service_factory(
+        cls, factory: Callable[[], DuelExportImportProtocol]
+    ) -> None:
+        """
+        DuelServiceファクトリーを設定（循環依存を回避するための遅延バインディング）
+        アプリケーション初期化時に呼び出す
+        """
+        cls._duel_service_factory = factory
+
+    def _get_duel_service(self) -> DuelExportImportProtocol:
+        """DuelServiceのインスタンスを取得"""
+        if self._duel_service_factory is None:
+            # フォールバック: 動的インポート（後方互換性のため）
+            from app.services.duel_service import duel_service
+
+            return duel_service
+        return self._duel_service_factory()
 
     def create(self, db: Session, *, obj_in: UserCreate) -> User:  # type: ignore[override]
         """
@@ -69,26 +100,16 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
         return db_obj
 
     def export_all_data_to_csv(self, db: Session, user_id: int) -> str:
-        # TODO: アーキテクチャ改善 - 循環依存の回避
-        # 現在、循環依存を避けるために動的インポートを使用していますが、
-        # これはテストとメンテナンスを困難にします。
-        #
-        # 推奨される改善:
-        # 1. duel_serviceを依存性注入で受け取る
-        # 2. または、共通の export_service を作成
-        # 3. インターフェース（Protocol）を使用して依存関係を抽象化
-        from app.services.duel_service import duel_service
-
-        return duel_service.export_duels_to_csv(db=db, user_id=user_id)
+        """ユーザーの全デュエルデータをCSVとしてエクスポート"""
+        duel_svc = self._get_duel_service()
+        return duel_svc.export_duels_to_csv(db=db, user_id=user_id)
 
     def import_all_data_from_csv(
         self, db: Session, user_id: int, csv_content: str
     ) -> dict:
-        # TODO: アーキテクチャ改善 - 循環依存の回避
-        # export_all_data_to_csv と同様の問題
+        """CSVからユーザーの全データをインポート（既存データは削除）"""
         from app.models.deck import Deck
         from app.models.duel import Duel
-        from app.services.duel_service import duel_service
 
         try:
             # Delete all existing data
@@ -106,7 +127,8 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
             ) from e
 
         # Import new data
-        return duel_service.import_duels_from_csv(
+        duel_svc = self._get_duel_service()
+        return duel_svc.import_duels_from_csv(
             db=db, user_id=user_id, csv_content=csv_content
         )
 
