@@ -68,9 +68,15 @@ class DeckDistributionService:
         if opponent_deck_id is not None:
             base_query = base_query.filter(Duel.opponent_deck_id == opponent_deck_id)
 
-        # 範囲指定がある場合
+        # 範囲指定がある場合（デッキリレーションを事前ロード）
         if range_start is not None or range_end is not None:
-            duels = base_query.order_by(Duel.played_date.desc()).all()
+            from sqlalchemy.orm import joinedload
+
+            duels = (
+                base_query.options(joinedload(Duel.opponent_deck))
+                .order_by(Duel.played_date.desc())
+                .all()
+            )
             duels = apply_range_filter(duels, range_start, range_end)
             return self._calculate_deck_distribution_from_duels(duels)
         else:
@@ -117,6 +123,11 @@ class DeckDistributionService:
             query = query.filter(Duel.deck_id == my_deck_id)
         if opponent_deck_id is not None:
             query = query.filter(Duel.opponent_deck_id == opponent_deck_id)
+
+        # デッキリレーションを事前ロード（N+1回避）
+        from sqlalchemy.orm import joinedload
+
+        query = query.options(joinedload(Duel.opponent_deck))
 
         # 範囲指定がある場合
         if range_start is not None or range_end is not None:
