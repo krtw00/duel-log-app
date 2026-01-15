@@ -71,9 +71,7 @@ export function useOBSConfiguration() {
   // 表示項目（初期値を設定）
   const displayItems = ref([
     { label: '使用デッキ', value: 'current_deck', selected: true },
-    { label: 'ランク', value: 'current_rank', selected: true },
-    { label: 'レート', value: 'current_rate', selected: false },
-    { label: 'DC', value: 'current_dc', selected: false },
+    { label: 'ランク/レート/DC（ゲームモードに連動）', value: 'game_mode_value', selected: true },
     { label: '総試合数', value: 'total_duels', selected: false },
     { label: '勝率', value: 'win_rate', selected: true },
     { label: '先攻勝率', value: 'first_turn_win_rate', selected: true },
