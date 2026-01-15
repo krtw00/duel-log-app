@@ -207,10 +207,10 @@ const resizeWindowToContent = async () => {
   const contentHeight = Math.ceil(rect.height);
 
   // パディングとマージンを考慮
-  const padding = 40;
-  const minWidth = 280;
+  const padding = 60;
+  const minWidth = 320;
   const minHeight = 150;
-  const maxWidth = 800;
+  const maxWidth = 1000;
   const maxHeight = 900;
 
   // ウィンドウサイズを計算（ブラウザのUIを考慮）
@@ -371,12 +371,14 @@ onUnmounted(() => {
 // レスポンシブグリッド - ウィンドウ幅に応じて自動的に列数が変化
 .stats-card {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   background: transparent;
+  width: fit-content;
+  min-width: 100%;
 
   // 狭いウィンドウでは1列
-  @media (max-width: 300px) {
+  @media (max-width: 320px) {
     grid-template-columns: 1fr;
   }
 }
@@ -386,11 +388,12 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 8px;
+  padding: 12px 16px;
   background: var(--bg-item);
   border-radius: 8px;
   border: 1px solid var(--border-item);
   transition: all 0.3s ease;
+  min-width: max-content;
 
   &:hover {
     background: var(--bg-item-hover);
@@ -410,6 +413,7 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
   margin-bottom: 4px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .stat-value {
