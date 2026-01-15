@@ -264,20 +264,15 @@ describe('DuelFormDialog.vue', () => {
     expect((wrapper.vm as any).form.first_or_second).toBe(0);
   });
 
-  it('prefills decks in create mode and filters by current user', async () => {
+  it('prefills decks in create mode from API response', async () => {
+    // バックエンドは既にユーザースコープでデッキを返すため、
+    // APIレスポンスには認証されたユーザーのデッキのみが含まれる
     const myDeck = {
       id: 1,
       name: 'My Deck',
       is_opponent: false,
       active: true,
       user_id: 'user-uuid-1',
-    };
-    const otherUsersMyDeck = {
-      id: 999,
-      name: 'Other My Deck',
-      is_opponent: false,
-      active: true,
-      user_id: 'user-uuid-2',
     };
     const opponentDeck = {
       id: 2,
@@ -286,19 +281,12 @@ describe('DuelFormDialog.vue', () => {
       active: true,
       user_id: 'user-uuid-1',
     };
-    const otherUsersOpponentDeck = {
-      id: 998,
-      name: 'Other Opponent Deck',
-      is_opponent: true,
-      active: true,
-      user_id: 'user-uuid-2',
-    };
 
     (api.get as any).mockImplementation((url: string) => {
       if (url.includes('/decks/?is_opponent=false'))
-        return Promise.resolve({ data: [myDeck, otherUsersMyDeck] });
+        return Promise.resolve({ data: [myDeck] });
       if (url.includes('/decks/?is_opponent=true'))
-        return Promise.resolve({ data: [opponentDeck, otherUsersOpponentDeck] });
+        return Promise.resolve({ data: [opponentDeck] });
       if (url === '/duels/latest-values/') {
         return Promise.resolve({
           data: {
@@ -348,6 +336,8 @@ describe('DuelFormDialog.vue', () => {
   });
 
   it('does not show archived decks in edit mode (except selected)', async () => {
+    // バックエンドは既にユーザースコープでデッキを返すため、
+    // APIレスポンスには認証されたユーザーのデッキのみが含まれる
     const activeMyDeck = {
       id: 1,
       name: 'Active My Deck',
@@ -361,13 +351,6 @@ describe('DuelFormDialog.vue', () => {
       is_opponent: false,
       active: false,
       user_id: 'user-uuid-1',
-    };
-    const otherUsersArchivedMyDeck = {
-      id: 999,
-      name: 'Other Archived My Deck',
-      is_opponent: false,
-      active: false,
-      user_id: 'user-uuid-2',
     };
 
     const activeOpponentDeck = {
@@ -384,20 +367,13 @@ describe('DuelFormDialog.vue', () => {
       active: false,
       user_id: 'user-uuid-1',
     };
-    const otherUsersArchivedOpponentDeck = {
-      id: 998,
-      name: 'Other Archived Opponent Deck',
-      is_opponent: true,
-      active: false,
-      user_id: 'user-uuid-2',
-    };
 
     (api.get as any).mockImplementation((url: string) => {
       if (url.includes('/decks/?is_opponent=false'))
-        return Promise.resolve({ data: [activeMyDeck, archivedMyDeck, otherUsersArchivedMyDeck] });
+        return Promise.resolve({ data: [activeMyDeck, archivedMyDeck] });
       if (url.includes('/decks/?is_opponent=true'))
         return Promise.resolve({
-          data: [activeOpponentDeck, archivedOpponentDeck, otherUsersArchivedOpponentDeck],
+          data: [activeOpponentDeck, archivedOpponentDeck],
         });
       return Promise.resolve({ data: [] });
     });

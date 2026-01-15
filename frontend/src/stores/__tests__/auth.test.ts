@@ -19,6 +19,7 @@ vi.mock('@/lib/supabase', () => ({
       })),
     })),
   },
+  clearSupabaseLocalStorage: vi.fn(),
 }));
 
 vi.mock('@/router', () => ({
