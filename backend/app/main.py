@@ -30,6 +30,19 @@ from app.core.exception_handlers import (
 from app.core.exceptions import AppException
 from app.core.logging_config import setup_logging
 
+# サービス層の依存性注入設定
+from app.services.user_service import UserService
+
+
+def _get_duel_service():
+    """DuelServiceのファクトリー関数（循環依存回避のため遅延インポート）"""
+    from app.services.duel_service import duel_service
+
+    return duel_service
+
+
+UserService.set_duel_service_factory(_get_duel_service)
+
 # ロギング設定
 setup_logging(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -78,6 +91,8 @@ app.add_middleware(
 )
 
 # --- 例外ハンドラーの登録 ---
+# Note: Starlette/FastAPIの型定義ではExceptionHandlerの戻り値が厳密に定義されているため
+# type: ignoreを使用しています。実行時には問題なく動作します。
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)  # type: ignore[arg-type]
