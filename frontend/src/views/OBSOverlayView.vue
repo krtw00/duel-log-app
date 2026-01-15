@@ -1,6 +1,18 @@
 <template>
   <div class="obs-overlay" :class="['layout-' + layout, 'theme-' + theme]">
-    <div v-if="!loading && stats" class="stats-container">
+    <!-- ローディング中 -->
+    <div v-if="loading" class="loading-container">
+      <div class="loading-text">読み込み中...</div>
+    </div>
+
+    <!-- エラー（トークンなし、認証エラーなど） -->
+    <div v-else-if="hasError" class="error-container">
+      <div class="error-text">{{ errorMessage || 'データの取得に失敗しました' }}</div>
+      <div v-if="!token" class="error-detail">URLにトークンが含まれていません</div>
+    </div>
+
+    <!-- データ表示（空データでも表示） -->
+    <div v-else class="stats-container">
       <div
         class="stats-card"
         :class="[{ 'single-column': displayItems.length === 1 }, 'layout-' + layout]"
@@ -13,17 +25,10 @@
         >
           <div class="stat-label">{{ item.label }}</div>
           <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">
-            {{ stats && item.format(stats[item.key]) }}
+            {{ item.format(displayStats[item.key]) }}
           </div>
         </div>
       </div>
-    </div>
-    <div v-else-if="loading" class="loading-container">
-      <div class="loading-text">読み込み中...</div>
-    </div>
-    <div v-else class="error-container">
-      <div class="error-text">{{ errorMessage || 'データの取得に失敗しました' }}</div>
-      <div v-if="!token" class="error-detail">URLにトークンが含まれていません</div>
     </div>
   </div>
 </template>
@@ -48,11 +53,11 @@ const errorMessage = ref<string>('');
 // クエリパラメータから設定を取得
 const token = ref(route.query.token as string);
 const allowedPeriodTypes = ['monthly', 'recent', 'from_start'] as const;
-const initialPeriodType = (route.query.period_type as string) || 'from_start';
+const initialPeriodType = (route.query.period_type as string) || 'monthly';
 const periodType = ref(
   allowedPeriodTypes.includes(initialPeriodType as (typeof allowedPeriodTypes)[number])
     ? initialPeriodType
-    : 'from_start',
+    : 'monthly',
 );
 const year = ref(Number(route.query.year) || new Date().getFullYear());
 const month = ref(Number(route.query.month) || new Date().getMonth() + 1);
@@ -216,6 +221,30 @@ const displayItems = computed(() => {
   return selectedKeys
     .map((key) => allDisplayItems.find((item) => item.key === key))
     .filter((item): item is OBSDisplayItemDefinition => item !== undefined);
+});
+
+// 空データ時のデフォルト値
+const emptyStats: OBSStatsResponse = {
+  total_duels: 0,
+  win_rate: 0,
+  first_turn_win_rate: 0,
+  second_turn_win_rate: 0,
+  coin_win_rate: 0,
+  go_first_rate: 0,
+  current_deck: undefined,
+  current_rank: undefined,
+  current_rate: undefined,
+  current_dc: undefined,
+};
+
+// エラー状態の判定（トークンなし、認証エラーなど）
+const hasError = computed(() => {
+  return !token.value || (errorMessage.value !== '' && stats.value === null);
+});
+
+// 表示用の統計データ（空データでもデフォルト値を使用）
+const displayStats = computed(() => {
+  return stats.value || emptyStats;
 });
 
 const fetchStats = async () => {

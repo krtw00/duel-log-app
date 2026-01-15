@@ -1,12 +1,25 @@
 <template>
-  <div class="streamer-popup" :class="['layout-' + layout, 'theme-' + theme]">
-    <div v-if="!loading && hasData" class="stats-container">
+  <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme]">
+    <!-- ローディング中 -->
+    <div v-if="loading" class="loading-container">
+      <div class="loading-text">読み込み中...</div>
+    </div>
+
+    <!-- 未認証 -->
+    <div v-else-if="!isAuthenticated" class="error-container">
+      <div class="error-text">ログインが必要です</div>
+      <div class="error-detail">ログイン状態でこのページを開いてください</div>
+    </div>
+
+    <!-- エラー -->
+    <div v-else-if="errorMessage" class="error-container">
+      <div class="error-text">{{ errorMessage }}</div>
+    </div>
+
+    <!-- データ表示（空データでも表示） -->
+    <div v-else ref="statsContainer" class="stats-container">
       <!-- 統計カード -->
-      <div
-        v-if="showStats"
-        class="stats-card"
-        :class="[{ 'single-column': statsItems.length === 1 }, 'layout-' + layout]"
-      >
+      <div v-if="showStats" class="stats-card">
         <div
           v-for="item in statsItems"
           :key="item.key"
@@ -39,24 +52,11 @@
         </div>
       </div>
     </div>
-
-    <div v-else-if="loading" class="loading-container">
-      <div class="loading-text">読み込み中...</div>
-    </div>
-
-    <div v-else-if="!isAuthenticated" class="error-container">
-      <div class="error-text">ログインが必要です</div>
-      <div class="error-detail">ログイン状態でこのページを開いてください</div>
-    </div>
-
-    <div v-else class="error-container">
-      <div class="error-text">{{ errorMessage || 'データの取得に失敗しました' }}</div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { api } from '@/services/api';
 import { getRankName } from '@/utils/ranks';
@@ -72,10 +72,14 @@ const loading = ref(true);
 const errorMessage = ref<string>('');
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
+// DOM参照
+const popupContainer = ref<HTMLElement | null>(null);
+const statsContainer = ref<HTMLElement | null>(null);
+
 // クエリパラメータから設定を取得
 const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
-const layout = ref((route.query.layout as string) || 'vertical');
 const theme = ref((route.query.theme as string) || 'dark');
+const windowSize = ref((route.query.window_size as string) || 'auto');
 const refreshInterval = ref(Number(route.query.refresh) || 30000);
 const historyLimit = ref(Number(route.query.history_limit) || 5);
 const gameMode = ref<GameMode>((route.query.game_mode as GameMode) || 'RANK');
@@ -151,6 +155,9 @@ const formatRankValue = (value: unknown): string => {
 };
 
 // 表示項目定義
+/**
+ *
+ */
 interface DisplayItemDef {
   key: string;
   label: string;
@@ -181,9 +188,42 @@ const statsItems = computed(() => {
     .filter((item): item is DisplayItemDef => item !== undefined);
 });
 
-const hasData = computed(
-  () => Object.keys(statsData.value).length > 0 || recentDuels.value.length > 0,
-);
+/**
+ * ウィンドウサイズをコンテンツに合わせて自動調整
+ */
+const resizeWindowToContent = async () => {
+  // ポップアップウィンドウでない場合、または自動サイズでない場合はスキップ
+  if (!window.opener || windowSize.value !== 'auto') return;
+
+  await nextTick();
+
+  // コンテンツのサイズを取得
+  const container = statsContainer.value || popupContainer.value;
+  if (!container) return;
+
+  // コンテンツの実際のサイズを測定
+  const rect = container.getBoundingClientRect();
+  const contentWidth = Math.ceil(rect.width);
+  const contentHeight = Math.ceil(rect.height);
+
+  // パディングとマージンを考慮
+  const padding = 40;
+  const minWidth = 280;
+  const minHeight = 150;
+  const maxWidth = 800;
+  const maxHeight = 900;
+
+  // ウィンドウサイズを計算（ブラウザのUIを考慮）
+  const targetWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth + padding));
+  const targetHeight = Math.min(maxHeight, Math.max(minHeight, contentHeight + padding));
+
+  try {
+    window.resizeTo(targetWidth, targetHeight);
+    logger.debug(`Window resized to ${targetWidth}x${targetHeight}`);
+  } catch (e) {
+    logger.debug('Could not resize window:', e);
+  }
+};
 
 // データ取得
 const fetchData = async () => {
@@ -237,6 +277,9 @@ const fetchData = async () => {
 
     loading.value = false;
     logger.debug('Data fetched successfully');
+
+    // コンテンツに合わせてウィンドウサイズを調整
+    resizeWindowToContent();
   } catch (error) {
     logger.error('Failed to fetch data:', error);
     errorMessage.value = 'データの取得に失敗しました';
@@ -283,26 +326,12 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   background: transparent;
   font-family: 'Roboto', 'Noto Sans JP', sans-serif;
   z-index: 9999;
-
-  &.layout-grid {
-    align-items: center;
-    justify-content: center;
-  }
-
-  &.layout-horizontal {
-    align-items: center;
-    justify-content: center;
-  }
-
-  &.layout-vertical {
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 20px;
-  }
+  padding: 16px;
 
   // ダークテーマ
   &.theme-dark {
@@ -337,39 +366,18 @@ onUnmounted(() => {
 
 .stats-container {
   width: 100%;
-  max-width: 800px;
-  padding: 20px;
-
-  .layout-vertical & {
-    max-width: 450px;
-    padding: 0;
-  }
 }
 
+// レスポンシブグリッド - ウィンドウ幅に応じて自動的に列数が変化
 .stats-card {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  padding: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
   background: transparent;
-  border-radius: 12px;
 
-  &.single-column {
+  // 狭いウィンドウでは1列
+  @media (max-width: 300px) {
     grid-template-columns: 1fr;
-    max-width: 300px;
-  }
-
-  &.layout-horizontal {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-  }
-
-  &.layout-vertical {
-    grid-template-columns: 1fr;
-    gap: 8px;
   }
 }
 
@@ -378,9 +386,9 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: 10px 8px;
   background: var(--bg-item);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border-item);
   transition: all 0.3s ease;
 
@@ -390,22 +398,22 @@ onUnmounted(() => {
   }
 
   &.deck-item {
-    min-height: 80px;
+    grid-column: 1 / -1; // デッキ名は全幅
   }
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
   text-align: center;
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   -webkit-background-clip: text;
@@ -414,7 +422,7 @@ onUnmounted(() => {
   text-align: center;
 
   &.deck-value {
-    font-size: 18px;
+    font-size: 16px;
     white-space: normal;
     word-break: break-word;
   }
@@ -422,37 +430,38 @@ onUnmounted(() => {
 
 // 対戦履歴
 .history-container {
-  margin-top: 16px;
-  padding: 12px;
+  margin-top: 12px;
+  padding: 10px;
   background: var(--bg-item);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border-item);
 }
 
 .history-title {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .history-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 6px 10px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 4px;
+  font-size: 13px;
   color: var(--text-primary);
+  flex-wrap: wrap;
 
   &.win {
     border-left: 3px solid var(--win-color);
@@ -464,7 +473,7 @@ onUnmounted(() => {
 
   .result {
     font-weight: 700;
-    min-width: 40px;
+    min-width: 36px;
   }
 
   &.win .result {
@@ -478,20 +487,22 @@ onUnmounted(() => {
   .deck {
     font-weight: 500;
     flex: 1;
+    min-width: 60px;
   }
 
   .vs {
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .opponent {
     flex: 1;
+    min-width: 60px;
     color: var(--text-secondary);
   }
 
   .turn {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
   }
 }
@@ -509,7 +520,7 @@ onUnmounted(() => {
 
 .loading-text,
 .error-text {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -519,8 +530,8 @@ onUnmounted(() => {
 }
 
 .error-detail {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 </style>
