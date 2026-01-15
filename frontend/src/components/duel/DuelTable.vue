@@ -21,21 +21,21 @@
         <v-icon start>
           {{ item.is_win ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
-        {{ item.is_win ? '勝利' : '敗北' }}
+        {{ item.is_win ? LL?.duels.result.win() : LL?.duels.result.lose() }}
       </v-chip>
     </template>
 
     <!-- 使用デッキカラム -->
     <template v-if="!hiddenColumnsSet.has('deck')" #[`item.deck`]="{ item }">
       <v-chip color="primary" variant="outlined">
-        {{ item.deck?.name || '不明' }}
+        {{ item.deck?.name || LL?.duels.table.unknown() }}
       </v-chip>
     </template>
 
     <!-- 相手デッキカラム -->
     <template v-if="!hiddenColumnsSet.has('opponent_deck')" #[`item.opponent_deck`]="{ item }">
       <v-chip :color="isDarkMode ? 'warning' : 'purple'" variant="outlined">
-        {{ item.opponent_deck?.name || '不明' }}
+        {{ item.opponent_deck?.name || LL?.duels.table.unknown() }}
       </v-chip>
     </template>
 
@@ -44,7 +44,7 @@
       <v-icon :color="item.won_coin_toss ? 'warning' : 'grey'">
         {{ item.won_coin_toss ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
       </v-icon>
-      {{ item.won_coin_toss ? '表' : '裏' }}
+      {{ item.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose() }}
     </template>
 
     <!-- 先攻/後攻カラム -->
@@ -52,7 +52,7 @@
       <v-icon :color="item.is_going_first ? 'info' : 'purple'">
         {{ item.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
       </v-icon>
-      {{ item.is_going_first ? '先攻' : '後攻' }}
+      {{ item.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second() }}
     </template>
 
     <!-- ランク/レートカラム -->
@@ -97,8 +97,8 @@
 
     <!-- アクションカラム -->
     <template v-if="showActionButtons" #[`item.actions`]="{ item }">
-      <v-btn icon="mdi-pencil" variant="text" aria-label="編集" @click="$emit('edit', item)" />
-      <v-btn icon="mdi-delete" variant="text" color="error" aria-label="削除" @click="$emit('delete', item.id)" />
+      <v-btn icon="mdi-pencil" variant="text" :aria-label="LL?.common.edit()" @click="$emit('edit', item)" />
+      <v-btn icon="mdi-delete" variant="text" color="error" :aria-label="LL?.common.delete()" @click="$emit('delete', item.id)" />
     </template>
 
     <!-- ローディング -->
@@ -110,8 +110,8 @@
     <template #no-data>
       <div class="text-center pa-8">
         <v-icon size="64" color="grey">mdi-file-document-outline</v-icon>
-        <p class="text-h6 text-grey mt-4">対戦記録がありません</p>
-        <p class="text-body-1 text-grey">「対戦記録を追加」ボタンから記録を開始しましょう</p>
+        <p class="text-h6 text-grey mt-4">{{ LL?.duels.table.noRecords() }}</p>
+        <p class="text-body-1 text-grey">{{ LL?.duels.table.noRecordsHint() }}</p>
       </div>
     </template>
   </v-data-table>
@@ -120,11 +120,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useThemeStore } from '@/stores/theme';
+import { useLocale } from '@/composables/useLocale';
 import { Duel } from '@/types';
 import { getRankName } from '@/utils/ranks';
 
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.isDark);
+const { LL } = useLocale();
 
 const props = defineProps<{
   duels: Duel[];
@@ -140,18 +142,18 @@ defineEmits<{
   delete: [id: number];
 }>();
 
-const headers = [
-  { title: 'No.', key: 'no', sortable: false, width: 60 },
-  { title: '使用デッキ', key: 'deck', sortable: false },
-  { title: '相手デッキ', key: 'opponent_deck', sortable: false },
-  { title: '勝敗', key: 'is_win', sortable: true, width: 100 },
-  { title: 'コイン', key: 'won_coin_toss', sortable: false, width: 100, class: 'hidden-xs' },
-  { title: '先攻/後攻', key: 'is_going_first', sortable: false, width: 120, class: 'hidden-xs' },
-  { title: 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120, class: 'hidden-xs' },
-  { title: '備考', key: 'notes', sortable: false, width: 200, class: 'hidden-sm-and-down' },
-  { title: 'プレイ日時', key: 'played_date', sortable: true, class: 'hidden-sm-and-down' },
-  { title: 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' },
-] as const;
+const headers = computed(() => [
+  { title: LL.value?.duels.table.noColumn() ?? 'No.', key: 'no', sortable: false, width: 60 },
+  { title: LL.value?.duels.myDeck() ?? '使用デッキ', key: 'deck', sortable: false },
+  { title: LL.value?.duels.opponentDeck() ?? '相手デッキ', key: 'opponent_deck', sortable: false },
+  { title: LL.value?.duels.result.label() ?? '勝敗', key: 'is_win', sortable: true, width: 100 },
+  { title: LL.value?.duels.coinToss.label() ?? 'コイン', key: 'won_coin_toss', sortable: false, width: 100, class: 'hidden-xs' },
+  { title: LL.value?.duels.turnOrder.label() ?? '先攻/後攻', key: 'is_going_first', sortable: false, width: 120, class: 'hidden-xs' },
+  { title: LL.value?.duels.table.rankOrRate() ?? 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120, class: 'hidden-xs' },
+  { title: LL.value?.duels.memo() ?? '備考', key: 'notes', sortable: false, width: 200, class: 'hidden-sm-and-down' },
+  { title: LL.value?.duels.playedAt() ?? 'プレイ日時', key: 'played_date', sortable: true, class: 'hidden-sm-and-down' },
+  { title: LL.value?.duels.table.actions() ?? 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' as const },
+]);
 
 const formatDate = (dateString: string) => {
   // ISO形式の文字列をそのまま表示用にフォーマット
@@ -167,7 +169,7 @@ const showActionButtons = computed(() => props.showActions !== false);
 const hiddenColumnsSet = computed(() => new Set(props.hiddenColumns ?? []));
 
 const computedHeaders = computed(() => {
-  return headers.filter((header) => {
+  return headers.value.filter((header) => {
     if (header.key === 'actions') {
       return showActionButtons.value;
     }
