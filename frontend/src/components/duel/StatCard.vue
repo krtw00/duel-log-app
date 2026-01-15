@@ -81,6 +81,10 @@ defineProps<{
     background: linear-gradient(90deg, #4db6ac, #00897b);
   }
 
+  &--black .stat-card__glow {
+    background: linear-gradient(90deg, #424242, #212121);
+  }
+
   &__title {
     text-transform: uppercase;
     letter-spacing: 1px;
