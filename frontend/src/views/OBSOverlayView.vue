@@ -167,17 +167,6 @@ const allDisplayItems: OBSDisplayItemDefinition[] = [
     label: '使用デッキ',
     format: (v) => (v as string | undefined) || '未設定',
   },
-  { key: 'current_rank', label: 'ランク', format: (v) => formatRankValue(v) },
-  {
-    key: 'current_rate',
-    label: 'レート',
-    format: (v) => formatDecimalValue(v),
-  },
-  {
-    key: 'current_dc',
-    label: 'DC',
-    format: (v) => formatDecimalValue(v),
-  },
   {
     key: 'total_duels',
     label: '総試合数',
@@ -210,6 +199,22 @@ const allDisplayItems: OBSDisplayItemDefinition[] = [
   },
 ];
 
+// ゲームモードに応じた値の設定を取得
+const getGameModeValueConfig = (mode: string | undefined): OBSDisplayItemDefinition | null => {
+  switch (mode) {
+    case 'RANK':
+      return { key: 'current_rank', label: 'ランク', format: (v) => formatRankValue(v) };
+    case 'RATE':
+      return { key: 'current_rate', label: 'レート', format: (v) => formatDecimalValue(v) };
+    case 'DC':
+      return { key: 'current_dc', label: 'DC', format: (v) => formatDecimalValue(v) };
+    case 'EVENT':
+      return null; // EVENTモードでは表示しない
+    default:
+      return null;
+  }
+};
+
 // 表示する項目をフィルタリング（URLパラメータの順番を保持）
 const displayItems = computed(() => {
   if (!displayItemsParam.value) {
@@ -217,10 +222,24 @@ const displayItems = computed(() => {
     return allDisplayItems.filter((item) => item.key !== 'total_duels');
   }
   const selectedKeys = displayItemsParam.value.split(',');
-  // URLパラメータの順番通りに並べる
-  return selectedKeys
-    .map((key) => allDisplayItems.find((item) => item.key === key))
-    .filter((item): item is OBSDisplayItemDefinition => item !== undefined);
+  const items: OBSDisplayItemDefinition[] = [];
+
+  for (const key of selectedKeys) {
+    if (key === 'game_mode_value') {
+      // ゲームモードに応じた値を追加
+      const config = getGameModeValueConfig(gameMode.value);
+      if (config) {
+        items.push(config);
+      }
+    } else {
+      const item = allDisplayItems.find((item) => item.key === key);
+      if (item) {
+        items.push(item);
+      }
+    }
+  }
+
+  return items;
 });
 
 // 空データ時のデフォルト値
