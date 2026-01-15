@@ -3,7 +3,7 @@
     <v-card-title class="pa-4">
       <div class="d-flex align-center">
         <v-icon class="mr-2" color="primary">mdi-filter</v-icon>
-        <span class="text-h6">統計フィルター</span>
+        <span class="text-h6">{{ LL?.statistics.filter.title() }}</span>
       </div>
     </v-card-title>
     <v-divider />
@@ -13,7 +13,7 @@
           <v-select
             :model-value="periodType"
             :items="periodOptions"
-            label="期間"
+            :label="LL?.statistics.filter.period()"
             variant="outlined"
             density="compact"
             hide-details
@@ -23,7 +23,7 @@
         <v-col v-if="periodType === 'range'" cols="6" sm="3" md="2">
           <v-text-field
             :model-value="rangeStart"
-            label="開始（試合目）"
+            :label="LL?.statistics.filter.rangeStart()"
             variant="outlined"
             density="compact"
             hide-details
@@ -35,7 +35,7 @@
         <v-col v-if="periodType === 'range'" cols="6" sm="3" md="2">
           <v-text-field
             :model-value="rangeEnd"
-            label="終了（試合目）"
+            :label="LL?.statistics.filter.rangeEnd()"
             variant="outlined"
             density="compact"
             hide-details
@@ -50,7 +50,7 @@
             :items="availableMyDecks"
             item-title="name"
             item-value="id"
-            label="自分のデッキ"
+            :label="LL?.statistics.filter.myDeck()"
             variant="outlined"
             density="compact"
             hide-details
@@ -62,7 +62,7 @@
         <v-col cols="12" sm="6" md="2" class="d-flex align-center">
           <v-btn color="secondary" variant="outlined" block @click="$emit('reset')">
             <v-icon start>mdi-refresh</v-icon>
-            リセット
+            {{ LL?.common.reset() }}
           </v-btn>
         </v-col>
       </v-row>
@@ -71,6 +71,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useLocale } from '@/composables/useLocale';
+
+const { LL } = useLocale();
+
 interface Deck {
   id: number;
   name: string;
@@ -94,10 +99,10 @@ defineEmits<{
   reset: [];
 }>();
 
-const periodOptions = [
-  { title: '全体', value: 'all' },
-  { title: '範囲指定', value: 'range' },
-];
+const periodOptions = computed(() => [
+  { title: LL.value?.statistics.filter.periodAll() || '', value: 'all' },
+  { title: LL.value?.statistics.filter.periodRange() || '', value: 'range' },
+]);
 </script>
 
 <style scoped>
