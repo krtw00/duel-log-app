@@ -72,25 +72,6 @@
         </v-row>
       </div>
 
-      <!-- 対戦履歴件数（履歴が選択されている場合のみ表示） -->
-      <v-expand-transition>
-        <div v-if="selectedItems.includes('history')" class="mt-4">
-          <div class="d-flex align-center mb-2">
-            <v-icon size="small" class="mr-2" color="grey">mdi-history</v-icon>
-            <span class="text-subtitle-2 text-medium-emphasis">対戦履歴件数: {{ historyLimit }}件</span>
-          </div>
-          <v-slider
-            v-model="historyLimit"
-            :min="1"
-            :max="10"
-            :step="1"
-            thumb-label
-            hide-details
-            color="purple"
-            track-color="grey-lighten-2"
-          />
-        </div>
-      </v-expand-transition>
     </v-card-text>
 
     <v-divider />
@@ -123,7 +104,6 @@ const availableItems = [
   { key: 'second_turn_win_rate', label: '後攻勝率' },
   { key: 'coin_win_rate', label: 'コイン勝率' },
   { key: 'go_first_rate', label: '先攻率' },
-  { key: 'history', label: '対戦履歴' },
 ];
 
 // デフォルト値
@@ -132,7 +112,6 @@ const defaultSettings = {
   gameMode: 'RANK',
   theme: 'dark',
   layout: 'horizontal',
-  historyLimit: 5,
   refreshInterval: 30000,
 };
 
@@ -141,7 +120,6 @@ const selectedItems = ref<string[]>([...defaultSettings.selectedItems]);
 const gameMode = ref(defaultSettings.gameMode);
 const theme = ref(defaultSettings.theme);
 const layout = ref(defaultSettings.layout);
-const historyLimit = ref(defaultSettings.historyLimit);
 const refreshInterval = ref(defaultSettings.refreshInterval);
 
 // オプション
@@ -189,9 +167,6 @@ const loadSettings = () => {
       if (settings.layout) {
         layout.value = settings.layout;
       }
-      if (typeof settings.historyLimit === 'number') {
-        historyLimit.value = settings.historyLimit;
-      }
       if (typeof settings.refreshInterval === 'number') {
         refreshInterval.value = settings.refreshInterval;
       }
@@ -211,7 +186,6 @@ const saveSettings = () => {
       gameMode: gameMode.value,
       theme: theme.value,
       layout: layout.value,
-      historyLimit: historyLimit.value,
       refreshInterval: refreshInterval.value,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -228,13 +202,12 @@ const resetToDefaults = () => {
   gameMode.value = defaultSettings.gameMode;
   theme.value = defaultSettings.theme;
   layout.value = defaultSettings.layout;
-  historyLimit.value = defaultSettings.historyLimit;
   refreshInterval.value = defaultSettings.refreshInterval;
 };
 
 // 設定変更時に自動保存
 watch(
-  [selectedItems, gameMode, theme, layout, historyLimit, refreshInterval],
+  [selectedItems, gameMode, theme, layout, refreshInterval],
   () => {
     saveSettings();
   },
@@ -255,7 +228,6 @@ const popupUrl = computed(() => {
     theme: theme.value,
     layout: layout.value,
     refresh: refreshInterval.value.toString(),
-    history_limit: historyLimit.value.toString(),
   });
   return `${baseUrl}/streamer-popup?${params.toString()}`;
 });
