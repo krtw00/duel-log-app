@@ -18,14 +18,14 @@ NC='\033[0m'
 cd "$PROJECT_ROOT"
 
 # すでに起動しているか確認
-if supabase status --project-id duel-log-app > /dev/null 2>&1; then
+if npx supabase status --project-id duel-log-app > /dev/null 2>&1; then
     echo -e "${YELLOW}Local Supabase is already running.${NC}"
-    supabase status
+    npx supabase status
     exit 0
 fi
 
 echo -e "${GREEN}Starting local Supabase...${NC}"
-supabase start
+npx supabase start
 
 echo ""
 echo -e "${CYAN}========================================${NC}"
