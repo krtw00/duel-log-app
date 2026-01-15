@@ -18,7 +18,7 @@
             <span class="text-primary">DUEL</span>
             <span class="text-secondary">LOG</span>
           </h1>
-          <p class="app-subtitle">Create Your Account</p>
+          <p class="app-subtitle">{{ LL?.auth.register.subtitle() }}</p>
         </div>
 
         <!-- 新規登録フォーム -->
@@ -26,7 +26,7 @@
           <v-text-field
             v-model="username"
             name="username"
-            label="ユーザー名"
+            :label="LL?.auth.register.username()"
             prepend-inner-icon="mdi-account-outline"
             type="text"
             variant="outlined"
@@ -38,7 +38,7 @@
           <v-text-field
             v-model="email"
             name="email"
-            label="メールアドレス"
+            :label="LL?.auth.register.email()"
             prepend-inner-icon="mdi-email-outline"
             type="email"
             variant="outlined"
@@ -50,7 +50,7 @@
           <v-text-field
             v-model="password"
             name="password"
-            label="パスワード"
+            :label="LL?.auth.register.password()"
             prepend-inner-icon="mdi-lock-outline"
             :type="showPassword ? 'text' : 'password'"
             :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -64,7 +64,7 @@
           <v-text-field
             v-model="passwordConfirm"
             name="password_confirm"
-            label="パスワード（確認）"
+            :label="LL?.auth.register.confirmPassword()"
             prepend-inner-icon="mdi-lock-check-outline"
             :type="showPasswordConfirm ? 'text' : 'password'"
             :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
@@ -85,15 +85,15 @@
             class="register-btn mb-4"
           >
             <v-icon start>mdi-account-plus</v-icon>
-            新規登録
+            {{ LL?.auth.register.submit() }}
           </v-btn>
 
           <!-- リンク -->
           <div class="text-center">
             <v-divider class="my-3" />
             <p class="text-caption text-grey">
-              既にアカウントをお持ちの方は
-              <router-link to="/login" class="text-secondary">ログイン</router-link>
+              {{ LL?.auth.register.hasAccount() }}
+              <router-link to="/login" class="text-secondary">{{ LL?.auth.register.login() }}</router-link>
             </p>
           </div>
         </v-form>
@@ -103,16 +103,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { createLogger } from '@/utils/logger';
 import { useNotificationStore } from '@/stores/notification';
+import { useLocale } from '@/composables/useLocale';
 
 const logger = createLogger('Register');
 const router = useRouter();
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
+const { LL } = useLocale();
 
 const formRef = ref();
 const username = ref('');
@@ -124,13 +126,13 @@ const showPasswordConfirm = ref(false);
 const loading = ref(false);
 const errorMessage = ref('');
 
-const rules = {
-  required: (v: string) => !!v || '入力必須です',
-  username: (v: string) => (v && v.length >= 3) || 'ユーザー名は3文字以上で入力してください',
-  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
-  password: (v: string) => (v && v.length >= 6) || 'パスワードは6文字以上で入力してください',
-  passwordMatch: (v: string) => v === password.value || 'パスワードが一致しません',
-};
+const rules = computed(() => ({
+  required: (v: string) => !!v || LL.value?.validation.required() || '',
+  username: (v: string) => (v && v.length >= 3) || LL.value?.validation.username() || '',
+  email: (v: string) => /.+@.+\..+/.test(v) || LL.value?.validation.email() || '',
+  password: (v: string) => (v && v.length >= 6) || LL.value?.validation.passwordMinLength6() || '',
+  passwordMatch: (v: string) => v === password.value || LL.value?.validation.passwordMatch() || '',
+}));
 
 const handleRegister = async () => {
   const { valid } = await formRef.value.validate();
@@ -145,21 +147,21 @@ const handleRegister = async () => {
     if (result.requiresConfirmation) {
       // メール確認が必要な場合
       notificationStore.success(
-        '確認メールを送信しました。メールを確認してアカウントを有効化してください。',
+        LL.value?.auth.register.successWithConfirmation() || 'Confirmation email sent.',
       );
       setTimeout(() => {
         router.push('/login');
       }, 3000);
     } else {
       // メール確認不要（自動ログイン完了、register内でダッシュボードへリダイレクト済み）
-      notificationStore.success('登録が完了しました！');
+      notificationStore.success(LL.value?.auth.register.success() || 'Registration complete!');
     }
   } catch (error: unknown) {
     logger.error('Failed to register', error);
     if (error instanceof Error) {
       errorMessage.value = error.message;
     } else {
-      errorMessage.value = '予期せぬエラーが発生しました';
+      errorMessage.value = LL.value?.validation.unexpectedError() || 'An unexpected error occurred';
     }
     notificationStore.error(errorMessage.value);
   } finally {

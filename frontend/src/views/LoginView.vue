@@ -12,15 +12,15 @@
         <div class="features-list">
           <div class="feature-item">
             <v-icon color="#00d9ff" size="20">mdi-chart-line</v-icon>
-            <span>詳細な統計分析</span>
+            <span>{{ LL?.auth.login.features.statistics() }}</span>
           </div>
           <div class="feature-item">
             <v-icon color="#b536ff" size="20">mdi-cards</v-icon>
-            <span>デッキ管理・相性分析</span>
+            <span>{{ LL?.auth.login.features.deckManagement() }}</span>
           </div>
           <div class="feature-item">
             <v-icon color="#4ade80" size="20">mdi-monitor</v-icon>
-            <span>OBS配信連携</span>
+            <span>{{ LL?.auth.login.features.obsIntegration() }}</span>
           </div>
         </div>
       </div>
@@ -48,7 +48,7 @@
           <v-text-field
             v-model="email"
             name="email"
-            label="メールアドレス"
+            :label="LL?.auth.login.email()"
             prepend-inner-icon="mdi-email-outline"
             type="email"
             variant="outlined"
@@ -63,7 +63,7 @@
           <v-text-field
             v-model="password"
             name="password"
-            label="パスワード"
+            :label="LL?.auth.login.password()"
             prepend-inner-icon="mdi-lock-outline"
             :type="showPassword ? 'text' : 'password'"
             :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -84,18 +84,18 @@
             class="login-btn mb-4"
           >
             <v-icon start>mdi-login</v-icon>
-            ログイン
+            {{ LL?.auth.login.submit() }}
           </v-btn>
 
           <!-- OAuth -->
           <div class="oauth-divider mb-4">
             <v-divider />
-            <span class="oauth-text">または</span>
+            <span class="oauth-text">{{ LL?.auth.login.orDivider() }}</span>
             <v-divider />
           </div>
 
           <div class="oauth-buttons mb-4">
-            <v-tooltip text="Googleでログイン" location="bottom">
+            <v-tooltip :text="LL?.auth.login.oauthGoogle()" location="bottom">
               <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
@@ -110,7 +110,7 @@
               </template>
             </v-tooltip>
 
-            <v-tooltip text="Discordでログイン" location="bottom">
+            <v-tooltip :text="LL?.auth.login.oauthDiscord()" location="bottom">
               <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
@@ -138,7 +138,7 @@
 
           <!-- 新規登録（目立たせる） -->
           <div class="register-section mb-4">
-            <p class="register-label">アカウントをお持ちでない方</p>
+            <p class="register-label">{{ LL?.auth.login.noAccount() }}</p>
             <v-btn
               to="/register"
               block
@@ -147,17 +147,17 @@
               class="register-btn"
             >
               <v-icon start>mdi-account-plus</v-icon>
-              新規登録
+              {{ LL?.auth.login.register() }}
             </v-btn>
           </div>
 
           <!-- リンク -->
           <div class="links-section">
-            <router-link to="/forgot-password" class="link-item">パスワードを忘れた場合</router-link>
+            <router-link to="/forgot-password" class="link-item">{{ LL?.auth.login.forgotPassword() }}</router-link>
           </div>
 
           <!-- 配信者モード（コンパクト） -->
-          <v-tooltip text="配信中にメールアドレスを非表示にします" location="bottom">
+          <v-tooltip :text="LL?.auth.streamerMode.hint()" location="bottom">
             <template #activator="{ props }">
               <div v-bind="props" class="streamer-toggle">
                 <v-switch
@@ -169,7 +169,7 @@
                 >
                   <template #label>
                     <v-icon size="16" class="mr-1">mdi-video</v-icon>
-                    <span>配信者モード</span>
+                    <span>{{ LL?.auth.streamerMode.label() }}</span>
                   </template>
                 </v-switch>
               </div>
@@ -178,9 +178,9 @@
 
           <!-- 利用規約 -->
           <p class="terms-text">
-            ログインすることで
-            <a class="terms-link" @click="showTermsDialog = true">利用規約</a>
-            に同意したものとみなされます
+            {{ LL?.auth.login.termsAgreement() }}
+            <a class="terms-link" @click="showTermsDialog = true">{{ LL?.auth.login.termsLink() }}</a>
+            {{ LL?.auth.login.termsAgreementEnd() }}
           </p>
         </v-form>
       </div>
@@ -191,9 +191,9 @@
       <v-card>
         <v-card-title class="d-flex align-center pa-4">
           <v-icon class="mr-2" color="primary">mdi-file-document-outline</v-icon>
-          <span class="text-h5">利用規約</span>
+          <span class="text-h5">{{ LL?.auth.login.termsTitle() }}</span>
           <v-spacer />
-          <v-btn icon variant="text" aria-label="閉じる" @click="showTermsDialog = false">
+          <v-btn icon variant="text" :aria-label="LL?.common.close()" @click="showTermsDialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -321,7 +321,7 @@
         <v-card-actions class="pa-4">
           <v-spacer />
           <v-btn color="primary" variant="elevated" @click="showTermsDialog = false">
-            閉じる
+            {{ LL?.common.close() }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -330,14 +330,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { clearSupabaseLocalStorage } from '@/lib/supabase';
+import { useLocale } from '@/composables/useLocale';
 import type { Provider } from '@supabase/supabase-js';
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
+const { LL } = useLocale();
 
 const formRef = ref();
 const email = ref('');
@@ -364,10 +366,10 @@ watch(localStreamerMode, (newValue) => {
   authStore.toggleStreamerMode(newValue);
 });
 
-const rules = {
-  required: (v: string) => !!v || '入力必須です',
-  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
-};
+const rules = computed(() => ({
+  required: (v: string) => !!v || LL.value?.validation.required() || '',
+  email: (v: string) => /.+@.+\..+/.test(v) || LL.value?.validation.email() || '',
+}));
 
 const handleLogin = async () => {
   const { valid } = await formRef.value.validate();
@@ -378,9 +380,9 @@ const handleLogin = async () => {
   try {
     localStorage.setItem('lastEmail', email.value);
     await authStore.login(email.value, password.value);
-    notificationStore.success('ログインに成功しました');
+    notificationStore.success(LL.value?.auth.login.successMessage() || 'Success');
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+    const errorMessage = error instanceof Error ? error.message : (LL.value?.common.unknownError() || 'Unknown error');
     notificationStore.error(errorMessage);
   } finally {
     loading.value = false;
@@ -397,7 +399,7 @@ const handleOAuthLogin = async (provider: Provider) => {
 
     await authStore.loginWithOAuth(provider);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
+    const errorMessage = error instanceof Error ? error.message : (LL.value?.common.unknownError() || 'Unknown error');
     notificationStore.error(errorMessage);
     oauthLoading.value = null;
   }

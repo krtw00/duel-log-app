@@ -18,14 +18,14 @@
             <span class="text-primary">FORGOT</span>
             <span class="text-secondary">PASSWORD</span>
           </h1>
-          <p class="app-subtitle">Enter your email to reset your password.</p>
+          <p class="app-subtitle">{{ LL?.auth.forgotPassword.subtitle() }}</p>
         </div>
 
         <!-- フォーム -->
         <v-form ref="formRef" @submit.prevent="handleForgotPassword">
           <v-text-field
             v-model="email"
-            label="メールアドレス"
+            :label="LL?.auth.forgotPassword.email()"
             prepend-inner-icon="mdi-email-outline"
             type="email"
             variant="outlined"
@@ -44,14 +44,12 @@
             class="forgot-password-btn mb-4"
           >
             <v-icon start>mdi-send</v-icon>
-            再設定メールを送信
+            {{ LL?.auth.forgotPassword.submit() }}
           </v-btn>
 
           <!-- ログインページへのリンク -->
           <div class="text-center">
-            <router-link to="/login" class="text-caption text-grey"
-              >ログインページに戻る</router-link
-            >
+            <router-link to="/login" class="text-caption text-grey">{{ LL?.auth.forgotPassword.backToLogin() }}</router-link>
           </div>
         </v-form>
       </v-card-text>
@@ -60,24 +58,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotificationStore } from '@/stores/notification';
 import { createLogger } from '@/utils/logger';
 import { supabase } from '@/lib/supabase';
+import { useLocale } from '@/composables/useLocale';
 
 const logger = createLogger('ForgotPassword');
 const router = useRouter();
 const notificationStore = useNotificationStore();
+const { LL } = useLocale();
 
 const formRef = ref();
 const email = ref('');
 const loading = ref(false);
 
-const rules = {
-  required: (v: string) => !!v || '入力必須です',
-  email: (v: string) => /.+@.+\..+/.test(v) || 'メールアドレスの形式が正しくありません',
-};
+const rules = computed(() => ({
+  required: (v: string) => !!v || LL.value?.validation.required() || '',
+  email: (v: string) => /.+@.+\..+/.test(v) || LL.value?.validation.email() || '',
+}));
 
 const handleForgotPassword = async () => {
   const { valid } = await formRef.value.validate();
@@ -94,14 +94,14 @@ const handleForgotPassword = async () => {
 
     if (error) {
       logger.error('Forgot password error', error);
-      notificationStore.error('パスワードリセットメールの送信に失敗しました');
+      notificationStore.error(LL.value?.auth.forgotPassword.error() || 'Failed to send email');
     } else {
-      notificationStore.success('パスワード再設定の案内をメールで送信しました。');
+      notificationStore.success(LL.value?.auth.forgotPassword.success() || 'Email sent');
       router.push('/login');
     }
   } catch (error: unknown) {
     logger.error('Forgot password error', error);
-    notificationStore.error('予期せぬエラーが発生しました');
+    notificationStore.error(LL.value?.validation.unexpectedError() || 'Unexpected error');
   } finally {
     loading.value = false;
   }

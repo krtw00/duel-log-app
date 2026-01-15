@@ -18,20 +18,20 @@
             <span class="text-primary">RESET</span>
             <span class="text-secondary">PASSWORD</span>
           </h1>
-          <p class="app-subtitle">Enter your new password.</p>
+          <p class="app-subtitle">{{ LL?.auth.resetPassword.subtitle() }}</p>
         </div>
 
         <!-- セッション確認中 -->
         <div v-if="checkingSession" class="text-center py-8">
           <v-progress-circular indeterminate color="primary" size="48" />
-          <p class="mt-4 text-grey">認証情報を確認中...</p>
+          <p class="mt-4 text-grey">{{ LL?.auth.resetPassword.checkingSession() }}</p>
         </div>
 
         <!-- フォーム -->
         <v-form v-else-if="isValidSession" ref="formRef" @submit.prevent="handleResetPassword">
           <v-text-field
             v-model="newPassword"
-            label="新しいパスワード"
+            :label="LL?.auth.resetPassword.newPassword()"
             prepend-inner-icon="mdi-lock-outline"
             :type="showNewPassword ? 'text' : 'password'"
             :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -44,7 +44,7 @@
 
           <v-text-field
             v-model="confirmPassword"
-            label="パスワードの確認"
+            :label="LL?.auth.resetPassword.confirmPassword()"
             prepend-inner-icon="mdi-lock-check-outline"
             :type="showConfirmPassword ? 'text' : 'password'"
             :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -65,14 +65,12 @@
             class="reset-password-btn mb-4"
           >
             <v-icon start>mdi-check</v-icon>
-            パスワードをリセット
+            {{ LL?.auth.resetPassword.submit() }}
           </v-btn>
 
           <!-- ログインページへのリンク -->
           <div class="text-center">
-            <router-link to="/login" class="text-caption text-grey"
-              >ログインページに戻る</router-link
-            >
+            <router-link to="/login" class="text-caption text-grey">{{ LL?.auth.resetPassword.backToLogin() }}</router-link>
           </div>
         </v-form>
       </v-card-text>
@@ -81,15 +79,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useNotificationStore } from '@/stores/notification';
 import { createLogger } from '@/utils/logger';
 import { supabase } from '@/lib/supabase';
+import { useLocale } from '@/composables/useLocale';
 
 const logger = createLogger('ResetPassword');
 const router = useRouter();
 const notificationStore = useNotificationStore();
+const { LL } = useLocale();
 
 const formRef = ref();
 const newPassword = ref('');
@@ -100,11 +100,11 @@ const loading = ref(false);
 const isValidSession = ref(false);
 const checkingSession = ref(true);
 
-const rules = {
-  required: (v: string) => !!v || '入力必須です',
-  min: (v: string) => v.length >= 8 || '8文字以上で入力してください',
-  passwordMatch: (v: string) => v === newPassword.value || 'パスワードが一致しません',
-};
+const rules = computed(() => ({
+  required: (v: string) => !!v || LL.value?.validation.required() || '',
+  min: (v: string) => v.length >= 8 || LL.value?.validation.passwordMinLength() || '',
+  passwordMatch: (v: string) => v === newPassword.value || LL.value?.validation.passwordMatch() || '',
+}));
 
 // Supabaseのパスワードリセットリンクからのセッション確認
 onMounted(async () => {
@@ -117,7 +117,7 @@ onMounted(async () => {
 
     if (error) {
       logger.error('Session error', error);
-      notificationStore.error('セッションの取得に失敗しました');
+      notificationStore.error(LL.value?.auth.resetPassword.sessionError() || 'Session error');
       router.push('/login');
       return;
     }
@@ -125,12 +125,12 @@ onMounted(async () => {
     if (session) {
       isValidSession.value = true;
     } else {
-      notificationStore.error('パスワードリセットリンクが無効または期限切れです');
+      notificationStore.error(LL.value?.auth.resetPassword.invalidLink() || 'Invalid link');
       router.push('/forgot-password');
     }
   } catch (error) {
     logger.error('Session check error', error);
-    notificationStore.error('エラーが発生しました');
+    notificationStore.error(LL.value?.common.error() || 'Error');
     router.push('/login');
   } finally {
     checkingSession.value = false;
@@ -151,16 +151,16 @@ const handleResetPassword = async () => {
 
     if (error) {
       logger.error('Reset password error', error);
-      notificationStore.error(error.message || 'パスワードのリセットに失敗しました');
+      notificationStore.error(error.message || LL.value?.auth.resetPassword.error() || 'Failed');
     } else {
-      notificationStore.success('パスワードが正常にリセットされました。');
+      notificationStore.success(LL.value?.auth.resetPassword.success() || 'Success');
       // ログアウトしてログインページへ（全セッションからサインアウト）
       await supabase.auth.signOut({ scope: 'global' });
       router.push('/login');
     }
   } catch (error: unknown) {
     logger.error('Reset password error', error);
-    notificationStore.error('予期せぬエラーが発生しました');
+    notificationStore.error(LL.value?.validation.unexpectedError() || 'Unexpected error');
   } finally {
     loading.value = false;
   }
