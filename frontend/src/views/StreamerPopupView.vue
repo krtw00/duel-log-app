@@ -204,16 +204,17 @@ const resizeWindowToContent = async () => {
   const contentWidth = Math.max(container.scrollWidth, container.offsetWidth);
   const contentHeight = Math.max(container.scrollHeight, container.offsetHeight);
 
-  // パディングとマージンを考慮
-  const padding = 80;
+  // パディングとマージンを考慮（下部に多めの余白）
+  const horizontalPadding = 80;
+  const verticalPadding = 120;
   const minWidth = 350;
   const minHeight = 150;
   const maxWidth = 1200;
   const maxHeight = 900;
 
   // ウィンドウサイズを計算（ブラウザのUIを考慮）
-  const targetWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth + padding));
-  const targetHeight = Math.min(maxHeight, Math.max(minHeight, contentHeight + padding));
+  const targetWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth + horizontalPadding));
+  const targetHeight = Math.min(maxHeight, Math.max(minHeight, contentHeight + verticalPadding));
 
   try {
     window.resizeTo(targetWidth, targetHeight);
