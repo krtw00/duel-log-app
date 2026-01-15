@@ -100,7 +100,8 @@ export const routes: RouteRecordRaw[] = [
     path: '/streamer-popup',
     name: 'StreamerPopup',
     component: StreamerPopupView,
-    meta: { requiresAuth: true, hideLayout: true },
+    // ポップアップウィンドウでの認証チェックはコンポーネント内で行う
+    meta: { requiresAuth: false, hideLayout: true },
   },
   {
     path: '/:pathMatch(.*)*',
