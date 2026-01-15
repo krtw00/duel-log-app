@@ -7,6 +7,7 @@ import { ref, computed } from 'vue';
 import { useNotificationStore } from '../stores/notification';
 import { createLogger } from '../utils/logger';
 import { api } from '../services/api';
+import { GAME_MODE_OPTIONS } from '../utils/gameMode';
 
 const logger = createLogger('OBSConfiguration');
 
@@ -37,12 +38,8 @@ export function useOBSConfiguration() {
     { title: '配信開始から', value: 'from_start' },
   ];
 
-  const gameModeOptions = [
-    { title: 'ランク', value: 'RANK' },
-    { title: 'レート', value: 'RATE' },
-    { title: 'イベント', value: 'EVENT' },
-    { title: 'DC', value: 'DC' },
-  ];
+  // ゲームモードオプションは共通ユーティリティから取得
+  const gameModeOptions = GAME_MODE_OPTIONS;
 
   const layoutOptions = [
     { title: 'グリッド（自動）', value: 'grid' },
