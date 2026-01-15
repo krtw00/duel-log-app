@@ -399,6 +399,80 @@ type RootTranslation = {
       diamond: string
       master: string
     }
+    streamerPopup: {
+      title: string
+      gameMode: string
+      layout: string
+      refreshInterval: string
+      displayItems: string
+      displayItemsCount: RequiredParams<'count'>
+      openPopup: string
+      gameModes: {
+        rank: string
+        rate: string
+        event: string
+        dc: string
+      }
+      layouts: {
+        grid: string
+        horizontal: string
+        vertical: string
+      }
+      intervals: {
+        sec10: string
+        sec30: string
+        min1: string
+        min5: string
+      }
+      items: {
+        currentDeck: string
+        gameModeValue: string
+        totalDuels: string
+        winRate: string
+        firstTurnWinRate: string
+        secondTurnWinRate: string
+        coinWinRate: string
+        goFirstRate: string
+      }
+    }
+    configPanel: {
+      title: string
+      description: string
+      periodType: string
+      periodMonthly: string
+      periodRecent: string
+      periodFromStart: string
+      year: string
+      month: string
+      matchCount: string
+      gameModeOptional: string
+      displayItemsTitle: string
+      refreshIntervalMs: string
+      obsSetupGuide: string
+      obsStep1: string
+      obsStep2: string
+      obsStep4: string
+      obsUrl: string
+      urlWarning: string
+      recommendedSizeGrid: string
+      recommendedSizeHorizontal: string
+      recommendedSizeVertical: string
+      tokenFetchError: string
+      urlCopySuccess: string
+      urlCopyError: string
+      items: {
+        winRate: string
+        record: string
+        deck: string
+        rank: string
+        rate: string
+        dc: string
+        firstTurnWinRate: string
+        secondTurnWinRate: string
+        coinTossWinRate: string
+        goFirstRate: string
+      }
+    }
   }
   shared: {
     title: string
@@ -852,6 +926,80 @@ export type TranslationFunctions = {
       platinum: () => LocalizedString
       diamond: () => LocalizedString
       master: () => LocalizedString
+    }
+    streamerPopup: {
+      title: () => LocalizedString
+      gameMode: () => LocalizedString
+      layout: () => LocalizedString
+      refreshInterval: () => LocalizedString
+      displayItems: () => LocalizedString
+      displayItemsCount: (arg: { count: number }) => LocalizedString
+      openPopup: () => LocalizedString
+      gameModes: {
+        rank: () => LocalizedString
+        rate: () => LocalizedString
+        event: () => LocalizedString
+        dc: () => LocalizedString
+      }
+      layouts: {
+        grid: () => LocalizedString
+        horizontal: () => LocalizedString
+        vertical: () => LocalizedString
+      }
+      intervals: {
+        sec10: () => LocalizedString
+        sec30: () => LocalizedString
+        min1: () => LocalizedString
+        min5: () => LocalizedString
+      }
+      items: {
+        currentDeck: () => LocalizedString
+        gameModeValue: () => LocalizedString
+        totalDuels: () => LocalizedString
+        winRate: () => LocalizedString
+        firstTurnWinRate: () => LocalizedString
+        secondTurnWinRate: () => LocalizedString
+        coinWinRate: () => LocalizedString
+        goFirstRate: () => LocalizedString
+      }
+    }
+    configPanel: {
+      title: () => LocalizedString
+      description: () => LocalizedString
+      periodType: () => LocalizedString
+      periodMonthly: () => LocalizedString
+      periodRecent: () => LocalizedString
+      periodFromStart: () => LocalizedString
+      year: () => LocalizedString
+      month: () => LocalizedString
+      matchCount: () => LocalizedString
+      gameModeOptional: () => LocalizedString
+      displayItemsTitle: () => LocalizedString
+      refreshIntervalMs: () => LocalizedString
+      obsSetupGuide: () => LocalizedString
+      obsStep1: () => LocalizedString
+      obsStep2: () => LocalizedString
+      obsStep4: () => LocalizedString
+      obsUrl: () => LocalizedString
+      urlWarning: () => LocalizedString
+      recommendedSizeGrid: () => LocalizedString
+      recommendedSizeHorizontal: () => LocalizedString
+      recommendedSizeVertical: () => LocalizedString
+      tokenFetchError: () => LocalizedString
+      urlCopySuccess: () => LocalizedString
+      urlCopyError: () => LocalizedString
+      items: {
+        winRate: () => LocalizedString
+        record: () => LocalizedString
+        deck: () => LocalizedString
+        rank: () => LocalizedString
+        rate: () => LocalizedString
+        dc: () => LocalizedString
+        firstTurnWinRate: () => LocalizedString
+        secondTurnWinRate: () => LocalizedString
+        coinTossWinRate: () => LocalizedString
+        goFirstRate: () => LocalizedString
+      }
     }
   }
   shared: {
