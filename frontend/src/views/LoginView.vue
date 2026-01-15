@@ -193,7 +193,7 @@
           <v-icon class="mr-2" color="primary">mdi-file-document-outline</v-icon>
           <span class="text-h5">利用規約</span>
           <v-spacer />
-          <v-btn icon variant="text" @click="showTermsDialog = false">
+          <v-btn icon variant="text" aria-label="閉じる" @click="showTermsDialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
