@@ -190,9 +190,26 @@ const allDisplayItems: DisplayItemDef[] = [
   { key: 'go_first_rate', label: '先攻率', icon: 'mdi-arrow-up-bold-hexagon-outline', format: (v) => formatPercentageValue(v) },
 ];
 
+// ゲームモードに応じて非表示にする項目
+const getHiddenItemsByGameMode = (mode: GameMode): string[] => {
+  switch (mode) {
+    case 'RANK':
+      return ['current_rate', 'current_dc'];
+    case 'RATE':
+      return ['current_rank', 'current_dc'];
+    case 'DC':
+      return ['current_rank', 'current_rate'];
+    case 'EVENT':
+      return ['current_rank', 'current_rate', 'current_dc'];
+    default:
+      return [];
+  }
+};
+
 const statsItems = computed(() => {
+  const hiddenItems = getHiddenItemsByGameMode(gameMode.value);
   return selectedItems.value
-    .filter((key) => key !== 'history')
+    .filter((key) => key !== 'history' && !hiddenItems.includes(key))
     .map((key) => allDisplayItems.find((item) => item.key === key))
     .filter((item): item is DisplayItemDef => item !== undefined);
 });
