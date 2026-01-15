@@ -15,6 +15,8 @@
 
       <StatisticsSection :duels="duels" :decks="decks" :current-mode="currentMode" />
 
+      <StreamerSection :streamer-mode-enabled="authStore.isStreamerModeEnabled" />
+
       <DuelEntrySection
         :decks="decks"
         :default-game-mode="currentMode"
@@ -34,8 +36,6 @@
         @refresh="fetchDuels"
         @duel-saved="handleDuelSaved"
       />
-
-      <StreamerSection :streamer-mode-enabled="authStore.isStreamerModeEnabled" />
     </v-container>
 
     <template #overlay>
