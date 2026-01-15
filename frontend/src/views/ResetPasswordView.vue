@@ -1,5 +1,24 @@
 <template>
   <div class="reset-password-container">
+    <!-- 言語切り替えボタン -->
+    <div class="language-switcher">
+      <v-menu>
+        <template #activator="{ props }">
+          <v-btn v-bind="props" icon="mdi-translate" variant="text" size="small" />
+        </template>
+        <v-list density="compact">
+          <v-list-item
+            v-for="loc in supportedLocales"
+            :key="loc"
+            :active="loc === currentLocale"
+            @click="changeLocale(loc)"
+          >
+            <v-list-item-title>{{ localeNames[loc] }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+
     <!-- 背景装飾 -->
     <div class="background-overlay">
       <div class="grid-pattern"></div>
@@ -89,7 +108,7 @@ import { useLocale } from '@/composables/useLocale';
 const logger = createLogger('ResetPassword');
 const router = useRouter();
 const notificationStore = useNotificationStore();
-const { LL } = useLocale();
+const { LL, currentLocale, supportedLocales, localeNames, changeLocale } = useLocale();
 
 const formRef = ref();
 const newPassword = ref('');
@@ -176,6 +195,19 @@ const handleResetPassword = async () => {
   position: relative;
   overflow: hidden;
   background: rgb(var(--v-theme-background));
+}
+
+// 言語切り替えボタン
+.language-switcher {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+
+  @media (min-width: 900px) {
+    top: 24px;
+    right: 24px;
+  }
 }
 
 .background-overlay {
