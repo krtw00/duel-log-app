@@ -128,6 +128,8 @@ type RootTranslation = {
     duelEntry: {
       title: string
       quickEntry: string
+      defaultSettings: string
+      defaultTurnTooltip: string
     }
     history: {
       title: string
@@ -140,19 +142,32 @@ type RootTranslation = {
     myDecks: string
     opponentDecks: string
     addDeck: string
+    addMyDeck: string
+    addOpponentDeck: string
     deckName: string
+    deckNamePlaceholder: string
     noDeck: string
     noDeckHint: string
+    noOpponentDeck: string
+    noOpponentDeckHint: string
     registeredDate: string
     editDeck: string
     deleteDeck: string
     deleteConfirm: string
+    duplicateMyDeck: string
+    duplicateOpponentDeck: string
+    saveSuccess: string
+    updateSuccess: string
+    deleteSuccess: string
     archive: {
       title: string
       description: string
       button: string
       confirm: string
+      confirmWithCount: RequiredParams<'count'>
       success: string
+      noDecks: string
+      failed: string
     }
     archived: string
     showArchived: string
@@ -506,6 +521,8 @@ export type TranslationFunctions = {
     duelEntry: {
       title: () => LocalizedString
       quickEntry: () => LocalizedString
+      defaultSettings: () => LocalizedString
+      defaultTurnTooltip: () => LocalizedString
     }
     history: {
       title: () => LocalizedString
@@ -518,19 +535,32 @@ export type TranslationFunctions = {
     myDecks: () => LocalizedString
     opponentDecks: () => LocalizedString
     addDeck: () => LocalizedString
+    addMyDeck: () => LocalizedString
+    addOpponentDeck: () => LocalizedString
     deckName: () => LocalizedString
+    deckNamePlaceholder: () => LocalizedString
     noDeck: () => LocalizedString
     noDeckHint: () => LocalizedString
+    noOpponentDeck: () => LocalizedString
+    noOpponentDeckHint: () => LocalizedString
     registeredDate: () => LocalizedString
     editDeck: () => LocalizedString
     deleteDeck: () => LocalizedString
     deleteConfirm: () => LocalizedString
+    duplicateMyDeck: () => LocalizedString
+    duplicateOpponentDeck: () => LocalizedString
+    saveSuccess: () => LocalizedString
+    updateSuccess: () => LocalizedString
+    deleteSuccess: () => LocalizedString
     archive: {
       title: () => LocalizedString
       description: () => LocalizedString
       button: () => LocalizedString
       confirm: () => LocalizedString
+      confirmWithCount: (arg: { count: number }) => LocalizedString
       success: () => LocalizedString
+      noDecks: () => LocalizedString
+      failed: () => LocalizedString
     }
     archived: () => LocalizedString
     showArchived: () => LocalizedString
