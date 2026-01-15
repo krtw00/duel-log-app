@@ -121,12 +121,13 @@
 import { computed } from 'vue';
 import { useThemeStore } from '@/stores/theme';
 import { useLocale } from '@/composables/useLocale';
+import { useRanks } from '@/composables/useRanks';
 import { Duel } from '@/types';
-import { getRankName } from '@/utils/ranks';
 
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.isDark);
 const { LL } = useLocale();
+const { getRankName } = useRanks();
 
 const props = defineProps<{
   duels: Duel[];

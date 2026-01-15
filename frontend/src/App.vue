@@ -7,7 +7,7 @@
           <v-row align="center" justify="center">
             <v-col cols="12" class="text-center">
               <v-progress-circular indeterminate size="64" color="primary" />
-              <p class="mt-4 text-grey">認証状態を確認中...</p>
+              <p class="mt-4 text-grey">{{ LL?.auth.checkingStatus() }}</p>
             </v-col>
           </v-row>
         </v-container>
@@ -34,10 +34,12 @@ import ToastNotification from '@/components/common/ToastNotification.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import { useThemeStore } from '@/stores/theme';
 import { useAuthStore } from '@/stores/auth';
+import { useLocale } from '@/composables/useLocale';
 
 const themeStore = useThemeStore();
 const authStore = useAuthStore();
 const route = useRoute();
+const { LL } = useLocale();
 
 // 特定のルートでは初期ローダーを表示しない（AuthCallbackなど）
 const showInitialLoader = computed(() => {

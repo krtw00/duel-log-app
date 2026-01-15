@@ -2,13 +2,13 @@
   <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
-      <div class="loading-text">読み込み中...</div>
+      <div class="loading-text">{{ LL?.common.loading() }}</div>
     </div>
 
     <!-- 未認証 -->
     <div v-else-if="!isAuthenticated" class="error-container">
-      <div class="error-text">ログインが必要です</div>
-      <div class="error-detail">ログイン状態でこのページを開いてください</div>
+      <div class="error-text">{{ LL?.obs.streamerPopup.loginRequired() }}</div>
+      <div class="error-detail">{{ LL?.obs.streamerPopup.loginRequiredDetail() }}</div>
     </div>
 
     <!-- エラー -->
@@ -46,15 +46,18 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { api } from '@/services/api';
-import { getRankName } from '@/utils/ranks';
 import { createLogger } from '@/utils/logger';
 import { useAuthStore } from '@/stores/auth';
+import { useLocale } from '@/composables/useLocale';
+import { useRanks } from '@/composables/useRanks';
 import type { GameMode } from '@/types';
 
 const logger = createLogger('StreamerPopup');
 
 const route = useRoute();
 const authStore = useAuthStore();
+const { LL } = useLocale();
+const { getRankName } = useRanks();
 const loading = ref(true);
 const errorMessage = ref<string>('');
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
@@ -83,15 +86,18 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 const selectedItems = computed(() => itemsParam.value.split(',').filter(Boolean));
 const showStats = computed(() => selectedItems.value.length > 0);
 
-// ランクマップ
-const rankTierLabelMap: Record<string, string> = {
-  BEGINNER: 'ビギナー',
-  BRONZE: 'ブロンズ',
-  SILVER: 'シルバー',
-  GOLD: 'ゴールド',
-  PLATINUM: 'プラチナ',
-  DIAMOND: 'ダイヤ',
-  MASTER: 'マスター',
+// ランクマップ（翻訳から取得）
+const getRankTierLabel = (tier: string): string | undefined => {
+  const tierMap: Record<string, () => string | undefined> = {
+    BEGINNER: () => LL.value?.obs.ranks.beginner(),
+    BRONZE: () => LL.value?.obs.ranks.bronze(),
+    SILVER: () => LL.value?.obs.ranks.silver(),
+    GOLD: () => LL.value?.obs.ranks.gold(),
+    PLATINUM: () => LL.value?.obs.ranks.platinum(),
+    DIAMOND: () => LL.value?.obs.ranks.diamond(),
+    MASTER: () => LL.value?.obs.ranks.master(),
+  };
+  return tierMap[tier]?.();
 };
 
 // フォーマット関数
@@ -130,7 +136,7 @@ const formatRankValue = (value: unknown): string => {
     const match = /^([A-Z]+)[ _-]?([0-9]+)$/.exec(trimmed);
     if (match) {
       const [, tier, stage] = match;
-      const tierLabel = rankTierLabelMap[tier];
+      const tierLabel = getRankTierLabel(tier);
       if (tierLabel) return `${tierLabel}${stage}`;
     }
     const numericFromString = normalizeNumericValue(trimmed);
@@ -152,30 +158,30 @@ interface DisplayItemDef {
   format: (v: unknown) => string;
 }
 
-const allDisplayItems: DisplayItemDef[] = [
+const allDisplayItems = computed<DisplayItemDef[]>(() => [
   {
     key: 'current_deck',
-    label: '使用デッキ',
+    label: LL.value?.obs.streamerPopup.items.currentDeck() ?? 'Current Deck',
     icon: 'mdi-cards-playing-outline',
-    format: (v) => (v as string | undefined) || '未設定',
+    format: (v) => (v as string | undefined) || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
   },
-  { key: 'total_duels', label: '総試合数', icon: 'mdi-sword-cross', format: formatIntegerValue },
-  { key: 'win_rate', label: '勝率', icon: 'mdi-trophy', format: (v) => formatPercentageValue(v) },
-  { key: 'first_turn_win_rate', label: '先攻勝率', icon: 'mdi-lightning-bolt', format: (v) => formatPercentageValue(v) },
-  { key: 'second_turn_win_rate', label: '後攻勝率', icon: 'mdi-shield', format: (v) => formatPercentageValue(v) },
-  { key: 'coin_win_rate', label: 'コイン勝率', icon: 'mdi-poker-chip', format: (v) => formatPercentageValue(v) },
-  { key: 'go_first_rate', label: '先攻率', icon: 'mdi-arrow-up-bold-hexagon-outline', format: (v) => formatPercentageValue(v) },
-];
+  { key: 'total_duels', label: LL.value?.obs.streamerPopup.items.totalDuels() ?? 'Total Matches', icon: 'mdi-sword-cross', format: formatIntegerValue },
+  { key: 'win_rate', label: LL.value?.obs.streamerPopup.items.winRate() ?? 'Win Rate', icon: 'mdi-trophy', format: (v) => formatPercentageValue(v) },
+  { key: 'first_turn_win_rate', label: LL.value?.obs.streamerPopup.items.firstTurnWinRate() ?? 'Going First Win Rate', icon: 'mdi-lightning-bolt', format: (v) => formatPercentageValue(v) },
+  { key: 'second_turn_win_rate', label: LL.value?.obs.streamerPopup.items.secondTurnWinRate() ?? 'Going Second Win Rate', icon: 'mdi-shield', format: (v) => formatPercentageValue(v) },
+  { key: 'coin_win_rate', label: LL.value?.obs.streamerPopup.items.coinWinRate() ?? 'Coin Win Rate', icon: 'mdi-poker-chip', format: (v) => formatPercentageValue(v) },
+  { key: 'go_first_rate', label: LL.value?.obs.streamerPopup.items.goFirstRate() ?? 'Going First Rate', icon: 'mdi-arrow-up-bold-hexagon-outline', format: (v) => formatPercentageValue(v) },
+]);
 
 // ゲームモードに応じた値の設定を取得
 const getGameModeValueConfig = (mode: GameMode): { key: string; label: string; icon: string; format: (v: unknown) => string } | null => {
   switch (mode) {
     case 'RANK':
-      return { key: 'current_rank', label: 'ランク', icon: 'mdi-crown', format: formatRankValue };
+      return { key: 'current_rank', label: LL.value?.obs.streamerPopup.items.rank() ?? 'Rank', icon: 'mdi-crown', format: formatRankValue };
     case 'RATE':
-      return { key: 'current_rate', label: 'レート', icon: 'mdi-chart-line', format: (v) => formatDecimalValue(v) };
+      return { key: 'current_rate', label: LL.value?.obs.streamerPopup.items.rate() ?? 'Rate', icon: 'mdi-chart-line', format: (v) => formatDecimalValue(v) };
     case 'DC':
-      return { key: 'current_dc', label: 'DC', icon: 'mdi-medal', format: (v) => formatDecimalValue(v) };
+      return { key: 'current_dc', label: LL.value?.obs.streamerPopup.items.dc() ?? 'DC', icon: 'mdi-medal', format: (v) => formatDecimalValue(v) };
     case 'EVENT':
       return null; // EVENTモードでは表示しない
     default:
@@ -194,7 +200,7 @@ const statsItems = computed(() => {
         items.push(config);
       }
     } else {
-      const item = allDisplayItems.find((item) => item.key === key);
+      const item = allDisplayItems.value.find((item) => item.key === key);
       if (item) {
         items.push(item);
       }
@@ -277,7 +283,7 @@ const fetchData = async () => {
       const latestDuel = duels.length > 0 ? duels[0] : null;
 
       statsData.value = {
-        current_deck: latestDuel?.deck?.name || '未設定',
+        current_deck: latestDuel?.deck?.name || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
         current_rank: latestDuel?.rank || null,
         current_rate: latestDuel?.rate_value || null,
         current_dc: latestDuel?.dc_value || null,
@@ -299,7 +305,7 @@ const fetchData = async () => {
     }, 100);
   } catch (error) {
     logger.error('Failed to fetch data:', error);
-    errorMessage.value = 'データの取得に失敗しました';
+    errorMessage.value = LL.value?.common.dataFetchError() ?? 'Failed to fetch data';
     loading.value = false;
   }
 };
