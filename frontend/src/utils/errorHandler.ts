@@ -2,6 +2,8 @@
  * エラーハンドリングユーティリティ
  */
 
+import { getLL } from '../i18n';
+
 /**
  * APIエラーレスポンスの型
  */
@@ -16,23 +18,24 @@ interface ApiErrorResponse {
 /**
  * エラーオブジェクトからエラーメッセージを抽出
  * @param error - エラーオブジェクト
- * @param defaultMessage - デフォルトメッセージ
+ * @param defaultMessage - デフォルトメッセージ（省略時は翻訳を使用）
  * @returns エラーメッセージ
  */
-export function getErrorMessage(error: unknown, defaultMessage = 'エラーが発生しました'): string {
+export function getErrorMessage(error: unknown, defaultMessage?: string): string {
+  const fallbackMessage = defaultMessage ?? getLL()?.common.error() ?? 'An error occurred';
   if (isApiError(error)) {
-    return error.response?.data?.detail || defaultMessage;
+    return error.response?.data?.detail || fallbackMessage;
   }
 
   if (error instanceof Error) {
-    return error.message || defaultMessage;
+    return error.message || fallbackMessage;
   }
 
   if (typeof error === 'string') {
     return error;
   }
 
-  return defaultMessage;
+  return fallbackMessage;
 }
 
 /**

@@ -3,7 +3,11 @@
  * DuelFormDialog で使用されるバリデーションルールを提供
  */
 
+import { useLocale } from './useLocale';
+
 export function useDuelFormValidation() {
+  const { LL } = useLocale();
+
   /**
    * バリデーションルール
    */
@@ -12,13 +16,15 @@ export function useDuelFormValidation() {
      * 必須入力チェック
      */
     required: (v: unknown): boolean | string =>
-      (v !== null && v !== undefined && v !== '') || '入力必須です',
+      (v !== null && v !== undefined && v !== '') ||
+      (LL.value?.validation.required() ?? 'This field is required'),
 
     /**
      * 数値チェック（0以上）
      */
     number: (v: unknown): boolean | string =>
-      (!isNaN(Number(v)) && Number(v) >= 0) || '0以上の数値を入力してください',
+      (!isNaN(Number(v)) && Number(v) >= 0) ||
+      (LL.value?.validation.positiveNumber() ?? 'Please enter a number 0 or greater'),
 
     /**
      * 整数チェック
@@ -28,13 +34,13 @@ export function useDuelFormValidation() {
       v === undefined ||
       v === '' ||
       Number.isInteger(Number(v)) ||
-      '整数を入力してください',
+      (LL.value?.validation.integer() ?? 'Please enter an integer'),
 
     /**
      * 最大文字数チェック（1000文字）
      */
     maxLength: (v: string): boolean | string =>
-      !v || v.length <= 1000 || '1000文字以内で入力してください',
+      !v || v.length <= 1000 || (LL.value?.validation.maxLength({ max: 1000 }) ?? 'Must be at most 1000 characters'),
   };
 
   return { rules };

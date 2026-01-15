@@ -37,14 +37,15 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import axios, { AxiosError } from 'axios';
-import { getRankName } from '@/utils/ranks';
 import { createLogger } from '@/utils/logger';
 import { useLocale } from '@/composables/useLocale';
+import { useRanks } from '@/composables/useRanks';
 import type { OBSStatsResponse, OBSDisplayItemDefinition, OBSQueryParams } from '@/types/obs';
 import type { ApiErrorResponse } from '@/types/api';
 import type { GameMode } from '@/types';
 
 const { LL } = useLocale();
+const { getRankName } = useRanks();
 const logger = createLogger('OBS');
 
 const route = useRoute();

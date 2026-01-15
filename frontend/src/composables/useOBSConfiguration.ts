@@ -7,14 +7,15 @@ import { ref, computed } from 'vue';
 import { useNotificationStore } from '../stores/notification';
 import { createLogger } from '../utils/logger';
 import { api } from '../services/api';
-import { GAME_MODE_OPTIONS } from '../utils/gameMode';
 import { useLocale } from './useLocale';
+import { useGameModes } from './useGameModes';
 
 const logger = createLogger('OBSConfiguration');
 
 export function useOBSConfiguration() {
   const notificationStore = useNotificationStore();
   const { LL } = useLocale();
+  const { GAME_MODE_OPTIONS } = useGameModes();
 
   // OBS設定状態
   const showOBSDialog = ref(false);
@@ -40,7 +41,7 @@ export function useOBSConfiguration() {
     { title: LL.value?.obs.configPanel.periodFromStart() ?? 'From start', value: 'from_start' },
   ]);
 
-  // ゲームモードオプションは共通ユーティリティから取得
+  // ゲームモードオプションは共通コンポーザブルから取得
   const gameModeOptions = GAME_MODE_OPTIONS;
 
   const layoutOptions = computed(() => [

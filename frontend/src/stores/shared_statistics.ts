@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import api from '../services/api';
 import { useNotificationStore } from './notification';
 import { getErrorMessage } from '../utils/errorHandler';
+import { getLL } from '../i18n';
 import type {
   SharedStatisticsData,
   SharedStatisticsCreatePayload,
@@ -33,10 +34,12 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
     loading.value = true;
     try {
       const response = await api.post<SharedStatisticsReadPayload>('/shared-statistics/', payload);
-      notificationStore.success('共有リンクが生成されました！');
+      const LL = getLL();
+      notificationStore.success(LL?.shared.createSuccess() ?? 'Share link created!');
       return response.data.share_id;
     } catch (error: unknown) {
-      notificationStore.error(getErrorMessage(error, '共有リンクの生成に失敗しました。'));
+      const LL = getLL();
+      notificationStore.error(getErrorMessage(error, LL?.shared.createError() ?? 'Failed to create share link.'));
       return null;
     } finally {
       loading.value = false;
@@ -82,7 +85,8 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
       sharedStatsData.value = response.data.statistics_data;
       return true;
     } catch (error: unknown) {
-      notificationStore.error(getErrorMessage(error, '共有統計データの取得に失敗しました。'));
+      const LL = getLL();
+      notificationStore.error(getErrorMessage(error, LL?.shared.fetchError() ?? 'Failed to fetch shared statistics.'));
       return false;
     } finally {
       loading.value = false;
@@ -93,10 +97,12 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
     loading.value = true;
     try {
       await api.delete(`/shared-statistics/${shareId}`);
-      notificationStore.success('共有リンクが削除されました。');
+      const LL = getLL();
+      notificationStore.success(LL?.shared.deleteSuccess() ?? 'Share link deleted.');
       return true;
     } catch (error: unknown) {
-      notificationStore.error(getErrorMessage(error, '共有リンクの削除に失敗しました。'));
+      const LL = getLL();
+      notificationStore.error(getErrorMessage(error, LL?.shared.deleteError() ?? 'Failed to delete share link.'));
       return false;
     } finally {
       loading.value = false;

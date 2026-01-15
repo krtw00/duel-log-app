@@ -1,5 +1,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { createLogger } from '@/utils/logger';
+import { useLocale } from './useLocale';
 import {
   AnalysisResult,
   CoinResult,
@@ -32,6 +33,7 @@ type TemplateErrors = {
 };
 
 export function useScreenCaptureAnalysis() {
+  const { LL } = useLocale();
   const isRunning = ref(false);
   const errorMessage = ref<string | null>(null);
   const lastResult = ref<AnalysisResult | null>(null);
@@ -130,7 +132,7 @@ export function useScreenCaptureAnalysis() {
         const templateSet = await loadTemplateSetFromUrl(url, options);
         return { key, templateSet, error: '' };
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'テンプレセット読み込み失敗';
+        const message = error instanceof Error ? error.message : (LL.value?.common.screenCapture.templateLoadError() ?? 'Failed to load template');
         return { key, templateSet: null, error: message };
       }
     };
@@ -553,7 +555,7 @@ export function useScreenCaptureAnalysis() {
       intervalId = window.setInterval(analyzeFrame, intervalMs);
     } catch (error) {
       logger.error('Failed to start capture', error);
-      errorMessage.value = '画面共有の開始に失敗しました';
+      errorMessage.value = LL.value?.common.screenCapture.startError() ?? 'Failed to start screen sharing';
       stopCapture();
     }
   };

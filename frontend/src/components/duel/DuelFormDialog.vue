@@ -352,7 +352,6 @@ import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
 import { Duel, DuelCreate, Deck, GameMode } from '@/types';
 import { useNotificationStore } from '@/stores/notification';
-import { RANKS } from '@/utils/ranks';
 import { useDuelFormValidation } from '@/composables/useDuelFormValidation';
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat';
 import { useDeckResolution } from '@/composables/useDeckResolution';
@@ -361,6 +360,7 @@ import { useScreenCaptureAnalysis } from '@/composables/useScreenCaptureAnalysis
 import { useScreenCaptureAnalysisTfjs } from '@/composables/useScreenCaptureAnalysisTfjs';
 import { useAuthStore } from '@/stores/auth';
 import { useLocale } from '@/composables/useLocale';
+import { useRanks } from '@/composables/useRanks';
 import MLTrainingDataButtons, { type DebugLabel } from '@/components/duel/MLTrainingDataButtons.vue';
 
 // 解析手法の型
@@ -391,6 +391,7 @@ const emit = defineEmits<{
 const notificationStore = useNotificationStore();
 const authStore = useAuthStore();
 const { LL } = useLocale();
+const { RANKS } = useRanks();
 const { rules } = useDuelFormValidation();
 const { getCurrentLocalDateTime, localDateTimeToISO, isoToLocalDateTime } = useDateTimeFormat();
 const { resolveDeckId } = useDeckResolution();

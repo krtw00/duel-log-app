@@ -31,6 +31,10 @@ type RootTranslation = {
     month: string
     noData: string
     required: string
+    screenCapture: {
+      templateLoadError: string
+      startError: string
+    }
   }
   nav: {
     dashboard: string
@@ -41,6 +45,7 @@ type RootTranslation = {
     logout: string
   }
   auth: {
+    checkingStatus: string
     login: {
       title: string
       email: string
@@ -398,6 +403,7 @@ type RootTranslation = {
       platinum: string
       diamond: string
       master: string
+      unknown: string
     }
     streamerPopup: {
       title: string
@@ -433,7 +439,13 @@ type RootTranslation = {
         secondTurnWinRate: string
         coinWinRate: string
         goFirstRate: string
+        rank: string
+        rate: string
+        dc: string
+        notSet: string
       }
+      loginRequired: string
+      loginRequiredDetail: string
     }
     configPanel: {
       title: string
@@ -484,6 +496,11 @@ type RootTranslation = {
     deleteConfirm: string
     publicStats: string
     viewerCount: string
+    createSuccess: string
+    createError: string
+    fetchError: string
+    deleteSuccess: string
+    deleteError: string
   }
   validation: {
     required: string
@@ -496,6 +513,8 @@ type RootTranslation = {
     username: string
     invalidFormat: string
     unexpectedError: string
+    positiveNumber: string
+    integer: string
   }
   admin: {
     title: string
@@ -559,6 +578,10 @@ export type TranslationFunctions = {
     month: () => LocalizedString
     noData: () => LocalizedString
     required: () => LocalizedString
+    screenCapture: {
+      templateLoadError: () => LocalizedString
+      startError: () => LocalizedString
+    }
   }
   nav: {
     dashboard: () => LocalizedString
@@ -569,6 +592,7 @@ export type TranslationFunctions = {
     logout: () => LocalizedString
   }
   auth: {
+    checkingStatus: () => LocalizedString
     login: {
       title: () => LocalizedString
       email: () => LocalizedString
@@ -926,6 +950,7 @@ export type TranslationFunctions = {
       platinum: () => LocalizedString
       diamond: () => LocalizedString
       master: () => LocalizedString
+      unknown: () => LocalizedString
     }
     streamerPopup: {
       title: () => LocalizedString
@@ -961,7 +986,13 @@ export type TranslationFunctions = {
         secondTurnWinRate: () => LocalizedString
         coinWinRate: () => LocalizedString
         goFirstRate: () => LocalizedString
+        rank: () => LocalizedString
+        rate: () => LocalizedString
+        dc: () => LocalizedString
+        notSet: () => LocalizedString
       }
+      loginRequired: () => LocalizedString
+      loginRequiredDetail: () => LocalizedString
     }
     configPanel: {
       title: () => LocalizedString
@@ -1012,6 +1043,11 @@ export type TranslationFunctions = {
     deleteConfirm: () => LocalizedString
     publicStats: () => LocalizedString
     viewerCount: () => LocalizedString
+    createSuccess: () => LocalizedString
+    createError: () => LocalizedString
+    fetchError: () => LocalizedString
+    deleteSuccess: () => LocalizedString
+    deleteError: () => LocalizedString
   }
   validation: {
     required: () => LocalizedString
@@ -1024,6 +1060,8 @@ export type TranslationFunctions = {
     username: () => LocalizedString
     invalidFormat: () => LocalizedString
     unexpectedError: () => LocalizedString
+    positiveNumber: () => LocalizedString
+    integer: () => LocalizedString
   }
   admin: {
     title: () => LocalizedString

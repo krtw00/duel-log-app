@@ -20,6 +20,10 @@ const en = {
     month: 'Month',
     noData: 'No data',
     required: 'Required',
+    screenCapture: {
+      templateLoadError: 'Failed to load template',
+      startError: 'Failed to start screen sharing',
+    },
   },
   nav: {
     dashboard: 'Dashboard',
@@ -30,6 +34,7 @@ const en = {
     logout: 'Logout',
   },
   auth: {
+    checkingStatus: 'Checking authentication...',
     login: {
       title: 'Login',
       email: 'Email',
@@ -393,6 +398,7 @@ const en = {
       platinum: 'Platinum',
       diamond: 'Diamond',
       master: 'Master',
+      unknown: 'Unknown',
     },
     streamerPopup: {
       title: 'Streamer Popup Settings',
@@ -428,7 +434,13 @@ const en = {
         secondTurnWinRate: 'Going Second Win Rate',
         coinWinRate: 'Coin Toss Win Rate',
         goFirstRate: 'Going First Rate',
+        rank: 'Rank',
+        rate: 'Rate',
+        dc: 'DC',
+        notSet: 'Not Set',
       },
+      loginRequired: 'Login Required',
+      loginRequiredDetail: 'Please open this page while logged in',
     },
     configPanel: {
       title: 'OBS Integration Settings',
@@ -479,6 +491,11 @@ const en = {
     deleteConfirm: 'Stopping sharing will invalidate this URL. Continue?',
     publicStats: 'Public Statistics',
     viewerCount: 'Views',
+    createSuccess: 'Share link created!',
+    createError: 'Failed to create share link.',
+    fetchError: 'Failed to fetch shared statistics.',
+    deleteSuccess: 'Share link deleted.',
+    deleteError: 'Failed to delete share link.',
   },
   validation: {
     required: 'This field is required',
@@ -491,6 +508,8 @@ const en = {
     username: 'Username must be at least 3 characters',
     invalidFormat: 'Invalid format',
     unexpectedError: 'An unexpected error occurred',
+    positiveNumber: 'Please enter a number 0 or greater',
+    integer: 'Please enter an integer',
   },
   admin: {
     title: 'Admin',
