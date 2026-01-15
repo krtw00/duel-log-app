@@ -34,6 +34,25 @@
 
     <!-- 右側（モバイルでは全体）: フォーム -->
     <div class="form-section">
+      <!-- 言語切り替えボタン -->
+      <div class="language-switcher">
+        <v-menu>
+          <template #activator="{ props }">
+            <v-btn v-bind="props" icon="mdi-translate" variant="text" size="small" />
+          </template>
+          <v-list density="compact">
+            <v-list-item
+              v-for="loc in supportedLocales"
+              :key="loc"
+              :active="loc === currentLocale"
+              @click="changeLocale(loc)"
+            >
+              <v-list-item-title>{{ localeNames[loc] }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+
       <!-- モバイル用ヘッダー -->
       <div class="mobile-header">
         <h1 class="mobile-title">
@@ -339,7 +358,7 @@ import type { Provider } from '@supabase/supabase-js';
 
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
-const { LL } = useLocale();
+const { LL, currentLocale, supportedLocales, localeNames, changeLocale } = useLocale();
 
 const formRef = ref();
 const email = ref('');
@@ -540,10 +559,24 @@ const handleOAuthLogin = async (provider: Provider) => {
   justify-content: center;
   align-items: center;
   padding: 24px;
+  position: relative;
 
   @media (min-width: 900px) {
     width: 50%;
     padding: 48px;
+  }
+}
+
+// 言語切り替えボタン
+.language-switcher {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+
+  @media (min-width: 900px) {
+    top: 24px;
+    right: 24px;
   }
 }
 
