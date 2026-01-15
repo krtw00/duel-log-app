@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_obs_overlay_user
-from app.auth import get_current_user
+from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.duel import DuelWithDeckNames
@@ -93,10 +93,10 @@ def get_all_statistics(
     )
 
     # メモリ内でゲームモード別に分割
-    duels_by_mode: Dict[str, List] = {mode: [] for mode in game_modes}
+    duels_by_mode: Dict[str, List[Any]] = {mode: [] for mode in game_modes}
     for duel in all_duels:
         if duel.game_mode in duels_by_mode:
-            duels_by_mode[duel.game_mode].append(duel)  # type: ignore[index]
+            duels_by_mode[duel.game_mode].append(duel)
 
     for mode in game_modes:
         duels = duels_by_mode[mode]

@@ -112,6 +112,60 @@ class GeneralStatsService:
 
         return query.order_by(Duel.played_date.desc(), Duel.id.desc()).first()
 
+    def _get_all_current_metrics(
+        self,
+        db: Session,
+        user_id: int,
+        start_id: Optional[int] = None,
+        additional_filters: Optional[List[Any]] = None,
+    ) -> Dict[str, Any]:
+        """全ゲームモードの最新メトリック（rank/rate/dc）を一括取得する。
+
+        Args:
+            db: データベースセッション
+            user_id: ユーザーID
+            start_id: 開始ID（指定時はそれより後のデータを優先）
+            additional_filters: 追加の日付フィルターなど
+
+        Returns:
+            {"current_rank": int|None, "current_rate": float|None, "current_dc": int|None}
+        """
+        # RANK モードの最新ランクを取得
+        latest_rank_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RANK",
+            value_column=Duel.rank,
+            start_id=start_id,
+            additional_filters=additional_filters,
+        )
+
+        # RATE モードの最新レートを取得
+        latest_rate_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="RATE",
+            value_column=Duel.rate_value,
+            start_id=start_id,
+            additional_filters=additional_filters,
+        )
+
+        # DC モードの最新DC値を取得
+        latest_dc_duel = self._get_latest_metric_duel(
+            db=db,
+            user_id=user_id,
+            target_mode="DC",
+            value_column=Duel.dc_value,
+            start_id=start_id,
+            additional_filters=additional_filters,
+        )
+
+        return {
+            "current_rank": latest_rank_duel.rank if latest_rank_duel else None,
+            "current_rate": latest_rate_duel.rate_value if latest_rate_duel else None,
+            "current_dc": latest_dc_duel.dc_value if latest_dc_duel else None,
+        }
+
     def get_overall_stats(
         self,
         db: Session,
@@ -138,54 +192,26 @@ class GeneralStatsService:
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
         latest_duel = query.order_by(Duel.played_date.desc()).first()
-        current_deck = None
-        if latest_duel:
-            current_deck = latest_duel.deck.name if latest_duel.deck else None
+        current_deck = (
+            latest_duel.deck.name if latest_duel and latest_duel.deck else None
+        )
 
-        # 各ゲームモードの最新デュエルからランク/レート/DCを取得
-        # current_rank: RANKモードの最新デュエルから取得
+        # 全ゲームモードの最新メトリックを一括取得
         date_filters = [
             Duel.played_date >= start_utc,
             Duel.played_date < end_utc,
         ]
-        latest_rank_duel = self._get_latest_metric_duel(
+        metrics = self._get_all_current_metrics(
             db=db,
             user_id=user_id,
-            target_mode="RANK",
-            value_column=Duel.rank,
             start_id=start_id,
             additional_filters=date_filters,
         )
-        current_rank = latest_rank_duel.rank if latest_rank_duel else None
-
-        # current_rate: RATEモードの最新デュエルから取得
-        latest_rate_duel = self._get_latest_metric_duel(
-            db=db,
-            user_id=user_id,
-            target_mode="RATE",
-            value_column=Duel.rate_value,
-            start_id=start_id,
-            additional_filters=date_filters,
-        )
-        current_rate = latest_rate_duel.rate_value if latest_rate_duel else None
-
-        # current_dc: DCモードの最新デュエルから取得
-        latest_dc_duel = self._get_latest_metric_duel(
-            db=db,
-            user_id=user_id,
-            target_mode="DC",
-            value_column=Duel.dc_value,
-            start_id=start_id,
-            additional_filters=date_filters,
-        )
-        current_dc = latest_dc_duel.dc_value if latest_dc_duel else None
 
         return {
             **stats,
             "current_deck": current_deck,
-            "current_rank": current_rank,
-            "current_rate": current_rate,
-            "current_dc": current_dc,
+            **metrics,
         }
 
     def get_all_time_stats(
@@ -208,47 +234,21 @@ class GeneralStatsService:
 
         # 統計対象のゲームモードの最新デュエルから使用デッキを取得
         latest_duel = query.order_by(Duel.played_date.desc()).first()
-        current_deck = None
-        if latest_duel:
-            current_deck = latest_duel.deck.name if latest_duel.deck else None
+        current_deck = (
+            latest_duel.deck.name if latest_duel and latest_duel.deck else None
+        )
 
-        # 各ゲームモードの最新デュエルからランク/レート/DCを取得
-        # current_rank: RANKモードの最新デュエルから取得
-        latest_rank_duel = self._get_latest_metric_duel(
+        # 全ゲームモードの最新メトリックを一括取得
+        metrics = self._get_all_current_metrics(
             db=db,
             user_id=user_id,
-            target_mode="RANK",
-            value_column=Duel.rank,
             start_id=start_id,
         )
-        current_rank = latest_rank_duel.rank if latest_rank_duel else None
-
-        # current_rate: RATEモードの最新デュエルから取得
-        latest_rate_duel = self._get_latest_metric_duel(
-            db=db,
-            user_id=user_id,
-            target_mode="RATE",
-            value_column=Duel.rate_value,
-            start_id=start_id,
-        )
-        current_rate = latest_rate_duel.rate_value if latest_rate_duel else None
-
-        # current_dc: DCモードの最新デュエルから取得
-        latest_dc_duel = self._get_latest_metric_duel(
-            db=db,
-            user_id=user_id,
-            target_mode="DC",
-            value_column=Duel.dc_value,
-            start_id=start_id,
-        )
-        current_dc = latest_dc_duel.dc_value if latest_dc_duel else None
 
         return {
             **stats,
             "current_deck": current_deck,
-            "current_rank": current_rank,
-            "current_rate": current_rate,
-            "current_dc": current_dc,
+            **metrics,
         }
 
     def get_recent_stats(
@@ -277,43 +277,17 @@ class GeneralStatsService:
             latest_duel = duels[0]  # 既に日付降順なので最初の要素が最新
             current_deck = latest_duel.deck.name if latest_duel.deck else None
 
-        # 各ゲームモードの最新デュエルからランク/レート/DCを取得
-        # current_rank: RANKモードの最新デュエルから取得
-        latest_rank_duel = self._get_latest_metric_duel(
+        # 全ゲームモードの最新メトリックを一括取得
+        metrics = self._get_all_current_metrics(
             db=db,
             user_id=user_id,
-            target_mode="RANK",
-            value_column=Duel.rank,
             start_id=start_id,
         )
-        current_rank = latest_rank_duel.rank if latest_rank_duel else None
-
-        # current_rate: RATEモードの最新デュエルから取得
-        latest_rate_duel = self._get_latest_metric_duel(
-            db=db,
-            user_id=user_id,
-            target_mode="RATE",
-            value_column=Duel.rate_value,
-            start_id=start_id,
-        )
-        current_rate = latest_rate_duel.rate_value if latest_rate_duel else None
-
-        # current_dc: DCモードの最新デュエルから取得
-        latest_dc_duel = self._get_latest_metric_duel(
-            db=db,
-            user_id=user_id,
-            target_mode="DC",
-            value_column=Duel.dc_value,
-            start_id=start_id,
-        )
-        current_dc = latest_dc_duel.dc_value if latest_dc_duel else None
 
         return {
             **stats,
             "current_deck": current_deck,
-            "current_rank": current_rank,
-            "current_rate": current_rate,
-            "current_dc": current_dc,
+            **metrics,
         }
 
 

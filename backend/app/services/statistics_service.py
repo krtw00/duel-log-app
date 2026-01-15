@@ -6,7 +6,7 @@
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.deck import Deck
 from app.models.duel import Duel
@@ -136,46 +136,22 @@ class StatisticsService:
     def get_duels_by_month(
         self, db: Session, user_id: int, year: int, month: int
     ) -> List[Duel]:
-        """指定された年月におけるユーザーのデュエルリストを取得。"""
+        """指定された年月におけるユーザーのデュエルリストを取得。
+
+        リレーションシップ（deck, opponent_deck）は joinedload で事前ロードされます。
+        """
         start_utc, end_utc = month_range_utc(year, month)
         duels = (
             db.query(Duel)
+            .options(
+                joinedload(Duel.deck),
+                joinedload(Duel.opponent_deck),
+            )
             .filter(Duel.user_id == user_id)
             .filter(Duel.played_date >= start_utc, Duel.played_date < end_utc)
             .order_by(Duel.played_date.desc())
             .all()
         )
-
-        # デッキ情報を結合
-        deck_ids = list(
-            set(
-                [d.deck_id for d in duels if d.deck_id]
-                + [d.opponent_deck_id for d in duels if d.opponent_deck_id]
-            )
-        )
-        if deck_ids:  # deck_ids が空でない場合のみクエリを実行
-            decks = db.query(Deck).filter(Deck.id.in_(deck_ids)).all()
-            deck_map = {deck.id: deck for deck in decks}
-        else:
-            deck_map = {}
-
-        for duel in duels:
-            # deck と opponentDeck オブジェクトを設定
-            deck_id_value = int(duel.deck_id) if duel.deck_id is not None else None
-            opponent_deck_id_value = (
-                int(duel.opponent_deck_id)
-                if duel.opponent_deck_id is not None
-                else None
-            )
-
-            duel.deck = deck_map.get(deck_id_value) if deck_id_value else None  # type: ignore[assignment]
-            duel.opponent_deck = (
-                deck_map.get(opponent_deck_id_value) if opponent_deck_id_value else None  # type: ignore[assignment]
-            )
-
-            # deck_name と opponent_deck_name 属性を必ず追加
-            duel.deck_name = duel.deck.name if duel.deck else "不明"  # type: ignore[attr-defined]
-            duel.opponent_deck_name = duel.opponent_deck.name if duel.opponent_deck else "不明"  # type: ignore[attr-defined]
 
         return duels
 

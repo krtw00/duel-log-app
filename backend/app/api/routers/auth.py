@@ -42,17 +42,15 @@ def logout(response: Response, user_agent: str | None = Header(None)):
         else "Non-Safari browser on logout - using SameSite policy for cookie deletion"
     )
 
-    cookie_params = {
-        "key": "access_token",
-        "value": "",
-        "httponly": True,
-        "samesite": samesite_value,
-        "secure": secure_value,
-        "path": "/",
-        "max_age": 0,
-    }
-
-    response.set_cookie(**cookie_params)  # type: ignore[arg-type]
+    response.set_cookie(
+        key="access_token",
+        value="",
+        httponly=True,
+        samesite=samesite_value,
+        secure=secure_value,
+        path="/",
+        max_age=0,
+    )
 
     return {"message": "Logout successful"}
 
