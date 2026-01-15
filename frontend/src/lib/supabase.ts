@@ -51,13 +51,15 @@ export const supabase = createClient<Database>(
  * Supabaseのローカルストレージキーをクリアする
  * 古いセッションデータによるロック問題を解決するために使用
  * 注意: PKCEのcode_verifierは保持する（OAuth認証に必要）
+ * Supabaseは「code_verifier」（アンダースコア）を使用するが、念のため両方の形式を保持
  */
 export const clearSupabaseLocalStorage = () => {
   try {
     const supabaseKeys = Object.keys(localStorage).filter(
       (key) =>
         (key.startsWith('sb-') || key.includes('supabase')) &&
-        !key.includes('code-verifier'), // PKCEのcode_verifierは保持
+        !key.includes('code_verifier') && // PKCEのcode_verifierは保持（アンダースコア形式）
+        !key.includes('code-verifier'), // 念のためハイフン形式も保持
     );
     supabaseKeys.forEach((key) => localStorage.removeItem(key));
   } catch (e) {
