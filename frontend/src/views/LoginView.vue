@@ -333,6 +333,7 @@
 import { ref, watch, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
+import { clearSupabaseLocalStorage } from '@/lib/supabase';
 import type { Provider } from '@supabase/supabase-js';
 
 const authStore = useAuthStore();
@@ -348,6 +349,11 @@ const localStreamerMode = ref(authStore.localStreamerMode);
 const showTermsDialog = ref(false);
 
 onMounted(() => {
+  // 古いSupabaseセッションキャッシュをクリア（ログイン問題を防止）
+  // PKCEのcode_verifierは保持される
+  clearSupabaseLocalStorage();
+  console.log('[Login] Cleared old Supabase cache on mount');
+
   const savedEmail = localStorage.getItem('lastEmail');
   if (savedEmail) {
     email.value = savedEmail;
@@ -385,6 +391,10 @@ const handleOAuthLogin = async (provider: Provider) => {
   oauthLoading.value = provider;
 
   try {
+    // OAuthログイン前に古いキャッシュをクリア（認証問題を防止）
+    clearSupabaseLocalStorage();
+    console.log('[Login] Cleared cache before OAuth login');
+
     await authStore.loginWithOAuth(provider);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
