@@ -18,6 +18,12 @@
 
     <!-- データ表示（空データでも表示） -->
     <div v-else ref="statsContainer" class="stats-container">
+      <!-- ヘッダー -->
+      <div class="popup-header">
+        <span class="header-icon">⚔</span>
+        <span class="header-title">Duel Log</span>
+      </div>
+
       <!-- 統計カード -->
       <div v-if="showStats" class="stats-card">
         <div
@@ -26,16 +32,22 @@
           class="stat-item"
           :class="{ 'deck-item': item.key === 'current_deck' }"
         >
-          <div class="stat-label">{{ item.label }}</div>
-          <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">
-            {{ item.format(statsData[item.key]) }}
+          <div class="stat-icon">{{ item.icon }}</div>
+          <div class="stat-content">
+            <div class="stat-label">{{ item.label }}</div>
+            <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">
+              {{ item.format(statsData[item.key]) }}
+            </div>
           </div>
         </div>
       </div>
 
       <!-- 対戦履歴 -->
       <div v-if="showHistory && recentDuels.length > 0" class="history-container">
-        <div class="history-title">対戦履歴</div>
+        <div class="history-title">
+          <span class="history-icon">📋</span>
+          対戦履歴
+        </div>
         <div class="history-list">
           <div
             v-for="duel in recentDuels"
@@ -160,6 +172,7 @@ const formatRankValue = (value: unknown): string => {
 interface DisplayItemDef {
   key: string;
   label: string;
+  icon: string;
   format: (v: unknown) => string;
 }
 
@@ -167,17 +180,18 @@ const allDisplayItems: DisplayItemDef[] = [
   {
     key: 'current_deck',
     label: '使用デッキ',
+    icon: '🎴',
     format: (v) => (v as string | undefined) || '未設定',
   },
-  { key: 'current_rank', label: 'ランク', format: formatRankValue },
-  { key: 'current_rate', label: 'レート', format: (v) => formatDecimalValue(v) },
-  { key: 'current_dc', label: 'DC', format: (v) => formatDecimalValue(v) },
-  { key: 'total_duels', label: '総試合数', format: formatIntegerValue },
-  { key: 'win_rate', label: '勝率', format: (v) => formatPercentageValue(v) },
-  { key: 'first_turn_win_rate', label: '先攻勝率', format: (v) => formatPercentageValue(v) },
-  { key: 'second_turn_win_rate', label: '後攻勝率', format: (v) => formatPercentageValue(v) },
-  { key: 'coin_win_rate', label: 'コイン勝率', format: (v) => formatPercentageValue(v) },
-  { key: 'go_first_rate', label: '先攻率', format: (v) => formatPercentageValue(v) },
+  { key: 'current_rank', label: 'ランク', icon: '👑', format: formatRankValue },
+  { key: 'current_rate', label: 'レート', icon: '📊', format: (v) => formatDecimalValue(v) },
+  { key: 'current_dc', label: 'DC', icon: '🏆', format: (v) => formatDecimalValue(v) },
+  { key: 'total_duels', label: '総試合数', icon: '⚔️', format: formatIntegerValue },
+  { key: 'win_rate', label: '勝率', icon: '🏅', format: (v) => formatPercentageValue(v) },
+  { key: 'first_turn_win_rate', label: '先攻勝率', icon: '⚡', format: (v) => formatPercentageValue(v) },
+  { key: 'second_turn_win_rate', label: '後攻勝率', icon: '🛡️', format: (v) => formatPercentageValue(v) },
+  { key: 'coin_win_rate', label: 'コイン勝率', icon: '🪙', format: (v) => formatPercentageValue(v) },
+  { key: 'go_first_rate', label: '先攻率', icon: '🎯', format: (v) => formatPercentageValue(v) },
 ];
 
 const statsItems = computed(() => {
@@ -369,6 +383,31 @@ onUnmounted(() => {
   width: 100%;
 }
 
+// ヘッダー
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border-item);
+}
+
+.header-icon {
+  font-size: 24px;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+}
+
 // レスポンシブグリッド - ウィンドウ幅に応じて自動的に列数が変化
 .stats-card {
   display: grid;
@@ -386,9 +425,9 @@ onUnmounted(() => {
 
 .stat-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
   padding: 12px 16px;
   background: var(--bg-item);
   border-radius: 8px;
@@ -403,7 +442,19 @@ onUnmounted(() => {
 
   &.deck-item {
     grid-column: 1 / -1; // デッキ名は全幅
+    justify-content: center;
   }
+}
+
+.stat-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .stat-label {
@@ -443,12 +494,19 @@ onUnmounted(() => {
 }
 
 .history-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.history-icon {
+  font-size: 14px;
 }
 
 .history-list {
