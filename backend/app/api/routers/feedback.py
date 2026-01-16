@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.api.deps import get_current_user_optional
+from app.core.config import settings
 from app.core.logging_config import get_logger
 from app.models.user import User
 from app.services.github_service import github_service
@@ -53,8 +54,9 @@ class FeedbackStatusResponse(BaseModel):
     """フィードバック機能の状態"""
 
     github_enabled: bool
-    contact_x_handle: str = "@krtw00"
-    contact_github_url: str = "https://github.com/krtw00/duel-log-app"
+    x_handle: str
+    x_url: str
+    github_repo_url: str
 
 
 def _format_bug_report_body(req: BugReportRequest) -> str:
@@ -91,8 +93,12 @@ def _format_contact_body(req: ContactRequest) -> str:
 @router.get("/status", response_model=FeedbackStatusResponse)
 async def get_feedback_status():
     """フィードバック機能の状態を取得"""
+    github_repo_url = f"https://github.com/{settings.GITHUB_REPO_OWNER}/{settings.GITHUB_REPO_NAME}"
     return FeedbackStatusResponse(
         github_enabled=github_service.is_configured,
+        x_handle=settings.DEVELOPER_X_HANDLE,
+        x_url=settings.DEVELOPER_X_URL,
+        github_repo_url=github_repo_url,
     )
 
 

@@ -69,6 +69,14 @@ class Settings(BaseSettings):
         default="duel-log-app", description="GitHub repository name"
     )
 
+    # 開発者連絡先設定
+    DEVELOPER_X_HANDLE: str = Field(
+        default="@XrIGT", description="Developer X (Twitter) handle"
+    )
+    DEVELOPER_X_URL: str = Field(
+        default="https://x.com/XrIGT", description="Developer X (Twitter) URL"
+    )
+
     @field_validator("LOG_LEVEL")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
