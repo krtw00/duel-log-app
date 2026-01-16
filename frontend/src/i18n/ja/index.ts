@@ -425,6 +425,11 @@ const ja = {
         min1: '1分',
         min5: '5分',
       },
+      statsPeriod: '統計期間',
+      statsPeriods: {
+        monthly: '当月',
+        session: '配信開始から',
+      },
       items: {
         currentDeck: '使用デッキ',
         gameModeValue: 'ランク/レート/DC（ゲームモードに連動）',
