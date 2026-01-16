@@ -425,6 +425,11 @@ const en = {
         min1: '1 minute',
         min5: '5 minutes',
       },
+      statsPeriod: 'Stats Period',
+      statsPeriods: {
+        monthly: 'This Month',
+        session: 'Since Stream Start',
+      },
       items: {
         currentDeck: 'Current Deck',
         gameModeValue: 'Rank/Rate/DC (linked to game mode)',
