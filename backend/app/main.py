@@ -5,7 +5,7 @@
 import logging
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -27,6 +27,7 @@ from app.core.config import settings
 from app.core.exception_handlers import (
     app_exception_handler,
     general_exception_handler,
+    http_exception_handler,
     sqlalchemy_exception_handler,
     validation_exception_handler,
 )
@@ -101,7 +102,9 @@ app.add_middleware(
 # --- 例外ハンドラーの登録 ---
 # Note: Starlette/FastAPIの型定義ではExceptionHandlerの戻り値が厳密に定義されているため
 # type: ignoreを使用しています。実行時には問題なく動作します。
+# 全てのエラーレスポンスを統一フォーマット {"message": ..., "detail": ...} で返却
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(Exception, general_exception_handler)
