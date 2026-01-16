@@ -197,7 +197,7 @@ def _verify_with_hs256(token: str) -> Optional[dict]:
     secrets = _get_jwt_secret_candidates()
     last_error: Optional[Exception] = None
 
-    for label, secret in secrets:
+    for _label, secret in secrets:
         try:
             payload = jwt.decode(
                 token,
