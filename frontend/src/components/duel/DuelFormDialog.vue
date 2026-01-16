@@ -1058,7 +1058,7 @@ const handleSubmit = async () => {
       true,
     );
 
-    let savedDuel: Duel | null = null;
+    let savedDuel: Duel;
 
     if (isEdit.value && props.duel) {
       const response = await api.put(`/duels/${props.duel.id}`, submitData);
@@ -1082,9 +1082,7 @@ const handleSubmit = async () => {
       };
     }
 
-    if (savedDuel) {
-      emit('saved', { duel: savedDuel, upsertDecks: [deckPayload, opponentDeckPayload] });
-    }
+    emit('saved', { duel: savedDuel, upsertDecks: [deckPayload, opponentDeckPayload] });
     saveLastUsedValues({
       myDeckId,
       opponentDeckId,

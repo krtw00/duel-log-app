@@ -94,6 +94,13 @@ def import_my_data(
             detail="CSVファイルのエンコーディングが無効です。UTF-8形式のファイルをアップロードしてください",
         ) from None
 
-    return user_service.import_all_data_from_csv(
-        db=db, user_id=current_user.id, csv_content=csv_content
-    )
+    try:
+        return user_service.import_all_data_from_csv(
+            db=db, user_id=current_user.id, csv_content=csv_content
+        )
+    except Exception:
+        logger.exception("CSV import failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="CSVインポート中にエラーが発生しました",
+        ) from None
