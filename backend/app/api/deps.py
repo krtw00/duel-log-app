@@ -6,7 +6,7 @@ import logging
 import secrets
 from typing import Optional
 
-from fastapi import Cookie, Depends, Header, Query
+from fastapi import Cookie, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ForbiddenException, UnauthorizedException
@@ -72,6 +72,7 @@ def _create_user_from_supabase(
         theme_preference="dark",
         is_admin=False,
         enable_screen_analysis=False,
+        status="active",  # 新規ユーザーは常にactive
     )
     db.add(new_user)
     db.commit()
@@ -167,6 +168,21 @@ def get_current_user(
             logger.error("JIT Provisioning failed: %s", str(e))
             raise UnauthorizedException(message="ユーザーの作成に失敗しました") from e
 
+    # status チェック
+    if user.status == "suspended":
+        logger.warning(f"Suspended user attempted access: user_id={user.id}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="このアカウントは一時停止されています",
+        )
+
+    if user.status == "deleted":
+        logger.warning(f"Deleted user attempted access: user_id={user.id}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="このアカウントは削除されています",
+        )
+
     return user
 
 
@@ -237,6 +253,15 @@ def get_obs_overlay_user(
         user = db.query(User).filter(User.id == user_id).first()
         if user is None:
             raise UnauthorizedException(message="ユーザーが見つかりません")
+
+        if user.status != "active":
+            logger.warning(
+                f"Non-active user attempted OBS access: user_id={user.id}, status={user.status}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="このアカウントではOBSオーバーレイを使用できません",
+            )
         return user
 
     # 2) Supabase JWTとして検証（互換）
@@ -264,6 +289,15 @@ def get_obs_overlay_user(
         except Exception as e:
             logger.error("JIT Provisioning failed (OBS overlay): %s", str(e))
             raise UnauthorizedException(message="ユーザーの作成に失敗しました") from e
+
+    if user.status != "active":
+        logger.warning(
+            f"Non-active user attempted OBS access: user_id={user.id}, status={user.status}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="このアカウントではOBSオーバーレイを使用できません",
+        )
 
     return user
 
