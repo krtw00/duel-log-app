@@ -279,15 +279,18 @@ class AdminStatisticsService:
         Returns:
             孤立した相手デッキの数
         """
-        # 対戦履歴で使われているopponent_deck_idのサブクエリ
-        used_opponent_deck_ids = self.db.query(Duel.opponent_deck_id).distinct()
+        # 対戦履歴で使われているデッキIDのサブクエリ
+        # opponent_deck_id と deck_id の両方をチェック（データ不整合対策）
+        used_as_opponent = self.db.query(Duel.opponent_deck_id).distinct()
+        used_as_player = self.db.query(Duel.deck_id).distinct()
 
-        # 対戦履歴で使われていない相手デッキをカウント
+        # どちらからも参照されていない相手デッキをカウント
         orphaned_count = (
             self.db.query(func.count(Deck.id))
             .filter(
                 Deck.is_opponent == True,  # noqa: E712
-                ~Deck.id.in_(used_opponent_deck_ids),
+                ~Deck.id.in_(used_as_opponent),
+                ~Deck.id.in_(used_as_player),
             )
             .scalar()
             or 0
@@ -302,15 +305,18 @@ class AdminStatisticsService:
         Returns:
             削除したデッキの数
         """
-        # 対戦履歴で使われているopponent_deck_idのサブクエリ
-        used_opponent_deck_ids = self.db.query(Duel.opponent_deck_id).distinct()
+        # 対戦履歴で使われているデッキIDのサブクエリ
+        # opponent_deck_id と deck_id の両方をチェック（データ不整合対策）
+        used_as_opponent = self.db.query(Duel.opponent_deck_id).distinct()
+        used_as_player = self.db.query(Duel.deck_id).distinct()
 
-        # 対戦履歴で使われていない相手デッキを取得
+        # どちらからも参照されていない相手デッキを取得
         orphaned_decks = (
             self.db.query(Deck)
             .filter(
                 Deck.is_opponent == True,  # noqa: E712
-                ~Deck.id.in_(used_opponent_deck_ids),
+                ~Deck.id.in_(used_as_opponent),
+                ~Deck.id.in_(used_as_player),
             )
             .all()
         )
