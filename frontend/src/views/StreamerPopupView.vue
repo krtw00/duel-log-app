@@ -2,13 +2,13 @@
   <div class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
-      <div class="loading-text">{{ LL?.common.loading() }}</div>
+      <div class="loading-text" :style="{ color: themeStyles.textPrimary }">{{ LL?.common.loading() }}</div>
     </div>
 
     <!-- 未認証 -->
     <div v-else-if="!isAuthenticated" class="error-container">
       <div class="error-text">{{ LL?.obs.streamerPopup.loginRequired() }}</div>
-      <div class="error-detail">{{ LL?.obs.streamerPopup.loginRequiredDetail() }}</div>
+      <div class="error-detail" :style="{ color: themeStyles.textSecondary }">{{ LL?.obs.streamerPopup.loginRequiredDetail() }}</div>
     </div>
 
     <!-- エラー -->
@@ -19,19 +19,20 @@
     <!-- データ表示（空データでも表示） -->
     <div v-else class="stats-container">
       <!-- 統計カード -->
-      <div v-if="showStats" class="stats-card" :class="`layout-${layout}`">
+      <div v-if="showStats" ref="statsCardRef" class="stats-card" :class="`layout-${layout}`">
         <div
           v-for="item in statsItems"
           :key="item.key"
           class="stat-item"
           :class="{ 'deck-item': item.key === 'current_deck' }"
+          :style="statItemStyle"
         >
-          <div class="stat-icon-wrapper">
-            <span class="mdi" :class="item.icon"></span>
+          <div class="stat-icon-wrapper" :style="iconWrapperStyle">
+            <span class="mdi" :class="item.icon" :style="iconStyle"></span>
           </div>
           <div class="stat-content">
-            <div class="stat-label">{{ item.label }}</div>
-            <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }">
+            <div class="stat-label" :style="{ color: themeStyles.textSecondary }">{{ item.label }}</div>
+            <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }" :style="valueStyle">
               {{ item.format(statsData[item.key]) }}
             </div>
           </div>
@@ -67,9 +68,67 @@ const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
 const theme = ref((route.query.theme as string) || 'dark');
 const layout = ref((route.query.layout as string) || 'horizontal');
 const refreshInterval = ref(Number(route.query.refresh) || 30000);
+
+// デバッグ: テーマパラメータをログ出力
+logger.info(`Popup theme: ${theme.value} (from query: ${route.query.theme})`);
+
+// テーマに基づくスタイル定義
+const themeStyles = computed(() => {
+  if (theme.value === 'light') {
+    return {
+      bgItem: 'rgba(255, 255, 255, 0.98)',
+      bgItemHover: 'rgba(240, 245, 255, 0.98)',
+      borderItem: 'rgba(100, 150, 200, 0.4)',
+      textPrimary: 'rgba(30, 30, 40, 0.95)',
+      textSecondary: 'rgba(80, 80, 100, 0.9)',
+      gradientStart: '#0077cc',
+      gradientEnd: '#7744dd',
+      iconBg: 'rgba(100, 150, 200, 0.12)',
+      boxShadow: '0 2px 12px rgba(0, 50, 100, 0.15)',
+    };
+  }
+  // ダークテーマ（デフォルト）
+  return {
+    bgItem: 'rgba(30, 30, 35, 0.95)',
+    bgItemHover: 'rgba(40, 40, 50, 0.95)',
+    borderItem: 'rgba(0, 217, 255, 0.3)',
+    textPrimary: 'rgba(228, 231, 236, 0.95)',
+    textSecondary: 'rgba(228, 231, 236, 0.75)',
+    gradientStart: '#00d9ff',
+    gradientEnd: '#b536ff',
+    iconBg: 'rgba(255, 255, 255, 0.08)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+  };
+});
+
+// 各要素のスタイル
+const statItemStyle = computed(() => ({
+  background: themeStyles.value.bgItem,
+  borderColor: themeStyles.value.borderItem,
+  boxShadow: themeStyles.value.boxShadow,
+}));
+
+const iconWrapperStyle = computed(() => ({
+  background: themeStyles.value.iconBg,
+  borderColor: themeStyles.value.borderItem,
+}));
+
+const iconStyle = computed(() => ({
+  background: `linear-gradient(135deg, ${themeStyles.value.gradientStart} 0%, ${themeStyles.value.gradientEnd} 100%)`,
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+}));
+
+const valueStyle = computed(() => ({
+  background: `linear-gradient(135deg, ${themeStyles.value.gradientStart} 0%, ${themeStyles.value.gradientEnd} 100%)`,
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+}));
+
 const gameMode = ref<GameMode>((route.query.game_mode as GameMode) || 'RANK');
 const statsPeriod = ref((route.query.stats_period as string) || 'monthly');
-const resetSize = ref(route.query.reset_size === 'true');
 
 // データ
 const statsData = ref<Record<string, unknown>>({});
@@ -87,8 +146,8 @@ interface InitialStats {
 }
 const initialStats = ref<InitialStats | null>(null);
 
-// 初回リサイズ済みフラグ（自動更新時にサイズが変わるのを防ぐ）
-const hasResized = ref(false);
+// 統計カードへの参照（サイズ測定用）
+const statsCardRef = ref<HTMLElement | null>(null);
 
 // 認証状態
 const isAuthenticated = computed(() => authStore.isAuthenticated);
@@ -233,103 +292,56 @@ const statsItems = computed(() => {
   return items;
 });
 
-/**
- * 保存されたウィンドウサイズのキーを生成
- * レイアウトごとにサイズを保存（テーマに関わらず同じサイズを使用）
- */
-const getWindowSizeKey = () => `streamerPopupSize_${layout.value}`;
+const CONTAINER_PADDING = 16; // .streamer-popupのpadding
 
 /**
- * アイテム数に基づいてウィンドウサイズを計算
- * テーマに関係なく一貫したサイズを返す
- */
-const calculateWindowSize = (itemCount: number): { width: number; height: number } => {
-  // 固定のアイテムサイズ（CSS測定ではなく定数を使用してテーマ間で一貫性を保つ）
-  const itemWidth = 160; // アイテム1つの幅
-  const itemHeight = 70; // アイテム1つの高さ
-  const gap = 10; // アイテム間のギャップ
-  const padding = 32; // コンテナのパディング（16px × 2）
-  const windowChrome = 50; // ブラウザのウィンドウ枠
-
-  if (layout.value === 'horizontal') {
-    // 横並び: 全アイテムを1行に配置
-    const contentWidth = itemCount * itemWidth + (itemCount - 1) * gap;
-    const contentHeight = itemHeight;
-    return {
-      width: contentWidth + padding + windowChrome,
-      height: contentHeight + padding + windowChrome + 30, // 高さは少し余裕を持たせる
-    };
-  } else if (layout.value === 'vertical') {
-    // 縦並び: 全アイテムを1列に配置
-    const contentWidth = itemWidth;
-    const contentHeight = itemCount * itemHeight + (itemCount - 1) * gap;
-    return {
-      width: contentWidth + padding + windowChrome + 60, // 幅は少し余裕を持たせる
-      height: contentHeight + padding + windowChrome,
-    };
-  } else {
-    // グリッド: 2列のグリッド
-    const columns = 2;
-    const rows = Math.ceil(itemCount / columns);
-    const contentWidth = columns * itemWidth + (columns - 1) * gap;
-    const contentHeight = rows * itemHeight + (rows - 1) * gap;
-    return {
-      width: contentWidth + padding + windowChrome + 40,
-      height: contentHeight + padding + windowChrome,
-    };
-  }
-};
-
-/**
- * ウィンドウサイズをコンテンツに合わせて自動調整
- * - 初回: アイテム数に基づいてサイズを計算し、localStorageに保存
- * - 2回目以降: localStorageから保存されたサイズを使用（固定）
+ * ウィンドウサイズを調整
+ * - horizontal/vertical: コンテンツサイズを測定して固定サイズを決定
+ * - grid: 自動リサイズなし（ユーザーが手動で調整、ボックスが自動折り返し）
  */
 const resizeWindowToContent = async () => {
-  // 既にリサイズ済みの場合はスキップ（自動更新時にサイズが変わるのを防ぐ）
-  if (hasResized.value) return;
-
   // ポップアップウィンドウでない場合はスキップ
   if (!window.opener) return;
 
+  // グリッドレイアウトは自動リサイズしない（ユーザーが手動で調整）
+  if (layout.value === 'grid') {
+    logger.info('Grid layout - skip auto resize (user can manually adjust)');
+    return;
+  }
+
   await nextTick();
 
-  const sizeKey = getWindowSizeKey();
+  // レンダリング完了を待つ（requestAnimationFrame × 2回でレイアウト確定を待つ）
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        resolve();
+      });
+    });
+  });
 
-  // reset_size=true の場合は保存されたサイズをクリア
-  if (resetSize.value) {
-    localStorage.removeItem(sizeKey);
-    logger.debug('Saved window size cleared due to reset_size parameter');
-  }
+  // 実際のコンテンツサイズを測定
+  if (!statsCardRef.value) return;
 
-  const savedSize = localStorage.getItem(sizeKey);
+  const contentRect = statsCardRef.value.getBoundingClientRect();
 
-  // 保存されたサイズがある場合はそれを使用（固定サイズ）
-  if (savedSize && !resetSize.value) {
-    try {
-      const { width, height } = JSON.parse(savedSize);
-      window.resizeTo(width, height);
-      hasResized.value = true;
-      logger.debug(`Window restored to saved size: ${width}x${height} (layout: ${layout.value})`);
-      return;
-    } catch (e) {
-      logger.debug('Failed to parse saved window size, will auto-resize');
-    }
-  }
+  // コンテンツサイズ + 上下左右のpadding
+  const targetInnerWidth = Math.ceil(contentRect.width) + (CONTAINER_PADDING * 2);
+  const targetInnerHeight = Math.ceil(contentRect.height) + (CONTAINER_PADDING * 2);
 
-  // 初回: アイテム数に基づいてサイズを計算（テーマに関係なく一貫したサイズ）
-  const itemCount = statsItems.value.length;
-  if (itemCount === 0) return;
+  // 現在のウィンドウのchrome（枠）サイズを取得
+  const currentChromeWidth = window.outerWidth - window.innerWidth;
+  const currentChromeHeight = window.outerHeight - window.innerHeight;
 
-  const { width: targetWidth, height: targetHeight } = calculateWindowSize(itemCount);
+  // resizeToはouterサイズを指定するので、chromeを加算
+  const targetWidth = targetInnerWidth + currentChromeWidth;
+  const targetHeight = targetInnerHeight + currentChromeHeight;
+
+  logger.info(`${layout.value} layout - Content: ${contentRect.width}x${contentRect.height}, Target: ${targetWidth}x${targetHeight}`);
 
   try {
     window.resizeTo(targetWidth, targetHeight);
-    hasResized.value = true;
-
-    // サイズをlocalStorageに保存（次回以降は固定サイズとして使用）
-    localStorage.setItem(sizeKey, JSON.stringify({ width: targetWidth, height: targetHeight }));
-    logger.debug(`Window auto-resized and saved: ${targetWidth}x${targetHeight} (layout: ${layout.value}, items: ${itemCount})`);
+    logger.debug(`Window resized to: ${targetWidth}x${targetHeight}`);
   } catch (e) {
     logger.debug('Could not resize window:', e);
   }
@@ -516,81 +528,37 @@ onUnmounted(() => {
   // クロマキー背景
   &.chroma-key-green {
     background: #00FF00 !important;
-
-    // カードの背景を不透明にする
-    .stat-item {
-      background: #1a1a1a !important;
-      border-color: rgba(0, 217, 255, 0.4) !important;
-    }
   }
 
   &.chroma-key-blue {
     background: #0000FF !important;
-
-    // カードの背景を不透明にする
-    .stat-item {
-      background: #1a1a1a !important;
-      border-color: rgba(0, 217, 255, 0.4) !important;
-    }
-  }
-
-  // ダークテーマ
-  &.theme-dark {
-    --bg-primary: rgba(18, 18, 18, 0.92);
-    --bg-item: rgba(30, 30, 35, 0.95);
-    --bg-item-hover: rgba(40, 40, 50, 0.95);
-    --border-item: rgba(0, 217, 255, 0.3);
-    --text-primary: rgba(228, 231, 236, 0.95);
-    --text-secondary: rgba(228, 231, 236, 0.75);
-    --gradient-start: #00d9ff;
-    --gradient-end: #b536ff;
-    --shadow-glow: rgba(0, 217, 255, 0.5);
-    --win-color: #4caf50;
-    --lose-color: #f44336;
-    --icon-bg: rgba(255, 255, 255, 0.08);
-  }
-
-  // ライトテーマ
-  &.theme-light {
-    --bg-primary: rgba(255, 255, 255, 0.98);
-    --bg-item: rgba(255, 255, 255, 0.95);
-    --bg-item-hover: rgba(245, 250, 255, 0.98);
-    --border-item: rgba(0, 100, 200, 0.3);
-    --text-primary: rgba(20, 20, 20, 0.95);
-    --text-secondary: rgba(60, 60, 70, 0.85);
-    --gradient-start: #0066cc;
-    --gradient-end: #8844ff;
-    --shadow-glow: rgba(0, 100, 200, 0.5);
-    --win-color: #2e7d32;
-    --lose-color: #c62828;
-    --icon-bg: rgba(0, 0, 0, 0.06);
   }
 }
 
 .stats-container {
-  width: 100%;
+  // デフォルトは自然なサイズ
 }
 
-// レスポンシブグリッド
+// レイアウト
 .stats-card {
-  display: flex;
+  display: inline-flex;
   gap: 10px;
   background: transparent;
 
-  // グリッド（自動調整）- ウィンドウサイズに応じて列数を自動調整
   &.layout-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 10px;
+    align-content: flex-start;
+    width: 100%;
   }
 
-  // 横並び（1行に収める）
   &.layout-horizontal {
     flex-direction: row;
     flex-wrap: nowrap;
   }
 
-  // 縦並び
   &.layout-vertical {
     flex-direction: column;
   }
@@ -602,27 +570,19 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: var(--bg-item);
   border-radius: 8px;
-  border: 1px solid var(--border-item);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid;
   transition: all 0.3s ease;
   min-width: max-content;
 
-  // グリッドレイアウト時は幅を自動調整
   .layout-grid & {
     min-width: 0;
-    justify-content: center;
-  }
-
-  &:hover {
-    background: var(--bg-item-hover);
-    transform: translateY(-1px);
+    flex: 0 0 auto;
   }
 
   &.deck-item {
-    grid-column: 1 / -1; // デッキ名は全幅
     justify-content: center;
+    width: 100%;
   }
 }
 
@@ -632,18 +592,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--icon-bg);
-  border: 1px solid var(--border-item);
+  border: 1px solid;
   border-radius: 50%;
   flex-shrink: 0;
+}
 
-  .mdi {
-    font-size: 20px;
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+.mdi {
+  font-size: 20px;
 }
 
 .stat-content {
@@ -655,7 +610,6 @@ onUnmounted(() => {
 .stat-label {
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
@@ -666,10 +620,6 @@ onUnmounted(() => {
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   text-align: center;
 
   &.deck-value {
@@ -694,7 +644,6 @@ onUnmounted(() => {
 .error-text {
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary);
 }
 
 .error-text {
@@ -703,7 +652,6 @@ onUnmounted(() => {
 
 .error-detail {
   font-size: 13px;
-  color: var(--text-secondary);
   margin-top: 6px;
 }
 </style>

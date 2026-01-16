@@ -356,9 +356,9 @@ def import_duels_csv(
             detail="CSVファイルに必須カラムが含まれていません",
         ) from None
     except Exception as e:
-        # 予期しないエラー（詳細はログのみに記録）
+        # 予期しないエラー（詳細はログのみに記録、スタックトレースは非公開）
         logger.error(f"Unexpected CSV import error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="CSVインポート中にエラーが発生しました",
-        ) from e
+        ) from None
