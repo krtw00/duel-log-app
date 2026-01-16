@@ -464,6 +464,13 @@ const ja = {
       },
       loginRequired: 'ログインが必要です',
       loginRequiredDetail: 'ログイン状態でこのページを開いてください',
+      chromaKey: {
+        title: 'クロマキー背景',
+        description: 'ウィンドウキャプチャ時にOBSのクロマキーフィルターで背景を透過できます。',
+        none: '通常',
+        green: 'グリーン',
+        blue: 'ブルー',
+      },
     },
     configPanel: {
       title: 'OBS連携設定',

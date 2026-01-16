@@ -464,6 +464,13 @@ const en = {
       },
       loginRequired: 'Login Required',
       loginRequiredDetail: 'Please open this page while logged in',
+      chromaKey: {
+        title: 'Chroma Key Background',
+        description: 'Enable OBS chroma key filter to make background transparent during window capture.',
+        none: 'Normal',
+        green: 'Green',
+        blue: 'Blue',
+      },
     },
     configPanel: {
       title: 'OBS Integration Settings',

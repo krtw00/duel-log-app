@@ -8,6 +8,8 @@ import os
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.routers import (
@@ -30,6 +32,7 @@ from app.core.exception_handlers import (
 )
 from app.core.exceptions import AppException
 from app.core.logging_config import setup_logging
+from app.core.rate_limit import limiter
 
 # サービス層の依存性注入設定
 from app.services.user_service import UserService
@@ -54,6 +57,10 @@ app = FastAPI(
     description="遊戯王デュエルログ管理API",
     version="1.0.0",
 )
+
+# --- レート制限設定 ---
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- CORS設定 ---
 # 環境変数から許可するオリジンを取得

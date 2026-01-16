@@ -1,5 +1,5 @@
 <template>
-  <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme]">
+  <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
       <div class="loading-text">{{ LL?.common.loading() }}</div>
@@ -95,6 +95,18 @@ const hasResized = ref(false);
 
 // 認証状態
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+// クロマキー背景のCSSクラス
+const chromaKeyClass = computed(() => {
+  switch (authStore.chromaKeyBackground) {
+    case 'green':
+      return 'chroma-key-green';
+    case 'blue':
+      return 'chroma-key-blue';
+    default:
+      return '';
+  }
+});
 
 // 表示項目の設定
 const selectedItems = computed(() => itemsParam.value.split(',').filter(Boolean));
@@ -244,13 +256,35 @@ const resizeWindowToContent = async () => {
   const contentWidth = Math.max(container.scrollWidth, container.offsetWidth);
   const contentHeight = Math.max(container.scrollHeight, container.offsetHeight);
 
-  // パディングとマージンを考慮（下部に多めの余白）
+  // パディングとマージンを考慮
   const horizontalPadding = 80;
   const verticalPadding = 120;
-  const minWidth = 350;
-  const minHeight = 150;
-  const maxWidth = 1200;
-  const maxHeight = 900;
+
+  // レイアウトに応じたサイズ制限
+  let minWidth: number;
+  let maxWidth: number;
+  let minHeight: number;
+  let maxHeight: number;
+
+  if (layout.value === 'horizontal') {
+    // 横並び: 幅を広く、高さは最小限
+    minWidth = 400;
+    maxWidth = 2400; // 1行に収めるため広めに
+    minHeight = 100;
+    maxHeight = 300;
+  } else if (layout.value === 'vertical') {
+    // 縦並び: 幅は狭く、高さを確保
+    minWidth = 180;
+    maxWidth = 280;
+    minHeight = 200;
+    maxHeight = 1200;
+  } else {
+    // グリッド: デフォルト
+    minWidth = 350;
+    maxWidth = 1200;
+    minHeight = 150;
+    maxHeight = 900;
+  }
 
   // ウィンドウサイズを計算（ブラウザのUIを考慮）
   const targetWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth + horizontalPadding));
@@ -259,7 +293,7 @@ const resizeWindowToContent = async () => {
   try {
     window.resizeTo(targetWidth, targetHeight);
     hasResized.value = true; // リサイズ済みフラグを立てる
-    logger.debug(`Window resized to ${targetWidth}x${targetHeight}`);
+    logger.debug(`Window resized to ${targetWidth}x${targetHeight} (layout: ${layout.value})`);
   } catch (e) {
     logger.debug('Could not resize window:', e);
   }
@@ -443,6 +477,27 @@ onUnmounted(() => {
   z-index: 9999;
   padding: 16px;
 
+  // クロマキー背景
+  &.chroma-key-green {
+    background: #00FF00 !important;
+
+    // カードの背景を不透明にする
+    .stat-item {
+      background: #1a1a1a !important;
+      border-color: rgba(0, 217, 255, 0.4) !important;
+    }
+  }
+
+  &.chroma-key-blue {
+    background: #0000FF !important;
+
+    // カードの背景を不透明にする
+    .stat-item {
+      background: #1a1a1a !important;
+      border-color: rgba(0, 217, 255, 0.4) !important;
+    }
+  }
+
   // ダークテーマ
   &.theme-dark {
     --bg-primary: rgba(18, 18, 18, 0.92);
@@ -491,10 +546,10 @@ onUnmounted(() => {
     gap: 10px;
   }
 
-  // 横並び
+  // 横並び（1行に収める）
   &.layout-horizontal {
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 
   // 縦並び
