@@ -348,7 +348,7 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
     }
 
     .vs {
-      color: rgba(128, 128, 128, 0.6);
+      color: rgba(var(--v-theme-on-surface), 0.5);
       margin: 0 4px;
       font-size: 11px;
     }
@@ -360,7 +360,7 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
 
   .date-text {
     font-size: 11px;
-    color: rgba(128, 128, 128, 0.7);
+    color: rgba(var(--v-theme-on-surface), 0.6);
     margin-left: 8px;
     flex-shrink: 0;
   }
@@ -376,14 +376,14 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
     display: flex;
     align-items: center;
     gap: 2px;
-    color: rgba(128, 128, 128, 0.8);
+    color: rgba(var(--v-theme-on-surface), 0.7);
 
     &.first {
       color: rgb(var(--v-theme-info));
     }
 
     &.second {
-      color: #9c27b0;
+      color: #ce93d8;
     }
 
     &.coin-win {
@@ -391,11 +391,11 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
     }
 
     &.coin-lose {
-      color: rgba(128, 128, 128, 0.6);
+      color: rgba(var(--v-theme-on-surface), 0.5);
     }
 
     &.metric {
-      color: rgba(128, 128, 128, 0.8);
+      color: rgba(var(--v-theme-on-surface), 0.7);
     }
   }
 
