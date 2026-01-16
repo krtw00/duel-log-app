@@ -267,6 +267,10 @@ def seed_data(db: Session):
         period_start = now - timedelta(days=92)
         game_modes = ["RANK", "RATE", "EVENT", "DC"]
 
+        # レート/DC値の初期値（モードごとに継続して使用）
+        current_rate = 300.0
+        current_dc = 300
+
         for mode in game_modes:
             existing_duels_count = (
                 db.query(duel_service.model)
@@ -345,13 +349,25 @@ def seed_data(db: Session):
                         duel_data["rank"] = random.randint(1, 32)
 
                     elif mode == "RATE":
-                        duel_data["rate_value"] = round(random.uniform(200.0, 400.0), 2)
+                        # 勝敗に応じてレートを増減（リアルな推移を再現）
+                        change = random.uniform(5.0, 15.0)
+                        if result:  # 勝ち
+                            current_rate = min(500.0, current_rate + change)
+                        else:  # 負け
+                            current_rate = max(100.0, current_rate - change)
+                        duel_data["rate_value"] = round(current_rate, 2)
 
                     elif mode == "EVENT":
                         duel_data["notes"] = "イベント300"
 
                     elif mode == "DC":
-                        duel_data["dc_value"] = random.randint(200, 400)
+                        # 勝敗に応じてDCポイントを増減
+                        change = random.randint(50, 150)
+                        if result:  # 勝ち
+                            current_dc = min(500, current_dc + change)
+                        else:  # 負け
+                            current_dc = max(100, current_dc - change)
+                        duel_data["dc_value"] = current_dc
 
                     duel_in = DuelCreate(**duel_data)  # type: ignore[arg-type]
                     duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)
