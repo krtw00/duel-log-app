@@ -239,8 +239,9 @@ const statsItems = computed(() => {
 
 /**
  * 保存されたウィンドウサイズのキーを生成
+ * レイアウトとテーマの組み合わせごとにサイズを保存
  */
-const getWindowSizeKey = () => `streamerPopupSize_${layout.value}`;
+const getWindowSizeKey = () => `streamerPopupSize_${layout.value}_${theme.value}`;
 
 /**
  * ウィンドウサイズをコンテンツに合わせて自動調整
