@@ -25,6 +25,7 @@
         @refresh="onRefresh"
         @edit="editDuel"
         @delete="deleteDuel"
+        @add-duel="openNewDuelDialog"
       />
     </v-card>
 
@@ -124,6 +125,17 @@ const handleSaved = (payload: { duel: Duel; upsertDecks: Deck[] }) => {
 const onRefresh = () => {
   emit('refresh');
 };
+
+// 空状態から新規対戦ダイアログを開く
+const openNewDuelDialog = () => {
+  selectedDuel.value = null;
+  dialogOpen.value = true;
+};
+
+// 外部から呼び出し可能にする
+defineExpose({
+  openNewDuelDialog,
+});
 </script>
 
 <style scoped>

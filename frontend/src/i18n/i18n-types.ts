@@ -121,6 +121,10 @@ type RootTranslation = {
 		 */
 		admin: string
 		/**
+		 * フ​ィ​ー​ド​バ​ッ​ク
+		 */
+		feedback: string
+		/**
 		 * ロ​グ​ア​ウ​ト
 		 */
 		logout: string
@@ -368,6 +372,34 @@ type RootTranslation = {
 		 * 最​初​の​対​戦​を​記​録​し​ま​し​ょ​う
 		 */
 		recordFirst: string
+		streak: {
+			/**
+			 * {count}連勝中
+			 */
+			winning: RequiredParams<'count'>
+			/**
+			 * {count}連敗中
+			 */
+			losing: RequiredParams<'count'>
+			/**
+			 * 連勝/連敗なし
+			 */
+			none: string
+		}
+		emptyState: {
+			/**
+			 * 最初の対戦を記録しましょう
+			 */
+			title: string
+			/**
+			 * 対戦結果を記録して、あなたの成長を追跡しましょう
+			 */
+			description: string
+			/**
+			 * 対戦を記録
+			 */
+			addButton: string
+		}
 		streamer: {
 			/**
 			 * 配​信​用​ポ​ッ​プ​ア​ッ​プ​ウ​ィ​ン​ド​ウ
@@ -752,6 +784,28 @@ type RootTranslation = {
 			 * 次​の​対​戦​を​待​機​中​.​.​.
 			 */
 			waitingNext: string
+			steps: {
+				/**
+				 * デ​ッ​キ
+				 */
+				decks: string
+				/**
+				 * 対​戦
+				 */
+				battle: string
+				/**
+				 * 詳​細
+				 */
+				details: string
+			}
+			/**
+			 * 次​へ
+			 */
+			next: string
+			/**
+			 * 戻​る
+			 */
+			prev: string
 		}
 		table: {
 			/**
@@ -2168,6 +2222,144 @@ type RootTranslation = {
 		 */
 		version: string
 	}
+	feedback: {
+		/**
+		 * バ​グ​報​告​、​機​能​要​望​、​お​問​い​合​わ​せ​を​お​待​ち​し​て​お​り​ま​す​。​G​i​t​H​u​b​の​I​s​s​u​e​と​し​て​登​録​さ​れ​ま​す​。
+		 */
+		intro: string
+		tabs: {
+			/**
+			 * バ​グ​報​告
+			 */
+			bug: string
+			/**
+			 * 機​能​要​望
+			 */
+			enhancement: string
+			/**
+			 * お​問​い​合​わ​せ
+			 */
+			contact: string
+		}
+		form: {
+			/**
+			 * タ​イ​ト​ル
+			 */
+			title: string
+			/**
+			 * 説​明
+			 */
+			description: string
+		}
+		bug: {
+			/**
+			 * バ​グ​の​概​要​を​入​力
+			 */
+			titlePlaceholder: string
+			/**
+			 * バ​グ​の​詳​細​を​入​力​し​て​く​だ​さ​い
+			 */
+			descriptionPlaceholder: string
+			/**
+			 * 再​現​手​順
+			 */
+			steps: string
+			/**
+			 * 1​.​ ​○​○​を​開​く​
+		​2​.​ ​○​○​を​ク​リ​ッ​ク​
+		​3​.​ ​エ​ラ​ー​が​発​生
+			 */
+			stepsPlaceholder: string
+			/**
+			 * 期​待​す​る​動​作
+			 */
+			expected: string
+			/**
+			 * 本​来​ど​う​な​る​べ​き​か
+			 */
+			expectedPlaceholder: string
+			/**
+			 * 実​際​の​動​作
+			 */
+			actual: string
+			/**
+			 * 実​際​に​何​が​起​き​た​か
+			 */
+			actualPlaceholder: string
+			/**
+			 * バ​グ​を​報​告​す​る
+			 */
+			submit: string
+		}
+		enhancement: {
+			/**
+			 * 機​能​の​概​要​を​入​力
+			 */
+			titlePlaceholder: string
+			/**
+			 * 追​加​し​て​ほ​し​い​機​能​の​詳​細​を​入​力​し​て​く​だ​さ​い
+			 */
+			descriptionPlaceholder: string
+			/**
+			 * ユ​ー​ス​ケ​ー​ス
+			 */
+			useCase: string
+			/**
+			 * ど​の​よ​う​な​場​面​で​使​い​た​い​か
+			 */
+			useCasePlaceholder: string
+			/**
+			 * 機​能​を​要​望​す​る
+			 */
+			submit: string
+		}
+		contact: {
+			/**
+			 * 件​名
+			 */
+			subject: string
+			/**
+			 * お​問​い​合​わ​せ​の​件​名​を​入​力
+			 */
+			subjectPlaceholder: string
+			/**
+			 * メ​ッ​セ​ー​ジ
+			 */
+			message: string
+			/**
+			 * お​問​い​合​わ​せ​内​容​を​入​力​し​て​く​だ​さ​い
+			 */
+			messagePlaceholder: string
+			/**
+			 * 送​信​す​る
+			 */
+			submit: string
+		}
+		contactInfo: {
+			/**
+			 * 連​絡​先
+			 */
+			title: string
+		}
+		/**
+		 * G​i​t​H​u​b​連​携​が​無​効​の​た​め​、​フ​ォ​ー​ム​か​ら​の​送​信​は​で​き​ま​せ​ん​。​X​ ​(​T​w​i​t​t​e​r​)​ ​ま​た​は​G​i​t​H​u​b​か​ら​直​接​ご​連​絡​く​だ​さ​い​。
+		 */
+		githubDisabled: string
+		success: {
+			/**
+			 * 送​信​完​了
+			 */
+			title: string
+			/**
+			 * G​i​t​H​u​b​で​I​s​s​u​e​を​確​認​す​る
+			 */
+			viewIssue: string
+		}
+		/**
+		 * 送​信​に​失​敗​し​ま​し​た​。​時​間​を​お​い​て​再​度​お​試​し​く​だ​さ​い​。
+		 */
+		error: string
+	}
 	language: {
 		/**
 		 * 言​語
@@ -2312,6 +2504,10 @@ export type TranslationFunctions = {
 		 * 管理者画面
 		 */
 		admin: () => LocalizedString
+		/**
+		 * フィードバック
+		 */
+		feedback: () => LocalizedString
 		/**
 		 * ログアウト
 		 */
@@ -2560,6 +2756,34 @@ export type TranslationFunctions = {
 		 * 最初の対戦を記録しましょう
 		 */
 		recordFirst: () => LocalizedString
+		streak: {
+			/**
+			 * {count}連勝中
+			 */
+			winning: (arg: { count: number }) => LocalizedString
+			/**
+			 * {count}連敗中
+			 */
+			losing: (arg: { count: number }) => LocalizedString
+			/**
+			 * 連勝/連敗なし
+			 */
+			none: () => LocalizedString
+		}
+		emptyState: {
+			/**
+			 * 最初の対戦を記録しましょう
+			 */
+			title: () => LocalizedString
+			/**
+			 * 対戦結果を記録して、あなたの成長を追跡しましょう
+			 */
+			description: () => LocalizedString
+			/**
+			 * 対戦を記録
+			 */
+			addButton: () => LocalizedString
+		}
 		streamer: {
 			/**
 			 * 配信用ポップアップウィンドウ
@@ -2943,6 +3167,28 @@ export type TranslationFunctions = {
 			 * 次の対戦を待機中...
 			 */
 			waitingNext: () => LocalizedString
+			steps: {
+				/**
+				 * デッキ
+				 */
+				decks: () => LocalizedString
+				/**
+				 * 対戦
+				 */
+				battle: () => LocalizedString
+				/**
+				 * 詳細
+				 */
+				details: () => LocalizedString
+			}
+			/**
+			 * 次へ
+			 */
+			next: () => LocalizedString
+			/**
+			 * 戻る
+			 */
+			prev: () => LocalizedString
 		}
 		table: {
 			/**
@@ -4352,6 +4598,144 @@ export type TranslationFunctions = {
 		 * バージョン
 		 */
 		version: () => LocalizedString
+	}
+	feedback: {
+		/**
+		 * バグ報告、機能要望、お問い合わせをお待ちしております。GitHubのIssueとして登録されます。
+		 */
+		intro: () => LocalizedString
+		tabs: {
+			/**
+			 * バグ報告
+			 */
+			bug: () => LocalizedString
+			/**
+			 * 機能要望
+			 */
+			enhancement: () => LocalizedString
+			/**
+			 * お問い合わせ
+			 */
+			contact: () => LocalizedString
+		}
+		form: {
+			/**
+			 * タイトル
+			 */
+			title: () => LocalizedString
+			/**
+			 * 説明
+			 */
+			description: () => LocalizedString
+		}
+		bug: {
+			/**
+			 * バグの概要を入力
+			 */
+			titlePlaceholder: () => LocalizedString
+			/**
+			 * バグの詳細を入力してください
+			 */
+			descriptionPlaceholder: () => LocalizedString
+			/**
+			 * 再現手順
+			 */
+			steps: () => LocalizedString
+			/**
+			 * 1. ○○を開く
+		2. ○○をクリック
+		3. エラーが発生
+			 */
+			stepsPlaceholder: () => LocalizedString
+			/**
+			 * 期待する動作
+			 */
+			expected: () => LocalizedString
+			/**
+			 * 本来どうなるべきか
+			 */
+			expectedPlaceholder: () => LocalizedString
+			/**
+			 * 実際の動作
+			 */
+			actual: () => LocalizedString
+			/**
+			 * 実際に何が起きたか
+			 */
+			actualPlaceholder: () => LocalizedString
+			/**
+			 * バグを報告する
+			 */
+			submit: () => LocalizedString
+		}
+		enhancement: {
+			/**
+			 * 機能の概要を入力
+			 */
+			titlePlaceholder: () => LocalizedString
+			/**
+			 * 追加してほしい機能の詳細を入力してください
+			 */
+			descriptionPlaceholder: () => LocalizedString
+			/**
+			 * ユースケース
+			 */
+			useCase: () => LocalizedString
+			/**
+			 * どのような場面で使いたいか
+			 */
+			useCasePlaceholder: () => LocalizedString
+			/**
+			 * 機能を要望する
+			 */
+			submit: () => LocalizedString
+		}
+		contact: {
+			/**
+			 * 件名
+			 */
+			subject: () => LocalizedString
+			/**
+			 * お問い合わせの件名を入力
+			 */
+			subjectPlaceholder: () => LocalizedString
+			/**
+			 * メッセージ
+			 */
+			message: () => LocalizedString
+			/**
+			 * お問い合わせ内容を入力してください
+			 */
+			messagePlaceholder: () => LocalizedString
+			/**
+			 * 送信する
+			 */
+			submit: () => LocalizedString
+		}
+		contactInfo: {
+			/**
+			 * 連絡先
+			 */
+			title: () => LocalizedString
+		}
+		/**
+		 * GitHub連携が無効のため、フォームからの送信はできません。X (Twitter) またはGitHubから直接ご連絡ください。
+		 */
+		githubDisabled: () => LocalizedString
+		success: {
+			/**
+			 * 送信完了
+			 */
+			title: () => LocalizedString
+			/**
+			 * GitHubでIssueを確認する
+			 */
+			viewIssue: () => LocalizedString
+		}
+		/**
+		 * 送信に失敗しました。時間をおいて再度お試しください。
+		 */
+		error: () => LocalizedString
 	}
 	language: {
 		/**

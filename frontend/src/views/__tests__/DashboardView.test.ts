@@ -5,6 +5,7 @@ import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import { createTestingPinia } from '@pinia/testing';
 import DashboardView from '../DashboardView.vue';
+import { ref } from 'vue';
 
 import { api } from '@/services/api';
 
@@ -14,6 +15,24 @@ vi.mock('@/services/api', () => ({
     get: vi.fn(),
   },
 }));
+
+// Mock vue-router
+const mockRoute = ref({
+  path: '/',
+  query: {},
+});
+const mockRouter = {
+  push: vi.fn(),
+  replace: vi.fn(),
+};
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>();
+  return {
+    ...actual,
+    useRoute: () => mockRoute.value,
+    useRouter: () => mockRouter,
+  };
+});
 
 const vuetify = createVuetify({ components, directives });
 
@@ -59,6 +78,11 @@ describe('DashboardView.vue', () => {
     });
 
     vi.clearAllMocks();
+
+    // Reset router mock
+    mockRoute.value = { path: '/', query: {} };
+    mockRouter.push.mockClear();
+    mockRouter.replace.mockClear();
 
     // Mock API calls for fetchDuels
     vi.mocked(api.get).mockImplementation(async (url) => {
