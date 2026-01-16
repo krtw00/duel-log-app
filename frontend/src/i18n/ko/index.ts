@@ -31,6 +31,7 @@ const ko = {
     statistics: '통계',
     profile: '프로필',
     admin: '관리자',
+    feedback: '피드백',
     logout: '로그아웃',
   },
   auth: {
@@ -105,6 +106,16 @@ const ko = {
     quickStats: '이번 달 성적',
     noDuels: '아직 듀얼 기록이 없습니다',
     recordFirst: '첫 듀얼을 기록하세요',
+    streak: {
+      winning: '{count}연승 중',
+      losing: '{count}연패 중',
+      none: '연승/연패 없음',
+    },
+    emptyState: {
+      title: '첫 듀얼을 기록하세요',
+      description: '듀얼 결과를 기록하고 성장을 추적하세요',
+      addButton: '듀얼 기록',
+    },
     streamer: {
       popupWindow: '스트리밍 팝업 창',
       recommended: '추천',
@@ -217,6 +228,13 @@ const ko = {
       autoRegisterNoDeck: '자동 등록: 내 덱이 설정되지 않았습니다',
       deckResolveFailed: '덱 등록에 실패했습니다',
       waitingNext: '다음 듀얼 대기 중...',
+      steps: {
+        decks: '덱',
+        battle: '배틀',
+        details: '상세',
+      },
+      next: '다음',
+      prev: '이전',
     },
     table: {
       noColumn: 'No.',
@@ -640,6 +658,52 @@ const ko = {
     contact: '문의하기',
     twitter: 'Twitter/X',
     version: '버전',
+  },
+  feedback: {
+    intro: '버그 신고, 기능 요청, 문의를 환영합니다. GitHub Issue로 등록됩니다.',
+    tabs: {
+      bug: '버그 신고',
+      enhancement: '기능 요청',
+      contact: '문의',
+    },
+    form: {
+      title: '제목',
+      description: '설명',
+    },
+    bug: {
+      titlePlaceholder: '버그 요약 입력',
+      descriptionPlaceholder: '버그에 대해 자세히 설명해 주세요',
+      steps: '재현 단계',
+      stepsPlaceholder: '1. ...로 이동\n2. ...를 클릭\n3. 오류 발생',
+      expected: '예상 동작',
+      expectedPlaceholder: '어떻게 되어야 하는지',
+      actual: '실제 동작',
+      actualPlaceholder: '실제로 무슨 일이 일어났는지',
+      submit: '버그 신고하기',
+    },
+    enhancement: {
+      titlePlaceholder: '기능 요약 입력',
+      descriptionPlaceholder: '원하시는 기능에 대해 설명해 주세요',
+      useCase: '사용 사례',
+      useCasePlaceholder: '어떤 상황에서 이 기능을 사용하시겠습니까',
+      submit: '기능 요청하기',
+    },
+    contact: {
+      subject: '제목',
+      subjectPlaceholder: '문의 제목 입력',
+      message: '메시지',
+      messagePlaceholder: '메시지를 입력해 주세요',
+      submit: '보내기',
+    },
+    contactInfo: {
+      title: '연락처',
+    },
+    githubDisabled: 'GitHub 연동이 비활성화되어 있습니다. X (Twitter) 또는 GitHub으로 직접 문의해 주세요.',
+    success: {
+      title: '전송 완료',
+      viewIssue: 'GitHub에서 Issue 보기',
+    },
+    error: '전송에 실패했습니다. 나중에 다시 시도해 주세요.',
   },
   language: {
     title: '언어',

@@ -20,6 +20,7 @@ const OBSOverlayView = () => import('../views/OBSOverlayView.vue');
 const StreamerPopupView = () => import('../views/StreamerPopupView.vue');
 const AdminView = () => import('../views/AdminView.vue');
 const AuthCallbackView = () => import('../views/AuthCallbackView.vue');
+const FeedbackView = () => import('../views/FeedbackView.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -87,6 +88,12 @@ export const routes: RouteRecordRaw[] = [
     name: 'Admin',
     component: AdminView,
     meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/feedback',
+    name: 'Feedback',
+    component: FeedbackView,
+    meta: { requiresAuth: false },
   },
   {
     path: '/shared-stats/:share_id',
