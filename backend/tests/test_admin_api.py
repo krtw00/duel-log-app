@@ -195,9 +195,10 @@ class TestAdminGetUserDetail:
     ):
         """管理者によるユーザー詳細取得（成功）"""
         # デッキとデュエルを作成してユーザーに関連付け
+        from datetime import datetime, timezone
+
         from app.models.deck import Deck
         from app.models.duel import Duel
-        from datetime import datetime, timezone
 
         deck = Deck(name="Test Deck", user_id=regular_user.id, is_opponent=False)
         opponent_deck = Deck(
@@ -239,7 +240,7 @@ class TestAdminGetUserDetail:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-class TestAdminUpdateUserStatus:
+class TestAdminUpdateAccountStatus:
     """PUT /admin/users/{user_id}/status のテスト"""
 
     def test_suspend_user_success(self, admin_authenticated_client, regular_user):
