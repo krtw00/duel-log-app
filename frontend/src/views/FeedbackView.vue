@@ -2,6 +2,17 @@
   <app-layout current-view="dashboard">
     <v-container class="d-flex justify-center py-6">
       <div style="width: 100%; max-width: 700px">
+        <!-- ヘッダー -->
+        <div class="d-flex align-center mb-4">
+          <v-btn
+            icon="mdi-home"
+            variant="text"
+            @click="goToDashboard"
+            :aria-label="LL?.nav.dashboard()"
+          />
+          <h1 class="text-h5 ml-2">{{ LL?.nav.feedback() }}</h1>
+        </div>
+
         <!-- イントロ -->
         <v-card class="mb-6">
           <v-card-text>
@@ -236,12 +247,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { api } from '@/services/api';
 import { useLocale } from '@/composables/useLocale';
 import { useNotificationStore } from '@/stores/notification';
 import AppLayout from '@/components/layout/AppLayout.vue';
 
+const router = useRouter();
 const { LL } = useLocale();
+
+const goToDashboard = () => {
+  router.push('/');
+};
 const notificationStore = useNotificationStore();
 
 const activeTab = ref('bug');
