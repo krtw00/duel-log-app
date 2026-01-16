@@ -274,8 +274,8 @@ const resizeWindowToContent = async () => {
     maxHeight = 300;
   } else if (layout.value === 'vertical') {
     // 縦並び: 幅は狭く、高さを確保
-    minWidth = 200;
-    maxWidth = 400;
+    minWidth = 180;
+    maxWidth = 280;
     minHeight = 200;
     maxHeight = 1200;
   } else {
