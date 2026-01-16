@@ -108,7 +108,7 @@ def mock_statistics_service(mocker):
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert (
             "指定された年月とゲームモードの統計データが見つかりません"
-            in response.json()["detail"]
+            in response.json()["message"]
         )
 
     def test_get_shared_statistics_success(
@@ -152,13 +152,13 @@ def mock_statistics_service(mocker):
         # 期限切れのリンクにアクセス
         response = authenticated_client.get(f"/shared-statistics/{share_id}")
         assert response.status_code == status.HTTP_410_GONE
-        assert "この共有リンクは期限切れです" in response.json()["detail"]
+        assert "この共有リンクは期限切れです" in response.json()["message"]
 
     def test_get_shared_statistics_nonexistent(self, client):
         """存在しない共有統計データの取得テスト"""
         response = client.get("/shared-statistics/nonexistent_share_id")
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert "共有リンクが見つかりません" in response.json()["detail"]
+        assert "共有リンクが見つかりません" in response.json()["message"]
 
     def test_delete_shared_statistics_link_success(
         self, authenticated_client, mock_statistics_service_data
@@ -187,7 +187,7 @@ def mock_statistics_service(mocker):
         assert _response.status_code == status.HTTP_404_NOT_FOUND
         assert (
             "共有リンクが見つからないか、削除する権限がありません"
-            in _response.json()["detail"]
+            in _response.json()["message"]
         )
 
     def test_delete_shared_statistics_link_unauthorized_user(
