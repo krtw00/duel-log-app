@@ -46,7 +46,7 @@ jobs:
       # Python の依存関係をインストール（より正確な分析のため）
       - name: Setup Python
         if: matrix.language == 'python'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
