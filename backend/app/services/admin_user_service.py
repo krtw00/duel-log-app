@@ -12,7 +12,6 @@ from app.core.config import settings
 from app.models.deck import Deck
 from app.models.duel import Duel
 from app.models.shared_statistics import SharedStatistics
-from app.models.sharedUrl import SharedUrl
 from app.models.user import User
 from app.schemas.admin import (
     PasswordResetResponse,
@@ -66,15 +65,15 @@ class AdminUserService:
         """ユーザーの利用統計を取得"""
         # 総対戦数
         total_duels = (
-            self.db.query(func.count(Duel.id))
-            .filter(Duel.user_id == user_id)
-            .scalar()
+            self.db.query(func.count(Duel.id)).filter(Duel.user_id == user_id).scalar()
             or 0
         )
 
         # 今月の対戦数
         now = datetime.now(timezone.utc)
-        first_day_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        first_day_of_month = now.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
         this_month_duels = (
             self.db.query(func.count(Duel.id))
             .filter(
@@ -132,14 +131,6 @@ class AdminUserService:
 
     def _get_feature_usage(self, user: User) -> UserFeatureUsage:
         """ユーザーの機能利用状況を取得"""
-        # OBSオーバーレイ使用（SharedUrlがあるかどうか）
-        has_obs_overlay = (
-            self.db.query(func.count(SharedUrl.id))
-            .filter(SharedUrl.user_id == user.id)
-            .scalar()
-            or 0
-        ) > 0
-
         # 共有統計使用
         has_shared_statistics = (
             self.db.query(func.count(SharedStatistics.id))
@@ -149,7 +140,6 @@ class AdminUserService:
         ) > 0
 
         return UserFeatureUsage(
-            has_obs_overlay=has_obs_overlay,
             has_shared_statistics=has_shared_statistics,
             has_streamer_mode=user.streamer_mode,
             has_screen_analysis=user.enable_screen_analysis,
