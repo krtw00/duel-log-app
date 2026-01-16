@@ -1,5 +1,5 @@
 <template>
-  <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme]">
+  <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
       <div class="loading-text">{{ LL?.common.loading() }}</div>
@@ -95,6 +95,18 @@ const hasResized = ref(false);
 
 // 認証状態
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+// クロマキー背景のCSSクラス
+const chromaKeyClass = computed(() => {
+  switch (authStore.chromaKeyBackground) {
+    case 'green':
+      return 'chroma-key-green';
+    case 'blue':
+      return 'chroma-key-blue';
+    default:
+      return '';
+  }
+});
 
 // 表示項目の設定
 const selectedItems = computed(() => itemsParam.value.split(',').filter(Boolean));
@@ -442,6 +454,15 @@ onUnmounted(() => {
   font-family: 'Roboto', 'Noto Sans JP', sans-serif;
   z-index: 9999;
   padding: 16px;
+
+  // クロマキー背景
+  &.chroma-key-green {
+    background: #00FF00 !important;
+  }
+
+  &.chroma-key-blue {
+    background: #0000FF !important;
+  }
 
   // ダークテーマ
   &.theme-dark {
