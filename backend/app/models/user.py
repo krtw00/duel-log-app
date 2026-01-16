@@ -16,10 +16,6 @@ if TYPE_CHECKING:
     from app.models.sharedUrl import SharedUrl
 
 
-def __repr__(self):
-    return f"<User id={self.id} username={self.username} email={self.email}>"
-
-
 class User(Base):
     __tablename__ = "users"
 
@@ -41,6 +37,14 @@ class User(Base):
     )
     enable_screen_analysis: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="false"
+    )
+    # アカウント状態管理
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default="active"
+    )  # active, suspended, deleted
+    status_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
     createdat: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -64,3 +68,6 @@ class User(Base):
     shared_statistics: Mapped[list["SharedStatistics"]] = relationship(
         "SharedStatistics", back_populates="user", cascade="all, delete-orphan"
     )
+
+    def __repr__(self) -> str:
+        return f"<User id={self.id} username={self.username} email={self.email}>"

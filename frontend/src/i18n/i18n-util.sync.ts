@@ -2,28 +2,27 @@
 /* eslint-disable */
 
 import { initFormatters } from './formatters'
-import type { Formatters, Locales, Translations } from './i18n-types'
+import type { Locales, Translations } from './i18n-types'
+import { loadedFormatters, loadedLocales, locales } from './i18n-util'
 
+import en from './en'
 import ja from './ja'
+import ko from './ko'
 
-export const locales: Locales[] = ['en', 'ja', 'ko']
-
-export const loadedLocales: Partial<Record<Locales, Translations>> = {
-  ja: ja as Translations,
-}
-
-export const loadedFormatters: Partial<Record<Locales, Formatters>> = {
-  ja: initFormatters('ja'),
+const localeTranslations = {
+	en,
+	ja,
+	ko,
 }
 
 export const loadLocale = (locale: Locales): void => {
-  if (locale === 'ja') {
-    loadedLocales['ja'] = ja as Translations
-    loadedFormatters['ja'] = initFormatters('ja')
-  }
+	if (loadedLocales[locale]) return
+
+	loadedLocales[locale] = localeTranslations[locale] as unknown as Translations
+	loadFormatters(locale)
 }
 
-export const loadAllLocales = (): void => {
-  // This is a placeholder for sync loading
-  // In practice, use loadLocaleAsync for lazy loading
-}
+export const loadAllLocales = (): void => locales.forEach(loadLocale)
+
+export const loadFormatters = (locale: Locales): void =>
+	void (loadedFormatters[locale] = initFormatters(locale))

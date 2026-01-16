@@ -13,9 +13,13 @@
           <v-icon start>mdi-account-multiple</v-icon>
           {{ LL?.admin.users.title() }}
         </v-tab>
-        <v-tab value="statistics" disabled>
+        <v-tab value="statistics">
           <v-icon start>mdi-chart-box</v-icon>
           {{ LL?.admin.statistics.title() }}
+        </v-tab>
+        <v-tab value="meta">
+          <v-icon start>mdi-chart-timeline-variant</v-icon>
+          {{ LL?.admin.meta?.title() || 'メタ分析' }}
         </v-tab>
         <v-tab value="maintenance">
           <v-icon start>mdi-tools</v-icon>
@@ -29,12 +33,11 @@
         </v-window-item>
 
         <v-window-item value="statistics">
-          <v-card class="pa-6">
-            <v-card-text class="text-center">
-              <v-icon size="64" color="grey">mdi-chart-box</v-icon>
-              <p class="text-h6 mt-4">{{ LL?.admin.statistics.comingSoon() }}</p>
-            </v-card-text>
-          </v-card>
+          <statistics-section />
+        </v-window-item>
+
+        <v-window-item value="meta">
+          <meta-analysis-section />
         </v-window-item>
 
         <v-window-item value="maintenance">
@@ -49,6 +52,8 @@
 import { ref } from 'vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import UserManagementSection from '@/components/admin/UserManagementSection.vue';
+import StatisticsSection from '@/components/admin/StatisticsSection.vue';
+import MetaAnalysisSection from '@/components/admin/MetaAnalysisSection.vue';
 import MaintenanceSection from '@/components/admin/MaintenanceSection.vue';
 import { useLocale } from '@/composables/useLocale';
 

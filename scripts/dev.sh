@@ -50,10 +50,10 @@ echo ""
 echo -e "${GREEN}[1/3] Starting Supabase...${NC}"
 cd "$PROJECT_ROOT"
 
-if supabase status --project-id duel-log-app > /dev/null 2>&1; then
+if npx supabase status --project-id duel-log-app > /dev/null 2>&1; then
     echo -e "${YELLOW}      Supabase is already running.${NC}"
 else
-    supabase start
+    npx supabase start
 fi
 
 echo ""
@@ -63,21 +63,20 @@ echo -e "${GREEN}[2/3] Starting Backend...${NC}"
 
 cd "$BACKEND_DIR"
 
-# Python仮想環境のセットアップ
-if [ ! -d "venv" ]; then
-    echo -e "${YELLOW}      Creating Python virtual environment...${NC}"
-    python3 -m venv venv
+# Python仮想環境のセットアップ (uv使用)
+if [ ! -d ".venv" ]; then
+    echo -e "${YELLOW}      Creating Python virtual environment with uv...${NC}"
+    uv venv --python 3.11
 fi
 
 # 仮想環境をアクティベート
-source venv/bin/activate
+source .venv/bin/activate
 
 # 依存関係のインストール（必要な場合）
-if [ ! -f "venv/.installed" ] || [ "requirements.txt" -nt "venv/.installed" ]; then
-    echo -e "${YELLOW}      Installing dependencies...${NC}"
-    pip install -q --upgrade pip
-    pip install -q -r requirements.txt
-    touch venv/.installed
+if [ ! -f ".venv/.installed" ] || [ "requirements.txt" -nt ".venv/.installed" ]; then
+    echo -e "${YELLOW}      Installing dependencies with uv...${NC}"
+    uv pip install -r requirements.txt
+    touch .venv/.installed
 fi
 
 # 環境変数を設定
@@ -88,6 +87,7 @@ export SUPABASE_JWT_SECRET="super-secret-jwt-token-with-at-least-32-characters-l
 export SECRET_KEY="hrD0GEww5vtDXQoj/UxNHBXtH+SjgXeOJUNbrIX/l+Y="
 export ENVIRONMENT="development"
 export FRONTEND_URL="http://localhost:5173"
+export HOST="127.0.0.1"
 
 # バックエンドをバックグラウンドで起動
 python start.py &
