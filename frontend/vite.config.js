@@ -11,6 +11,22 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vue関連
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          // UIフレームワーク
+          vuetify: ['vuetify'],
+          // チャートライブラリ
+          charts: ['chart.js', 'apexcharts', 'vue3-apexcharts'],
+          // i18n
+          i18n: ['typesafe-i18n'],
+        },
+      },
+    },
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,
