@@ -1,12 +1,91 @@
 <template>
+  <!-- モバイル: コンパクトカード表示 -->
+  <div v-if="isMobile" class="duel-cards">
+    <div v-if="loading" class="text-center pa-4">
+      <v-progress-circular indeterminate color="primary" />
+    </div>
+    <template v-else-if="duels.length > 0">
+      <div
+        v-for="duel in duels"
+        :key="duel.id"
+        class="duel-card-compact"
+        @click="showActionButtons && $emit('edit', duel)"
+      >
+        <!-- 勝敗インジケーター -->
+        <div class="result-indicator" :class="duel.is_win ? 'win' : 'lose'" />
+
+        <!-- メインコンテンツ -->
+        <div class="card-content">
+          <!-- 1行目: デッキ対戦 + 日時 -->
+          <div class="deck-row">
+            <span class="deck-names">
+              <span class="my-deck">{{ duel.deck?.name || '?' }}</span>
+              <span class="vs">vs</span>
+              <span class="opponent-deck">{{ duel.opponent_deck?.name || '?' }}</span>
+            </span>
+            <span class="date-text">{{ formatDateShort(duel.played_date) }}</span>
+          </div>
+
+          <!-- 2行目: 詳細情報（アイコン主体） -->
+          <div class="detail-row">
+            <span class="detail-item" :title="duel.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()">
+              <v-icon size="14" :color="duel.is_going_first ? 'info' : 'purple'">
+                {{ duel.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
+              </v-icon>
+            </span>
+            <span class="detail-item" :title="duel.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose()">
+              <v-icon size="14" :color="duel.won_coin_toss ? 'warning' : 'grey'">
+                {{ duel.won_coin_toss ? 'mdi-circle-slice-8' : 'mdi-circle-outline' }}
+              </v-icon>
+            </span>
+            <!-- ランク/レート/DC表示 -->
+            <span v-if="duel.game_mode === 'RANK' && duel.rank" class="detail-item metric">
+              <v-icon size="12" color="warning">mdi-crown</v-icon>
+              {{ getRankNameShort(duel.rank) }}
+            </span>
+            <span v-else-if="duel.game_mode === 'RATE' && duel.rate_value !== undefined" class="detail-item metric">
+              <v-icon size="12" color="info">mdi-chart-line</v-icon>
+              {{ duel.rate_value }}
+            </span>
+            <span v-else-if="duel.game_mode === 'DC' && duel.dc_value !== undefined" class="detail-item metric">
+              <v-icon size="12" color="warning">mdi-trophy-variant</v-icon>
+              {{ duel.dc_value }}
+            </span>
+            <!-- 備考アイコン -->
+            <span v-if="duel.notes" class="detail-item" :title="duel.notes">
+              <v-icon size="14" color="grey">mdi-note-text</v-icon>
+            </span>
+          </div>
+        </div>
+
+        <!-- アクションボタン（長押しで削除） -->
+        <v-btn
+          v-if="showActionButtons"
+          icon="mdi-delete"
+          variant="text"
+          size="x-small"
+          color="error"
+          class="delete-btn"
+          @click.stop="$emit('delete', duel.id)"
+        />
+      </div>
+    </template>
+    <div v-else class="text-center pa-8">
+      <v-icon size="48" color="grey">mdi-file-document-outline</v-icon>
+      <p class="text-body-1 text-grey mt-2">{{ LL?.duels.table.noRecords() }}</p>
+    </div>
+  </div>
+
+  <!-- デスクトップ: テーブル表示 -->
   <v-data-table
+    v-else
     :headers="computedHeaders"
     :items="duels"
     :loading="loading"
     class="duel-table"
     hover
     density="comfortable"
-    mobile-breakpoint="sm"
+    mobile-breakpoint="0"
     fixed-header
     :height="tableHeightValue"
   >
@@ -119,10 +198,14 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useDisplay } from 'vuetify';
 import { useThemeStore } from '@/stores/theme';
 import { useLocale } from '@/composables/useLocale';
 import { useRanks } from '@/composables/useRanks';
 import { Duel } from '@/types';
+
+const { smAndDown } = useDisplay();
+const isMobile = computed(() => smAndDown.value);
 
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.isDark);
@@ -166,6 +249,36 @@ const formatDate = (dateString: string) => {
   return `${year}/${month}/${day} ${hour}:${minute}`;
 };
 
+// モバイル用短縮日付フォーマット
+const formatDateShort = (dateString: string) => {
+  const cleanedString = dateString.replace(/\.\d{3}Z?$/, '');
+  const [datePart, timePart] = cleanedString.split('T');
+  const [, month, day] = datePart.split('-');
+  const [hour, minute] = timePart.split(':');
+  return `${month}/${day} ${hour}:${minute}`;
+};
+
+// ランク名の短縮版を取得
+const getRankNameShort = (rank: number) => {
+  const name = getRankName(rank);
+  // "ダイヤモンド1" -> "D1", "プラチナ5" -> "P5" など
+  const shortNames: Record<string, string> = {
+    'ルーキー': 'R',
+    'ブロンズ': 'B',
+    'シルバー': 'S',
+    'ゴールド': 'G',
+    'プラチナ': 'P',
+    'ダイヤモンド': 'D',
+    'マスター': 'M',
+  };
+  for (const [full, short] of Object.entries(shortNames)) {
+    if (name.startsWith(full)) {
+      return short + name.replace(full, '');
+    }
+  }
+  return name;
+};
+
 const showActionButtons = computed(() => props.showActions !== false);
 const hiddenColumnsSet = computed(() => new Set(props.hiddenColumns ?? []));
 
@@ -183,6 +296,106 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
 </script>
 
 <style lang="scss">
+// モバイル: コンパクトカード表示
+.duel-cards {
+  max-height: 70vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.duel-card-compact {
+  display: flex;
+  align-items: stretch;
+  background: rgba(var(--v-theme-surface), 0.95);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:active {
+    background: rgba(var(--v-theme-primary), 0.1);
+  }
+
+  .result-indicator {
+    width: 4px;
+    flex-shrink: 0;
+
+    &.win {
+      background: rgb(var(--v-theme-success));
+    }
+
+    &.lose {
+      background: rgb(var(--v-theme-error));
+    }
+  }
+
+  .card-content {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+  }
+
+  .deck-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .deck-names {
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+
+    .my-deck {
+      color: rgb(var(--v-theme-primary));
+    }
+
+    .vs {
+      color: rgba(128, 128, 128, 0.6);
+      margin: 0 4px;
+      font-size: 11px;
+    }
+
+    .opponent-deck {
+      color: rgb(var(--v-theme-warning));
+    }
+  }
+
+  .date-text {
+    font-size: 11px;
+    color: rgba(128, 128, 128, 0.7);
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+
+  .detail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    &.metric {
+      font-size: 11px;
+      color: rgba(128, 128, 128, 0.8);
+    }
+  }
+
+  .delete-btn {
+    align-self: center;
+    margin-right: 4px;
+    opacity: 0.5;
+  }
+}
+
 .duel-table {
   background: transparent !important;
 
