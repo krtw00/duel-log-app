@@ -1,5 +1,5 @@
 <template>
-  <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
+  <div class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
       <div class="loading-text">{{ LL?.common.loading() }}</div>
@@ -17,7 +17,7 @@
     </div>
 
     <!-- データ表示（空データでも表示） -->
-    <div v-else ref="statsContainer" class="stats-container">
+    <div v-else class="stats-container">
       <!-- 統計カード -->
       <div v-if="showStats" class="stats-card" :class="`layout-${layout}`">
         <div
@@ -61,10 +61,6 @@ const { getRankName } = useRanks();
 const loading = ref(true);
 const errorMessage = ref<string>('');
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
-
-// DOM参照
-const popupContainer = ref<HTMLElement | null>(null);
-const statsContainer = ref<HTMLElement | null>(null);
 
 // クエリパラメータから設定を取得
 const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
