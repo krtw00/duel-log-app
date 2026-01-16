@@ -12,7 +12,7 @@
               statistics.monthlyDistribution.series.length > 0
             "
             type="pie"
-            height="350"
+            :height="chartHeight"
             :options="statistics.monthlyDistribution.chartOptions"
             :series="statistics.monthlyDistribution.series"
           ></apexchart>
@@ -143,7 +143,7 @@
               statistics.valueSequence.series[0].data.length > 0
             "
             type="line"
-            height="350"
+            :height="chartHeight"
             :options="statistics.valueSequence.chartOptions"
             :series="statistics.valueSequence.series"
           ></apexchart>
@@ -161,6 +161,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useDisplay } from 'vuetify';
 import { useThemeStore } from '@/stores/theme';
 import { useLocale } from '@/composables/useLocale';
 import DuelTable from '@/components/duel/DuelTable.vue';
@@ -168,6 +169,14 @@ import type { Duel, MatchupData } from '@/types';
 import type { ApexPieChartOptions, ApexLineChartOptions, ApexLineChartSeries } from '@/types/chart';
 
 const { LL } = useLocale();
+const { xs, smAndDown } = useDisplay();
+
+// モバイル用チャート高さ
+const chartHeight = computed(() => {
+  if (xs.value) return 250;
+  if (smAndDown.value) return 300;
+  return 350;
+});
 
 /**
  * 自分のデッキ勝率データ
@@ -268,10 +277,27 @@ const matchupHeaders = computed(() => [
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 350px;
+  min-height: 250px;
 }
 
 .matchup-table {
   width: 100%;
+}
+
+/* テーブルの横スクロール対応 */
+@media (max-width: 599px) {
+  .matchup-table {
+    :deep(.v-data-table__wrapper) {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    :deep(th),
+    :deep(td) {
+      white-space: nowrap;
+      font-size: 12px !important;
+      padding: 8px 6px !important;
+    }
+  }
 }
 </style>

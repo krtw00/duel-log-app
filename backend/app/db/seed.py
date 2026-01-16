@@ -174,20 +174,27 @@ def get_or_create_local_user(
     # まずsupabase_uuidで検索
     user = db.query(User).filter(User.supabase_uuid == supabase_uuid).first()
     if user:
+        # 既存ユーザーに管理者権限を付与
+        if not user.is_admin:
+            user.is_admin = True
+            db.commit()
+            db.refresh(user)
+            logger.info(f"Granted admin privileges to: {user.username}")
         logger.info(f"Found existing user by supabase_uuid: {user.username}")
         return user
 
     # 次にメールアドレスで検索
     user = db.query(User).filter(User.email == email).first()
     if user:
-        # 既存ユーザーにsupabase_uuidを紐付け
+        # 既存ユーザーにsupabase_uuidを紐付け + 管理者権限付与
         user.supabase_uuid = supabase_uuid
+        user.is_admin = True
         db.commit()
         db.refresh(user)
-        logger.info(f"Linked existing user to Supabase: {user.username}")
+        logger.info(f"Linked existing user to Supabase and granted admin: {user.username}")
         return user
 
-    # 新規作成
+    # 新規作成（テストユーザーは管理者権限付き）
     user = User(
         supabase_uuid=supabase_uuid,
         username=username,
@@ -195,7 +202,7 @@ def get_or_create_local_user(
         passwordhash="supabase_auth_user",  # Supabase認証ユーザーを示すマーカー
         streamer_mode=False,
         theme_preference="dark",
-        is_admin=False,
+        is_admin=True,  # シードユーザーは管理者権限付き
         enable_screen_analysis=False,
     )
     db.add(user)
