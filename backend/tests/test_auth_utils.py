@@ -5,8 +5,6 @@ Safari判定、Cookie設定、パスワードハッシュ、JWT処理のテス�
 
 from datetime import timedelta
 
-import pytest
-
 from app.core.security import (
     _truncate_password,
     create_access_token,
