@@ -9,7 +9,6 @@
         v-for="duel in duels"
         :key="duel.id"
         class="duel-card-compact"
-        @click="showActionButtons && $emit('edit', duel)"
       >
         <!-- 勝敗インジケーター -->
         <div class="result-indicator" :class="duel.is_win ? 'win' : 'lose'" />
@@ -26,29 +25,22 @@
             <span class="date-text">{{ formatDateShort(duel.played_date) }}</span>
           </div>
 
-          <!-- 2行目: 詳細情報（アイコン主体） -->
+          <!-- 2行目: 詳細情報（テキスト表示） -->
           <div class="detail-row">
-            <span class="detail-item" :title="duel.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()">
-              <v-icon size="14" :color="duel.is_going_first ? 'info' : 'purple'">
-                {{ duel.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
-              </v-icon>
+            <span class="detail-item" :class="duel.is_going_first ? 'first' : 'second'">
+              {{ duel.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second() }}
             </span>
-            <span class="detail-item" :title="duel.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose()">
-              <v-icon size="14" :color="duel.won_coin_toss ? 'warning' : 'grey'">
-                {{ duel.won_coin_toss ? 'mdi-circle-slice-8' : 'mdi-circle-outline' }}
-              </v-icon>
+            <span class="detail-item" :class="duel.won_coin_toss ? 'coin-win' : 'coin-lose'">
+              {{ duel.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose() }}
             </span>
             <!-- ランク/レート/DC表示 -->
             <span v-if="duel.game_mode === 'RANK' && duel.rank" class="detail-item metric">
-              <v-icon size="12" color="warning">mdi-crown</v-icon>
               {{ getRankNameShort(duel.rank) }}
             </span>
             <span v-else-if="duel.game_mode === 'RATE' && duel.rate_value !== undefined" class="detail-item metric">
-              <v-icon size="12" color="info">mdi-chart-line</v-icon>
               {{ duel.rate_value }}
             </span>
             <span v-else-if="duel.game_mode === 'DC' && duel.dc_value !== undefined" class="detail-item metric">
-              <v-icon size="12" color="warning">mdi-trophy-variant</v-icon>
               {{ duel.dc_value }}
             </span>
             <!-- 備考アイコン -->
@@ -58,16 +50,23 @@
           </div>
         </div>
 
-        <!-- アクションボタン（長押しで削除） -->
-        <v-btn
-          v-if="showActionButtons"
-          icon="mdi-delete"
-          variant="text"
-          size="x-small"
-          color="error"
-          class="delete-btn"
-          @click.stop="$emit('delete', duel.id)"
-        />
+        <!-- アクションボタン -->
+        <div v-if="showActionButtons" class="action-buttons">
+          <v-btn
+            icon="mdi-pencil"
+            variant="text"
+            size="x-small"
+            color="primary"
+            @click.stop="$emit('edit', duel)"
+          />
+          <v-btn
+            icon="mdi-delete"
+            variant="text"
+            size="x-small"
+            color="error"
+            @click.stop="$emit('delete', duel.id)"
+          />
+        </div>
       </div>
     </template>
     <div v-else class="text-center pa-8">
@@ -308,12 +307,6 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
   align-items: stretch;
   background: rgba(var(--v-theme-surface), 0.95);
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);
-  cursor: pointer;
-  transition: background-color 0.15s;
-
-  &:active {
-    background: rgba(var(--v-theme-primary), 0.1);
-  }
 
   .result-indicator {
     width: 4px;
@@ -376,23 +369,42 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 11px;
   }
 
   .detail-item {
     display: flex;
     align-items: center;
     gap: 2px;
+    color: rgba(128, 128, 128, 0.8);
+
+    &.first {
+      color: rgb(var(--v-theme-info));
+    }
+
+    &.second {
+      color: #9c27b0;
+    }
+
+    &.coin-win {
+      color: rgb(var(--v-theme-warning));
+    }
+
+    &.coin-lose {
+      color: rgba(128, 128, 128, 0.6);
+    }
 
     &.metric {
-      font-size: 11px;
       color: rgba(128, 128, 128, 0.8);
     }
   }
 
-  .delete-btn {
-    align-self: center;
-    margin-right: 4px;
-    opacity: 0.5;
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: 4px;
+    gap: 0;
   }
 }
 
