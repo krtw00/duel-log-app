@@ -31,6 +31,7 @@ const ja = {
     statistics: '統計',
     profile: 'プロフィール',
     admin: '管理者画面',
+    feedback: 'フィードバック',
     logout: 'ログアウト',
   },
   auth: {
@@ -105,6 +106,16 @@ const ja = {
     quickStats: '今月の成績',
     noDuels: 'まだ対戦記録がありません',
     recordFirst: '最初の対戦を記録しましょう',
+    streak: {
+      winning: '{count:number}連勝中',
+      losing: '{count:number}連敗中',
+      none: '連勝/連敗なし',
+    },
+    emptyState: {
+      title: '最初の対戦を記録しましょう',
+      description: '対戦結果を記録して、あなたの成長を追跡しましょう',
+      addButton: '対戦を記録',
+    },
     streamer: {
       popupWindow: '配信用ポップアップウィンドウ',
       recommended: '推奨',
@@ -217,6 +228,13 @@ const ja = {
       autoRegisterNoDeck: '自動登録: 使用デッキが設定されていません',
       deckResolveFailed: 'デッキの登録に失敗しました',
       waitingNext: '次の対戦を待機中...',
+      steps: {
+        decks: 'デッキ',
+        battle: '対戦',
+        details: '詳細',
+      },
+      next: '次へ',
+      prev: '戻る',
     },
     table: {
       noColumn: 'No.',
@@ -641,6 +659,52 @@ const ja = {
     contact: 'お問い合わせ',
     twitter: 'Twitter/X',
     version: 'バージョン',
+  },
+  feedback: {
+    intro: 'バグ報告、機能要望、お問い合わせをお待ちしております。GitHubのIssueとして登録されます。',
+    tabs: {
+      bug: 'バグ報告',
+      enhancement: '機能要望',
+      contact: 'お問い合わせ',
+    },
+    form: {
+      title: 'タイトル',
+      description: '説明',
+    },
+    bug: {
+      titlePlaceholder: 'バグの概要を入力',
+      descriptionPlaceholder: 'バグの詳細を入力してください',
+      steps: '再現手順',
+      stepsPlaceholder: '1. ○○を開く\n2. ○○をクリック\n3. エラーが発生',
+      expected: '期待する動作',
+      expectedPlaceholder: '本来どうなるべきか',
+      actual: '実際の動作',
+      actualPlaceholder: '実際に何が起きたか',
+      submit: 'バグを報告する',
+    },
+    enhancement: {
+      titlePlaceholder: '機能の概要を入力',
+      descriptionPlaceholder: '追加してほしい機能の詳細を入力してください',
+      useCase: 'ユースケース',
+      useCasePlaceholder: 'どのような場面で使いたいか',
+      submit: '機能を要望する',
+    },
+    contact: {
+      subject: '件名',
+      subjectPlaceholder: 'お問い合わせの件名を入力',
+      message: 'メッセージ',
+      messagePlaceholder: 'お問い合わせ内容を入力してください',
+      submit: '送信する',
+    },
+    contactInfo: {
+      title: '連絡先',
+    },
+    githubDisabled: 'GitHub連携が無効のため、フォームからの送信はできません。X (Twitter) またはGitHubから直接ご連絡ください。',
+    success: {
+      title: '送信完了',
+      viewIssue: 'GitHubでIssueを確認する',
+    },
+    error: '送信に失敗しました。時間をおいて再度お試しください。',
   },
   language: {
     title: '言語',
