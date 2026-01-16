@@ -458,10 +458,22 @@ onUnmounted(() => {
   // クロマキー背景
   &.chroma-key-green {
     background: #00FF00 !important;
+
+    // カードの背景を不透明にする
+    .stat-item {
+      background: #1a1a1a !important;
+      border-color: rgba(0, 217, 255, 0.4) !important;
+    }
   }
 
   &.chroma-key-blue {
     background: #0000FF !important;
+
+    // カードの背景を不透明にする
+    .stat-item {
+      background: #1a1a1a !important;
+      border-color: rgba(0, 217, 255, 0.4) !important;
+    }
   }
 
   // ダークテーマ
