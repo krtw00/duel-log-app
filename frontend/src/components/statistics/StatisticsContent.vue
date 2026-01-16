@@ -137,25 +137,29 @@
         <v-card-title>
           {{ gameMode === 'RATE' ? LL?.statistics.rateChart.title() : LL?.statistics.dcChart.title() }} ({{ displayMonth }})
         </v-card-title>
-        <v-card-text>
-          <apexchart
-            v-if="
-              statistics.valueSequence &&
-              statistics.valueSequence.series &&
-              statistics.valueSequence.series[0] &&
-              statistics.valueSequence.series[0].data &&
-              statistics.valueSequence.series[0].data.length > 0
-            "
-            type="line"
-            :height="chartHeight"
-            :options="statistics.valueSequence.chartOptions"
-            :series="statistics.valueSequence.series"
-          ></apexchart>
-          <div v-else class="no-data-placeholder">
-            <v-icon size="64" color="grey">{{
-              gameMode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
-            }}</v-icon>
-            <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="chart-scroll-container">
+            <div class="chart-inner">
+              <apexchart
+                v-if="
+                  statistics.valueSequence &&
+                  statistics.valueSequence.series &&
+                  statistics.valueSequence.series[0] &&
+                  statistics.valueSequence.series[0].data &&
+                  statistics.valueSequence.series[0].data.length > 0
+                "
+                type="line"
+                :height="chartHeight"
+                :options="statistics.valueSequence.chartOptions"
+                :series="statistics.valueSequence.series"
+              ></apexchart>
+              <div v-else class="no-data-placeholder">
+                <v-icon size="64" color="grey">{{
+                  gameMode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
+                }}</v-icon>
+                <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
+              </div>
+            </div>
           </div>
         </v-card-text>
       </v-card>
@@ -289,6 +293,17 @@ const matchupHeaders = computed(() => [
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* チャート横スクロール用コンテナ */
+.chart-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-inner {
+  min-width: 600px;
 }
 
 .matchup-table {
