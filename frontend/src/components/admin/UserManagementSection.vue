@@ -64,19 +64,39 @@
           {{ formatDate(item.createdat) }}
         </template>
 
-        <template #item.actions="{ item }">
-          <v-btn
-            :color="item.is_admin ? 'error' : 'primary'"
+        <template #item.status="{ item }">
+          <v-chip
+            :color="getStatusColor(item.status)"
             size="small"
-            variant="outlined"
-            :loading="togglingUserId === item.id"
-            @click="promptUpdateStatus(item, !item.is_admin)"
+            :variant="item.status === 'active' ? 'flat' : 'outlined'"
           >
-            <v-icon start size="small">
-              {{ item.is_admin ? 'mdi-shield-off' : 'mdi-shield-crown' }}
-            </v-icon>
-            {{ item.is_admin ? '権限を削除' : '管理者にする' }}
-          </v-btn>
+            {{ getStatusLabel(item.status) }}
+          </v-chip>
+        </template>
+
+        <template #item.actions="{ item }">
+          <div class="d-flex gap-1">
+            <v-btn
+              color="info"
+              size="small"
+              variant="outlined"
+              @click="openUserDetail(item.id)"
+            >
+              <v-icon size="small">mdi-account-details</v-icon>
+            </v-btn>
+            <v-btn
+              :color="item.is_admin ? 'error' : 'primary'"
+              size="small"
+              variant="outlined"
+              :loading="togglingUserId === item.id"
+              @click="promptUpdateStatus(item, !item.is_admin)"
+            >
+              <v-icon start size="small">
+                {{ item.is_admin ? 'mdi-shield-off' : 'mdi-shield-crown' }}
+              </v-icon>
+              {{ item.is_admin ? '権限を削除' : '管理者にする' }}
+            </v-btn>
+          </div>
         </template>
 
         <template #bottom>
@@ -130,6 +150,20 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- User Detail Dialog -->
+    <user-detail-dialog
+      v-model="isDetailDialogVisible"
+      :user-id="selectedUserId"
+      @change-status="openStatusChangeFromDetail"
+    />
+
+    <!-- User Status Change Dialog -->
+    <user-status-change-dialog
+      v-model="isStatusChangeDialogVisible"
+      :user="selectedUserForStatusChange"
+      @status-changed="handleStatusChanged"
+    />
   </v-card>
 </template>
 
@@ -138,7 +172,9 @@ import { ref, computed, onMounted } from 'vue';
 import { useNotificationStore } from '@/stores/notification';
 import { createLogger } from '@/utils/logger';
 import { getAdminUsers, updateUserAdminStatus } from '@/services/adminApi';
-import type { UserAdminResponse } from '@/types/admin';
+import type { UserAdminResponse, UserDetailResponse } from '@/types/admin';
+import UserDetailDialog from './UserDetailDialog.vue';
+import UserStatusChangeDialog from './UserStatusChangeDialog.vue';
 
 const logger = createLogger('UserManagement');
 
@@ -162,14 +198,23 @@ const dialogTitle = ref('');
 const dialogMessage = ref('');
 const pendingUpdate = ref<{ userId: number; isAdmin: boolean } | null>(null);
 
+// User Detail Dialog
+const isDetailDialogVisible = ref(false);
+const selectedUserId = ref<number | null>(null);
+
+// User Status Change Dialog
+const isStatusChangeDialogVisible = ref(false);
+const selectedUserForStatusChange = ref<UserDetailResponse | null>(null);
+
 // Table Headers
 const headers = [
   { title: 'ID', key: 'id', sortable: true, width: '80px' },
   { title: 'ユーザー名', key: 'username', sortable: true },
   { title: 'メールアドレス', key: 'email', sortable: true },
-  { title: '権限', key: 'is_admin', sortable: true, width: '150px' },
-  { title: '登録日', key: 'createdat', sortable: true, width: '150px' },
-  { title: '操作', key: 'actions', sortable: false, width: '180px' },
+  { title: '権限', key: 'is_admin', sortable: true, width: '120px' },
+  { title: '状態', key: 'status', sortable: true, width: '100px' },
+  { title: '登録日', key: 'createdat', sortable: true, width: '120px' },
+  { title: '操作', key: 'actions', sortable: false, width: '200px' },
 ];
 
 // Computed
@@ -257,6 +302,49 @@ function formatDate(dateStr: string) {
   });
 }
 
+// User Detail Dialog functions
+function openUserDetail(userId: number) {
+  selectedUserId.value = userId;
+  isDetailDialogVisible.value = true;
+}
+
+function openStatusChangeFromDetail(user: UserDetailResponse) {
+  isDetailDialogVisible.value = false;
+  selectedUserForStatusChange.value = user;
+  isStatusChangeDialogVisible.value = true;
+}
+
+function handleStatusChanged(_user: UserDetailResponse) {
+  fetchUsers();
+}
+
+// Status helpers
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'active':
+      return 'success';
+    case 'suspended':
+      return 'warning';
+    case 'deleted':
+      return 'error';
+    default:
+      return 'default';
+  }
+}
+
+function getStatusLabel(status: string) {
+  switch (status) {
+    case 'active':
+      return '有効';
+    case 'suspended':
+      return '停止中';
+    case 'deleted':
+      return '削除済み';
+    default:
+      return status;
+  }
+}
+
 onMounted(fetchUsers);
 </script>
 
@@ -265,6 +353,10 @@ onMounted(fetchUsers);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
+}
+
+.gap-1 {
+  gap: 0.25rem;
 }
 
 .gap-4 {
