@@ -191,4 +191,33 @@ describe('authStore', () => {
     (authStore as any).user.streamer_mode = false;
     expect(authStore.isStreamerModeEnabled).toBe(false);
   });
+
+  describe('chromaKeyBackground', () => {
+    it('initializes with none as default', () => {
+      const authStore = useAuthStore();
+      expect(authStore.chromaKeyBackground).toBe('none');
+    });
+
+    it('loads from localStorage if set', () => {
+      localStorage.setItem('chromaKeyBackground', 'green');
+      const authStore = useAuthStore();
+      expect(authStore.chromaKeyBackground).toBe('green');
+    });
+
+    it('setChromaKeyBackground updates value and localStorage', () => {
+      const authStore = useAuthStore();
+
+      authStore.setChromaKeyBackground('green');
+      expect(authStore.chromaKeyBackground).toBe('green');
+      expect(localStorage.getItem('chromaKeyBackground')).toBe('green');
+
+      authStore.setChromaKeyBackground('blue');
+      expect(authStore.chromaKeyBackground).toBe('blue');
+      expect(localStorage.getItem('chromaKeyBackground')).toBe('blue');
+
+      authStore.setChromaKeyBackground('none');
+      expect(authStore.chromaKeyBackground).toBe('none');
+      expect(localStorage.getItem('chromaKeyBackground')).toBe('none');
+    });
+  });
 });
