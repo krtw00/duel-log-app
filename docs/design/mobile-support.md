@@ -15,20 +15,21 @@ Duel Log Appのモバイル対応設計書。スマートフォンでの閲覧�
 | グリッド | StatsDisplayCards | `cols="6" sm="4" md="2"` |
 | グリッド | StatisticsFilter | `cols="12" sm="6" md="4"` |
 | ダイアログ | DuelFormDialog | `fullscreen` on xs |
-| テーブル | DuelTable | `mobile-breakpoint="sm"`、一部カラム非表示 |
+| テーブル | DuelTable | モバイル用カード表示（smAndDown時）、`useDisplay()` |
+| チャート | StatisticsContent | レスポンシブ高さ（xs: 250px, sm: 300px, md+: 350px） |
 
 ### 要改善（優先度順）
 
 | 優先度 | 問題 | 影響 | 対象ファイル |
 |-------|------|------|------------|
-| 🔴 Critical | DuelTableのフォントサイズ(20px)が大きすぎる | スマホで見づらい | DuelTable.vue |
 | 🔴 Critical | 統計テーブル（相性表等）のモバイル対応なし | 横スクロール発生 | StatisticsContent.vue |
-| 🟠 High | チャート高さ固定(350px) | 画面占有が大きすぎる | StatisticsContent.vue |
 | 🟠 High | ラジオボタングループが横並び固定 | モバイルで操作しづらい | DuelFormDialog.vue |
 | 🟠 High | コンテナのpadding `pa-6`が大きい | 表示領域が狭い | DashboardView, StatisticsView |
 | 🟡 Medium | ダイアログmax-width 500pxが小型端末で大きい | レイアウト崩れ | DecksView.vue |
 | 🟡 Medium | タッチターゲット < 44px | 操作しづらい | 複数コンポーネント |
 | 🟢 Low | ボトムナビゲーションなし | ナビゲーション利便性 | AppLayout |
+
+> **Note:** DuelTableのモバイルカード表示とチャートのレスポンシブ高さは実装済み。
 
 ---
 
@@ -57,13 +58,18 @@ Vuetifyのデフォルトブレークポイントを使用：
 
 ## Phase 1: データテーブル最適化（Critical）
 
-### 1.1 DuelTable改善
+### 1.1 DuelTable改善 ✅ 実装済み
 
-**現状の問題:**
+**実装内容:**
+- モバイル（smAndDown）でカード表示に切り替え
+- `useDisplay()` を使用してレスポンシブ判定
+- カード表示では勝敗、相手デッキ、日時、先攻/後攻を表示
+
+**参考: 実装前の問題:**
 - フォントサイズ20pxが大きすぎる
 - カラム幅が固定でオーバーフロー
 
-**改善案:**
+**設計案（参考）:**
 
 ```vue
 <!-- モバイル用カード表示の導入 -->
@@ -275,28 +281,25 @@ const isMobile = computed(() => xs.value || sm.value);
 <v-container class="pa-4 pa-sm-6">
 ```
 
-### 3.2 チャート高さのレスポンシブ化
+### 3.2 チャート高さのレスポンシブ化 ✅ 実装済み
+
+**実装箇所:** `StatisticsContent.vue`
 
 ```vue
-<template>
-  <apexchart
-    :height="chartHeight"
-    ...
-  />
-</template>
-
 <script setup>
 import { useDisplay } from 'vuetify';
 
-const { xs, sm } = useDisplay();
+const { xs, smAndDown } = useDisplay();
 
 const chartHeight = computed(() => {
   if (xs.value) return 250;
-  if (sm.value) return 300;
+  if (smAndDown.value) return 300;
   return 350;
 });
 </script>
 ```
+
+チャートは `:height="chartHeight"` で動的に高さが設定されます。
 
 ### 3.3 統計カードのグリッド最適化
 
@@ -411,11 +414,13 @@ const chartHeight = computed(() => {
 
 ## 実装優先順位
 
+### 実装済み ✅
+- DuelTableのモバイルカード表示
+- チャート高さレスポンシブ化
+
 ### 第1スプリント（Critical + High）
-1. DuelTableのモバイルカード表示
-2. 統計テーブルのアコーディオン化
-3. コンテナpadding調整
-4. チャート高さレスポンシブ化
+1. 統計テーブルのアコーディオン化
+2. コンテナpadding調整
 
 ### 第2スプリント（Medium）
 1. DuelFormDialogのラジオボタン最適化
