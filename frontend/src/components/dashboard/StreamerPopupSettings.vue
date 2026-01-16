@@ -60,6 +60,24 @@
             hide-details
           />
         </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-select
+            v-model="chromaKeyBackground"
+            :items="chromaKeyOptions"
+            :label="LL?.obs.streamerPopup.chromaKey.title()"
+            variant="outlined"
+            density="compact"
+            hide-details
+          >
+            <template #item="{ item, props }">
+              <v-list-item v-bind="props">
+                <template #prepend>
+                  <v-icon v-if="item.value !== 'none'" :color="item.value === 'green' ? '#00FF00' : '#0000FF'" size="small">mdi-square</v-icon>
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
+        </v-col>
       </v-row>
 
       <!-- 表示項目選択（折りたたみ式） -->
@@ -118,8 +136,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useLocale } from '@/composables/useLocale';
+import { useAuthStore, type ChromaKeyBackground } from '@/stores/auth';
 
 const { LL } = useLocale();
+const authStore = useAuthStore();
 
 const STORAGE_KEY = 'duellog.streamerPopupSettings';
 
@@ -198,6 +218,14 @@ const theme = ref(defaultSettings.theme);
 const layout = ref(defaultSettings.layout);
 const refreshInterval = ref(defaultSettings.refreshInterval);
 
+// クロマキー背景（authStoreと同期）
+const chromaKeyBackground = ref<ChromaKeyBackground>(authStore.chromaKeyBackground);
+
+// クロマキー背景の変更を監視してauthStoreに保存
+watch(chromaKeyBackground, (newValue) => {
+  authStore.setChromaKeyBackground(newValue);
+});
+
 // ドラッグ&ドロップの状態
 const draggedIndex = ref<number | null>(null);
 const dragOverIndex = ref<number | null>(null);
@@ -237,6 +265,12 @@ const refreshOptions = computed(() => [
   { title: LL.value?.obs.streamerPopup.intervals.sec30() ?? '30s', value: 30000 },
   { title: LL.value?.obs.streamerPopup.intervals.min1() ?? '1m', value: 60000 },
   { title: LL.value?.obs.streamerPopup.intervals.min5() ?? '5m', value: 300000 },
+]);
+
+const chromaKeyOptions = computed(() => [
+  { title: LL.value?.obs.streamerPopup.chromaKey.none() ?? 'Normal', value: 'none' },
+  { title: LL.value?.obs.streamerPopup.chromaKey.green() ?? 'Green', value: 'green' },
+  { title: LL.value?.obs.streamerPopup.chromaKey.blue() ?? 'Blue', value: 'blue' },
 ]);
 
 // ドラッグ&ドロップハンドラ
