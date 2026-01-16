@@ -49,30 +49,32 @@
     <v-col cols="12">
       <v-card :class="statsCardClass">
         <v-card-title>{{ LL?.statistics.myDeckWinRates.title() }}</v-card-title>
-        <v-card-text>
-          <v-data-table
-            :headers="myDeckWinRatesHeaders"
-            :items="statistics.myDeckWinRates || []"
-            :loading="loading"
-            class="matchup-table"
-            density="compact"
-          >
-            <template #item.win_rate="{ item }">
-              <v-chip
-                size="small"
-                :color="getMatchupColor(item.win_rate)"
-                :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
-              >
-                {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
-              </v-chip>
-            </template>
-            <template #no-data>
-              <div class="no-data-placeholder py-8">
-                <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
-                <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
-              </div>
-            </template>
-          </v-data-table>
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="table-scroll-container">
+            <v-data-table
+              :headers="myDeckWinRatesHeaders"
+              :items="statistics.myDeckWinRates || []"
+              :loading="loading"
+              class="matchup-table"
+              density="compact"
+            >
+              <template #item.win_rate="{ item }">
+                <v-chip
+                  size="small"
+                  :color="getMatchupColor(item.win_rate)"
+                  :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
+                >
+                  {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+                </v-chip>
+              </template>
+              <template #no-data>
+                <div class="no-data-placeholder py-8">
+                  <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
+                  <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
+                </div>
+              </template>
+            </v-data-table>
+          </div>
         </v-card-text>
       </v-card>
     </v-col>
@@ -81,14 +83,15 @@
     <v-col cols="12">
       <v-card :class="statsCardClass">
         <v-card-title>{{ LL?.statistics.matchup.title() }}</v-card-title>
-        <v-card-text>
-          <v-data-table
-            :headers="matchupHeaders"
-            :items="statistics.matchupData || []"
-            :loading="loading"
-            class="matchup-table"
-            density="compact"
-          >
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="table-scroll-container">
+            <v-data-table
+              :headers="matchupHeaders"
+              :items="statistics.matchupData || []"
+              :loading="loading"
+              class="matchup-table"
+              density="compact"
+            >
             <template #item.win_rate="{ item }">
               <v-chip
                 size="small"
@@ -122,7 +125,8 @@
                 <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.matchup.noData() }}</p>
               </div>
             </template>
-          </v-data-table>
+            </v-data-table>
+          </div>
         </v-card-text>
       </v-card>
     </v-col>
@@ -280,42 +284,25 @@ const matchupHeaders = computed(() => [
   min-height: 250px;
 }
 
-.matchup-table {
+/* 横スクロール用コンテナ */
+.table-scroll-container {
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
-  :deep(.v-data-table__wrapper) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+.matchup-table {
+  min-width: 750px;
 
   :deep(table) {
-    min-width: 800px;
-    table-layout: auto;
+    min-width: 750px;
+    width: 100%;
   }
 
   :deep(th),
   :deep(td) {
     white-space: nowrap !important;
-  }
-
-  /* デッキ名カラムは十分な幅を確保 */
-  :deep(th:nth-child(1)),
-  :deep(td:nth-child(1)),
-  :deep(th:nth-child(2)),
-  :deep(td:nth-child(2)) {
-    min-width: 140px !important;
-  }
-
-  /* 数値カラムはコンパクトに */
-  :deep(th:nth-child(3)),
-  :deep(td:nth-child(3)) {
-    min-width: 60px !important;
-  }
-
-  /* 勝率カラム */
-  :deep(th:nth-child(n+4)),
-  :deep(td:nth-child(n+4)) {
-    min-width: 100px !important;
+    padding: 8px 12px !important;
   }
 }
 
@@ -325,7 +312,7 @@ const matchupHeaders = computed(() => [
     :deep(th),
     :deep(td) {
       font-size: 12px !important;
-      padding: 6px 8px !important;
+      padding: 6px 10px !important;
     }
 
     :deep(.v-chip) {
