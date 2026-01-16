@@ -62,12 +62,6 @@ AppBarに「ヘルプメニュー」を追加（「?」アイコン）
 │ │ - 期待した動作は？                  │ │
 │ └─────────────────────────────────────┘ │
 │                                         │
-│ ☑ 環境情報を含める                     │
-│   (ブラウザ、OS、画面サイズ)            │
-│                                         │
-│ ☑ 匿名で送信                           │
-│   (ユーザー名・メールを含めない)        │
-│                                         │
 │              [キャンセル] [送信]        │
 └─────────────────────────────────────────┘
 ```
@@ -90,9 +84,6 @@ AppBarに「ヘルプメニュー」を追加（「?」アイコン）
 │ │ - どんな問題を解決しますか？        │ │
 │ │ - どのように使いたいですか？        │ │
 │ └─────────────────────────────────────┘ │
-│                                         │
-│ ☑ 匿名で送信                           │
-│   (ユーザー名・メールを含めない)        │
 │                                         │
 │              [キャンセル] [送信]        │
 └─────────────────────────────────────────┘
@@ -126,8 +117,10 @@ AppBarに「ヘルプメニュー」を追加（「?」アイコン）
 
 **エンドポイント**:
 ```
-POST /api/feedback/bug-report
-POST /api/feedback/feature-request
+GET  /api/feedback/status        # フィードバック機能の状態を取得
+POST /api/feedback/bug           # バグ報告
+POST /api/feedback/enhancement   # 機能要望
+POST /api/feedback/contact       # お問い合わせ
 ```
 
 **リクエストボディ（バグ報告）**:
@@ -135,14 +128,26 @@ POST /api/feedback/feature-request
 {
   "title": "string",
   "description": "string",
-  "include_environment": true,
-  "anonymous": false,
-  "environment": {
-    "browser": "Chrome 120",
-    "os": "Windows 11",
-    "screen_size": "1920x1080",
-    "app_version": "1.10.1"
-  }
+  "steps": "string | null",      // 再現手順
+  "expected": "string | null",   // 期待する動作
+  "actual": "string | null"      // 実際の動作
+}
+```
+
+**リクエストボディ（機能要望）**:
+```json
+{
+  "title": "string",
+  "description": "string",
+  "use_case": "string | null"    // ユースケース
+}
+```
+
+**リクエストボディ（お問い合わせ）**:
+```json
+{
+  "subject": "string",
+  "message": "string"
 }
 ```
 
@@ -150,55 +155,72 @@ POST /api/feedback/feature-request
 ```json
 {
   "success": true,
+  "message": "バグ報告を送信しました。ご報告ありがとうございます。",
   "issue_url": "https://github.com/owner/repo/issues/123",
   "issue_number": 123
 }
 ```
 
+**ステータスレスポンス（GET /status）**:
+```json
+{
+  "github_enabled": true,
+  "x_handle": "@duellog_app",
+  "x_url": "https://x.com/duellog_app",
+  "github_repo_url": "https://github.com/owner/repo"
+}
+```
+
 #### 3.1.4 GitHub Issue テンプレート
+
+> **プライバシー保護**: GitHub Issuesは公開されるため、ユーザーの個人情報（メールアドレス、ユーザー名、内部ID）は一切含めません。管理者が報告者を追跡する必要がある場合は、サーバーログを参照します。
 
 **バグ報告のIssue内容**:
 ```markdown
-## バグ報告
-
-### 説明
+## 説明
 {ユーザーが入力した説明}
 
-### 環境情報
-- ブラウザ: {browser}
-- OS: {os}
-- 画面サイズ: {screen_size}
-- アプリバージョン: {app_version}
+## 再現手順
+{ユーザーが入力した再現手順}
 
-### 報告者
-{匿名でない場合: ユーザー名}
-{匿名の場合: 匿名ユーザー}
+## 期待する動作
+{ユーザーが入力した期待する動作}
+
+## 実際の動作
+{ユーザーが入力した実際の動作}
 
 ---
-*このIssueはアプリ内フィードバック機能から自動作成されました*
+**Environment:** `{User-Agent}`
 ```
 
 **機能リクエストのIssue内容**:
 ```markdown
-## 機能リクエスト
-
-### 説明
+## 説明
 {ユーザーが入力した説明}
 
-### 報告者
-{匿名でない場合: ユーザー名}
-{匿名の場合: 匿名ユーザー}
+## ユースケース
+{ユーザーが入力したユースケース}
 
 ---
-*このIssueはアプリ内フィードバック機能から自動作成されました*
+**Environment:** `{User-Agent}`
+```
+
+**お問い合わせのIssue内容**:
+```markdown
+## メッセージ
+{ユーザーが入力したメッセージ}
+
+---
+**Environment:** `{User-Agent}`
 ```
 
 #### 3.1.5 GitHub Issue ラベル
 
 | フィードバックタイプ | 自動付与ラベル |
 |---------------------|----------------|
-| バグ報告 | `bug`, `from-app` |
-| 機能リクエスト | `enhancement`, `from-app` |
+| バグ報告 | `bug`, `user-report` |
+| 機能リクエスト | `enhancement`, `user-report` |
+| お問い合わせ | `question`, `user-report` |
 
 ### 3.2 バックエンド実装
 
@@ -219,82 +241,56 @@ backend/
 ├── app/
 │   ├── api/
 │   │   └── routers/
-│   │       └── feedback.py          # 新規: フィードバックルーター
-│   ├── services/
-│   │   └── feedback_service.py      # 新規: GitHubAPI連携サービス
-│   └── schemas/
-│       └── feedback.py              # 新規: リクエスト/レスポンススキーマ
+│   │       └── feedback.py          # フィードバックルーター
+│   └── services/
+│       └── github_service.py        # GitHubAPI連携サービス
 ```
 
-#### 3.2.3 サービス実装例
+#### 3.2.3 サーバーログによる追跡
+
+報告者の追跡が必要な場合、サーバーログを参照します：
 
 ```python
-# backend/app/services/feedback_service.py
-import httpx
-from app.core.config import settings
+# feedback.py での実装
+if result:
+    # 管理者追跡用にサーバーログに記録（GitHub Issueには個人情報を含めない）
+    logger.info(
+        f"Bug report submitted: user_id={current_user.id}, issue=#{result['number']}"
+    )
+```
 
-class FeedbackService:
-    GITHUB_API_URL = "https://api.github.com"
+**ログ検索例:**
+```bash
+# 特定のIssue番号から報告者を特定
+grep "issue=#123" /var/log/app/feedback.log
+# => Bug report submitted: user_id=456, issue=#123
 
-    def __init__(self):
-        self.headers = {
-            "Authorization": f"token {settings.GITHUB_TOKEN}",
-            "Accept": "application/vnd.github.v3+json"
-        }
+# 特定ユーザーのフィードバック履歴を確認
+grep "user_id=456" /var/log/app/feedback.log
+```
 
-    async def create_bug_report(
-        self,
-        title: str,
-        description: str,
-        environment: dict | None,
-        username: str | None
-    ) -> dict:
-        body = self._format_bug_report(description, environment, username)
-        return await self._create_issue(
-            title=f"[Bug] {title}",
-            body=body,
-            labels=["bug", "from-app"]
-        )
+#### 3.2.4 サービス実装概要
 
-    async def create_feature_request(
-        self,
-        title: str,
-        description: str,
-        username: str | None
-    ) -> dict:
-        body = self._format_feature_request(description, username)
-        return await self._create_issue(
-            title=f"[Feature] {title}",
-            body=body,
-            labels=["enhancement", "from-app"]
-        )
-
-    async def _create_issue(
+```python
+# backend/app/services/github_service.py
+class GitHubService:
+    async def create_issue(
         self,
         title: str,
         body: str,
-        labels: list[str]
-    ) -> dict:
-        url = f"{self.GITHUB_API_URL}/repos/{settings.GITHUB_REPO_OWNER}/{settings.GITHUB_REPO_NAME}/issues"
+        issue_type: IssueType,
+        user_agent: str | None = None,  # ブラウザ/OS情報のみ
+    ) -> dict | None:
+        """
+        プライバシー保護のため、ユーザーの個人情報（メールアドレス、
+        ユーザー名、内部ID）はIssueに含めません。
+        """
+        full_body = body
+        if user_agent:
+            full_body += f"\n\n---\n**Environment:** `{user_agent}`"
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                url,
-                headers=self.headers,
-                json={
-                    "title": title,
-                    "body": body,
-                    "labels": labels
-                }
-            )
-            response.raise_for_status()
-            data = response.json()
-
-            return {
-                "success": True,
-                "issue_url": data["html_url"],
-                "issue_number": data["number"]
-            }
+        # GitHub API でIssue作成
+        ...
 ```
 
 ### 3.3 フロントエンド実装
