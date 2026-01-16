@@ -73,6 +73,7 @@ const layout = ref((route.query.layout as string) || 'horizontal');
 const refreshInterval = ref(Number(route.query.refresh) || 30000);
 const gameMode = ref<GameMode>((route.query.game_mode as GameMode) || 'RANK');
 const statsPeriod = ref((route.query.stats_period as string) || 'monthly');
+const resetSize = ref(route.query.reset_size === 'true');
 
 // データ
 const statsData = ref<Record<string, unknown>>({});
@@ -237,7 +238,14 @@ const statsItems = computed(() => {
 });
 
 /**
- * ウィンドウサイズをコンテンツに合わせて自動調整（初回のみ）
+ * 保存されたウィンドウサイズのキーを生成
+ */
+const getWindowSizeKey = () => `streamerPopupSize_${layout.value}`;
+
+/**
+ * ウィンドウサイズをコンテンツに合わせて自動調整
+ * - 初回: コンテンツに基づいてサイズを計算し、localStorageに保存
+ * - 2回目以降: localStorageから保存されたサイズを使用（固定）
  */
 const resizeWindowToContent = async () => {
   // 既にリサイズ済みの場合はスキップ（自動更新時にサイズが変わるのを防ぐ）
@@ -248,7 +256,30 @@ const resizeWindowToContent = async () => {
 
   await nextTick();
 
-  // コンテンツのサイズを取得
+  const sizeKey = getWindowSizeKey();
+
+  // reset_size=true の場合は保存されたサイズをクリア
+  if (resetSize.value) {
+    localStorage.removeItem(sizeKey);
+    logger.debug('Saved window size cleared due to reset_size parameter');
+  }
+
+  const savedSize = localStorage.getItem(sizeKey);
+
+  // 保存されたサイズがある場合はそれを使用（固定サイズ）
+  if (savedSize && !resetSize.value) {
+    try {
+      const { width, height } = JSON.parse(savedSize);
+      window.resizeTo(width, height);
+      hasResized.value = true;
+      logger.debug(`Window restored to saved size: ${width}x${height} (layout: ${layout.value})`);
+      return;
+    } catch (e) {
+      logger.debug('Failed to parse saved window size, will auto-resize');
+    }
+  }
+
+  // 初回: コンテンツに基づいてサイズを計算
   const container = statsContainer.value || popupContainer.value;
   if (!container) return;
 
@@ -292,8 +323,11 @@ const resizeWindowToContent = async () => {
 
   try {
     window.resizeTo(targetWidth, targetHeight);
-    hasResized.value = true; // リサイズ済みフラグを立てる
-    logger.debug(`Window resized to ${targetWidth}x${targetHeight} (layout: ${layout.value})`);
+    hasResized.value = true;
+
+    // サイズをlocalStorageに保存（次回以降は固定サイズとして使用）
+    localStorage.setItem(sizeKey, JSON.stringify({ width: targetWidth, height: targetHeight }));
+    logger.debug(`Window auto-resized and saved: ${targetWidth}x${targetHeight} (layout: ${layout.value})`);
   } catch (e) {
     logger.debug('Could not resize window:', e);
   }
