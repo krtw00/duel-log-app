@@ -47,6 +47,33 @@ const showInitialLoader = computed(() => {
   return !skipLoaderRoutes.includes(route?.path ?? '');
 });
 
+// クロマキー背景のCSSクラスを計算
+const chromaKeyClass = computed(() => {
+  if (!authStore.isStreamerModeEnabled) return '';
+  switch (authStore.chromaKeyBackground) {
+    case 'green':
+      return 'chroma-key-green';
+    case 'blue':
+      return 'chroma-key-blue';
+    default:
+      return '';
+  }
+});
+
+// クロマキー背景のCSSクラスをbodyに適用
+watch(
+  chromaKeyClass,
+  (newClass, oldClass) => {
+    if (oldClass) {
+      document.body.classList.remove(oldClass);
+    }
+    if (newClass) {
+      document.body.classList.add(newClass);
+    }
+  },
+  { immediate: true }
+);
+
 // アプリ起動時にテーマを読み込む
 onMounted(() => {
   themeStore.loadTheme();
@@ -87,6 +114,21 @@ body.obs-overlay-page {
   .v-application,
   .v-main {
     background: transparent !important;
+  }
+}
+
+// クロマキー背景（配信者モード用）
+body.chroma-key-green {
+  .v-application,
+  .v-main {
+    background: #00FF00 !important;
+  }
+}
+
+body.chroma-key-blue {
+  .v-application,
+  .v-main {
+    background: #0000FF !important;
   }
 }
 </style>
