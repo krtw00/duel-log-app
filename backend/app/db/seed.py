@@ -174,20 +174,27 @@ def get_or_create_local_user(
     # まずsupabase_uuidで検索
     user = db.query(User).filter(User.supabase_uuid == supabase_uuid).first()
     if user:
+        # 既存ユーザーに管理者権限を付与
+        if not user.is_admin:
+            user.is_admin = True
+            db.commit()
+            db.refresh(user)
+            logger.info(f"Granted admin privileges to: {user.username}")
         logger.info(f"Found existing user by supabase_uuid: {user.username}")
         return user
 
     # 次にメールアドレスで検索
     user = db.query(User).filter(User.email == email).first()
     if user:
-        # 既存ユーザーにsupabase_uuidを紐付け
+        # 既存ユーザーにsupabase_uuidを紐付け + 管理者権限付与
         user.supabase_uuid = supabase_uuid
+        user.is_admin = True
         db.commit()
         db.refresh(user)
-        logger.info(f"Linked existing user to Supabase: {user.username}")
+        logger.info(f"Linked existing user to Supabase and granted admin: {user.username}")
         return user
 
-    # 新規作成
+    # 新規作成（テストユーザーは管理者権限付き）
     user = User(
         supabase_uuid=supabase_uuid,
         username=username,
@@ -195,7 +202,7 @@ def get_or_create_local_user(
         passwordhash="supabase_auth_user",  # Supabase認証ユーザーを示すマーカー
         streamer_mode=False,
         theme_preference="dark",
-        is_admin=False,
+        is_admin=True,  # シードユーザーは管理者権限付き
         enable_screen_analysis=False,
     )
     db.add(user)
@@ -259,6 +266,10 @@ def seed_data(db: Session):
         now = datetime.now(jst)  # JSTタイムゾーン付きの現在時刻
         period_start = now - timedelta(days=92)
         game_modes = ["RANK", "RATE", "EVENT", "DC"]
+
+        # レート/DC値の初期値（モードごとに継続して使用）
+        current_rate = 1500.0  # レートは1500スタート
+        current_dc = 0  # DCは0スタート
 
         for mode in game_modes:
             existing_duels_count = (
@@ -338,13 +349,31 @@ def seed_data(db: Session):
                         duel_data["rank"] = random.randint(1, 32)
 
                     elif mode == "RATE":
-                        duel_data["rate_value"] = round(random.uniform(200.0, 400.0), 2)
+                        # レート: 1500スタート、最低1200、増減は1桁
+                        change = random.randint(1, 9)
+                        if result:  # 勝ち
+                            current_rate = current_rate + change
+                        else:  # 負け
+                            current_rate = max(1200.0, current_rate - change)
+                        duel_data["rate_value"] = round(current_rate, 2)
 
                     elif mode == "EVENT":
                         duel_data["notes"] = "イベント300"
 
                     elif mode == "DC":
-                        duel_data["dc_value"] = random.randint(200, 400)
+                        # DC: 0スタート、勝ちで+1000
+                        # 負けは1万未満なら1000以下、1万以上でも1000付近
+                        if result:  # 勝ち
+                            current_dc = current_dc + 1000
+                        else:  # 負け
+                            if current_dc < 10000:
+                                # 1万未満は100〜1000の下がり幅
+                                loss = random.randint(100, 1000)
+                            else:
+                                # 1万以上でも1000付近（900〜1200程度）
+                                loss = random.randint(900, 1200)
+                            current_dc = max(0, current_dc - loss)
+                        duel_data["dc_value"] = current_dc
 
                     duel_in = DuelCreate(**duel_data)  # type: ignore[arg-type]
                     duel_service.create_user_duel(db, user_id=user.id, duel_in=duel_in)

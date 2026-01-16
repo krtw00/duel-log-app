@@ -131,7 +131,7 @@ describe('DuelTable.vue', () => {
     expect((wrapper.emitted().delete as any)[0][0]).toBe(mockDuels[0].id);
   });
 
-  it('has mobile-breakpoint attribute for responsive design', () => {
+  it('renders table view on desktop (non-mobile)', () => {
     const wrapper = mount(DuelTable, {
       global: {
         plugins: [vuetify, createTestingPinia()],
@@ -142,10 +142,11 @@ describe('DuelTable.vue', () => {
       },
     });
 
+    // デスクトップではテーブル表示
     const dataTable = wrapper.findComponent({ name: 'VDataTable' });
     expect(dataTable.exists()).toBe(true);
-    // mobile-breakpointが設定されていることを確認
-    expect(dataTable.props('mobileBreakpoint')).toBe('sm');
+    // モバイルカード表示は非表示
+    expect(wrapper.find('.duel-cards').exists()).toBe(false);
   });
 
   it('renders table with responsive styling', () => {

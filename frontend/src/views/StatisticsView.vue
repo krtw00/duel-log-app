@@ -132,23 +132,33 @@ const themeStore = useThemeStore();
 const uiStore = useUiStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 
-const determineStep = (count: number) => {
+const determineNiceStep = (count: number) => {
+  // キリの良い間隔を決定（10, 20, 50, 100, 200, 500...）
   if (count <= 10) return 1;
-  if (count <= 50) return 5;
-  if (count <= 500) return 10;
-  return 100;
+  if (count <= 30) return 5;
+  if (count <= 60) return 10;
+  if (count <= 120) return 20;
+  if (count <= 300) return 50;
+  if (count <= 600) return 100;
+  return 200;
 };
 
-const createLabelFormatter = (step: number, total: number) => {
+const createLabelFormatter = (total: number) => {
+  const step = determineNiceStep(total);
   return (value: string) => {
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) {
       return value;
     }
+    // 最初（1）と最後は必ず表示
     if (numeric === 1 || numeric === total) {
       return value;
     }
-    return numeric % step === 0 ? value : '';
+    // キリの良い値（stepの倍数）のみ表示
+    if (numeric % step === 0) {
+      return value;
+    }
+    return '';
   };
 };
 
@@ -462,7 +472,6 @@ const fetchStatistics = async () => {
         String(i + 1),
       );
       const seriesData = valueSequenceData.map((d: ValueSequenceEntry) => d.value);
-      const step = determineStep(categories.length);
       statisticsByMode.value[mode].valueSequence = {
         series: [{ name: mode, data: seriesData }],
         chartOptions: {
@@ -472,7 +481,7 @@ const fetchStatistics = async () => {
             categories,
             labels: {
               ...(baseLineChartOptions.value.xaxis?.labels || {}),
-              formatter: createLabelFormatter(step, categories.length),
+              formatter: createLabelFormatter(categories.length),
             },
           },
           colors: [mode === 'DC' ? '#b536ff' : '#00d9ff'],
