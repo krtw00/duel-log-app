@@ -7,7 +7,7 @@ from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from app.models import Base
+from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.deck import Deck
