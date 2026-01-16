@@ -537,31 +537,33 @@ onUnmounted(() => {
   // ダークテーマ
   &.theme-dark {
     --bg-primary: rgba(18, 18, 18, 0.92);
-    --bg-item: rgba(0, 217, 255, 0.05);
-    --bg-item-hover: rgba(0, 217, 255, 0.1);
-    --border-item: rgba(0, 217, 255, 0.2);
-    --text-primary: rgba(228, 231, 236, 0.8);
-    --text-secondary: rgba(228, 231, 236, 0.7);
+    --bg-item: rgba(30, 30, 35, 0.95);
+    --bg-item-hover: rgba(40, 40, 50, 0.95);
+    --border-item: rgba(0, 217, 255, 0.3);
+    --text-primary: rgba(228, 231, 236, 0.95);
+    --text-secondary: rgba(228, 231, 236, 0.75);
     --gradient-start: #00d9ff;
     --gradient-end: #b536ff;
     --shadow-glow: rgba(0, 217, 255, 0.5);
     --win-color: #4caf50;
     --lose-color: #f44336;
+    --icon-bg: rgba(255, 255, 255, 0.08);
   }
 
   // ライトテーマ
   &.theme-light {
     --bg-primary: rgba(255, 255, 255, 0.98);
-    --bg-item: rgba(240, 248, 255, 0.85);
-    --bg-item-hover: rgba(230, 240, 255, 0.95);
-    --border-item: rgba(0, 100, 200, 0.35);
+    --bg-item: rgba(255, 255, 255, 0.95);
+    --bg-item-hover: rgba(245, 250, 255, 0.98);
+    --border-item: rgba(0, 100, 200, 0.3);
     --text-primary: rgba(20, 20, 20, 0.95);
-    --text-secondary: rgba(50, 50, 50, 0.85);
+    --text-secondary: rgba(60, 60, 70, 0.85);
     --gradient-start: #0066cc;
     --gradient-end: #8844ff;
     --shadow-glow: rgba(0, 100, 200, 0.5);
     --win-color: #2e7d32;
     --lose-color: #c62828;
+    --icon-bg: rgba(0, 0, 0, 0.06);
   }
 }
 
@@ -603,6 +605,7 @@ onUnmounted(() => {
   background: var(--bg-item);
   border-radius: 8px;
   border: 1px solid var(--border-item);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   min-width: max-content;
 
@@ -629,7 +632,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(var(--v-theme-on-surface), 0.08);
+  background: var(--icon-bg);
   border: 1px solid var(--border-item);
   border-radius: 50%;
   flex-shrink: 0;
