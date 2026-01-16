@@ -17,6 +17,6 @@ NC='\033[0m'
 cd "$PROJECT_ROOT"
 
 echo -e "${YELLOW}Stopping local Supabase...${NC}"
-supabase stop
+npx supabase stop
 
 echo -e "${GREEN}Local Supabase stopped.${NC}"

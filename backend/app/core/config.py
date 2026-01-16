@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     SUPABASE_JWT_SECRET: str = Field(
         ..., description="Supabase JWT署名検証用シークレット"
     )
+    SUPABASE_SERVICE_ROLE_KEY: str | None = Field(
+        default=None, description="Supabase Service Role Key（管理者パスワードリセット用）"
+    )
 
     # CORS設定
     CORS_ORIGINS: List[str] = Field(
