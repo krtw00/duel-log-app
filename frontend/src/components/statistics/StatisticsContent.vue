@@ -12,7 +12,7 @@
               statistics.monthlyDistribution.series.length > 0
             "
             type="pie"
-            height="350"
+            :height="chartHeight"
             :options="statistics.monthlyDistribution.chartOptions"
             :series="statistics.monthlyDistribution.series"
           ></apexchart>
@@ -33,14 +33,16 @@
             {{ LL?.statistics.duelList.totalCount({ count: (statistics.duels || []).length }) }}
           </v-chip>
         </v-card-title>
-        <v-card-text>
-          <duel-table
-            :duels="statistics.duels || []"
-            :loading="loading"
-            :show-actions="!isShared"
-            :hidden-columns="isShared ? ['actions'] : []"
-            table-height="480px"
-          />
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="table-scroll-container">
+            <duel-table
+              :duels="statistics.duels || []"
+              :loading="loading"
+              :show-actions="!isShared"
+              :hidden-columns="isShared ? ['actions'] : []"
+              table-height="480px"
+            />
+          </div>
         </v-card-text>
       </v-card>
     </v-col>
@@ -49,30 +51,32 @@
     <v-col cols="12">
       <v-card :class="statsCardClass">
         <v-card-title>{{ LL?.statistics.myDeckWinRates.title() }}</v-card-title>
-        <v-card-text>
-          <v-data-table
-            :headers="myDeckWinRatesHeaders"
-            :items="statistics.myDeckWinRates || []"
-            :loading="loading"
-            class="matchup-table"
-            density="compact"
-          >
-            <template #item.win_rate="{ item }">
-              <v-chip
-                size="small"
-                :color="getMatchupColor(item.win_rate)"
-                :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
-              >
-                {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
-              </v-chip>
-            </template>
-            <template #no-data>
-              <div class="no-data-placeholder py-8">
-                <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
-                <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
-              </div>
-            </template>
-          </v-data-table>
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="table-scroll-container">
+            <v-data-table
+              :headers="myDeckWinRatesHeaders"
+              :items="statistics.myDeckWinRates || []"
+              :loading="loading"
+              class="matchup-table"
+              density="compact"
+            >
+              <template #item.win_rate="{ item }">
+                <v-chip
+                  size="small"
+                  :color="getMatchupColor(item.win_rate)"
+                  :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
+                >
+                  {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+                </v-chip>
+              </template>
+              <template #no-data>
+                <div class="no-data-placeholder py-8">
+                  <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
+                  <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
+                </div>
+              </template>
+            </v-data-table>
+          </div>
         </v-card-text>
       </v-card>
     </v-col>
@@ -81,14 +85,15 @@
     <v-col cols="12">
       <v-card :class="statsCardClass">
         <v-card-title>{{ LL?.statistics.matchup.title() }}</v-card-title>
-        <v-card-text>
-          <v-data-table
-            :headers="matchupHeaders"
-            :items="statistics.matchupData || []"
-            :loading="loading"
-            class="matchup-table"
-            density="compact"
-          >
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="table-scroll-container">
+            <v-data-table
+              :headers="matchupHeaders"
+              :items="statistics.matchupData || []"
+              :loading="loading"
+              class="matchup-table"
+              density="compact"
+            >
             <template #item.win_rate="{ item }">
               <v-chip
                 size="small"
@@ -122,7 +127,8 @@
                 <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.matchup.noData() }}</p>
               </div>
             </template>
-          </v-data-table>
+            </v-data-table>
+          </div>
         </v-card-text>
       </v-card>
     </v-col>
@@ -133,25 +139,29 @@
         <v-card-title>
           {{ gameMode === 'RATE' ? LL?.statistics.rateChart.title() : LL?.statistics.dcChart.title() }} ({{ displayMonth }})
         </v-card-title>
-        <v-card-text>
-          <apexchart
-            v-if="
-              statistics.valueSequence &&
-              statistics.valueSequence.series &&
-              statistics.valueSequence.series[0] &&
-              statistics.valueSequence.series[0].data &&
-              statistics.valueSequence.series[0].data.length > 0
-            "
-            type="line"
-            height="350"
-            :options="statistics.valueSequence.chartOptions"
-            :series="statistics.valueSequence.series"
-          ></apexchart>
-          <div v-else class="no-data-placeholder">
-            <v-icon size="64" color="grey">{{
-              gameMode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
-            }}</v-icon>
-            <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="chart-scroll-container">
+            <div class="chart-inner">
+              <apexchart
+                v-if="
+                  statistics.valueSequence &&
+                  statistics.valueSequence.series &&
+                  statistics.valueSequence.series[0] &&
+                  statistics.valueSequence.series[0].data &&
+                  statistics.valueSequence.series[0].data.length > 0
+                "
+                type="line"
+                :height="chartHeight"
+                :options="statistics.valueSequence.chartOptions"
+                :series="statistics.valueSequence.series"
+              ></apexchart>
+              <div v-else class="no-data-placeholder">
+                <v-icon size="64" color="grey">{{
+                  gameMode === 'RATE' ? 'mdi-chart-line' : 'mdi-trophy-variant'
+                }}</v-icon>
+                <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
+              </div>
+            </div>
           </div>
         </v-card-text>
       </v-card>
@@ -161,6 +171,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useDisplay } from 'vuetify';
 import { useThemeStore } from '@/stores/theme';
 import { useLocale } from '@/composables/useLocale';
 import DuelTable from '@/components/duel/DuelTable.vue';
@@ -168,6 +179,14 @@ import type { Duel, MatchupData } from '@/types';
 import type { ApexPieChartOptions, ApexLineChartOptions, ApexLineChartSeries } from '@/types/chart';
 
 const { LL } = useLocale();
+const { xs, smAndDown } = useDisplay();
+
+// モバイル用チャート高さ
+const chartHeight = computed(() => {
+  if (xs.value) return 250;
+  if (smAndDown.value) return 300;
+  return 350;
+});
 
 /**
  * 自分のデッキ勝率データ
@@ -268,10 +287,56 @@ const matchupHeaders = computed(() => [
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 350px;
+  min-height: 250px;
+}
+
+/* 横スクロール用コンテナ */
+.table-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* チャート横スクロール用コンテナ */
+.chart-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-inner {
+  min-width: 600px;
 }
 
 .matchup-table {
-  width: 100%;
+  min-width: 750px;
+
+  :deep(table) {
+    min-width: 750px;
+    width: 100%;
+  }
+
+  :deep(th),
+  :deep(td) {
+    white-space: nowrap !important;
+    padding: 8px 12px !important;
+  }
+}
+
+/* モバイル用追加調整 */
+@media (max-width: 599px) {
+  .matchup-table {
+    :deep(th),
+    :deep(td) {
+      font-size: 12px !important;
+      padding: 6px 10px !important;
+    }
+
+    :deep(.v-chip) {
+      font-size: 11px !important;
+      height: 22px !important;
+      padding: 0 6px !important;
+    }
+  }
 }
 </style>
