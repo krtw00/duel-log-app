@@ -185,3 +185,259 @@ class TestAdminUpdateUserStatus:
             f"/admin/users/{admin_user.id}/admin-status", json={"is_admin": False}
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestAdminGetUserDetail:
+    """GET /admin/users/{user_id} のテスト"""
+
+    def test_get_user_detail_success(
+        self, admin_authenticated_client, regular_user, db_session
+    ):
+        """管理者によるユーザー詳細取得（成功）"""
+        # デッキとデュエルを作成してユーザーに関連付け
+        from app.models.deck import Deck
+        from app.models.duel import Duel
+        from datetime import datetime, timezone
+
+        deck = Deck(name="Test Deck", user_id=regular_user.id, is_opponent=False)
+        opponent_deck = Deck(
+            name="Opponent Deck", user_id=regular_user.id, is_opponent=True
+        )
+        db_session.add_all([deck, opponent_deck])
+        db_session.commit()
+
+        duel = Duel(
+            user_id=regular_user.id,
+            deck_id=deck.id,
+            opponent_deck_id=opponent_deck.id,
+            is_win=True,
+            game_mode="RANK",
+            won_coin_toss=True,
+            is_going_first=True,
+            played_date=datetime.now(timezone.utc),
+        )
+        db_session.add(duel)
+        db_session.commit()
+
+        response = admin_authenticated_client.get(f"/admin/users/{regular_user.id}")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["username"] == "regularuser"
+        assert data["stats"]["player_decks_count"] >= 1
+        assert data["stats"]["total_duels"] >= 1
+
+    def test_get_user_detail_not_found(self, admin_authenticated_client):
+        """存在しないユーザーの取得（404）"""
+        response = admin_authenticated_client.get("/admin/users/99999")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_get_user_detail_as_regular_user_forbidden(
+        self, regular_authenticated_client, admin_user
+    ):
+        """一般ユーザーによるユーザー詳細取得（失敗 - 403 Forbidden）"""
+        response = regular_authenticated_client.get(f"/admin/users/{admin_user.id}")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestAdminUpdateUserStatus:
+    """PUT /admin/users/{user_id}/status のテスト"""
+
+    def test_suspend_user_success(self, admin_authenticated_client, regular_user):
+        """ユーザー停止（成功）"""
+        response = admin_authenticated_client.put(
+            f"/admin/users/{regular_user.id}/status",
+            json={"status": "suspended", "reason": "Test suspension"},
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["user"]["status"] == "suspended"
+
+    def test_activate_user_success(
+        self, admin_authenticated_client, regular_user, db_session
+    ):
+        """ユーザー再有効化（成功）"""
+        # 先に停止
+        regular_user.status = "suspended"
+        db_session.commit()
+
+        response = admin_authenticated_client.put(
+            f"/admin/users/{regular_user.id}/status",
+            json={"status": "active"},
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["user"]["status"] == "active"
+
+    def test_update_status_as_regular_forbidden(
+        self, regular_authenticated_client, admin_user
+    ):
+        """一般ユーザーによるステータス変更（失敗）"""
+        response = regular_authenticated_client.put(
+            f"/admin/users/{admin_user.id}/status",
+            json={"status": "suspended"},
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestAdminStatistics:
+    """管理者統計エンドポイントのテスト"""
+
+    def test_get_statistics_overview_success(self, admin_authenticated_client):
+        """統計概要取得（成功）"""
+        response = admin_authenticated_client.get("/admin/statistics/overview")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "users" in data
+        assert "decks" in data
+        assert "duels" in data
+
+    def test_get_duels_timeline_success(self, admin_authenticated_client):
+        """対戦数推移取得（成功）"""
+        response = admin_authenticated_client.get("/admin/statistics/duels-timeline")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "timeline" in data
+
+    def test_get_duels_timeline_with_params(self, admin_authenticated_client):
+        """対戦数推移取得（パラメータ付き）"""
+        response = admin_authenticated_client.get(
+            "/admin/statistics/duels-timeline?period=monthly&days=90"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "timeline" in data
+
+    def test_get_user_registrations_success(self, admin_authenticated_client):
+        """ユーザー登録数推移取得（成功）"""
+        response = admin_authenticated_client.get(
+            "/admin/statistics/user-registrations"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "registrations" in data
+
+    def test_statistics_as_regular_user_forbidden(self, regular_authenticated_client):
+        """一般ユーザーによる統計取得（失敗）"""
+        response = regular_authenticated_client.get("/admin/statistics/overview")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestAdminMaintenance:
+    """管理者メンテナンスエンドポイントのテスト"""
+
+    def test_scan_orphaned_data_success(self, admin_authenticated_client):
+        """孤立データスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-orphaned-data"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "orphaned_opponent_decks" in data
+
+    def test_cleanup_orphaned_data_success(self, admin_authenticated_client):
+        """孤立データクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-orphaned-data"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "deleted_decks" in data
+        assert data["success"] is True
+
+    def test_scan_orphaned_shared_urls_success(self, admin_authenticated_client):
+        """孤立共有URLスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-orphaned-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "orphaned_count" in data
+
+    def test_cleanup_orphaned_shared_urls_success(self, admin_authenticated_client):
+        """孤立共有URLクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-orphaned-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "deleted_count" in data
+        assert data["success"] is True
+
+    def test_scan_expired_shared_urls_success(self, admin_authenticated_client):
+        """期限切れ共有URLスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-expired-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "expired_count" in data
+
+    def test_cleanup_expired_shared_urls_success(self, admin_authenticated_client):
+        """期限切れ共有URLクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-expired-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "deleted_count" in data
+        assert data["success"] is True
+
+    def test_maintenance_as_regular_user_forbidden(self, regular_authenticated_client):
+        """一般ユーザーによるメンテナンス（失敗）"""
+        response = regular_authenticated_client.post(
+            "/admin/maintenance/scan-orphaned-data"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class TestAdminMetaAnalysis:
+    """管理者メタ分析エンドポイントのテスト"""
+
+    def test_get_popular_decks_success(self, admin_authenticated_client):
+        """人気デッキ取得（成功）"""
+        response = admin_authenticated_client.get("/admin/meta/popular-decks")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "decks" in data
+        assert "total_duels" in data
+
+    def test_get_popular_decks_with_params(self, admin_authenticated_client):
+        """人気デッキ取得（パラメータ付き）"""
+        response = admin_authenticated_client.get(
+            "/admin/meta/popular-decks?days=7&game_mode=RANK&limit=10"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "decks" in data
+
+    def test_get_deck_trends_success(self, admin_authenticated_client):
+        """デッキトレンド取得（成功）"""
+        response = admin_authenticated_client.get("/admin/meta/deck-trends")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "trends" in data
+        assert "top_decks" in data
+
+    def test_get_deck_trends_with_params(self, admin_authenticated_client):
+        """デッキトレンド取得（パラメータ付き）"""
+        response = admin_authenticated_client.get(
+            "/admin/meta/deck-trends?days=14&interval=weekly"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "trends" in data
+
+    def test_get_game_mode_stats_success(self, admin_authenticated_client):
+        """ゲームモード別統計取得（成功）"""
+        response = admin_authenticated_client.get("/admin/meta/game-mode-stats")
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "stats" in data
+        assert "total_duels" in data
+
+    def test_meta_as_regular_user_forbidden(self, regular_authenticated_client):
+        """一般ユーザーによるメタ分析（失敗）"""
+        response = regular_authenticated_client.get("/admin/meta/popular-decks")
+        assert response.status_code == status.HTTP_403_FORBIDDEN

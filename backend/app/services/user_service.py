@@ -39,12 +39,14 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
 
     def _get_duel_service(self) -> DuelExportImportProtocol:
         """DuelServiceのインスタンスを取得"""
-        if self._duel_service_factory is None:
+        # クラス属性を直接アクセス（selfを経由すると関数がboundメソッドとして扱われるため）
+        factory = UserService._duel_service_factory
+        if factory is None:
             # フォールバック: 動的インポート（後方互換性のため）
             from app.services.duel_service import duel_service
 
             return duel_service
-        return self._duel_service_factory()
+        return factory()
 
     def create(self, db: Session, *, obj_in: UserCreate) -> User:  # type: ignore[override]
         """
