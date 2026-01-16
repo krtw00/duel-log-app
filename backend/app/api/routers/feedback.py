@@ -117,17 +117,21 @@ async def submit_bug_report(
             detail="GitHub連携が設定されていません",
         )
 
-    user_email = current_user.email
+    user_agent = http_request.headers.get("user-agent")
     body = _format_bug_report_body(request)
 
     result = await github_service.create_issue(
         title=f"[Bug] {request.title}",
         body=body,
         issue_type="bug",
-        user_email=user_email,
+        user_agent=user_agent,
     )
 
     if result:
+        # 管理者追跡用にサーバーログに記録（GitHub Issueには個人情報を含めない）
+        logger.info(
+            f"Bug report submitted: user_id={current_user.id}, issue=#{result['number']}"
+        )
         return FeedbackResponse(
             success=True,
             message="バグ報告を送信しました。ご報告ありがとうございます。",
@@ -155,17 +159,21 @@ async def submit_enhancement_request(
             detail="GitHub連携が設定されていません",
         )
 
-    user_email = current_user.email
+    user_agent = http_request.headers.get("user-agent")
     body = _format_enhancement_body(request)
 
     result = await github_service.create_issue(
         title=f"[Enhancement] {request.title}",
         body=body,
         issue_type="enhancement",
-        user_email=user_email,
+        user_agent=user_agent,
     )
 
     if result:
+        # 管理者追跡用にサーバーログに記録（GitHub Issueには個人情報を含めない）
+        logger.info(
+            f"Enhancement request submitted: user_id={current_user.id}, issue=#{result['number']}"
+        )
         return FeedbackResponse(
             success=True,
             message="機能要望を送信しました。ご提案ありがとうございます。",
@@ -193,17 +201,21 @@ async def submit_contact(
             detail="GitHub連携が設定されていません",
         )
 
-    user_email = current_user.email
+    user_agent = http_request.headers.get("user-agent")
     body = _format_contact_body(request)
 
     result = await github_service.create_issue(
         title=f"[Contact] {request.subject}",
         body=body,
         issue_type="question",
-        user_email=user_email,
+        user_agent=user_agent,
     )
 
     if result:
+        # 管理者追跡用にサーバーログに記録（GitHub Issueには個人情報を含めない）
+        logger.info(
+            f"Contact submitted: user_id={current_user.id}, issue=#{result['number']}"
+        )
         return FeedbackResponse(
             success=True,
             message="お問い合わせを送信しました。",
