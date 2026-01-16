@@ -52,7 +52,7 @@ class GitHubService:
         title: str,
         body: str,
         issue_type: IssueType,
-        user_email: str | None = None,
+        user_agent: str | None = None,
     ) -> dict | None:
         """
         GitHub Issueを作成
@@ -61,19 +61,24 @@ class GitHubService:
             title: Issueタイトル
             body: Issue本文
             issue_type: Issue種別 (bug/enhancement/question)
-            user_email: 報告者のメールアドレス（オプション）
+            user_agent: ブラウザ/OS情報（User-Agentヘッダー）
 
         Returns:
             作成されたIssueの情報、または失敗時はNone
+
+        Note:
+            プライバシー保護のため、ユーザーの個人情報（メールアドレス、
+            ユーザー名、内部ID）はIssueに含めません。
+            管理者が報告者を追跡する必要がある場合は、サーバーログを参照してください。
         """
         if not self.is_configured:
             logger.warning("GitHub token is not configured")
             return None
 
-        # 本文にメタ情報を追加
+        # 本文にブラウザ/OS情報を追加（デバッグ用）
         full_body = body
-        if user_email:
-            full_body += f"\n\n---\n**Reporter:** {user_email}"
+        if user_agent:
+            full_body += f"\n\n---\n**Environment:** `{user_agent}`"
 
         url = f"{self.BASE_URL}/repos/{self.owner}/{self.repo}/issues"
         payload = {

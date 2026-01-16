@@ -16,7 +16,7 @@
 - **ORM**: SQLAlchemy
 - **スキーマバリデーション**: Pydantic
 - **非同期処理**: `asyncio`
-- **認証**: JWT (JSON Web Tokens) with HttpOnly Cookies
+- **認証**: Supabase Auth (JWT) with Bearer tokens + Cookie fallback
 - **データベースマイグレーション**: Alembic
 - **テスト**: Pytest
 
@@ -76,8 +76,13 @@ backend/
 
 ### 3. 認証と認可
 
-- **認証**: ユーザーがログインすると、JWT（JSON Web Token）が生成され、HttpOnlyのクッキーとしてクライアントに保存されます。以降のリクエストでは、このクッキーを検証することでユーザーを認証します。
-- **認可**: `deps.py` の `get_current_user` のような依存性注入関数を使用して、保護されたエンドポイントにアクセスするユーザーの認証状態と権限を確認します。
+- **認証**: Supabase Authを使用してユーザー認証を行います。JWTトークンは2つの方法で受け取ります：
+  1. **Authorization ヘッダー**（推奨）: `Bearer <token>` 形式。Safari ITP対策として、フロントエンドはSupabaseセッションから取得したトークンをヘッダーに設定します。
+  2. **Cookie**（フォールバック）: `access_token` クッキー。
+
+  トークンは `verify_supabase_token()` でES256またはHS256アルゴリズムで検証されます。初回認証時にユーザーがDBに存在しない場合、JIT Provisioning（Just-In-Time）で自動作成されます。
+- **OBSオーバーレイ認証**: OBS用の専用トークン（`scope=obs_overlay`）とSupabase JWTの両方に対応しています。
+- **認可**: `deps.py` の `get_current_user` のような依存性注入関数を使用して、保護されたエンドポイントにアクセスするユーザーの認証状態と権限を確認します。管理者権限の確認には `get_admin_user` を使用します。
 
 ### 4. 設定管理
 

@@ -23,11 +23,17 @@
 | カラム名 | データ型 | 制約 | 説明 |
 | :--- | :--- | :--- | :--- |
 | `id` | `Integer` | **Primary Key** | ユーザーID |
+| `supabase_uuid` | `String(36)` | **Unique**, Nullable, Index | Supabase AuthのユーザーUUID |
 | `username` | `String` | **Unique**, **Not Null** | ユーザー名 |
-| `email` | `String` | **Unique**, **Not Null** | メールアドレス |
-| `passwordhash` | `String` | **Not Null** | ハッシュ化されたパスワード |
+| `email` | `String` | **Unique**, Nullable | メールアドレス |
+| `passwordhash` | `String` | **Not Null** | ハッシュ化されたパスワード（Supabase Auth使用時は"supabase_auth_user"） |
 | `streamer_mode` | `Boolean` | **Not Null**, Default: `False` | 配信者モードの有効/無効 |
 | `theme_preference` | `String` | **Not Null**, Default: `'dark'` | テーマ設定（'dark' または 'light'） |
+| `is_admin` | `Boolean` | **Not Null**, Default: `False` | 管理者権限フラグ |
+| `enable_screen_analysis` | `Boolean` | **Not Null**, Default: `False` | 画面解析機能の有効/無効 |
+| `status` | `String(20)` | **Not Null**, Default: `'active'` | アカウント状態（'active', 'suspended', 'deleted'） |
+| `status_reason` | `String(500)` | Nullable | 状態変更理由（停止・削除時） |
+| `last_login_at` | `DateTime(timezone=True)` | Nullable | 最終ログイン日時 (UTC) |
 | `createdat` | `DateTime(timezone=True)` | **Not Null**, Default: `now()` | 作成日時 (UTC) |
 | `updatedat` | `DateTime(timezone=True)` | **Not Null**, Default: `now()`, On Update: `now()` | 更新日時 (UTC) |
 
@@ -54,29 +60,21 @@
 | `id` | `Integer` | **Primary Key** | 対戦ID |
 | `user_id` | `Integer` | **Foreign Key (users.id)**, **Not Null** | ユーザーID |
 | `deck_id` | `Integer` | **Foreign Key (decks.id)**, **Not Null** | 使用したデッキのID |
-| `opponentDeck_id` | `Integer` | **Not Null** | 対戦相手のデッキID |
-| `result` | `Boolean` | **Not Null** | 結果 (True: 勝利, False: 敗北) |
+| `opponent_deck_id` | `Integer` | **Foreign Key (decks.id)**, **Not Null** | 対戦相手のデッキID |
+| `is_win` | `Boolean` | **Not Null** | 結果 (True: 勝利, False: 敗北) |
 | `game_mode` | `String(10)` | **Not Null**, Default: `'RANK'` | ゲームモード (RANK, RATE, EVENT, DC) |
-| `rank` | `Integer` | Nullable | ランクモード時のランク |
-| `rate_value` | `Integer` | Nullable | レートモード時のレート値 |
-| `dc_value` | `Integer` | Nullable | DCモード時のDC値 |
-| `coin` | `Boolean` | **Not Null** | コイントスの結果 (True: 表) |
-| `first_or_second` | `Boolean` | **Not Null** | 先攻か後攻か (True: 先攻) |
+| `rank` | `Integer` | Nullable | ランクモード時のランク (1-15: B2～M1) |
+| `rate_value` | `Float` | Nullable | レートモード時のレート値（小数点2桁） |
+| `dc_value` | `Integer` | Nullable | DCモード時のDC値（整数） |
+| `won_coin_toss` | `Boolean` | **Not Null** | コイントスの結果 (True: 勝利, False: 敗北) |
+| `is_going_first` | `Boolean` | **Not Null** | 先攻か後攻か (True: 先攻) |
 | `played_date` | `DateTime(timezone=True)` | **Not Null** | 対戦した日時 (UTC) |
 | `notes` | `String` | Nullable | メモ |
 | `create_date` | `DateTime(timezone=True)` | Default: `now(utc)` | 作成日時 (UTC) |
 | `update_date` | `DateTime(timezone=True)` | Default: `now(utc)`, On Update: `now(utc)` | 更新日時 (UTC) |
 
-#### ⚠️ 命名の曖昧さに関する注意
-
-現在、`duels`テーブルには歴史的な経緯から命名が曖昧なカラムが存在します。
-
-- `result`: `is_win` または `won_duel` への変更を検討中。
-- `coin`: `won_coin_toss` への変更を検討中。
-- `first_or_second`: `is_going_first` または `went_first` への変更を検討中。
-- `opponentDeck_id`: `opponent_deck_id` (snake_case) への変更を検討中。
-
-これらのカラム名は、将来のバージョンでより明確な名前にリファクタリングされる予定です。移行にはAlembicによるデータベースマイグレーションが必要となります。詳細は [コード可読性向上ガイド](./code-readability-guide.md#6-曖昧な命名の改善) を参照してください。
+> **Note:** 以前は `result`, `coin`, `first_or_second`, `opponentDeck_id` というカラム名でしたが、
+> より明確な命名規則（`is_win`, `won_coin_toss`, `is_going_first`, `opponent_deck_id`）に移行済みです。
 
 
 ### `password_reset_tokens` テーブル
