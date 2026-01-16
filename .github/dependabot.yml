@@ -1,4 +1,8 @@
 version: 2
+
+# セキュリティアップデートはGitHub設定で自動有効化されています
+# Settings > Code security and analysis > Dependabot security updates
+
 updates:
   # バックエンド Python依存関係
   - package-ecosystem: "pip"
@@ -19,6 +23,17 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    # セキュリティアップデートを優先
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      python-minor:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
 
   # フロントエンド npm依存関係
   - package-ecosystem: "npm"
@@ -41,6 +56,32 @@ updates:
       include: "scope"
     # バージョン更新戦略
     versioning-strategy: increase
+    # セキュリティアップデートを優先、関連パッケージをグループ化
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      vue-ecosystem:
+        applies-to: version-updates
+        patterns:
+          - "vue*"
+          - "@vue/*"
+          - "pinia"
+          - "vue-router"
+      testing:
+        applies-to: version-updates
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+      linting:
+        applies-to: version-updates
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "prettier*"
+          - "@typescript-eslint/*"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
