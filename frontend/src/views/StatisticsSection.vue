@@ -14,8 +14,14 @@
       @reset="resetFilters"
     />
 
+    <!-- ストリークバッジ -->
+    <div class="d-flex justify-end mb-2">
+      <streak-badge :duels="currentFilteredDuels" />
+    </div>
+
     <!-- 統計カード -->
     <stats-display-cards :stats="currentStats" :coin-win-rate-color="coinWinRateColor" />
+
   </div>
 </template>
 
@@ -26,6 +32,7 @@ import type { Duel, Deck, GameMode } from '@/types';
 // Components
 import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 import StatsDisplayCards from '@/components/dashboard/StatsDisplayCards.vue';
+import StreakBadge from '@/components/dashboard/StreakBadge.vue';
 
 // Stores
 import { useThemeStore } from '@/stores/theme';
@@ -85,6 +92,22 @@ const { rankStats, currentStats, recalculateAllStats } = useStatsCalculation({
 // Computed
 const coinWinRateColor = computed(() => {
   return themeStore.isDark ? 'yellow' : 'black';
+});
+
+// 現在のゲームモードでフィルターされたデュエルリスト
+const currentFilteredDuels = computed(() => {
+  switch (props.currentMode) {
+    case 'RANK':
+      return filteredRankDuels.value;
+    case 'RATE':
+      return filteredRateDuels.value;
+    case 'EVENT':
+      return filteredEventDuels.value;
+    case 'DC':
+      return filteredDcDuels.value;
+    default:
+      return [];
+  }
 });
 
 // Methods
