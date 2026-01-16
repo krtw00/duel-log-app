@@ -49,7 +49,7 @@ class TestCreateUser:
         response = client.post("/users/", json=user_data)
 
         assert response.status_code == status.HTTP_409_CONFLICT
-        assert "既に使用されています" in response.json()["detail"]
+        assert "既に使用されています" in response.json()["message"]
 
     def test_create_user_missing_fields(self, client):
         """必須フィールドが欠けている場合"""
@@ -106,7 +106,7 @@ class TestReadUser:
         response = authenticated_client.get(f"/users/{other_user.id}")
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert "権限がありません" in response.json()["detail"]
+        assert "権限がありません" in response.json()["message"]
 
     def test_read_user_not_found(self, authenticated_client, test_user):
         """存在しないユーザーを取得（404）"""
@@ -165,7 +165,7 @@ class TestUpdateUser:
         response = authenticated_client.put(f"/users/{other_user.id}", json=update_data)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert "権限がありません" in response.json()["detail"]
+        assert "権限がありません" in response.json()["message"]
 
         # データベースが変更されていないことを確認
         db_session.refresh(other_user)
@@ -220,7 +220,7 @@ class TestDeleteUser:
         response = authenticated_client.delete(f"/users/{other_user.id}")
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert "権限がありません" in response.json()["detail"]
+        assert "権限がありません" in response.json()["message"]
 
         # データベースから削除されていないことを確認
         user = db_session.query(User).filter(User.id == other_user.id).first()
