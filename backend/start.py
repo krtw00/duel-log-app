@@ -249,6 +249,77 @@ def check_for_multiple_heads():
         return False
 
 
+def reset_alembic_version_if_inconsistent():
+    """テーブルが存在しないがalembic_versionにバージョンがある場合にリセット"""
+    try:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url or database_url.startswith("sqlite"):
+            return
+
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+        parsed_url = urlparse(database_url)
+        conn_params = {
+            "host": parsed_url.hostname,
+            "port": parsed_url.port,
+            "user": parsed_url.username,
+            "password": unquote(parsed_url.password) if parsed_url.password else None,
+            "dbname": parsed_url.path.lstrip("/"),
+        }
+
+        if "sslmode=require" in database_url:
+            conn_params["sslmode"] = "require"
+
+        with psycopg.connect(**conn_params) as conn:
+            with conn.cursor() as cur:
+                # usersテーブルの存在確認
+                cur.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables
+                        WHERE table_name = 'users'
+                    )
+                """
+                )
+                users_table_exists = cur.fetchone()[0]
+
+                # alembic_versionテーブルの存在とバージョン確認
+                cur.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables
+                        WHERE table_name = 'alembic_version'
+                    )
+                """
+                )
+                alembic_table_exists = cur.fetchone()[0]
+
+                if alembic_table_exists and not users_table_exists:
+                    # テーブルがないのにalembic_versionだけある = 不整合状態
+                    cur.execute("SELECT version_num FROM alembic_version")
+                    versions = cur.fetchall()
+
+                    if versions:
+                        logger.warning(
+                            "⚠️  Detected inconsistent state: alembic_version has versions "
+                            f"{[v[0] for v in versions]} but 'users' table does not exist!"
+                        )
+                        logger.info(
+                            "🔧 Resetting alembic_version table to fix inconsistency..."
+                        )
+                        cur.execute("TRUNCATE TABLE alembic_version")
+                        conn.commit()
+                        logger.info(
+                            "✅ alembic_version table reset. Migrations will run from scratch."
+                        )
+                        sys.stdout.flush()
+
+    except Exception as e:
+        logger.warning(f"Could not check/reset alembic_version: {e}")
+        sys.stdout.flush()
+
+
 def run_migrations():
     """Alembicマイグレーションを実行"""
     logger.info("=" * 60)
@@ -276,6 +347,11 @@ def run_migrations():
             logger.error(f"❌ Failed to create tables: {e}")
             sys.stdout.flush()
             return False
+
+    # alembic_versionとテーブルの不整合をチェック・修復
+    logger.info("🔍 Checking for alembic_version inconsistency...")
+    sys.stdout.flush()
+    reset_alembic_version_if_inconsistent()
 
     # マイグレーション実行前にDB状態を確認
     tables_exist, current_version = get_current_db_state()
