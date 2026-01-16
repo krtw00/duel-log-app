@@ -76,7 +76,7 @@ class AdminStatisticsService:
         # 今月のアクティブユーザー数（対戦記録を追加したユーザー）
         active_this_month = (
             self.db.query(func.count(func.distinct(Duel.user_id)))
-            .filter(Duel.played_at >= first_day_of_month)
+            .filter(Duel.played_date >= first_day_of_month)
             .scalar()
             or 0
         )
@@ -129,7 +129,7 @@ class AdminStatisticsService:
         # 今月の対戦数
         this_month = (
             self.db.query(func.count(Duel.id))
-            .filter(Duel.played_at >= first_day_of_month)
+            .filter(Duel.played_date >= first_day_of_month)
             .scalar()
             or 0
         )
@@ -188,12 +188,12 @@ class AdminStatisticsService:
         """日別の対戦数を取得"""
         results = (
             self.db.query(
-                func.date(Duel.played_at).label("date"),
+                func.date(Duel.played_date).label("date"),
                 func.count(Duel.id).label("count"),
             )
-            .filter(Duel.played_at >= start_date, Duel.played_at <= end_date)
-            .group_by(func.date(Duel.played_at))
-            .order_by(func.date(Duel.played_at))
+            .filter(Duel.played_date >= start_date, Duel.played_date <= end_date)
+            .group_by(func.date(Duel.played_date))
+            .order_by(func.date(Duel.played_date))
             .all()
         )
 
@@ -218,13 +218,13 @@ class AdminStatisticsService:
         """月別の対戦数を取得"""
         results = (
             self.db.query(
-                extract("year", Duel.played_at).label("year"),
-                extract("month", Duel.played_at).label("month"),
+                extract("year", Duel.played_date).label("year"),
+                extract("month", Duel.played_date).label("month"),
                 func.count(Duel.id).label("count"),
             )
-            .filter(Duel.played_at >= start_date, Duel.played_at <= end_date)
-            .group_by(extract("year", Duel.played_at), extract("month", Duel.played_at))
-            .order_by(extract("year", Duel.played_at), extract("month", Duel.played_at))
+            .filter(Duel.played_date >= start_date, Duel.played_date <= end_date)
+            .group_by(extract("year", Duel.played_date), extract("month", Duel.played_date))
+            .order_by(extract("year", Duel.played_date), extract("month", Duel.played_date))
             .all()
         )
 
