@@ -70,7 +70,17 @@ export function useChartOptions() {
     },
     xaxis: {
       categories: [],
-      labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } },
+      labels: {
+        style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' },
+        rotate: -45,
+        rotateAlways: false,
+        hideOverlappingLabels: true,
+        showDuplicates: false,
+        trim: true,
+        maxHeight: 80,
+      },
+      // tickAmountは動的に設定（StatisticsView等で）
+      tickPlacement: 'on' as const,
     },
     yaxis: { labels: { style: { colors: themeStore.isDark ? '#E4E7EC' : '#333' } } },
     stroke: { curve: 'smooth' as const, width: 3 },
