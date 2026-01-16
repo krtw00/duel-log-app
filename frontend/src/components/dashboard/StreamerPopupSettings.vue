@@ -22,6 +22,16 @@
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-select
+            v-model="statsPeriod"
+            :items="statsPeriodOptions"
+            :label="LL?.obs.streamerPopup.statsPeriod()"
+            variant="outlined"
+            density="compact"
+            hide-details
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-select
             v-model="theme"
             :items="themeOptions"
             :label="LL?.obs.settings.theme()"
@@ -158,6 +168,7 @@ const initialDisplayItems = computed<DisplayItem[]>(() =>
 // デフォルト値
 const defaultSettings = {
   gameMode: 'RANK',
+  statsPeriod: 'monthly',
   theme: 'dark',
   layout: 'grid',
   refreshInterval: 30000,
@@ -182,6 +193,7 @@ watch(
   { immediate: true },
 );
 const gameMode = ref(defaultSettings.gameMode);
+const statsPeriod = ref(defaultSettings.statsPeriod);
 const theme = ref(defaultSettings.theme);
 const layout = ref(defaultSettings.layout);
 const refreshInterval = ref(defaultSettings.refreshInterval);
@@ -202,6 +214,11 @@ const gameModeOptions = computed(() => [
   { title: LL.value?.obs.streamerPopup.gameModes.rate() ?? 'Rate Match', value: 'RATE' },
   { title: LL.value?.obs.streamerPopup.gameModes.event() ?? 'Event', value: 'EVENT' },
   { title: LL.value?.obs.streamerPopup.gameModes.dc() ?? 'Duelist Cup', value: 'DC' },
+]);
+
+const statsPeriodOptions = computed(() => [
+  { title: LL.value?.obs.streamerPopup.statsPeriods.monthly() ?? 'This Month', value: 'monthly' },
+  { title: LL.value?.obs.streamerPopup.statsPeriods.session() ?? 'Since Stream Start', value: 'session' },
 ]);
 
 const themeOptions = computed(() => [
@@ -322,6 +339,9 @@ const loadSettings = () => {
       if (settings.gameMode) {
         gameMode.value = settings.gameMode;
       }
+      if (settings.statsPeriod) {
+        statsPeriod.value = settings.statsPeriod;
+      }
       if (settings.theme) {
         theme.value = settings.theme;
       }
@@ -345,6 +365,7 @@ const saveSettings = () => {
     const settings = {
       displayItems: displayItems.value,
       gameMode: gameMode.value,
+      statsPeriod: statsPeriod.value,
       theme: theme.value,
       layout: layout.value,
       refreshInterval: refreshInterval.value,
@@ -361,6 +382,7 @@ const saveSettings = () => {
 const resetToDefaults = () => {
   displayItems.value = initialDisplayItems.value.map((item) => ({ ...item }));
   gameMode.value = defaultSettings.gameMode;
+  statsPeriod.value = defaultSettings.statsPeriod;
   theme.value = defaultSettings.theme;
   layout.value = defaultSettings.layout;
   refreshInterval.value = defaultSettings.refreshInterval;
@@ -368,7 +390,7 @@ const resetToDefaults = () => {
 
 // 設定変更時に自動保存
 watch(
-  [displayItems, gameMode, theme, layout, refreshInterval],
+  [displayItems, gameMode, statsPeriod, theme, layout, refreshInterval],
   () => {
     saveSettings();
   },
@@ -391,6 +413,7 @@ const popupUrl = computed(() => {
   const params = new URLSearchParams({
     items: selectedItemKeys.value.join(','),
     game_mode: gameMode.value,
+    stats_period: statsPeriod.value,
     theme: theme.value,
     layout: layout.value,
     refresh: refreshInterval.value.toString(),
