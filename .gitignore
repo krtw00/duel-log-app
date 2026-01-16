@@ -63,3 +63,8 @@ ml-training/venv/
 frontend/public/ml-traning/
 .vercel
 .env*.local
+
+# Tool-specific directories
+.serena/
+backend/uv.lock
+docs/reviews/
