@@ -424,6 +424,11 @@ const ko = {
         min1: '1분',
         min5: '5분',
       },
+      statsPeriod: '통계 기간',
+      statsPeriods: {
+        monthly: '이번 달',
+        session: '방송 시작부터',
+      },
       items: {
         currentDeck: '사용 덱',
         gameModeValue: '랭크/레이팅/DC (게임 모드에 연동)',
