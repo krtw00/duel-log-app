@@ -463,6 +463,13 @@ const ko = {
       },
       loginRequired: '로그인이 필요합니다',
       loginRequiredDetail: '로그인 상태에서 이 페이지를 열어주세요',
+      chromaKey: {
+        title: '크로마키 배경',
+        description: '창 캡처 시 OBS 크로마키 필터로 배경을 투명하게 만들 수 있습니다.',
+        none: '일반',
+        green: '그린',
+        blue: '블루',
+      },
     },
     configPanel: {
       title: 'OBS 연동 설정',
