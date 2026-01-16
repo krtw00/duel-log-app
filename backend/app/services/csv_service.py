@@ -3,6 +3,7 @@
 """
 
 import csv
+import logging
 from datetime import datetime
 from io import StringIO
 from typing import List, Optional
@@ -12,6 +13,8 @@ from sqlalchemy.orm import Session, joinedload
 from app.models.duel import Duel
 from app.utils.datetime_utils import month_range_utc, year_range_utc
 from app.utils.ranks import get_rank_name, get_rank_value
+
+logger = logging.getLogger(__name__)
 
 
 class CSVService:
@@ -248,7 +251,9 @@ class CSVService:
                     created_count += 1
 
             except Exception as e:
-                errors.append(f"行{row_num}: {str(e)}")
+                # ログには詳細を記録するが、ユーザーには一般的なメッセージを返す
+                logger.warning(f"CSV import row {row_num} error: {e}")
+                errors.append(f"行{row_num}: データの処理中にエラーが発生しました")
                 continue
 
         # コミット
@@ -256,7 +261,9 @@ class CSVService:
             db.commit()
         except Exception as e:
             db.rollback()
-            raise Exception(f"データベースへの保存に失敗しました: {str(e)}") from e
+            # ログには詳細を記録するが、例外メッセージは一般化
+            logger.error(f"CSV import commit failed: {e}")
+            raise Exception("データベースへの保存に失敗しました") from None
 
         return {"created": created_count, "skipped": skipped_count, "errors": errors}
 

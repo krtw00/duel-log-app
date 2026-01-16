@@ -124,9 +124,11 @@ class UserService(BaseService[User, UserCreate, UserUpdate]):
             db.commit()
         except Exception as e:
             db.rollback()
+            # ログには詳細を記録するが、ユーザーには一般的なメッセージを返す
+            logger.error(f"Data deletion failed for user {user_id}: {e}")
             raise HTTPException(
-                status_code=500, detail=f"データの削除に失敗しました: {e}"
-            ) from e
+                status_code=500, detail="データの削除に失敗しました"
+            ) from None
 
         # Import new data
         duel_svc = self._get_duel_service()
