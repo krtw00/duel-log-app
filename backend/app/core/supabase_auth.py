@@ -205,7 +205,7 @@ def _verify_with_hs256(token: str) -> Optional[dict]:
                 algorithms=["HS256"],
                 audience="authenticated",
             )
-            logger.debug("Supabase token verified with HS256 (method=%s)", label)
+            logger.debug("Supabase token verified with HS256")
             return payload
         except jwt.InvalidAudienceError:
             try:
@@ -215,10 +215,7 @@ def _verify_with_hs256(token: str) -> Optional[dict]:
                     algorithms=["HS256"],
                     options={"verify_aud": False},
                 )
-                logger.debug(
-                    "Supabase token verified with HS256 without audience check (method=%s)",
-                    label,
-                )
+                logger.debug("Supabase token verified with HS256 without audience check")
                 return payload
             except jwt.PyJWTError as e:
                 last_error = e
