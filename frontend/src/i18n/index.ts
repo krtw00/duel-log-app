@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
-import { i18n, loadLocaleAsync } from './i18n-util'
+import { i18nObject } from './i18n-util'
+import { loadLocaleAsync } from './i18n-util.async'
 import type { Locales, TranslationFunctions } from './i18n-types'
 
 export type { Locales, TranslationFunctions }
@@ -40,7 +41,7 @@ function getDefaultLocale(): SupportedLocale {
 export async function setLocale(locale: Locales): Promise<void> {
   await loadLocaleAsync(locale)
   currentLocale.value = locale
-  LL.value = i18n()(locale)
+  LL.value = i18nObject(locale)
   localStorage.setItem('locale', locale)
   document.documentElement.lang = locale
 }
