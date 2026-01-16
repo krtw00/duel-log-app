@@ -208,7 +208,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
-import { Deck } from '@/types';
+import type { Deck } from '@/types';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import { useNotificationStore } from '@/stores/notification';
 import { useLocale } from '@/composables/useLocale';

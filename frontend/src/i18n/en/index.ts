@@ -31,6 +31,7 @@ const en = {
     statistics: 'Statistics',
     profile: 'Profile',
     admin: 'Admin',
+    feedback: 'Feedback',
     logout: 'Logout',
   },
   auth: {
@@ -105,6 +106,16 @@ const en = {
     quickStats: "This Month's Stats",
     noDuels: 'No duel records yet',
     recordFirst: 'Record your first duel',
+    streak: {
+      winning: '{count} Win Streak',
+      losing: '{count} Loss Streak',
+      none: 'No streak',
+    },
+    emptyState: {
+      title: 'Record your first duel',
+      description: 'Track your duel results and watch your progress grow',
+      addButton: 'Record Duel',
+    },
     streamer: {
       popupWindow: 'Streaming Popup Window',
       recommended: 'Recommended',
@@ -217,6 +228,13 @@ const en = {
       autoRegisterNoDeck: 'Auto-register: My deck not set',
       deckResolveFailed: 'Failed to register deck',
       waitingNext: 'Waiting for next duel...',
+      steps: {
+        decks: 'Decks',
+        battle: 'Battle',
+        details: 'Details',
+      },
+      next: 'Next',
+      prev: 'Back',
     },
     table: {
       noColumn: 'No.',
@@ -641,6 +659,52 @@ const en = {
     contact: 'Contact Us',
     twitter: 'Twitter/X',
     version: 'Version',
+  },
+  feedback: {
+    intro: 'We welcome bug reports, feature requests, and inquiries. They will be registered as GitHub Issues.',
+    tabs: {
+      bug: 'Bug Report',
+      enhancement: 'Feature Request',
+      contact: 'Contact',
+    },
+    form: {
+      title: 'Title',
+      description: 'Description',
+    },
+    bug: {
+      titlePlaceholder: 'Brief summary of the bug',
+      descriptionPlaceholder: 'Please describe the bug in detail',
+      steps: 'Steps to Reproduce',
+      stepsPlaceholder: '1. Go to...\n2. Click on...\n3. Error occurs',
+      expected: 'Expected Behavior',
+      expectedPlaceholder: 'What should happen',
+      actual: 'Actual Behavior',
+      actualPlaceholder: 'What actually happened',
+      submit: 'Submit Bug Report',
+    },
+    enhancement: {
+      titlePlaceholder: 'Brief summary of the feature',
+      descriptionPlaceholder: 'Please describe the feature you would like',
+      useCase: 'Use Case',
+      useCasePlaceholder: 'When would you use this feature',
+      submit: 'Submit Feature Request',
+    },
+    contact: {
+      subject: 'Subject',
+      subjectPlaceholder: 'Subject of your inquiry',
+      message: 'Message',
+      messagePlaceholder: 'Please enter your message',
+      submit: 'Send',
+    },
+    contactInfo: {
+      title: 'Contact Info',
+    },
+    githubDisabled: 'GitHub integration is disabled. Please contact us via X (Twitter) or GitHub directly.',
+    success: {
+      title: 'Submitted',
+      viewIssue: 'View Issue on GitHub',
+    },
+    error: 'Failed to submit. Please try again later.',
   },
   language: {
     title: 'Language',

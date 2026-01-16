@@ -83,7 +83,7 @@ describe('StatCard.vue', () => {
 
     const icon = wrapper.findComponent({ name: 'VIcon' });
     expect(icon.exists()).toBe(true);
-    // sizeはstring型で返される
-    expect(icon.props('size')).toBe('40');
+    // sizeは数値型で渡される
+    expect(icon.props('size')).toBe(40);
   });
 });
