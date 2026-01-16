@@ -63,7 +63,7 @@ import { useDisplay } from 'vuetify';
 import AppBar from '@/components/layout/AppBar.vue';
 import { useLocale } from '@/composables/useLocale';
 
-type CurrentView = 'dashboard' | 'decks' | 'statistics' | 'profile' | 'admin';
+type CurrentView = 'dashboard' | 'decks' | 'statistics' | 'profile' | 'admin' | 'feedback';
 
 interface NavItem {
   name: string;
