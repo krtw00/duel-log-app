@@ -4,6 +4,7 @@
       <stat-card
         :title="LL?.statistics.overview.totalMatches() || ''"
         :value="stats.total_duels"
+        :subtitle="winsLossesLabel"
         icon="mdi-sword-cross"
         color="primary"
       />
@@ -12,6 +13,7 @@
       <stat-card
         :title="LL?.dashboard.streamer.winRate() || ''"
         :value="`${(stats.win_rate * 100).toFixed(1)}%`"
+        :subtitle="`${stats.win_count}${LL?.duels.result.win() || 'W'} / ${stats.lose_count}${LL?.duels.result.lose() || 'L'}`"
         icon="mdi-trophy"
         color="success"
       />
@@ -20,6 +22,7 @@
       <stat-card
         :title="LL?.dashboard.streamer.firstWinRate() || ''"
         :value="`${(stats.first_turn_win_rate * 100).toFixed(1)}%`"
+        :subtitle="firstTurnLabel"
         icon="mdi-lightning-bolt"
         color="warning"
       />
@@ -28,6 +31,7 @@
       <stat-card
         :title="LL?.dashboard.streamer.secondWinRate() || ''"
         :value="`${(stats.second_turn_win_rate * 100).toFixed(1)}%`"
+        :subtitle="secondTurnLabel"
         icon="mdi-shield"
         color="secondary"
       />
@@ -52,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import StatCard from '@/components/duel/StatCard.vue';
 import type { DuelStats } from '@/types';
 import { useLocale } from '@/composables/useLocale';
@@ -63,5 +68,34 @@ interface Props {
   coinWinRateColor: string;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+// 勝敗ラベル
+const winsLossesLabel = computed(() => {
+  const wins = props.stats.win_count || 0;
+  const losses = props.stats.lose_count || 0;
+  return `${wins}W / ${losses}L`;
+});
+
+// 先攻時のラベル（先攻試合数を計算）
+const firstTurnLabel = computed(() => {
+  const total = props.stats.total_duels || 0;
+  const goFirstRate = props.stats.go_first_rate || 0;
+  const firstGames = Math.round(total * goFirstRate);
+  const firstWinRate = props.stats.first_turn_win_rate || 0;
+  const firstWins = Math.round(firstGames * firstWinRate);
+  if (firstGames === 0) return '';
+  return `${firstWins}/${firstGames}`;
+});
+
+// 後攻時のラベル（後攻試合数を計算）
+const secondTurnLabel = computed(() => {
+  const total = props.stats.total_duels || 0;
+  const goFirstRate = props.stats.go_first_rate || 0;
+  const secondGames = Math.round(total * (1 - goFirstRate));
+  const secondWinRate = props.stats.second_turn_win_rate || 0;
+  const secondWins = Math.round(secondGames * secondWinRate);
+  if (secondGames === 0) return '';
+  return `${secondWins}/${secondGames}`;
+});
 </script>
