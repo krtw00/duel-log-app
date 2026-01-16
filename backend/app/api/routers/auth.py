@@ -10,10 +10,11 @@
 import logging
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, Header, Response
+from fastapi import APIRouter, Depends, Header, Request, Response
 
 from app.api.deps import get_current_user
 from app.core.config import settings
+from app.core.rate_limit import RateLimits, limiter
 from app.core.security import create_access_token
 from app.models.user import User
 from app.utils.auth_cookies import resolve_cookie_policy
@@ -56,7 +57,9 @@ def logout(response: Response, user_agent: str | None = Header(None)):
 
 
 @router.post("/obs-token")
+@limiter.limit(RateLimits.STANDARD)
 def get_obs_token(
+    request: Request,
     current_user: User = Depends(get_current_user),
 ):
     """

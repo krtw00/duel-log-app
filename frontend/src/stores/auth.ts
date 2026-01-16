@@ -31,6 +31,11 @@ const clearLegacyBackendCookie = async () => {
 };
 
 /**
+ * クロマキー背景タイプ
+ */
+export type ChromaKeyBackground = 'none' | 'green' | 'blue';
+
+/**
  *
  */
 export interface UserProfile {
@@ -51,6 +56,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ローカルストレージから配信者モード設定を読み込む
   const localStreamerMode = ref<boolean>(localStorage.getItem('streamerMode') === 'true');
+
+  // ローカルストレージからクロマキー背景設定を読み込む
+  const chromaKeyBackground = ref<ChromaKeyBackground>(
+    (localStorage.getItem('chromaKeyBackground') as ChromaKeyBackground) || 'none'
+  );
 
   const isAuthenticated = computed(() => !!user.value);
 
@@ -351,6 +361,17 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   /**
+   * クロマキー背景の設定
+   * ローカルストレージにのみ保存（配信環境固有の設定のため）
+   * @param background
+   */
+  const setChromaKeyBackground = (background: ChromaKeyBackground) => {
+    chromaKeyBackground.value = background;
+    localStorage.setItem('chromaKeyBackground', background);
+    logger.debug('Chroma key background set to:', background);
+  };
+
+  /**
    * 現在のセッションを取得して認証状態を復元
    */
   const fetchUser = async () => {
@@ -565,12 +586,14 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isStreamerModeEnabled,
     localStreamerMode,
+    chromaKeyBackground,
     login,
     loginWithOAuth,
     register,
     logout,
     fetchUser,
     toggleStreamerMode,
+    setChromaKeyBackground,
     sendPasswordResetEmail,
     updatePassword,
     updateProfile,
