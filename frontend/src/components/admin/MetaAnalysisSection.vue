@@ -169,7 +169,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useLocale } from '@/composables/useLocale';
 import { useNotificationStore } from '@/stores/notification';
 import {
@@ -352,7 +352,8 @@ function renderTrendsChart() {
         },
         tooltip: {
           callbacks: {
-            label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`,
+            label: (context) =>
+              `${context.dataset.label}: ${(context.parsed.y ?? 0).toFixed(1)}%`,
           },
         },
       },

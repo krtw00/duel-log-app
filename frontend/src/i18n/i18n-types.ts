@@ -1946,6 +1946,187 @@ type RootTranslation = {
 			 */
 			newUsers: string
 		}
+		userDetail: {
+			/**
+			 * 基​本​情​報
+			 */
+			basicInfo: string
+			/**
+			 * メ​ー​ル​ア​ド​レ​ス
+			 */
+			email: string
+			/**
+			 * 登​録​日
+			 */
+			registeredAt: string
+			/**
+			 * 最​終​ロ​グ​イ​ン
+			 */
+			lastLoginAt: string
+			/**
+			 * テ​ー​マ
+			 */
+			theme: string
+			/**
+			 * 状​態​変​更​理​由
+			 */
+			statusReason: string
+			/**
+			 * 利​用​統​計
+			 */
+			stats: string
+			/**
+			 * 総​対​戦​数
+			 */
+			totalDuels: string
+			/**
+			 * 今​月​の​対​戦
+			 */
+			thisMonthDuels: string
+			/**
+			 * 勝​率
+			 */
+			winRate: string
+			/**
+			 * 勝​敗
+			 */
+			winLoss: string
+			/**
+			 * 自​分​の​デ​ッ​キ
+			 */
+			playerDecks: string
+			/**
+			 * 相​手​の​デ​ッ​キ
+			 */
+			opponentDecks: string
+			/**
+			 * 機​能​利​用​状​況
+			 */
+			featureUsage: string
+			/**
+			 * 配​信​者​モ​ー​ド
+			 */
+			streamerMode: string
+			/**
+			 * O​B​S​オ​ー​バ​ー​レ​イ
+			 */
+			obsOverlay: string
+			/**
+			 * 統​計​共​有
+			 */
+			sharedStats: string
+			/**
+			 * 画​面​分​析
+			 */
+			screenAnalysis: string
+			/**
+			 * 状​態​を​変​更
+			 */
+			changeStatus: string
+			/**
+			 * パ​ス​ワ​ー​ド​リ​セ​ッ​ト
+			 */
+			resetPassword: string
+			/**
+			 * 有​効
+			 */
+			statusActive: string
+			/**
+			 * 停​止​中
+			 */
+			statusSuspended: string
+			/**
+			 * 削​除​済​み
+			 */
+			statusDeleted: string
+			/**
+			 * ア​カ​ウ​ン​ト​状​態​の​変​更
+			 */
+			changeStatusTitle: string
+			/**
+			 * {​u​s​e​r​n​a​m​e​}​ ​の​状​態​を​変​更​し​ま​す​。
+			 * @param {string} username
+			 */
+			changeStatusDescription: RequiredParams<'username'>
+			/**
+			 * 新​し​い​状​態
+			 */
+			newStatus: string
+			/**
+			 * 理​由​（​任​意​）
+			 */
+			reason: string
+			/**
+			 * 状​態​変​更​の​理​由​を​入​力​し​て​く​だ​さ​い
+			 */
+			reasonPlaceholder: string
+			/**
+			 * ア​カ​ウ​ン​ト​を​停​止​す​る​と​、​ユ​ー​ザ​ー​は​ロ​グ​イ​ン​で​き​な​く​な​り​ま​す​。
+			 */
+			suspendedWarning: string
+			/**
+			 * ア​カ​ウ​ン​ト​を​削​除​扱​い​に​す​る​と​、​復​旧​が​必​要​に​な​り​ま​す​。
+			 */
+			deletedWarning: string
+		}
+		meta: {
+			/**
+			 * メ​タ​分​析
+			 */
+			title: string
+			/**
+			 * 期​間
+			 */
+			period: string
+			/**
+			 * ゲ​ー​ム​モ​ー​ド
+			 */
+			gameMode: string
+			/**
+			 * 最​小​使​用​回​数
+			 */
+			minUsage: string
+			/**
+			 * 7​日​間
+			 */
+			period7days: string
+			/**
+			 * 1​4​日​間
+			 */
+			period14days: string
+			/**
+			 * 3​0​日​間
+			 */
+			period30days: string
+			/**
+			 * 6​0​日​間
+			 */
+			period60days: string
+			/**
+			 * 9​0​日​間
+			 */
+			period90days: string
+			/**
+			 * 人​気​デ​ッ​キ​ラ​ン​キ​ン​グ
+			 */
+			popularDecks: string
+			/**
+			 * デ​ッ​キ​使​用​率​推​移
+			 */
+			deckTrends: string
+			/**
+			 * ゲ​ー​ム​モ​ー​ド​別​統​計
+			 */
+			gameModeStats: string
+			/**
+			 * 総​対​戦​数
+			 */
+			totalDuels: string
+			/**
+			 * デ​ー​タ​が​あ​り​ま​せ​ん
+			 */
+			noData: string
+		}
 	}
 	help: {
 		/**
@@ -3936,6 +4117,186 @@ export type TranslationFunctions = {
 			 * 新規ユーザー
 			 */
 			newUsers: () => LocalizedString
+		}
+		userDetail: {
+			/**
+			 * 基本情報
+			 */
+			basicInfo: () => LocalizedString
+			/**
+			 * メールアドレス
+			 */
+			email: () => LocalizedString
+			/**
+			 * 登録日
+			 */
+			registeredAt: () => LocalizedString
+			/**
+			 * 最終ログイン
+			 */
+			lastLoginAt: () => LocalizedString
+			/**
+			 * テーマ
+			 */
+			theme: () => LocalizedString
+			/**
+			 * 状態変更理由
+			 */
+			statusReason: () => LocalizedString
+			/**
+			 * 利用統計
+			 */
+			stats: () => LocalizedString
+			/**
+			 * 総対戦数
+			 */
+			totalDuels: () => LocalizedString
+			/**
+			 * 今月の対戦
+			 */
+			thisMonthDuels: () => LocalizedString
+			/**
+			 * 勝率
+			 */
+			winRate: () => LocalizedString
+			/**
+			 * 勝敗
+			 */
+			winLoss: () => LocalizedString
+			/**
+			 * 自分のデッキ
+			 */
+			playerDecks: () => LocalizedString
+			/**
+			 * 相手のデッキ
+			 */
+			opponentDecks: () => LocalizedString
+			/**
+			 * 機能利用状況
+			 */
+			featureUsage: () => LocalizedString
+			/**
+			 * 配信者モード
+			 */
+			streamerMode: () => LocalizedString
+			/**
+			 * OBSオーバーレイ
+			 */
+			obsOverlay: () => LocalizedString
+			/**
+			 * 統計共有
+			 */
+			sharedStats: () => LocalizedString
+			/**
+			 * 画面分析
+			 */
+			screenAnalysis: () => LocalizedString
+			/**
+			 * 状態を変更
+			 */
+			changeStatus: () => LocalizedString
+			/**
+			 * パスワードリセット
+			 */
+			resetPassword: () => LocalizedString
+			/**
+			 * 有効
+			 */
+			statusActive: () => LocalizedString
+			/**
+			 * 停止中
+			 */
+			statusSuspended: () => LocalizedString
+			/**
+			 * 削除済み
+			 */
+			statusDeleted: () => LocalizedString
+			/**
+			 * アカウント状態の変更
+			 */
+			changeStatusTitle: () => LocalizedString
+			/**
+			 * {username} の状態を変更します。
+			 */
+			changeStatusDescription: (arg: { username: string }) => LocalizedString
+			/**
+			 * 新しい状態
+			 */
+			newStatus: () => LocalizedString
+			/**
+			 * 理由（任意）
+			 */
+			reason: () => LocalizedString
+			/**
+			 * 状態変更の理由を入力してください
+			 */
+			reasonPlaceholder: () => LocalizedString
+			/**
+			 * アカウントを停止すると、ユーザーはログインできなくなります。
+			 */
+			suspendedWarning: () => LocalizedString
+			/**
+			 * アカウントを削除扱いにすると、復旧が必要になります。
+			 */
+			deletedWarning: () => LocalizedString
+		}
+		meta: {
+			/**
+			 * メタ分析
+			 */
+			title: () => LocalizedString
+			/**
+			 * 期間
+			 */
+			period: () => LocalizedString
+			/**
+			 * ゲームモード
+			 */
+			gameMode: () => LocalizedString
+			/**
+			 * 最小使用回数
+			 */
+			minUsage: () => LocalizedString
+			/**
+			 * 7日間
+			 */
+			period7days: () => LocalizedString
+			/**
+			 * 14日間
+			 */
+			period14days: () => LocalizedString
+			/**
+			 * 30日間
+			 */
+			period30days: () => LocalizedString
+			/**
+			 * 60日間
+			 */
+			period60days: () => LocalizedString
+			/**
+			 * 90日間
+			 */
+			period90days: () => LocalizedString
+			/**
+			 * 人気デッキランキング
+			 */
+			popularDecks: () => LocalizedString
+			/**
+			 * デッキ使用率推移
+			 */
+			deckTrends: () => LocalizedString
+			/**
+			 * ゲームモード別統計
+			 */
+			gameModeStats: () => LocalizedString
+			/**
+			 * 総対戦数
+			 */
+			totalDuels: () => LocalizedString
+			/**
+			 * データがありません
+			 */
+			noData: () => LocalizedString
 		}
 	}
 	help: {
