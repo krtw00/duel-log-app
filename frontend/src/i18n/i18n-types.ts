@@ -374,29 +374,31 @@ type RootTranslation = {
 		recordFirst: string
 		streak: {
 			/**
-			 * {count}連勝中
+			 * {​c​o​u​n​t​}​連​勝​中
+			 * @param {number} count
 			 */
 			winning: RequiredParams<'count'>
 			/**
-			 * {count}連敗中
+			 * {​c​o​u​n​t​}​連​敗​中
+			 * @param {number} count
 			 */
 			losing: RequiredParams<'count'>
 			/**
-			 * 連勝/連敗なし
+			 * 連​勝​/​連​敗​な​し
 			 */
 			none: string
 		}
 		emptyState: {
 			/**
-			 * 最初の対戦を記録しましょう
+			 * 最​初​の​対​戦​を​記​録​し​ま​し​ょ​う
 			 */
 			title: string
 			/**
-			 * 対戦結果を記録して、あなたの成長を追跡しましょう
+			 * 対​戦​結​果​を​記​録​し​て​、​あ​な​た​の​成​長​を​追​跡​し​ま​し​ょ​う
 			 */
 			description: string
 			/**
-			 * 対戦を記録
+			 * 対​戦​を​記​録
 			 */
 			addButton: string
 		}
@@ -1537,6 +1539,28 @@ type RootTranslation = {
 			 * ロ​グ​イ​ン​状​態​で​こ​の​ペ​ー​ジ​を​開​い​て​く​だ​さ​い
 			 */
 			loginRequiredDetail: string
+			chromaKey: {
+				/**
+				 * ク​ロ​マ​キ​ー​背​景
+				 */
+				title: string
+				/**
+				 * ウ​ィ​ン​ド​ウ​キ​ャ​プ​チ​ャ​時​に​O​B​S​の​ク​ロ​マ​キ​ー​フ​ィ​ル​タ​ー​で​背​景​を​透​過​で​き​ま​す​。
+				 */
+				description: string
+				/**
+				 * 通​常
+				 */
+				none: string
+				/**
+				 * グ​リ​ー​ン
+				 */
+				green: string
+				/**
+				 * ブ​ル​ー
+				 */
+				blue: string
+			}
 		}
 		configPanel: {
 			/**
@@ -3917,6 +3941,28 @@ export type TranslationFunctions = {
 			 * ログイン状態でこのページを開いてください
 			 */
 			loginRequiredDetail: () => LocalizedString
+			chromaKey: {
+				/**
+				 * クロマキー背景
+				 */
+				title: () => LocalizedString
+				/**
+				 * ウィンドウキャプチャ時にOBSのクロマキーフィルターで背景を透過できます。
+				 */
+				description: () => LocalizedString
+				/**
+				 * 通常
+				 */
+				none: () => LocalizedString
+				/**
+				 * グリーン
+				 */
+				green: () => LocalizedString
+				/**
+				 * ブルー
+				 */
+				blue: () => LocalizedString
+			}
 		}
 		configPanel: {
 			/**
