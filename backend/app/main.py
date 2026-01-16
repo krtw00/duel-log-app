@@ -15,6 +15,7 @@ from app.api.routers import (
     auth,
     decks,
     duels,
+    feedback,
     me,
     shared_statistics,
     statistics,
@@ -106,6 +107,7 @@ app.include_router(decks.router)
 app.include_router(duels.router)
 app.include_router(statistics.router)
 app.include_router(shared_statistics.router)
+app.include_router(feedback.router)
 app.include_router(admin.router)
 
 

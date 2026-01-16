@@ -33,8 +33,54 @@
       :icon="themeStore.isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
       variant="text"
       @click="themeStore.toggleTheme"
-      class="mr-2"
+      class="mr-1"
     />
+
+    <!-- ヘルプ・フィードバックメニュー -->
+    <v-menu>
+      <template #activator="{ props }">
+        <v-btn
+          v-bind="props"
+          icon="mdi-help-circle-outline"
+          variant="text"
+          class="mr-2"
+          aria-label="Help and Feedback"
+        />
+      </template>
+      <v-list density="compact">
+        <v-list-item to="/feedback">
+          <template #prepend>
+            <v-icon color="error">mdi-bug</v-icon>
+          </template>
+          <v-list-item-title>{{ LL?.feedback.tabs.bug() }}</v-list-item-title>
+        </v-list-item>
+        <v-list-item to="/feedback">
+          <template #prepend>
+            <v-icon color="success">mdi-lightbulb</v-icon>
+          </template>
+          <v-list-item-title>{{ LL?.feedback.tabs.enhancement() }}</v-list-item-title>
+        </v-list-item>
+        <v-list-item to="/feedback">
+          <template #prepend>
+            <v-icon color="primary">mdi-email</v-icon>
+          </template>
+          <v-list-item-title>{{ LL?.feedback.tabs.contact() }}</v-list-item-title>
+        </v-list-item>
+        <v-divider />
+        <v-list-item href="https://x.com/krtw00" target="_blank">
+          <template #prepend>
+            <v-icon>mdi-twitter</v-icon>
+          </template>
+          <v-list-item-title>X (Twitter)</v-list-item-title>
+        </v-list-item>
+        <v-list-item href="https://github.com/krtw00/duel-log-app" target="_blank">
+          <template #prepend>
+            <v-icon>mdi-github</v-icon>
+          </template>
+          <v-list-item-title>GitHub</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <template v-for="item in navItems" :key="item.view">
       <v-btn
