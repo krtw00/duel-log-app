@@ -332,12 +332,13 @@ def import_duels_csv(
 
         return response
 
-    except UnicodeDecodeError as e:
+    except UnicodeDecodeError:
         # CSVファイルのエンコーディングエラー
+        # スタックトレース露出を防ぐため、from None を使用
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="CSVファイルのエンコーディングが無効です。UTF-8形式のファイルをアップロードしてください",
-        ) from e
+        ) from None
     except ValueError:
         # CSVフォーマットエラー（不正な値、欠損値など）
         logger.warning("CSV import validation error")
