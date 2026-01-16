@@ -3,12 +3,13 @@
 バグ報告、機能要望、お問い合わせをGitHub Issueとして作成
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
-from app.api.deps import get_current_user_optional
+from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.logging_config import get_logger
+from app.core.rate_limit import RateLimits, limiter
 from app.models.user import User
 from app.services.github_service import github_service
 
@@ -103,18 +104,20 @@ async def get_feedback_status():
 
 
 @router.post("/bug", response_model=FeedbackResponse)
+@limiter.limit(RateLimits.FEEDBACK)
 async def submit_bug_report(
     request: BugReportRequest,
-    current_user: User | None = Depends(get_current_user_optional),
+    http_request: Request,
+    current_user: User = Depends(get_current_user),
 ):
-    """バグ報告を送信"""
+    """バグ報告を送信（認証必須）"""
     if not github_service.is_configured:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="GitHub連携が設定されていません",
         )
 
-    user_email = current_user.email if current_user else None
+    user_email = current_user.email
     body = _format_bug_report_body(request)
 
     result = await github_service.create_issue(
@@ -139,18 +142,20 @@ async def submit_bug_report(
 
 
 @router.post("/enhancement", response_model=FeedbackResponse)
+@limiter.limit(RateLimits.FEEDBACK)
 async def submit_enhancement_request(
     request: EnhancementRequest,
-    current_user: User | None = Depends(get_current_user_optional),
+    http_request: Request,
+    current_user: User = Depends(get_current_user),
 ):
-    """機能要望を送信"""
+    """機能要望を送信（認証必須）"""
     if not github_service.is_configured:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="GitHub連携が設定されていません",
         )
 
-    user_email = current_user.email if current_user else None
+    user_email = current_user.email
     body = _format_enhancement_body(request)
 
     result = await github_service.create_issue(
@@ -175,18 +180,20 @@ async def submit_enhancement_request(
 
 
 @router.post("/contact", response_model=FeedbackResponse)
+@limiter.limit(RateLimits.FEEDBACK)
 async def submit_contact(
     request: ContactRequest,
-    current_user: User | None = Depends(get_current_user_optional),
+    http_request: Request,
+    current_user: User = Depends(get_current_user),
 ):
-    """お問い合わせを送信"""
+    """お問い合わせを送信（認証必須）"""
     if not github_service.is_configured:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="GitHub連携が設定されていません",
         )
 
-    user_email = current_user.email if current_user else None
+    user_email = current_user.email
     body = _format_contact_body(request)
 
     result = await github_service.create_issue(
