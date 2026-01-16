@@ -289,34 +289,49 @@ const matchupHeaders = computed(() => [
   }
 
   :deep(table) {
-    min-width: 700px;
-    table-layout: fixed;
+    min-width: 800px;
+    table-layout: auto;
   }
 
   :deep(th),
   :deep(td) {
     white-space: nowrap !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  /* デッキ名カラムは十分な幅を確保 */
+  :deep(th:nth-child(1)),
+  :deep(td:nth-child(1)),
+  :deep(th:nth-child(2)),
+  :deep(td:nth-child(2)) {
+    min-width: 140px !important;
+  }
+
+  /* 数値カラムはコンパクトに */
+  :deep(th:nth-child(3)),
+  :deep(td:nth-child(3)) {
+    min-width: 60px !important;
+  }
+
+  /* 勝率カラム */
+  :deep(th:nth-child(n+4)),
+  :deep(td:nth-child(n+4)) {
+    min-width: 100px !important;
   }
 }
 
 /* モバイル用追加調整 */
 @media (max-width: 599px) {
   .matchup-table {
-    :deep(table) {
-      min-width: 650px;
-    }
-
     :deep(th),
     :deep(td) {
       font-size: 12px !important;
-      padding: 8px 12px !important;
+      padding: 6px 8px !important;
     }
 
     :deep(.v-chip) {
       font-size: 11px !important;
-      height: 24px !important;
+      height: 22px !important;
+      padding: 0 6px !important;
     }
   }
 }
