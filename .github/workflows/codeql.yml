@@ -1,0 +1,77 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # 毎週月曜日 午前3時（JST）に実行
+    - cron: '0 18 * * 0'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      # Code scanning アラートへの書き込みに必要
+      security-events: write
+      # プライベートリポジトリの依存関係を取得するために必要
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # カスタムクエリを追加する場合はここに設定
+          # queries: security-extended,security-and-quality
+
+      # Python の依存関係をインストール（より正確な分析のため）
+      - name: Setup Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        if: matrix.language == 'python'
+        run: |
+          cd backend
+          pip install -r requirements.txt
+        continue-on-error: true
+
+      # JavaScript/TypeScript の依存関係をインストール
+      - name: Setup Node.js
+        if: matrix.language == 'javascript-typescript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node.js dependencies
+        if: matrix.language == 'javascript-typescript'
+        run: |
+          cd frontend
+          npm ci
+        continue-on-error: true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
