@@ -26,6 +26,15 @@ class GeneralStatsService:
                 "second_turn_win_rate": 0,
                 "coin_win_rate": 0,
                 "go_first_rate": 0,
+                # セッション統計計算用の生データ
+                "total": 0,
+                "wins": 0,
+                "first_turn_total": 0,
+                "first_turn_wins": 0,
+                "second_turn_total": 0,
+                "second_turn_wins": 0,
+                "coin_total": 0,
+                "coin_wins": 0,
             }
 
         win_count = sum(1 for d in duels if d.is_win is True)
@@ -63,6 +72,15 @@ class GeneralStatsService:
             "second_turn_win_rate": second_turn_win_rate,
             "coin_win_rate": coin_win_rate,
             "go_first_rate": go_first_rate,
+            # セッション統計計算用の生データ
+            "total": total_duels,
+            "wins": win_count,
+            "first_turn_total": first_turn_total,
+            "first_turn_wins": first_turn_wins,
+            "second_turn_total": second_turn_total,
+            "second_turn_wins": second_turn_wins,
+            "coin_total": coin_total,
+            "coin_wins": coin_wins,
         }
 
     def _calculate_general_stats(self, duels: List[Duel]) -> Dict[str, Any]:

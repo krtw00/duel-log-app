@@ -1411,6 +1411,20 @@ type RootTranslation = {
 				 */
 				min5: string
 			}
+			/**
+			 * 統​計​期​間
+			 */
+			statsPeriod: string
+			statsPeriods: {
+				/**
+				 * 当​月
+				 */
+				monthly: string
+				/**
+				 * 配​信​開​始​か​ら
+				 */
+				session: string
+			}
 			items: {
 				/**
 				 * 使​用​デ​ッ​キ
@@ -3584,6 +3598,20 @@ export type TranslationFunctions = {
 				 * 5分
 				 */
 				min5: () => LocalizedString
+			}
+			/**
+			 * 統計期間
+			 */
+			statsPeriod: () => LocalizedString
+			statsPeriods: {
+				/**
+				 * 当月
+				 */
+				monthly: () => LocalizedString
+				/**
+				 * 配信開始から
+				 */
+				session: () => LocalizedString
 			}
 			items: {
 				/**
