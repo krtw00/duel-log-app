@@ -84,7 +84,7 @@
     class="duel-table"
     hover
     density="comfortable"
-    mobile-breakpoint="0"
+    :mobile-breakpoint="0"
     fixed-header
     :height="tableHeightValue"
   >
