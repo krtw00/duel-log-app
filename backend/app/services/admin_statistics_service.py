@@ -96,15 +96,15 @@ class AdminStatisticsService:
 
         # アーカイブデッキ数
         archived = (
-            self.db.query(func.count(Deck.id)).filter(Deck.active == False).scalar()
-            or 0  # noqa: E712
+            self.db.query(func.count(Deck.id)).filter(Deck.active == False).scalar()  # noqa: E712
+            or 0
         )
 
         # プレイヤーデッキ数
         player_decks = (
             self.db.query(func.count(Deck.id))
-            .filter(Deck.is_opponent == False)
-            .scalar()  # noqa: E712
+            .filter(Deck.is_opponent == False)  # noqa: E712
+            .scalar()
             or 0
         )
 
