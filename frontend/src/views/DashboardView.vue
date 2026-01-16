@@ -1,5 +1,8 @@
 <template>
-  <app-layout current-view="dashboard" main-class="dashboard-main">
+  <app-layout
+    current-view="dashboard"
+    main-class="dashboard-main"
+  >
     <v-container fluid class="pa-6 pa-sm-6 pa-xs-3">
       <DashboardHeader
         v-model:game-mode="currentMode"
@@ -28,6 +31,7 @@
       />
 
       <DuelHistorySection
+        ref="duelHistoryRef"
         :duels="currentDuels"
         :decks="decks"
         :loading="loading"
@@ -40,27 +44,6 @@
       />
     </v-container>
 
-    <!-- モバイル: FAB（新規追加ボタン） -->
-    <v-fab
-      v-if="isMobile"
-      location="bottom end"
-      color="primary"
-      icon="mdi-plus"
-      size="large"
-      class="mobile-fab"
-      @click="openMobileDuelForm"
-    />
-
-    <!-- モバイル用ダイアログフォーム -->
-    <DuelFormDialog
-      v-model="mobileDuelFormOpen"
-      :duel="null"
-      :default-game-mode="currentMode"
-      :default-first-or-second="defaultFirstOrSecond"
-      :initial-my-decks="myDecks"
-      :initial-opponent-decks="opponentDecks"
-      @saved="handleDuelSaved"
-    />
 
     <template #overlay>
       <share-stats-dialog
@@ -74,7 +57,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
@@ -92,17 +76,17 @@ import StreamerSection from '@/components/dashboard/StreamerSection.vue';
 import { useAuthStore } from '@/stores/auth';
 import DuelHistorySection from './DuelHistorySection.vue';
 import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue';
-import DuelFormDialog from '@/components/duel/DuelFormDialog.vue';
+
+// Router
+const route = useRoute();
+const router = useRouter();
 
 // モバイル判定
 const { smAndDown } = useDisplay();
 const isMobile = computed(() => smAndDown.value);
 
-// モバイル用ダイアログフォーム
-const mobileDuelFormOpen = ref(false);
-const openMobileDuelForm = () => {
-  mobileDuelFormOpen.value = true;
-};
+// DuelHistorySectionへのref
+const duelHistoryRef = ref<InstanceType<typeof DuelHistorySection> | null>(null);
 
 // Shared state
 const duels = ref<Duel[]>([]);
@@ -208,10 +192,6 @@ const handleDuelSaved = (payload: { duel: Duel; upsertDecks: Deck[] }) => {
   upsertDuel(payload.duel);
 };
 
-// モバイルダイアログ用デッキリスト
-const myDecks = computed(() => decks.value.filter((d) => !d.is_opponent));
-const opponentDecks = computed(() => decks.value.filter((d) => d.is_opponent));
-
 // Data fetching - declare before using in composables
 const fetchDuels = async () => {
   loading.value = true;
@@ -240,6 +220,21 @@ onMounted(() => {
   fetchDuels();
 });
 
+// クエリパラメータで対戦入力ダイアログを開く（ボトムナビのFABから遷移）
+watch(
+  () => route.query.action,
+  async (action) => {
+    if (action === 'new-duel') {
+      // クエリパラメータをクリア
+      router.replace({ path: '/', query: {} });
+      // DOMが更新されるのを待ってからダイアログを開く
+      await nextTick();
+      duelHistoryRef.value?.openNewDuelDialog();
+    }
+  },
+  { immediate: true },
+);
+
 watch(
   currentMode,
   (mode) => {
@@ -264,14 +259,5 @@ defineExpose({
   backdrop-filter: blur(10px);
   border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
-}
-
-/* モバイルFAB */
-.mobile-fab {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 16px !important;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 </style>
