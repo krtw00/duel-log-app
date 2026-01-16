@@ -98,7 +98,7 @@ frontend/
 `src/services/api.ts`で、Axiosのインスタンスを生成し、バックエンドAPIとの通信設定を一元管理しています。
 
 - **ベースURL**: 環境変数 `VITE_API_URL` からAPIのベースURLを設定します。
-- **認証**: `withCredentials: true` を設定し、リクエスト時に自動的にHttpOnlyクッキー（認証トークン）が送信されるようにしています。
+- **認証**: Supabaseセッションからアクセストークンを取得し、`Authorization: Bearer <token>` ヘッダーとして送信します。これはSafari ITP（Intelligent Tracking Prevention）対策として、クッキーよりも信頼性の高い認証方法です。`withCredentials: true` も設定されており、クッキーベースの認証もフォールバックとしてサポートしています。
 - **エラーハンドリング**: Axiosのインターセプターを使用して、APIからのエラーレスポンス（401 Unauthorizedなど）をグローバルにハンドリングし、必要に応じてログインページへのリダイレクトや、エラーメッセージの通知を行います。
 
 ### 6. 型定義 (TypeScript)

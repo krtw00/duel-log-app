@@ -97,10 +97,10 @@
 
 | カテゴリ | 項目 |
 |---------|------|
-| 基本情報 | ユーザー名、メール、登録日、最終ログイン |
-| 利用状況 | デッキ数（プレイヤー/相手）、対戦数、勝率 |
-| 機能利用 | OBSオーバーレイ利用有無、共有URL数 |
-| アカウント | 状態、メール認証状況 |
+| 基本情報 | ユーザー名、メール、登録日、更新日、最終ログイン、テーマ設定 |
+| 利用状況 | デッキ数（プレイヤー/相手）、対戦数（全期間/今月）、勝敗数、勝率、共有URL数 |
+| 機能利用 | OBSオーバーレイ、共有統計、配信者モード、画面解析機能 |
+| アカウント | 状態、状態変更理由 |
 
 **操作:**
 - ユーザー一覧から「詳細」ボタンでモーダル表示
@@ -199,18 +199,28 @@
   "email": "user1@example.com",
   "is_admin": false,
   "status": "active",
-  "created_at": "2025-01-01T00:00:00Z",
+  "status_reason": null,
+  "createdat": "2025-01-01T00:00:00Z",
+  "updatedat": "2025-01-15T12:34:56Z",
   "last_login_at": "2025-01-15T12:34:56Z",
-  "email_verified": true,
+  "theme_preference": "dark",
+  "streamer_mode": false,
+  "enable_screen_analysis": false,
   "stats": {
-    "player_deck_count": 5,
-    "opponent_deck_count": 23,
-    "duel_count": 156,
-    "win_rate": 52.3
+    "total_duels": 156,
+    "this_month_duels": 23,
+    "total_wins": 82,
+    "total_losses": 74,
+    "win_rate": 52.6,
+    "player_decks_count": 5,
+    "opponent_decks_count": 23,
+    "shared_statistics_count": 2
   },
-  "features": {
-    "obs_overlay_enabled": true,
-    "shared_url_count": 2
+  "feature_usage": {
+    "has_obs_overlay": true,
+    "has_shared_statistics": true,
+    "has_streamer_mode": false,
+    "has_screen_analysis": false
   }
 }
 ```

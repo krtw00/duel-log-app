@@ -12,8 +12,8 @@
 | 共有統計閲覧 | ✅ 実装済み | フィルタ・グラフ表示対応 |
 | CSVエクスポート | ✅ 実装済み | 共有リンク経由でエクスポート可能 |
 | 有効期限チェック | ✅ 実装済み | アクセス時に検証 |
-| 期限切れURL削除 | ❌ 未実装 | 管理パネルから一括削除 |
-| 孤立URL削除 | ❌ 未実装 | 管理パネルから削除 |
+| 期限切れURL削除 | ✅ 実装済み | 管理パネルから一括削除 |
+| 孤立URL削除 | ✅ 実装済み | 管理パネルから削除 |
 | レガシーテーブル移行 | ❌ 未実装 | `sharedurls` → `shared_statistics` |
 
 ## アーキテクチャ
@@ -25,7 +25,7 @@
 ```sql
 CREATE TABLE shared_statistics (
     id SERIAL PRIMARY KEY,
-    share_id VARCHAR(32) NOT NULL UNIQUE,  -- URL-safe token (128bit)
+    share_id VARCHAR(22) NOT NULL UNIQUE,  -- secrets.token_urlsafe(16) = 22文字
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     year INTEGER NOT NULL,
     month INTEGER NOT NULL,
@@ -37,6 +37,8 @@ CREATE TABLE shared_statistics (
     INDEX idx_shared_statistics_share_id (share_id)
 );
 ```
+
+> **Note:** `share_id`は`secrets.token_urlsafe(16)`で生成され、22文字のBase64-URLエンコードされた文字列になります（16バイト = 128bit）。
 
 #### レガシーテーブル: `sharedurls`（削除予定）
 

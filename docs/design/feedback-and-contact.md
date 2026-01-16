@@ -126,8 +126,10 @@ AppBarに「ヘルプメニュー」を追加（「?」アイコン）
 
 **エンドポイント**:
 ```
-POST /api/feedback/bug-report
-POST /api/feedback/feature-request
+GET  /api/feedback/status        # フィードバック機能の状態を取得
+POST /api/feedback/bug           # バグ報告
+POST /api/feedback/enhancement   # 機能要望
+POST /api/feedback/contact       # お問い合わせ
 ```
 
 **リクエストボディ（バグ報告）**:
@@ -135,14 +137,26 @@ POST /api/feedback/feature-request
 {
   "title": "string",
   "description": "string",
-  "include_environment": true,
-  "anonymous": false,
-  "environment": {
-    "browser": "Chrome 120",
-    "os": "Windows 11",
-    "screen_size": "1920x1080",
-    "app_version": "1.10.1"
-  }
+  "steps": "string | null",      // 再現手順
+  "expected": "string | null",   // 期待する動作
+  "actual": "string | null"      // 実際の動作
+}
+```
+
+**リクエストボディ（機能要望）**:
+```json
+{
+  "title": "string",
+  "description": "string",
+  "use_case": "string | null"    // ユースケース
+}
+```
+
+**リクエストボディ（お問い合わせ）**:
+```json
+{
+  "subject": "string",
+  "message": "string"
 }
 ```
 
@@ -150,8 +164,19 @@ POST /api/feedback/feature-request
 ```json
 {
   "success": true,
+  "message": "バグ報告を送信しました。ご報告ありがとうございます。",
   "issue_url": "https://github.com/owner/repo/issues/123",
   "issue_number": 123
+}
+```
+
+**ステータスレスポンス（GET /status）**:
+```json
+{
+  "github_enabled": true,
+  "x_handle": "@duellog_app",
+  "x_url": "https://x.com/duellog_app",
+  "github_repo_url": "https://github.com/owner/repo"
 }
 ```
 
@@ -197,8 +222,9 @@ POST /api/feedback/feature-request
 
 | フィードバックタイプ | 自動付与ラベル |
 |---------------------|----------------|
-| バグ報告 | `bug`, `from-app` |
-| 機能リクエスト | `enhancement`, `from-app` |
+| バグ報告 | `bug`, `user-report` |
+| 機能リクエスト | `enhancement`, `user-report` |
+| お問い合わせ | `question`, `user-report` |
 
 ### 3.2 バックエンド実装
 
