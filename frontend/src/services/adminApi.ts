@@ -12,6 +12,13 @@ import type {
   OrphanedSharedUrlsCleanupResponse,
   ExpiredSharedUrlsScanResponse,
   ExpiredSharedUrlsCleanupResponse,
+  UserDetailResponse,
+  UpdateUserStatusRequest,
+  UpdateUserStatusResponse,
+  PasswordResetResponse,
+  PopularDecksResponse,
+  DeckTrendsResponse,
+  GameModeStatsDetailResponse,
 } from '../types/admin';
 
 export const getAdminUsers = async (
@@ -123,6 +130,82 @@ export const scanExpiredSharedUrls = async (): Promise<ExpiredSharedUrlsScanResp
 export const cleanupExpiredSharedUrls = async (): Promise<ExpiredSharedUrlsCleanupResponse> => {
   const response = await api.post<ExpiredSharedUrlsCleanupResponse>(
     '/admin/maintenance/cleanup-expired-shared-urls',
+  );
+  return response.data;
+};
+
+// ========================================
+// ユーザー詳細
+// ========================================
+
+export const getAdminUserDetail = async (userId: number): Promise<UserDetailResponse> => {
+  const response = await api.get<UserDetailResponse>(`/admin/users/${userId}`);
+  return response.data;
+};
+
+export const updateUserStatus = async (
+  userId: number,
+  status: UpdateUserStatusRequest['status'],
+  reason?: string,
+): Promise<UpdateUserStatusResponse> => {
+  const response = await api.put<UpdateUserStatusResponse>(`/admin/users/${userId}/status`, {
+    status,
+    reason,
+  } as UpdateUserStatusRequest);
+  return response.data;
+};
+
+export const resetUserPassword = async (userId: number): Promise<PasswordResetResponse> => {
+  const response = await api.post<PasswordResetResponse>(`/admin/users/${userId}/reset-password`);
+  return response.data;
+};
+
+// ========================================
+// メタ分析
+// ========================================
+
+export const getPopularDecks = async (
+  days: number = 30,
+  gameMode?: string,
+  minUsage: number = 5,
+  limit: number = 20,
+): Promise<PopularDecksResponse> => {
+  const params = new URLSearchParams({
+    days: String(days),
+    min_usage: String(minUsage),
+    limit: String(limit),
+  });
+  if (gameMode) {
+    params.append('game_mode', gameMode);
+  }
+  const response = await api.get<PopularDecksResponse>(`/admin/meta/popular-decks?${params.toString()}`);
+  return response.data;
+};
+
+export const getDeckTrends = async (
+  days: number = 30,
+  interval: 'daily' | 'weekly' = 'daily',
+  gameMode?: string,
+  topN: number = 5,
+): Promise<DeckTrendsResponse> => {
+  const params = new URLSearchParams({
+    days: String(days),
+    interval,
+    top_n: String(topN),
+  });
+  if (gameMode) {
+    params.append('game_mode', gameMode);
+  }
+  const response = await api.get<DeckTrendsResponse>(`/admin/meta/deck-trends?${params.toString()}`);
+  return response.data;
+};
+
+export const getGameModeStats = async (days: number = 30): Promise<GameModeStatsDetailResponse> => {
+  const params = new URLSearchParams({
+    days: String(days),
+  });
+  const response = await api.get<GameModeStatsDetailResponse>(
+    `/admin/meta/game-mode-stats?${params.toString()}`,
   );
   return response.data;
 };

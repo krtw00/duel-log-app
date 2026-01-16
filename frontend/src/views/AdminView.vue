@@ -17,6 +17,10 @@
           <v-icon start>mdi-chart-box</v-icon>
           {{ LL?.admin.statistics.title() }}
         </v-tab>
+        <v-tab value="meta">
+          <v-icon start>mdi-chart-timeline-variant</v-icon>
+          {{ LL?.admin.meta?.title() || 'メタ分析' }}
+        </v-tab>
         <v-tab value="maintenance">
           <v-icon start>mdi-tools</v-icon>
           {{ LL?.admin.maintenance.title() }}
@@ -32,6 +36,10 @@
           <statistics-section />
         </v-window-item>
 
+        <v-window-item value="meta">
+          <meta-analysis-section />
+        </v-window-item>
+
         <v-window-item value="maintenance">
           <maintenance-section />
         </v-window-item>
@@ -45,6 +53,7 @@ import { ref } from 'vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import UserManagementSection from '@/components/admin/UserManagementSection.vue';
 import StatisticsSection from '@/components/admin/StatisticsSection.vue';
+import MetaAnalysisSection from '@/components/admin/MetaAnalysisSection.vue';
 import MaintenanceSection from '@/components/admin/MaintenanceSection.vue';
 import { useLocale } from '@/composables/useLocale';
 
