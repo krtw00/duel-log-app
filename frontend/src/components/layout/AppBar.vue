@@ -41,10 +41,19 @@
       <template #activator="{ props }">
         <v-btn
           v-bind="props"
+          prepend-icon="mdi-help-circle-outline"
+          variant="text"
+          class="mr-2 hidden-xs"
+          size="small"
+        >
+          {{ LL?.nav.feedback() }}
+        </v-btn>
+        <!-- モバイル用アイコンのみ -->
+        <v-btn
+          v-bind="props"
           icon="mdi-help-circle-outline"
           variant="text"
-          class="mr-2"
-          aria-label="Help and Feedback"
+          class="mr-2 hidden-sm-and-up"
         />
       </template>
       <v-list density="compact">
@@ -67,11 +76,11 @@
           <v-list-item-title>{{ LL?.feedback.tabs.contact() }}</v-list-item-title>
         </v-list-item>
         <v-divider />
-        <v-list-item href="https://x.com/krtw00" target="_blank">
+        <v-list-item href="https://x.com/XrIGT" target="_blank">
           <template #prepend>
             <v-icon>mdi-twitter</v-icon>
           </template>
-          <v-list-item-title>X (Twitter)</v-list-item-title>
+          <v-list-item-title>X (@XrIGT)</v-list-item-title>
         </v-list-item>
         <v-list-item href="https://github.com/krtw00/duel-log-app" target="_blank">
           <template #prepend>
@@ -150,7 +159,7 @@ import { maskEmail } from '@/utils/maskEmail';
 import { useLocale } from '@/composables/useLocale';
 
 defineProps<{
-  currentView: 'dashboard' | 'decks' | 'statistics' | 'profile' | 'admin';
+  currentView: 'dashboard' | 'decks' | 'statistics' | 'profile' | 'admin' | 'feedback';
 }>();
 
 defineEmits(['toggle-drawer']);

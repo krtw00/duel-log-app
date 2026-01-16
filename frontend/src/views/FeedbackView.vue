@@ -1,17 +1,9 @@
 <template>
-  <app-layout current-view="dashboard">
+  <app-layout current-view="feedback">
     <v-container class="d-flex justify-center py-6">
       <div style="width: 100%; max-width: 700px">
         <!-- ヘッダー -->
-        <div class="d-flex align-center mb-4">
-          <v-btn
-            icon="mdi-home"
-            variant="text"
-            @click="goToDashboard"
-            :aria-label="LL?.nav.dashboard()"
-          />
-          <h1 class="text-h5 ml-2">{{ LL?.nav.feedback() }}</h1>
-        </div>
+        <h1 class="text-h5 mb-4">{{ LL?.nav.feedback() }}</h1>
 
         <!-- イントロ -->
         <v-card class="mb-6">
@@ -247,25 +239,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { api } from '@/services/api';
 import { useLocale } from '@/composables/useLocale';
 import { useNotificationStore } from '@/stores/notification';
 import AppLayout from '@/components/layout/AppLayout.vue';
 
-const router = useRouter();
 const { LL } = useLocale();
-
-const goToDashboard = () => {
-  router.push('/');
-};
 const notificationStore = useNotificationStore();
 
 const activeTab = ref('bug');
 const loading = ref(false);
 const githubEnabled = ref(false);
-const xHandle = ref('@krtw00');
-const xUrl = ref('https://x.com/krtw00');
+const xHandle = ref('@XrIGT');
+const xUrl = ref('https://x.com/XrIGT');
 const githubUrl = ref('https://github.com/krtw00/duel-log-app');
 
 const successDialog = ref(false);
@@ -307,9 +293,9 @@ const fetchFeedbackStatus = async () => {
   try {
     const response = await api.get('/feedback/status');
     githubEnabled.value = response.data.github_enabled;
-    xHandle.value = response.data.contact_x_handle;
-    xUrl.value = `https://x.com/${xHandle.value.replace('@', '')}`;
-    githubUrl.value = response.data.contact_github_url;
+    xHandle.value = response.data.x_handle;
+    xUrl.value = response.data.x_url;
+    githubUrl.value = response.data.github_repo_url;
   } catch {
     // デフォルト値を使用
   }
