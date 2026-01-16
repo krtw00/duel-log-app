@@ -292,11 +292,25 @@ const matchupHeaders = computed(() => [
       -webkit-overflow-scrolling: touch;
     }
 
+    :deep(table) {
+      min-width: 600px;
+    }
+
     :deep(th),
     :deep(td) {
       white-space: nowrap;
       font-size: 12px !important;
-      padding: 8px 6px !important;
+      padding: 8px 10px !important;
+      min-width: 80px;
+    }
+
+    :deep(th:first-child),
+    :deep(td:first-child) {
+      min-width: 100px;
+    }
+
+    :deep(.v-chip) {
+      font-size: 11px !important;
     }
   }
 }
