@@ -3,7 +3,7 @@
 Tests the common query builder functions for duels.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -37,7 +37,7 @@ def test_build_base_duels_query(db_session: Session, test_user: User):
         is_win=True,
         won_coin_toss=True,
         is_going_first=True,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
         game_mode="RANK",
         rank=10,
     )
@@ -71,7 +71,7 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
         is_win=True,
         won_coin_toss=True,
         is_going_first=True,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
         game_mode="RANK",
         rank=10,
     )
@@ -86,7 +86,7 @@ def test_build_base_duels_query_with_game_mode(db_session: Session, test_user: U
         rate_value=1500,
         won_coin_toss=False,
         is_going_first=False,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_rate)
     db_session.commit()
@@ -174,7 +174,7 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
         rank=10,
         won_coin_toss=True,
         is_going_first=True,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_1)
 
@@ -187,7 +187,7 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
         rank=9,
         won_coin_toss=False,
         is_going_first=False,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_2)
 
@@ -200,7 +200,7 @@ def test_apply_deck_filters(db_session: Session, test_user: User):
         rank=10,
         won_coin_toss=True,
         is_going_first=True,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
     )
     duel_service.create_user_duel(db_session, user_id=test_user.id, duel_in=duel_3)
     db_session.commit()
@@ -227,7 +227,7 @@ def test_apply_range_filter(db_session: Session, test_user: User):
     db_session.commit()
 
     # Create 5 duels
-    base_date = datetime.utcnow()
+    base_date = datetime.now(timezone.utc)
     for i in range(5):
         duel_in = DuelCreate(
             deck_id=my_deck.id,
