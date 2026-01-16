@@ -9,14 +9,14 @@
     <v-card v-if="isActive" class="duel-form-card">
       <div class="card-glow"></div>
 
-      <v-card-title class="pa-6">
+      <v-card-title class="pa-4 pa-md-6">
         <v-icon class="mr-2" color="primary">mdi-file-document-edit</v-icon>
-        <span class="text-h5">{{ isEdit ? LL?.duels.form.editTitle() : LL?.duels.form.newTitle() }}</span>
+        <span class="text-h6 text-md-h5">{{ isEdit ? LL?.duels.form.editTitle() : LL?.duels.form.newTitle() }}</span>
       </v-card-title>
 
       <v-divider />
 
-      <v-card-text class="pa-6">
+      <v-card-text class="pa-4 pa-md-6">
         <v-form ref="formRef" @submit.prevent="handleSubmit">
           <v-row>
             <!-- 使用デッキ -->
@@ -1241,13 +1241,13 @@ const closeDialog = () => {
     .v-card-title {
       padding: 16px !important;
 
-      .text-h5 {
-        font-size: 1.25rem !important;
+      .text-h5, .text-h6 {
+        font-size: 1.1rem !important;
       }
     }
 
     .v-card-text {
-      padding: 16px !important;
+      padding: 0 !important;
     }
   }
 
