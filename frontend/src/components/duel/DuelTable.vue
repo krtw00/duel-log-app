@@ -1,8 +1,13 @@
 <template>
   <!-- モバイル: コンパクトカード表示 -->
   <div v-if="isMobile" class="duel-cards">
-    <div v-if="loading" class="text-center pa-4">
-      <v-progress-circular indeterminate color="primary" />
+    <div v-if="loading" class="pa-2">
+      <v-skeleton-loader
+        v-for="i in 5"
+        :key="i"
+        type="list-item-two-line"
+        class="mb-2"
+      />
     </div>
     <template v-else-if="duels.length > 0">
       <div
@@ -69,9 +74,16 @@
         </div>
       </div>
     </template>
-    <div v-else class="text-center pa-8">
-      <v-icon size="48" color="grey">mdi-file-document-outline</v-icon>
-      <p class="text-body-1 text-grey mt-2">{{ LL?.duels.table.noRecords() }}</p>
+    <div v-else class="empty-state text-center pa-8">
+      <div class="empty-state__icon-wrapper mb-4">
+        <v-icon size="64" color="grey-lighten-1">mdi-sword-cross</v-icon>
+      </div>
+      <h3 class="text-h6 mb-2">{{ LL?.dashboard.emptyState.title() }}</h3>
+      <p class="text-body-2 text-grey mb-4">{{ LL?.dashboard.emptyState.description() }}</p>
+      <v-btn color="primary" size="large" @click="$emit('addDuel')">
+        <v-icon start>mdi-plus</v-icon>
+        {{ LL?.dashboard.emptyState.addButton() }}
+      </v-btn>
     </div>
   </div>
 
@@ -186,10 +198,16 @@
 
     <!-- データなし -->
     <template #no-data>
-      <div class="text-center pa-8">
-        <v-icon size="64" color="grey">mdi-file-document-outline</v-icon>
-        <p class="text-h6 text-grey mt-4">{{ LL?.duels.table.noRecords() }}</p>
-        <p class="text-body-1 text-grey">{{ LL?.duels.table.noRecordsHint() }}</p>
+      <div class="empty-state text-center pa-8">
+        <div class="empty-state__icon-wrapper mb-4">
+          <v-icon size="80" color="grey-lighten-1">mdi-sword-cross</v-icon>
+        </div>
+        <h2 class="text-h5 mb-2">{{ LL?.dashboard.emptyState.title() }}</h2>
+        <p class="text-body-1 text-grey mb-6">{{ LL?.dashboard.emptyState.description() }}</p>
+        <v-btn color="primary" size="large" @click="$emit('addDuel')">
+          <v-icon start>mdi-plus</v-icon>
+          {{ LL?.dashboard.emptyState.addButton() }}
+        </v-btn>
       </div>
     </template>
   </v-data-table>
@@ -223,6 +241,7 @@ defineEmits<{
   refresh: [];
   edit: [duel: Duel];
   delete: [id: number];
+  addDuel: [];
 }>();
 
 const headers = computed(() => [
@@ -295,6 +314,26 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
 </script>
 
 <style lang="scss">
+// 空状態デザイン
+.empty-state {
+  padding: 48px 24px;
+
+  &__icon-wrapper {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--v-theme-on-surface), 0.05);
+    border-radius: 50%;
+  }
+
+  h2, h3 {
+    color: rgb(var(--v-theme-on-surface));
+  }
+}
+
 // モバイル: コンパクトカード表示
 .duel-cards {
   max-height: 70vh;
