@@ -17,7 +17,9 @@
 
       <StreamerSection :streamer-mode-enabled="authStore.isStreamerModeEnabled" />
 
+      <!-- デスクトップ: インラインフォーム表示 -->
       <DuelEntrySection
+        v-if="!isMobile"
         :decks="decks"
         :default-game-mode="currentMode"
         :default-first-or-second="defaultFirstOrSecond"
@@ -38,6 +40,28 @@
       />
     </v-container>
 
+    <!-- モバイル: FAB（新規追加ボタン） -->
+    <v-fab
+      v-if="isMobile"
+      location="bottom end"
+      color="primary"
+      icon="mdi-plus"
+      size="large"
+      class="mobile-fab"
+      @click="openMobileDuelForm"
+    />
+
+    <!-- モバイル用ダイアログフォーム -->
+    <DuelFormDialog
+      v-model="mobileDuelFormOpen"
+      :duel="null"
+      :default-game-mode="currentMode"
+      :default-first-or-second="defaultFirstOrSecond"
+      :initial-my-decks="myDecks"
+      :initial-opponent-decks="opponentDecks"
+      @saved="handleDuelSaved"
+    />
+
     <template #overlay>
       <share-stats-dialog
         v-model="shareDialogOpened"
@@ -51,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
+import { useDisplay } from 'vuetify';
 import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
 import type { Duel, Deck, GameMode } from '@/types';
@@ -67,6 +92,17 @@ import StreamerSection from '@/components/dashboard/StreamerSection.vue';
 import { useAuthStore } from '@/stores/auth';
 import DuelHistorySection from './DuelHistorySection.vue';
 import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue';
+import DuelFormDialog from '@/components/duel/DuelFormDialog.vue';
+
+// モバイル判定
+const { smAndDown } = useDisplay();
+const isMobile = computed(() => smAndDown.value);
+
+// モバイル用ダイアログフォーム
+const mobileDuelFormOpen = ref(false);
+const openMobileDuelForm = () => {
+  mobileDuelFormOpen.value = true;
+};
 
 // Shared state
 const duels = ref<Duel[]>([]);
@@ -172,6 +208,10 @@ const handleDuelSaved = (payload: { duel: Duel; upsertDecks: Deck[] }) => {
   upsertDuel(payload.duel);
 };
 
+// モバイルダイアログ用デッキリスト
+const myDecks = computed(() => decks.value.filter((d) => !d.is_opponent));
+const opponentDecks = computed(() => decks.value.filter((d) => d.is_opponent));
+
 // Data fetching - declare before using in composables
 const fetchDuels = async () => {
   loading.value = true;
@@ -224,5 +264,14 @@ defineExpose({
   backdrop-filter: blur(10px);
   border: 1px solid rgba(128, 128, 128, 0.2);
   border-radius: 12px !important;
+}
+
+/* モバイルFAB */
+.mobile-fab {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 16px !important;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 </style>
