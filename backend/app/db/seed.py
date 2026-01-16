@@ -380,12 +380,13 @@ def seed_data(db: Session):
                     total_created_count += 1
 
         logger.info(f"{total_created_count} duels created in total.")
-        logger.info("\n" + "=" * 50)
-        logger.info("✅ Dummy data seeding complete!")
-        logger.info(f"  Email: {fixed_email}")
-        logger.info(f"  Password: {password}")
-        logger.info(f"  Supabase UUID: {supabase_uuid}")
-        logger.info("=" * 50)
+        # 開発用シードの認証情報は標準出力に表示（ログには記録しない）
+        print("\n" + "=" * 50)
+        print("✅ Dummy data seeding complete!")
+        print(f"  Email: {fixed_email}")
+        print(f"  Password: {password}")
+        print(f"  Supabase UUID: {supabase_uuid}")
+        print("=" * 50)
 
     except Exception as e:
         logger.error(f"An error occurred during data seeding: {e}", exc_info=True)
