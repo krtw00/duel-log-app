@@ -362,18 +362,16 @@ def seed_data(db: Session):
 
                     elif mode == "DC":
                         # DC: 0スタート、勝ちで+1000
-                        # 負けは1万未満なら1000以下、高いほど下がり幅大
+                        # 負けは1万未満なら1000以下、1万以上でも1000付近
                         if result:  # 勝ち
                             current_dc = current_dc + 1000
                         else:  # 負け
                             if current_dc < 10000:
-                                # 1万未満は1000以下の下がり幅
+                                # 1万未満は100〜1000の下がり幅
                                 loss = random.randint(100, 1000)
                             else:
-                                # 1万以上は1000以上、高いほど大きく下がる
-                                base_loss = 1000
-                                extra_loss = (current_dc // 10000) * random.randint(500, 1500)
-                                loss = base_loss + extra_loss
+                                # 1万以上でも1000付近（900〜1200程度）
+                                loss = random.randint(900, 1200)
                             current_dc = max(0, current_dc - loss)
                         duel_data["dc_value"] = current_dc
 

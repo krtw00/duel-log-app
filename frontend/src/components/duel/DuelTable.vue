@@ -169,7 +169,7 @@
 
     <!-- 備考カラム -->
     <template v-if="!hiddenColumnsSet.has('notes')" #[`item.notes`]="{ item }">
-      <span v-if="item.notes">{{ item.notes }}</span>
+      <span v-if="item.notes" class="notes-text">{{ item.notes }}</span>
       <span v-else class="text-grey">-</span>
     </template>
 
@@ -432,6 +432,13 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
 
   .v-data-table__tr:hover {
     background: rgba(0, 217, 255, 0.05) !important;
+  }
+
+  // 備考欄は折り返さない
+  .notes-text {
+    white-space: nowrap;
+    display: inline-block;
+    min-width: 150px;
   }
 }
 

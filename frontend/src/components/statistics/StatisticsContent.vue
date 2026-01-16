@@ -33,14 +33,16 @@
             {{ LL?.statistics.duelList.totalCount({ count: (statistics.duels || []).length }) }}
           </v-chip>
         </v-card-title>
-        <v-card-text>
-          <duel-table
-            :duels="statistics.duels || []"
-            :loading="loading"
-            :show-actions="!isShared"
-            :hidden-columns="isShared ? ['actions'] : []"
-            table-height="480px"
-          />
+        <v-card-text class="pa-0 pa-sm-4">
+          <div class="table-scroll-container">
+            <duel-table
+              :duels="statistics.duels || []"
+              :loading="loading"
+              :show-actions="!isShared"
+              :hidden-columns="isShared ? ['actions'] : []"
+              table-height="480px"
+            />
+          </div>
         </v-card-text>
       </v-card>
     </v-col>
