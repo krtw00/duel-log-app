@@ -3,19 +3,23 @@ import { useAuthStore } from '../stores/auth';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('Router');
+
+// 頻繁にアクセスされるページは静的インポート
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import DashboardView from '../views/DashboardView.vue';
-import DecksView from '../views/DecksView.vue';
-import StatisticsView from '../views/StatisticsView.vue';
-import ProfileView from '../views/ProfileView.vue';
-import ForgotPasswordView from '../views/ForgotPasswordView.vue';
-import ResetPasswordView from '../views/ResetPasswordView.vue';
-import SharedStatisticsView from '../views/SharedStatisticsView.vue';
-import OBSOverlayView from '../views/OBSOverlayView.vue';
-import StreamerPopupView from '../views/StreamerPopupView.vue';
-import AdminView from '../views/AdminView.vue';
-import AuthCallbackView from '../views/AuthCallbackView.vue';
+
+// その他のページは動的インポート（コード分割）
+const DecksView = () => import('../views/DecksView.vue');
+const StatisticsView = () => import('../views/StatisticsView.vue');
+const ProfileView = () => import('../views/ProfileView.vue');
+const ForgotPasswordView = () => import('../views/ForgotPasswordView.vue');
+const ResetPasswordView = () => import('../views/ResetPasswordView.vue');
+const SharedStatisticsView = () => import('../views/SharedStatisticsView.vue');
+const OBSOverlayView = () => import('../views/OBSOverlayView.vue');
+const StreamerPopupView = () => import('../views/StreamerPopupView.vue');
+const AdminView = () => import('../views/AdminView.vue');
+const AuthCallbackView = () => import('../views/AuthCallbackView.vue');
 
 export const routes: RouteRecordRaw[] = [
   {
