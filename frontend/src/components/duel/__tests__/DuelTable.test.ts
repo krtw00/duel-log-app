@@ -94,7 +94,9 @@ describe('DuelTable.vue', () => {
       },
     });
 
-    expect(wrapper.text()).toContain('対戦記録がありません');
+    // 新しい空状態UIが表示される
+    expect(wrapper.find('.empty-state').exists()).toBe(true);
+    expect(wrapper.text()).toContain('最初の対戦を記録しましょう');
   });
 
   it('emits edit event with duel object when edit button is clicked', async () => {
