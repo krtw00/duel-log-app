@@ -1,10 +1,4 @@
-from sqlalchemy.orm import DeclarativeBase
-
-
-# 明示的に Base を定義
-class Base(DeclarativeBase):
-    pass
-
+from app.models.base import Base
 
 # 各モデルを import
 from .deck import Deck

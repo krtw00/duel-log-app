@@ -1,5 +1,5 @@
 <template>
-  <div ref="popupContainer" class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
+  <div class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
       <div class="loading-text">{{ LL?.common.loading() }}</div>
@@ -17,7 +17,7 @@
     </div>
 
     <!-- データ表示（空データでも表示） -->
-    <div v-else ref="statsContainer" class="stats-container">
+    <div v-else class="stats-container">
       <!-- 統計カード -->
       <div v-if="showStats" class="stats-card" :class="`layout-${layout}`">
         <div
@@ -62,10 +62,6 @@ const loading = ref(true);
 const errorMessage = ref<string>('');
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
-// DOM参照
-const popupContainer = ref<HTMLElement | null>(null);
-const statsContainer = ref<HTMLElement | null>(null);
-
 // クエリパラメータから設定を取得
 const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
 const theme = ref((route.query.theme as string) || 'dark');
@@ -73,6 +69,7 @@ const layout = ref((route.query.layout as string) || 'horizontal');
 const refreshInterval = ref(Number(route.query.refresh) || 30000);
 const gameMode = ref<GameMode>((route.query.game_mode as GameMode) || 'RANK');
 const statsPeriod = ref((route.query.stats_period as string) || 'monthly');
+const resetSize = ref(route.query.reset_size === 'true');
 
 // データ
 const statsData = ref<Record<string, unknown>>({});
@@ -237,7 +234,56 @@ const statsItems = computed(() => {
 });
 
 /**
- * ウィンドウサイズをコンテンツに合わせて自動調整（初回のみ）
+ * 保存されたウィンドウサイズのキーを生成
+ * レイアウトごとにサイズを保存（テーマに関わらず同じサイズを使用）
+ */
+const getWindowSizeKey = () => `streamerPopupSize_${layout.value}`;
+
+/**
+ * アイテム数に基づいてウィンドウサイズを計算
+ * テーマに関係なく一貫したサイズを返す
+ */
+const calculateWindowSize = (itemCount: number): { width: number; height: number } => {
+  // 固定のアイテムサイズ（CSS測定ではなく定数を使用してテーマ間で一貫性を保つ）
+  const itemWidth = 160; // アイテム1つの幅
+  const itemHeight = 70; // アイテム1つの高さ
+  const gap = 10; // アイテム間のギャップ
+  const padding = 32; // コンテナのパディング（16px × 2）
+  const windowChrome = 50; // ブラウザのウィンドウ枠
+
+  if (layout.value === 'horizontal') {
+    // 横並び: 全アイテムを1行に配置
+    const contentWidth = itemCount * itemWidth + (itemCount - 1) * gap;
+    const contentHeight = itemHeight;
+    return {
+      width: contentWidth + padding + windowChrome,
+      height: contentHeight + padding + windowChrome + 30, // 高さは少し余裕を持たせる
+    };
+  } else if (layout.value === 'vertical') {
+    // 縦並び: 全アイテムを1列に配置
+    const contentWidth = itemWidth;
+    const contentHeight = itemCount * itemHeight + (itemCount - 1) * gap;
+    return {
+      width: contentWidth + padding + windowChrome + 60, // 幅は少し余裕を持たせる
+      height: contentHeight + padding + windowChrome,
+    };
+  } else {
+    // グリッド: 2列のグリッド
+    const columns = 2;
+    const rows = Math.ceil(itemCount / columns);
+    const contentWidth = columns * itemWidth + (columns - 1) * gap;
+    const contentHeight = rows * itemHeight + (rows - 1) * gap;
+    return {
+      width: contentWidth + padding + windowChrome + 40,
+      height: contentHeight + padding + windowChrome,
+    };
+  }
+};
+
+/**
+ * ウィンドウサイズをコンテンツに合わせて自動調整
+ * - 初回: アイテム数に基づいてサイズを計算し、localStorageに保存
+ * - 2回目以降: localStorageから保存されたサイズを使用（固定）
  */
 const resizeWindowToContent = async () => {
   // 既にリサイズ済みの場合はスキップ（自動更新時にサイズが変わるのを防ぐ）
@@ -248,52 +294,42 @@ const resizeWindowToContent = async () => {
 
   await nextTick();
 
-  // コンテンツのサイズを取得
-  const container = statsContainer.value || popupContainer.value;
-  if (!container) return;
+  const sizeKey = getWindowSizeKey();
 
-  // コンテンツの実際のサイズを測定（scrollWidth/scrollHeightでオーバーフロー含む）
-  const contentWidth = Math.max(container.scrollWidth, container.offsetWidth);
-  const contentHeight = Math.max(container.scrollHeight, container.offsetHeight);
-
-  // パディングとマージンを考慮
-  const horizontalPadding = 80;
-  const verticalPadding = 120;
-
-  // レイアウトに応じたサイズ制限
-  let minWidth: number;
-  let maxWidth: number;
-  let minHeight: number;
-  let maxHeight: number;
-
-  if (layout.value === 'horizontal') {
-    // 横並び: 幅を広く、高さは最小限
-    minWidth = 400;
-    maxWidth = 2400; // 1行に収めるため広めに
-    minHeight = 100;
-    maxHeight = 300;
-  } else if (layout.value === 'vertical') {
-    // 縦並び: 幅は狭く、高さを確保
-    minWidth = 180;
-    maxWidth = 280;
-    minHeight = 200;
-    maxHeight = 1200;
-  } else {
-    // グリッド: デフォルト
-    minWidth = 350;
-    maxWidth = 1200;
-    minHeight = 150;
-    maxHeight = 900;
+  // reset_size=true の場合は保存されたサイズをクリア
+  if (resetSize.value) {
+    localStorage.removeItem(sizeKey);
+    logger.debug('Saved window size cleared due to reset_size parameter');
   }
 
-  // ウィンドウサイズを計算（ブラウザのUIを考慮）
-  const targetWidth = Math.min(maxWidth, Math.max(minWidth, contentWidth + horizontalPadding));
-  const targetHeight = Math.min(maxHeight, Math.max(minHeight, contentHeight + verticalPadding));
+  const savedSize = localStorage.getItem(sizeKey);
+
+  // 保存されたサイズがある場合はそれを使用（固定サイズ）
+  if (savedSize && !resetSize.value) {
+    try {
+      const { width, height } = JSON.parse(savedSize);
+      window.resizeTo(width, height);
+      hasResized.value = true;
+      logger.debug(`Window restored to saved size: ${width}x${height} (layout: ${layout.value})`);
+      return;
+    } catch (e) {
+      logger.debug('Failed to parse saved window size, will auto-resize');
+    }
+  }
+
+  // 初回: アイテム数に基づいてサイズを計算（テーマに関係なく一貫したサイズ）
+  const itemCount = statsItems.value.length;
+  if (itemCount === 0) return;
+
+  const { width: targetWidth, height: targetHeight } = calculateWindowSize(itemCount);
 
   try {
     window.resizeTo(targetWidth, targetHeight);
-    hasResized.value = true; // リサイズ済みフラグを立てる
-    logger.debug(`Window resized to ${targetWidth}x${targetHeight} (layout: ${layout.value})`);
+    hasResized.value = true;
+
+    // サイズをlocalStorageに保存（次回以降は固定サイズとして使用）
+    localStorage.setItem(sizeKey, JSON.stringify({ width: targetWidth, height: targetHeight }));
+    logger.debug(`Window auto-resized and saved: ${targetWidth}x${targetHeight} (layout: ${layout.value}, items: ${itemCount})`);
   } catch (e) {
     logger.debug('Could not resize window:', e);
   }
