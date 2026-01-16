@@ -268,8 +268,8 @@ def seed_data(db: Session):
         game_modes = ["RANK", "RATE", "EVENT", "DC"]
 
         # レート/DC値の初期値（モードごとに継続して使用）
-        current_rate = 300.0
-        current_dc = 300
+        current_rate = 1500.0  # レートは1500スタート
+        current_dc = 0  # DCは0スタート
 
         for mode in game_modes:
             existing_duels_count = (
@@ -349,24 +349,32 @@ def seed_data(db: Session):
                         duel_data["rank"] = random.randint(1, 32)
 
                     elif mode == "RATE":
-                        # 勝敗に応じてレートを増減（リアルな推移を再現）
-                        change = random.uniform(5.0, 15.0)
+                        # レート: 1500スタート、最低1200、増減は1桁
+                        change = random.randint(1, 9)
                         if result:  # 勝ち
-                            current_rate = min(500.0, current_rate + change)
+                            current_rate = current_rate + change
                         else:  # 負け
-                            current_rate = max(100.0, current_rate - change)
+                            current_rate = max(1200.0, current_rate - change)
                         duel_data["rate_value"] = round(current_rate, 2)
 
                     elif mode == "EVENT":
                         duel_data["notes"] = "イベント300"
 
                     elif mode == "DC":
-                        # 勝敗に応じてDCポイントを増減
-                        change = random.randint(50, 150)
+                        # DC: 0スタート、勝ちで+1000
+                        # 負けは1万未満なら1000以下、高いほど下がり幅大
                         if result:  # 勝ち
-                            current_dc = min(500, current_dc + change)
+                            current_dc = current_dc + 1000
                         else:  # 負け
-                            current_dc = max(100, current_dc - change)
+                            if current_dc < 10000:
+                                # 1万未満は1000以下の下がり幅
+                                loss = random.randint(100, 1000)
+                            else:
+                                # 1万以上は1000以上、高いほど大きく下がる
+                                base_loss = 1000
+                                extra_loss = (current_dc // 10000) * random.randint(500, 1500)
+                                loss = base_loss + extra_loss
+                            current_dc = max(0, current_dc - loss)
                         duel_data["dc_value"] = current_dc
 
                     duel_in = DuelCreate(**duel_data)  # type: ignore[arg-type]
