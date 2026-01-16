@@ -58,6 +58,17 @@ class Settings(BaseSettings):
     # ログ設定
     LOG_LEVEL: str = Field(default="INFO", description="ログレベル")
 
+    # GitHub設定（フィードバック機能用）
+    GITHUB_TOKEN: str | None = Field(
+        default=None, description="GitHub Personal Access Token for issue creation"
+    )
+    GITHUB_REPO_OWNER: str = Field(
+        default="krtw00", description="GitHub repository owner"
+    )
+    GITHUB_REPO_NAME: str = Field(
+        default="duel-log-app", description="GitHub repository name"
+    )
+
     @field_validator("LOG_LEVEL")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
