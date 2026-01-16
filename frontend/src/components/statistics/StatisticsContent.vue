@@ -282,35 +282,41 @@ const matchupHeaders = computed(() => [
 
 .matchup-table {
   width: 100%;
+
+  :deep(.v-data-table__wrapper) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :deep(table) {
+    min-width: 700px;
+    table-layout: fixed;
+  }
+
+  :deep(th),
+  :deep(td) {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-/* テーブルの横スクロール対応 */
+/* モバイル用追加調整 */
 @media (max-width: 599px) {
   .matchup-table {
-    :deep(.v-data-table__wrapper) {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
     :deep(table) {
-      min-width: 600px;
+      min-width: 650px;
     }
 
     :deep(th),
     :deep(td) {
-      white-space: nowrap;
       font-size: 12px !important;
-      padding: 8px 10px !important;
-      min-width: 80px;
-    }
-
-    :deep(th:first-child),
-    :deep(td:first-child) {
-      min-width: 100px;
+      padding: 8px 12px !important;
     }
 
     :deep(.v-chip) {
       font-size: 11px !important;
+      height: 24px !important;
     }
   }
 }
