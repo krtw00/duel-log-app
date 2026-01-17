@@ -91,15 +91,17 @@ class AdminStatisticsService:
         """デッキ統計を取得"""
         # アクティブデッキ数
         active = (
-            self.db.query(func.count(Deck.id)).filter(Deck.active == True).scalar()
-            or 0  # noqa: E712
+            self.db.query(func.count(Deck.id))
+            .filter(Deck.active == True)  # noqa: E712
+            .scalar()
+            or 0
         )
 
         # アーカイブデッキ数
         archived = (
             self.db.query(func.count(Deck.id))
-            .filter(Deck.active == False)
-            .scalar()  # noqa: E712
+            .filter(Deck.active == False)  # noqa: E712
+            .scalar()
             or 0
         )
 
@@ -114,8 +116,8 @@ class AdminStatisticsService:
         # 相手デッキ数
         opponent_decks = (
             self.db.query(func.count(Deck.id))
-            .filter(Deck.is_opponent == True)
-            .scalar()  # noqa: E712
+            .filter(Deck.is_opponent == True)  # noqa: E712
+            .scalar()
             or 0
         )
 
