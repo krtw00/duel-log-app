@@ -66,9 +66,7 @@ def upgrade() -> None:
     # ========================================
     # 4. 外部キーのインデックスを追加
     # ========================================
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_decks_user_id ON decks(user_id)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_decks_user_id ON decks(user_id)")
     op.execute(
         "CREATE INDEX IF NOT EXISTS idx_shared_statistics_user_id ON shared_statistics(user_id)"
     )
@@ -91,9 +89,7 @@ def downgrade() -> None:
     op.execute("DROP INDEX IF EXISTS idx_sharedurls_user_id")
 
     # 未使用インデックスを復元
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_sharedurls_id ON sharedurls(id)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS ix_sharedurls_id ON sharedurls(id)")
     op.execute(
         "CREATE INDEX IF NOT EXISTS ix_shared_statistics_id ON shared_statistics(id)"
     )
