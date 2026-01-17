@@ -70,19 +70,13 @@
           class="elevation-1"
         >
           <template #item.rank="{ item }">
-            <v-chip
-              :color="getRankColor(item.rank)"
-              size="small"
-              variant="flat"
-            >
+            <v-chip :color="getRankColor(item.rank)" size="small" variant="flat">
               #{{ item.rank }}
             </v-chip>
           </template>
 
           <template #item.win_rate="{ item }">
-            <span :class="getWinRateClass(item.win_rate)">
-              {{ item.win_rate.toFixed(1) }}%
-            </span>
+            <span :class="getWinRateClass(item.win_rate)"> {{ item.win_rate.toFixed(1) }}% </span>
           </template>
 
           <template #item.win_loss="{ item }">
@@ -140,11 +134,7 @@
           </v-col>
           <v-col cols="12" md="6">
             <v-list density="compact">
-              <v-list-item
-                v-for="stat in gameModeStats"
-                :key="stat.game_mode"
-                class="py-2"
-              >
+              <v-list-item v-for="stat in gameModeStats" :key="stat.game_mode" class="py-2">
                 <template #prepend>
                   <v-icon :color="getGameModeColor(stat.game_mode)">
                     {{ getGameModeIcon(stat.game_mode) }}
@@ -172,11 +162,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { useLocale } from '@/composables/useLocale';
 import { useNotificationStore } from '@/stores/notification';
-import {
-  getPopularDecks,
-  getDeckTrends,
-  getGameModeStats,
-} from '@/services/adminApi';
+import { getPopularDecks, getDeckTrends, getGameModeStats } from '@/services/adminApi';
 import type {
   PopularDecksResponse,
   DeckRanking,
@@ -313,9 +299,7 @@ function renderTrendsChart() {
   const dates = [...new Set(deckTrendsData.value.map((d) => d.date))].sort();
   const datasets = topDecks.value.map((deckName, index) => {
     const data = dates.map((date) => {
-      const entry = deckTrendsData.value.find(
-        (d) => d.date === date && d.deck_name === deckName,
-      );
+      const entry = deckTrendsData.value.find((d) => d.date === date && d.deck_name === deckName);
       return entry?.usage_rate ?? 0;
     });
 
@@ -352,8 +336,7 @@ function renderTrendsChart() {
         },
         tooltip: {
           callbacks: {
-            label: (context) =>
-              `${context.dataset.label}: ${(context.parsed.y ?? 0).toFixed(1)}%`,
+            label: (context) => `${context.dataset.label}: ${(context.parsed.y ?? 0).toFixed(1)}%`,
           },
         },
       },

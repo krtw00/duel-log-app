@@ -163,7 +163,8 @@
             >
               {{ expiredUrlCount }}{{ LL?.admin.maintenance.sharedUrls.expired.found() }}
               <span v-if="oldestExpired" class="text-caption ml-2">
-                ({{ LL?.admin.maintenance.sharedUrls.expired.oldest() }}: {{ formatDate(oldestExpired) }})
+                ({{ LL?.admin.maintenance.sharedUrls.expired.oldest() }}:
+                {{ formatDate(oldestExpired) }})
               </span>
             </v-alert>
           </div>
@@ -386,12 +387,14 @@ async function executeMerge() {
   try {
     const response = await api.post('/admin/merge-archived-decks');
     resultSuccess.value = true;
-    resultMessage.value = response.data.message || LL.value?.admin.maintenance.mergeDeck.success() || '';
+    resultMessage.value =
+      response.data.message || LL.value?.admin.maintenance.mergeDeck.success() || '';
     notificationStore.success(LL.value?.admin.maintenance.mergeDeck.success() || '');
   } catch (error: unknown) {
     resultSuccess.value = false;
     const err = error as { response?: { data?: { detail?: string } } };
-    resultMessage.value = err.response?.data?.detail || LL.value?.admin.maintenance.mergeDeck.error() || '';
+    resultMessage.value =
+      err.response?.data?.detail || LL.value?.admin.maintenance.mergeDeck.error() || '';
     notificationStore.error(LL.value?.admin.maintenance.mergeDeck.error() || '');
   } finally {
     mergeLoading.value = false;

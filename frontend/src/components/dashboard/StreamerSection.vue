@@ -7,8 +7,12 @@
           <v-expansion-panel-title>
             <div class="d-flex align-center">
               <v-icon class="mr-2" color="purple">mdi-monitor-cellphone</v-icon>
-              <span class="text-subtitle-1 font-weight-medium">{{ LL?.dashboard.streamer.popupWindow() }}</span>
-              <v-chip class="ml-2" color="success" size="x-small" variant="flat">{{ LL?.dashboard.streamer.recommended() }}</v-chip>
+              <span class="text-subtitle-1 font-weight-medium">{{
+                LL?.dashboard.streamer.popupWindow()
+              }}</span>
+              <v-chip class="ml-2" color="success" size="x-small" variant="flat">{{
+                LL?.dashboard.streamer.recommended()
+              }}</v-chip>
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
@@ -21,8 +25,12 @@
           <v-expansion-panel-title>
             <div class="d-flex align-center">
               <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
-              <span class="text-subtitle-1 font-weight-medium">{{ LL?.dashboard.streamer.obsBrowserSource() }}</span>
-              <v-chip class="ml-2" color="warning" size="x-small" variant="flat">{{ LL?.dashboard.streamer.deprecated() }}</v-chip>
+              <span class="text-subtitle-1 font-weight-medium">{{
+                LL?.dashboard.streamer.obsBrowserSource()
+              }}</span>
+              <v-chip class="ml-2" color="warning" size="x-small" variant="flat">{{
+                LL?.dashboard.streamer.deprecated()
+              }}</v-chip>
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>

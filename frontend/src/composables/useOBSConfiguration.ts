@@ -46,7 +46,10 @@ export function useOBSConfiguration() {
 
   const layoutOptions = computed(() => [
     { title: LL.value?.obs.streamerPopup.layouts.grid() ?? 'Grid', value: 'grid' },
-    { title: LL.value?.obs.streamerPopup.layouts.horizontal() ?? 'Horizontal', value: 'horizontal' },
+    {
+      title: LL.value?.obs.streamerPopup.layouts.horizontal() ?? 'Horizontal',
+      value: 'horizontal',
+    },
     { title: LL.value?.obs.streamerPopup.layouts.vertical() ?? 'Vertical', value: 'vertical' },
   ]);
 
@@ -177,12 +180,21 @@ export function useOBSConfiguration() {
   const recommendedSizeText = computed(() => {
     switch (obsLayout.value) {
       case 'horizontal':
-        return LL.value?.obs.configPanel.recommendedSizeHorizontal() ?? 'Recommended: 1920px width, 200px height';
+        return (
+          LL.value?.obs.configPanel.recommendedSizeHorizontal() ??
+          'Recommended: 1920px width, 200px height'
+        );
       case 'vertical':
-        return LL.value?.obs.configPanel.recommendedSizeVertical() ?? 'Recommended: 250px width, 1080px height';
+        return (
+          LL.value?.obs.configPanel.recommendedSizeVertical() ??
+          'Recommended: 250px width, 1080px height'
+        );
       case 'grid':
       default:
-        return LL.value?.obs.configPanel.recommendedSizeGrid() ?? 'Recommended: 800px width, 600px height';
+        return (
+          LL.value?.obs.configPanel.recommendedSizeGrid() ??
+          'Recommended: 800px width, 600px height'
+        );
     }
   });
 
@@ -277,7 +289,9 @@ export function useOBSConfiguration() {
         typeof expiresIn === 'number' ? now + expiresIn * 1000 - 30_000 : now + 23 * 60 * 60 * 1000;
     } catch (error) {
       logger.error('Failed to fetch OBS token:', error);
-      notificationStore.error(LL.value?.obs.configPanel.tokenFetchError() ?? 'Failed to fetch OBS token');
+      notificationStore.error(
+        LL.value?.obs.configPanel.tokenFetchError() ?? 'Failed to fetch OBS token',
+      );
       throw error;
     }
   };

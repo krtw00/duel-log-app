@@ -181,19 +181,11 @@
           </v-card-title>
           <v-card-text>
             <v-list density="compact">
-              <v-list-item
-                :href="xUrl"
-                target="_blank"
-                prepend-icon="mdi-twitter"
-              >
+              <v-list-item :href="xUrl" target="_blank" prepend-icon="mdi-twitter">
                 <v-list-item-title>X (Twitter)</v-list-item-title>
                 <v-list-item-subtitle>{{ xHandle }}</v-list-item-subtitle>
               </v-list-item>
-              <v-list-item
-                :href="githubUrl"
-                target="_blank"
-                prepend-icon="mdi-github"
-              >
+              <v-list-item :href="githubUrl" target="_blank" prepend-icon="mdi-github">
                 <v-list-item-title>GitHub</v-list-item-title>
                 <v-list-item-subtitle>{{ githubUrl }}</v-list-item-subtitle>
               </v-list-item>
@@ -202,12 +194,7 @@
         </v-card>
 
         <!-- GitHub無効時の警告 -->
-        <v-alert
-          v-if="!githubEnabled"
-          type="warning"
-          variant="tonal"
-          class="mt-4"
-        >
+        <v-alert v-if="!githubEnabled" type="warning" variant="tonal" class="mt-4">
           {{ LL?.feedback.githubDisabled() }}
         </v-alert>
 
