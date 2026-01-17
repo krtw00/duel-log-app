@@ -111,10 +111,7 @@ export const isValidGameMode = (value: unknown): value is GameMode => {
  * ゲームモードごとの統計データを取得するヘルパー
  * Record<GameMode, T>からcurrentModeに対応する値を取得
  */
-export const getValueByGameMode = <T>(
-  data: Record<GameMode, T>,
-  mode: GameMode,
-): T => {
+export const getValueByGameMode = <T>(data: Record<GameMode, T>, mode: GameMode): T => {
   return data[mode];
 };
 

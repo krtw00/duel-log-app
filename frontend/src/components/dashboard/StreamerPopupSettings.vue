@@ -62,7 +62,12 @@
             <template #item="{ item, props }">
               <v-list-item v-bind="props">
                 <template #prepend>
-                  <v-icon v-if="item.value !== 'none'" :color="item.value === 'green' ? '#00FF00' : '#0000FF'" size="small">mdi-square</v-icon>
+                  <v-icon
+                    v-if="item.value !== 'none'"
+                    :color="item.value === 'green' ? '#00FF00' : '#0000FF'"
+                    size="small"
+                    >mdi-square</v-icon
+                  >
                 </template>
               </v-list-item>
             </template>
@@ -76,7 +81,11 @@
           <v-expansion-panel-title class="py-2">
             <div class="d-flex align-center">
               <v-icon size="small" class="mr-2" color="grey">mdi-checkbox-marked-outline</v-icon>
-              <span class="text-body-2">{{ LL?.obs.streamerPopup.displayItems() }}（{{ LL?.obs.streamerPopup.displayItemsCount({ count: selectedCount }) }}）</span>
+              <span class="text-body-2"
+                >{{ LL?.obs.streamerPopup.displayItems() }}（{{
+                  LL?.obs.streamerPopup.displayItemsCount({ count: selectedCount })
+                }}）</span
+              >
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
@@ -208,11 +217,13 @@ const defaultSettings = {
 };
 
 // 表示項目（順序と選択状態を保持）- ラベルは後で動的に更新
-const displayItems = ref<DisplayItem[]>(displayItemKeys.map((item) => ({
-  key: item.key,
-  label: '',
-  selected: item.selected,
-})));
+const displayItems = ref<DisplayItem[]>(
+  displayItemKeys.map((item) => ({
+    key: item.key,
+    label: '',
+    selected: item.selected,
+  })),
+);
 
 // ラベルを最新の翻訳で更新
 watch(
@@ -283,7 +294,10 @@ const gameModeOptions = computed(() => [
 
 const statsPeriodOptions = computed(() => [
   { title: LL.value?.obs.streamerPopup.statsPeriods.monthly() ?? 'This Month', value: 'monthly' },
-  { title: LL.value?.obs.streamerPopup.statsPeriods.session() ?? 'Since Stream Start', value: 'session' },
+  {
+    title: LL.value?.obs.streamerPopup.statsPeriods.session() ?? 'Since Stream Start',
+    value: 'session',
+  },
 ]);
 
 const themeOptions = computed(() => [

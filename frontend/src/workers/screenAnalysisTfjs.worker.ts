@@ -187,7 +187,9 @@ const classifyRoi = async (
 /**
  * Analyze coin toss
  */
-const analyzeCoin = async (now: number): Promise<{
+const analyzeCoin = async (
+  now: number,
+): Promise<{
   detected: boolean;
   result: CoinResult | null;
   eventId: number;

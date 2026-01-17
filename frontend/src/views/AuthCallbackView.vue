@@ -20,7 +20,7 @@ const statusMessage = ref('認証中...');
 /**
  * タイムアウト付きPromiseラッパー
  */
-const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -38,8 +38,7 @@ const getErrorParams = () => {
 
   return {
     error: searchParams.get('error') || hashParams.get('error'),
-    errorDescription:
-      searchParams.get('error_description') || hashParams.get('error_description'),
+    errorDescription: searchParams.get('error_description') || hashParams.get('error_description'),
     errorCode: searchParams.get('error_code') || hashParams.get('error_code'),
   };
 };
@@ -58,7 +57,7 @@ const checkUrlParams = () => {
     error: searchParams.get('error') || hashParams.get('error'),
     error_description: searchParams.get('error_description') || hashParams.get('error_description'),
   };
-  
+
   console.log('[AuthCallback] URL parameters:', params);
   return params;
 };
@@ -71,7 +70,9 @@ const checkUrlParams = () => {
 const waitForSession = async (timeoutMs = 30000): Promise<boolean> => {
   return new Promise((resolve) => {
     let resolved = false;
-    let subscription: ReturnType<typeof supabase.auth.onAuthStateChange>['data']['subscription'] | null = null;
+    let subscription:
+      | ReturnType<typeof supabase.auth.onAuthStateChange>['data']['subscription']
+      | null = null;
 
     const timeoutId = setTimeout(() => {
       if (!resolved) {
@@ -88,83 +89,89 @@ const waitForSession = async (timeoutMs = 30000): Promise<boolean> => {
     // PKCEフローでは、detectSessionInUrlが自動的にcodeを処理するが、非同期で行われる
     setTimeout(() => {
       // まず現在のセッションを確認
-      supabase.auth.getSession().then(({ data, error }) => {
-        if (error) {
-          console.warn('[AuthCallback] getSession error:', error);
-        }
-
-        if (data?.session && !resolved) {
-          resolved = true;
-          clearTimeout(timeoutId);
-          console.log('[AuthCallback] Session already exists');
-          resolve(true);
-          return;
-        }
-
-        // セッションがない場合、onAuthStateChangeで待機
-        console.log('[AuthCallback] Waiting for session via onAuthStateChange...');
-        const {
-          data: { subscription: sub },
-        } = supabase.auth.onAuthStateChange((event, session) => {
-          console.log(`[AuthCallback] Auth state changed: ${event}`, session ? 'has session' : 'no session');
-          
-          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && !resolved) {
-            resolved = true;
-            clearTimeout(timeoutId);
-            if (sub) {
-              sub.unsubscribe();
-            }
-            console.log(`[AuthCallback] Session established via ${event} event`);
-            resolve(true);
-          } else if (event === 'TOKEN_REFRESHED' && session && !resolved) {
-            // 既にセッションがある場合のトークンリフレッシュ
-            resolved = true;
-            clearTimeout(timeoutId);
-            if (sub) {
-              sub.unsubscribe();
-            }
-            console.log('[AuthCallback] Session refreshed');
-            resolve(true);
+      supabase.auth
+        .getSession()
+        .then(({ data, error }) => {
+          if (error) {
+            console.warn('[AuthCallback] getSession error:', error);
           }
-        });
 
-        subscription = sub;
-
-        // 定期的にセッションを確認（フォールバック）
-        const checkInterval = setInterval(() => {
-          if (resolved) {
-            clearInterval(checkInterval);
+          if (data?.session && !resolved) {
+            resolved = true;
+            clearTimeout(timeoutId);
+            console.log('[AuthCallback] Session already exists');
+            resolve(true);
             return;
           }
-          supabase.auth.getSession().then(({ data }) => {
-            if (data?.session && !resolved) {
+
+          // セッションがない場合、onAuthStateChangeで待機
+          console.log('[AuthCallback] Waiting for session via onAuthStateChange...');
+          const {
+            data: { subscription: sub },
+          } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log(
+              `[AuthCallback] Auth state changed: ${event}`,
+              session ? 'has session' : 'no session',
+            );
+
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && !resolved) {
               resolved = true;
               clearTimeout(timeoutId);
-              clearInterval(checkInterval);
-              if (subscription) {
-                subscription.unsubscribe();
+              if (sub) {
+                sub.unsubscribe();
               }
-              console.log('[AuthCallback] Session found via polling');
+              console.log(`[AuthCallback] Session established via ${event} event`);
+              resolve(true);
+            } else if (event === 'TOKEN_REFRESHED' && session && !resolved) {
+              // 既にセッションがある場合のトークンリフレッシュ
+              resolved = true;
+              clearTimeout(timeoutId);
+              if (sub) {
+                sub.unsubscribe();
+              }
+              console.log('[AuthCallback] Session refreshed');
               resolve(true);
             }
           });
-        }, 1000); // 1秒ごとに確認
 
-        // タイムアウト時にインターバルをクリーンアップ
-        setTimeout(() => {
-          clearInterval(checkInterval);
-        }, timeoutMs);
-      }).catch((error) => {
-        console.error('[AuthCallback] Error in waitForSession:', error);
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeoutId);
-          if (subscription) {
-            subscription.unsubscribe();
+          subscription = sub;
+
+          // 定期的にセッションを確認（フォールバック）
+          const checkInterval = setInterval(() => {
+            if (resolved) {
+              clearInterval(checkInterval);
+              return;
+            }
+            supabase.auth.getSession().then(({ data }) => {
+              if (data?.session && !resolved) {
+                resolved = true;
+                clearTimeout(timeoutId);
+                clearInterval(checkInterval);
+                if (subscription) {
+                  subscription.unsubscribe();
+                }
+                console.log('[AuthCallback] Session found via polling');
+                resolve(true);
+              }
+            });
+          }, 1000); // 1秒ごとに確認
+
+          // タイムアウト時にインターバルをクリーンアップ
+          setTimeout(() => {
+            clearInterval(checkInterval);
+          }, timeoutMs);
+        })
+        .catch((error) => {
+          console.error('[AuthCallback] Error in waitForSession:', error);
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timeoutId);
+            if (subscription) {
+              subscription.unsubscribe();
+            }
+            resolve(false);
           }
-          resolve(false);
-        }
-      });
+        });
     }, 500); // 500ms待ってからセッション確認を開始
   });
 };
@@ -184,7 +191,7 @@ onMounted(async () => {
         description: errorParams.errorDescription,
         code: errorParams.errorCode,
       });
-      
+
       // エラーの種類に応じたメッセージを表示
       let errorMessage = 'OAuth認証エラーが発生しました';
       if (errorParams.error === 'access_denied') {
@@ -194,7 +201,7 @@ onMounted(async () => {
       } else if (errorParams.errorDescription) {
         errorMessage = errorParams.errorDescription;
       }
-      
+
       // エラー時は古いキャッシュをクリアして再ログインに備える
       clearSupabaseLocalStorage();
       notificationStore.error(errorMessage);
@@ -207,10 +214,10 @@ onMounted(async () => {
 
     // デバッグ: LocalStorageのSupabase関連キーを確認
     const supabaseKeys = Object.keys(localStorage).filter(
-      key => key.startsWith('sb-') || key.includes('supabase') || key.includes('code')
+      (key) => key.startsWith('sb-') || key.includes('supabase') || key.includes('code'),
     );
     console.log('[AuthCallback] LocalStorage Supabase keys:', supabaseKeys);
-    supabaseKeys.forEach(key => {
+    supabaseKeys.forEach((key) => {
       const value = localStorage.getItem(key);
       // 値が長い場合は先頭100文字だけ表示
       const displayValue = value && value.length > 100 ? value.substring(0, 100) + '...' : value;
@@ -229,7 +236,7 @@ onMounted(async () => {
         console.log('[AuthCallback] Calling exchangeCodeForSession...');
         const exchangeResult = await withTimeout(
           supabase.auth.exchangeCodeForSession(urlParams.code),
-          30000
+          30000,
         );
         console.log('[AuthCallback] exchangeCodeForSession completed');
 
@@ -269,7 +276,7 @@ onMounted(async () => {
     if (hasSession) {
       console.log('[AuthCallback] Session established successfully');
       statusMessage.value = 'ユーザー情報を取得中...';
-      
+
       try {
         // fetchUserにもタイムアウトを設定（10秒）
         await withTimeout(authStore.fetchUser(), 10000);
@@ -299,7 +306,8 @@ onMounted(async () => {
     let errorMessage = '認証に失敗しました。もう一度お試しください。';
 
     if (!finalUrlParams.code && !finalUrlParams.access_token) {
-      errorMessage = '認証情報がURLに含まれていません。SupabaseのRedirect URLs設定を確認してください。';
+      errorMessage =
+        '認証情報がURLに含まれていません。SupabaseのRedirect URLs設定を確認してください。';
       console.error('[AuthCallback] Missing authentication parameters in URL');
     }
 
@@ -314,7 +322,8 @@ onMounted(async () => {
     // エラー時は古いキャッシュをクリアして再ログインに備える
     clearSupabaseLocalStorage();
     console.log('[AuthCallback] Cleared cache after unexpected error');
-    const errorMessage = error instanceof Error ? error.message : '認証処理中にエラーが発生しました';
+    const errorMessage =
+      error instanceof Error ? error.message : '認証処理中にエラーが発生しました';
     notificationStore.error(errorMessage);
     await router.push('/login');
   }

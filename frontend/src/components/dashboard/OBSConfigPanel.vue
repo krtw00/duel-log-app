@@ -9,7 +9,12 @@
         <v-icon class="mr-2" color="primary">mdi-monitor-screenshot</v-icon>
         <span class="text-h5">{{ LL?.obs.configPanel.title() }}</span>
         <v-spacer />
-        <v-btn icon variant="text" :aria-label="LL?.common.close()" @click="$emit('update:modelValue', false)">
+        <v-btn
+          icon
+          variant="text"
+          :aria-label="LL?.common.close()"
+          @click="$emit('update:modelValue', false)"
+        >
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -163,7 +168,8 @@
               <li>{{ LL?.obs.configPanel.obsStep2() }}</li>
               <li>{{ recommendedSizeText }}</li>
               <li>
-                {{ LL?.obs.configPanel.obsStep4() }} <code>body { background-color: transparent; }</code>
+                {{ LL?.obs.configPanel.obsStep4() }}
+                <code>body { background-color: transparent; }</code>
               </li>
             </ol>
           </div>
@@ -178,7 +184,13 @@
           class="mb-2"
         >
           <template #append-inner>
-            <v-btn icon variant="text" size="small" :aria-label="LL?.obs.copyUrl()" @click="$emit('copy-url')">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              :aria-label="LL?.obs.copyUrl()"
+              @click="$emit('copy-url')"
+            >
               <v-icon>{{ urlCopied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
             </v-btn>
           </template>
