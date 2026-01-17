@@ -66,9 +66,13 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- CORS設定 ---
-# 許可するオリジンの決定
-# 1. ALLOWED_ORIGINSが設定されている場合は優先的に使用
-# 2. 未設定の場合はFRONTEND_URLをフォールバック
+# ## セキュリティポリシー: CORS Origin の厳格化
+# 本番環境では、明示的な許可リストのみを受け入れ、ワイルドカードや正規表現は使用しない。
+# 開発環境では、localhost/127.0.0.1 の自動展開と正規表現パターンをサポート。
+#
+# ### オリジン決定の優先順位
+# 1. ALLOWED_ORIGINS が設定されている場合は優先的に使用（推奨）
+# 2. 未設定の場合は FRONTEND_URL をフォールバック（後方互換性）
 if settings.ALLOWED_ORIGINS:
     # カンマ区切りの文字列をリストに変換
     allowed_origins = [
@@ -96,8 +100,10 @@ if settings.ENVIRONMENT != "production":
     allowed_origins = list(dict.fromkeys([o for o in expanded if o]))
     logger.info(f"Expanded origins for development: {allowed_origins}")
 
-# 正規表現パターンによるオリジン許可（開発環境のみ）
-# セキュリティのため、本番環境では明示的なリストのみを許可
+# ### 正規表現パターンによるオリジン許可（開発環境のみ）
+# セキュリティベストプラクティス: 本番環境では正規表現パターンを無効化
+# - 開発環境: Vercel等のプレビュー環境URL（例: https://.*\.vercel\.app）を許可可能
+# - 本番環境: 正規表現を無効化し、明示的なリストのみを許可（セキュリティ強化）
 allow_origin_regex = None
 if settings.ENVIRONMENT != "production" and settings.ALLOWED_ORIGIN_REGEX:
     allow_origin_regex = settings.ALLOWED_ORIGIN_REGEX
