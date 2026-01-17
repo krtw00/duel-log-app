@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
@@ -121,5 +121,126 @@ describe('StatisticsView.vue', () => {
 
     const myDeckChip2 = percentChips.find((chip) => chip.text().includes('4 / 10'));
     expect(myDeckChip2?.props('color')).toBe('error');
+  });
+
+  describe('Performance optimizations', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('debounces filter changes and fires request only once', async () => {
+      const wrapper = mount(StatisticsView, {
+        global: {
+          plugins: [vuetify, createTestingPinia({ createSpy: vi.fn })],
+          stubs: {
+            AppBar: true,
+            apexchart: true,
+            VNavigationDrawer: true,
+            VMain: { template: '<div><slot /></div>' },
+            VContainer: { template: '<div><slot /></div>' },
+          },
+        },
+      });
+      await flushPromises();
+
+      // Clear initial mount calls
+      vi.clearAllMocks();
+
+      // Simulate rapid filter changes
+      const yearSelect = wrapper.findComponent({ name: 'VSelect' });
+      await yearSelect.vm.$emit('update:modelValue', 2024);
+      await yearSelect.vm.$emit('update:modelValue', 2023);
+      await yearSelect.vm.$emit('update:modelValue', 2022);
+
+      // No API calls should happen immediately
+      expect(api.get).not.toHaveBeenCalled();
+
+      // Fast-forward time by 400ms (debounce delay)
+      vi.advanceTimersByTime(400);
+      await flushPromises();
+
+      // Only one set of API calls should be made (last change)
+      expect(api.get).toHaveBeenCalledTimes(3); // available-decks, statistics, duels
+    });
+
+    it('executes dependent APIs correctly (available-decks first, then others in parallel)', async () => {
+      const mockApiGet = vi.mocked(api.get);
+      const callOrder: string[] = [];
+
+      mockApiGet.mockImplementation((url: string) => {
+        if (url === '/statistics/available-decks') {
+          callOrder.push('available-decks');
+          return Promise.resolve({ data: { my_decks: [], opponent_decks: [] } });
+        } else if (url === '/statistics') {
+          callOrder.push('statistics');
+          return Promise.resolve({
+            data: {
+              RANK: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+              RATE: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+              EVENT: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+              DC: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+            },
+          });
+        } else if (url === '/duels/') {
+          callOrder.push('duels');
+          return Promise.resolve({ data: [] });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      mount(StatisticsView, {
+        global: {
+          plugins: [vuetify, createTestingPinia({ createSpy: vi.fn })],
+          stubs: {
+            AppBar: true,
+            apexchart: true,
+            VNavigationDrawer: true,
+            VMain: { template: '<div><slot /></div>' },
+            VContainer: { template: '<div><slot /></div>' },
+          },
+        },
+      });
+
+      await flushPromises();
+
+      // available-decks should be called first
+      expect(callOrder[0]).toBe('available-decks');
+      // statistics and duels should be called after (order may vary)
+      expect(callOrder).toContain('statistics');
+      expect(callOrder).toContain('duels');
+      expect(callOrder.length).toBe(3);
+    });
+
+    it('skips refetch when parameters are unchanged', async () => {
+      const wrapper = mount(StatisticsView, {
+        global: {
+          plugins: [vuetify, createTestingPinia({ createSpy: vi.fn })],
+          stubs: {
+            AppBar: true,
+            apexchart: true,
+            VNavigationDrawer: true,
+            VMain: { template: '<div><slot /></div>' },
+            VContainer: { template: '<div><slot /></div>' },
+          },
+        },
+      });
+      await flushPromises();
+
+      const initialCallCount = vi.mocked(api.get).mock.calls.length;
+
+      // Trigger refresh with same parameters
+      const yearSelect = wrapper.findComponent({ name: 'VSelect' });
+      await yearSelect.vm.$emit('update:modelValue', new Date().getFullYear());
+
+      vi.advanceTimersByTime(400);
+      await flushPromises();
+
+      // No additional API calls should be made
+      expect(vi.mocked(api.get).mock.calls.length).toBe(initialCallCount);
+    });
   });
 });
