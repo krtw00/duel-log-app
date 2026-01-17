@@ -3,7 +3,7 @@
     current-view="dashboard"
     main-class="dashboard-main"
   >
-    <v-container fluid class="pa-6 pa-sm-6 pa-xs-3">
+    <v-container fluid class="pa-4 pa-sm-6">
       <DashboardHeader
         v-model:game-mode="currentMode"
         v-model:year="selectedYear"

@@ -1,6 +1,6 @@
 <template>
   <app-layout current-view="statistics">
-    <v-container fluid class="pa-6">
+    <v-container fluid class="pa-4 pa-sm-6">
       <h1 class="statistics-title text-h4 mb-6">{{ LL?.statistics.title() }}</h1>
 
       <!-- 年月選択 -->
