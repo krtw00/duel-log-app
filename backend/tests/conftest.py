@@ -5,6 +5,8 @@
 import os
 
 # Supabase設定をテスト用にモック（settingsインポート前に設定）
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only-32chars")
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_ANON_KEY", "test-anon-key")
 os.environ.setdefault("SUPABASE_JWT_SECRET", "test-jwt-secret-for-testing-only-32chars")
@@ -122,5 +124,3 @@ def sample_duel_data():
     return {
         "played_date": datetime.now(timezone.utc),
     }
-
-

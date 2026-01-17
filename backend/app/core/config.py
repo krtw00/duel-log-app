@@ -37,7 +37,8 @@ class Settings(BaseSettings):
         ..., description="Supabase JWT署名検証用シークレット"
     )
     SUPABASE_SERVICE_ROLE_KEY: str | None = Field(
-        default=None, description="Supabase Service Role Key（管理者パスワードリセット用）"
+        default=None,
+        description="Supabase Service Role Key（管理者パスワードリセット用）",
     )
 
     # CORS設定
@@ -53,6 +54,21 @@ class Settings(BaseSettings):
     # フロントエンドURL
     FRONTEND_URL: str = Field(
         default="http://localhost:5173", description="フロントエンドのURL"
+    )
+
+    # CORS許可オリジンリスト（明示的な許可リスト）
+    # カンマ区切りで複数指定可能: "https://app.example.com,https://preview.example.com"
+    # 設定されている場合はこれを優先、なければFRONTEND_URLをフォールバック
+    ALLOWED_ORIGINS: str | None = Field(
+        default=None,
+        description="許可するCORSオリジン（カンマ区切り）。本番環境では明示的に設定すること。",
+    )
+
+    # Vercel等のプレビュー環境用の正規表現パターン（開発環境のみ有効）
+    # 本番環境ではセキュリティのため無効化される
+    ALLOWED_ORIGIN_REGEX: str | None = Field(
+        default=None,
+        description="許可するCORSオリジンの正規表現パターン（開発環境のみ有効）",
     )
 
     # ログ設定

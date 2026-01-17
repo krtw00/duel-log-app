@@ -5,12 +5,14 @@
 import logging
 import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy.exc import SQLAlchemyError
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.api.routers import (
     admin,
@@ -64,12 +66,23 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- CORS設定 ---
-# 環境変数から許可するオリジンを取得
-# 例: "http://localhost:5173,https://your-production-domain.com"
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-allowed_origins = [
-    origin.strip() for origin in frontend_url.split(",") if origin.strip()
-]
+# 許可するオリジンの決定
+# 1. ALLOWED_ORIGINSが設定されている場合は優先的に使用
+# 2. 未設定の場合はFRONTEND_URLをフォールバック
+if settings.ALLOWED_ORIGINS:
+    # カンマ区切りの文字列をリストに変換
+    allowed_origins = [
+        origin.strip()
+        for origin in settings.ALLOWED_ORIGINS.split(",")
+        if origin.strip()
+    ]
+    logger.info(f"Using ALLOWED_ORIGINS: {allowed_origins}")
+else:
+    # フォールバック: FRONTEND_URLを使用（後方互換性のため）
+    allowed_origins = [
+        origin.strip() for origin in settings.FRONTEND_URL.split(",") if origin.strip()
+    ]
+    logger.info(f"ALLOWED_ORIGINS not set, using FRONTEND_URL: {allowed_origins}")
 
 # 開発環境では localhost と 127.0.0.1 のどちらでもアクセスされ得るため、
 # 片方だけ許可しているとCORSプリフライトで失敗することがある。
@@ -81,23 +94,46 @@ if settings.ENVIRONMENT != "production":
         expanded.append(origin.replace("://127.0.0.1", "://localhost"))
     # 重複排除（順序は保持）
     allowed_origins = list(dict.fromkeys([o for o in expanded if o]))
+    logger.info(f"Expanded origins for development: {allowed_origins}")
 
-logger.info(f"Allowed CORS origins from FRONTEND_URL: {allowed_origins}")
-
-# Vercelのプレビューデプロイメント用の正規表現パターン
-# 例: https://duel-log-app-git-feature-branch-your-team.vercel.app
-vercel_preview_pattern = r"https://.*\.vercel\.app"
-logger.info(f"Allowing CORS for Vercel preview pattern: {vercel_preview_pattern}")
+# 正規表現パターンによるオリジン許可（開発環境のみ）
+# セキュリティのため、本番環境では明示的なリストのみを許可
+allow_origin_regex = None
+if settings.ENVIRONMENT != "production" and settings.ALLOWED_ORIGIN_REGEX:
+    allow_origin_regex = settings.ALLOWED_ORIGIN_REGEX
+    logger.info(
+        f"Development mode: allowing origin regex pattern: {allow_origin_regex}"
+    )
+else:
+    logger.info("Production mode: origin regex disabled for security")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=vercel_preview_pattern,
+    allow_origin_regex=allow_origin_regex,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Cookie", "Set-Cookie"],
     expose_headers=["Set-Cookie"],
 )
+
+
+# --- セキュリティヘッダー設定 ---
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """セキュリティヘッダーを追加するミドルウェア"""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # X-Frame-Options: クリックジャッキング攻撃を防ぐ
+        # DENY: すべてのフレーム内での表示を禁止
+        # SAMEORIGIN: 同一オリジンのフレーム内でのみ表示を許可
+        response.headers["X-Frame-Options"] = "DENY"
+        # X-Content-Type-Options: MIMEタイプスニッフィングを防ぐ
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # --- 例外ハンドラーの登録 ---
 # Note: Starlette/FastAPIの型定義ではExceptionHandlerの戻り値が厳密に定義されているため
