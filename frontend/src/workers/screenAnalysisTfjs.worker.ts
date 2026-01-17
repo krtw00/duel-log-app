@@ -11,7 +11,6 @@
 import {
   initTfjs,
   ImageClassifier,
-  extractRoiImageData,
   resizeImageData,
   classifyByColorHistogram,
   MODEL_INPUT_SIZE,
@@ -414,7 +413,8 @@ const handleAnalyze = async (message: {
     }
 
     // Draw image data to canvas
-    ctx.putImageData(message.imageData, 0, 0);
+    // ctx is guaranteed to be non-null here due to the check above
+    ctx!.putImageData(message.imageData, 0, 0);
 
     const now = message.timestamp;
 

@@ -7,7 +7,7 @@ import pluginJsdoc from 'eslint-plugin-jsdoc';
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**', '*.cjs', '*.js', 'public/**'],
+    ignores: ['dist/**', 'node_modules/**', '*.cjs', '*.js', 'public/**', 'scripts/**'],
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
