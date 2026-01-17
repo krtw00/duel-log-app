@@ -153,5 +153,36 @@ class Settings(BaseSettings):
         extra = "ignore"
 
 
+def validate_settings() -> Settings:
+    """
+    設定を検証し、必須項目の不足や不正な値がある場合に明確なエラーメッセージを出力
+
+    Returns:
+        Settings: 検証済みの設定インスタンス
+
+    Raises:
+        ValueError: 設定が不正な場合
+    """
+    try:
+        settings_instance = Settings()  # type: ignore[call-arg]
+        return settings_instance
+    except Exception as e:
+        import sys
+
+        print("=" * 60)
+        print("❌ 設定バリデーションエラー")
+        print("=" * 60)
+        print(f"\n{str(e)}\n")
+        print("必須環境変数を確認してください:")
+        print("  - DATABASE_URL: データベース接続URL")
+        print("  - SUPABASE_URL: SupabaseプロジェクトURL")
+        print("  - SUPABASE_ANON_KEY: Supabase匿名キー")
+        print("  - SUPABASE_JWT_SECRET: Supabase JWT署名検証用シークレット")
+        print("  - SECRET_KEY: JWT署名用秘密鍵（32文字以上）")
+        print("\n環境変数は .env ファイルまたはシステム環境変数で設定してください。")
+        print("=" * 60)
+        sys.exit(1)
+
+
 # グローバル設定インスタンス
 settings = Settings()  # type: ignore[call-arg]

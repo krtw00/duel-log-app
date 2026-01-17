@@ -27,7 +27,8 @@ def upgrade() -> None:
     # 1. 関数のsearch_pathを固定
     # ========================================
     # handle_new_user関数を再作成
-    op.execute("""
+    op.execute(
+        """
         CREATE OR REPLACE FUNCTION public.handle_new_user()
         RETURNS trigger
         LANGUAGE plpgsql
@@ -47,10 +48,12 @@ def upgrade() -> None:
             RETURN NEW;
         END;
         $$
-    """)
+    """
+    )
 
     # update_updated_at_column関数を再作成
-    op.execute("""
+    op.execute(
+        """
         CREATE OR REPLACE FUNCTION public.update_updated_at_column()
         RETURNS trigger
         LANGUAGE plpgsql
@@ -61,7 +64,8 @@ def upgrade() -> None:
             RETURN NEW;
         END;
         $$
-    """)
+    """
+    )
 
     # ========================================
     # 4. 外部キーのインデックスを追加
@@ -94,7 +98,8 @@ def downgrade() -> None:
     )
 
     # 関数のsearch_pathを元に戻す（SET search_pathなし）
-    op.execute("""
+    op.execute(
+        """
         CREATE OR REPLACE FUNCTION public.handle_new_user()
         RETURNS trigger
         LANGUAGE plpgsql
@@ -113,9 +118,11 @@ def downgrade() -> None:
             RETURN NEW;
         END;
         $$
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE OR REPLACE FUNCTION public.update_updated_at_column()
         RETURNS trigger
         LANGUAGE plpgsql
@@ -125,4 +132,5 @@ def downgrade() -> None:
             RETURN NEW;
         END;
         $$
-    """)
+    """
+    )

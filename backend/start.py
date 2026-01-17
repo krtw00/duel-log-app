@@ -436,11 +436,37 @@ def start_server():
         subprocess.run(["uvicorn", "app.main:app", "--host", host, "--port", str(port)])
 
 
+def validate_configuration():
+    """起動時に設定をバリデーション"""
+    logger.info("🔍 Validating configuration...")
+    sys.stdout.flush()
+
+    try:
+        from app.core.config import validate_settings
+
+        validate_settings()
+        logger.info("✅ Configuration validation passed!")
+        sys.stdout.flush()
+        return True
+    except SystemExit:
+        # validate_settings内でsys.exit(1)が呼ばれた場合
+        raise
+    except Exception as e:
+        logger.error(f"❌ Configuration validation failed: {e}")
+        sys.stdout.flush()
+        return False
+
+
 if __name__ == "__main__":
     logger.info("=" * 60)
     logger.info("START.PY - INITIALIZATION")
     logger.info("=" * 60)
     sys.stdout.flush()
+
+    # 設定バリデーション
+    if not validate_configuration():
+        logger.error("Configuration validation failed. Exiting.")
+        sys.exit(1)
 
     if not wait_for_db():
         sys.exit(1)
