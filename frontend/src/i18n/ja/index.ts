@@ -441,7 +441,6 @@ const ja = {
         sec10: '10秒',
         sec30: '30秒',
         min1: '1分',
-        min5: '5分',
       },
       statsPeriod: '統計期間',
       statsPeriods: {

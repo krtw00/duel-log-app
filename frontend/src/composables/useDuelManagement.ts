@@ -5,6 +5,7 @@
 
 import { ref, type Ref } from 'vue';
 import api from '../services/api';
+import { notifyDuelUpdate } from '../services/duelService';
 import { useNotificationStore } from '../stores/notification';
 import type { Duel, Deck } from '../types';
 import { createLogger } from '../utils/logger';
@@ -42,6 +43,7 @@ export function useDuelManagement(props: UseDuelManagementProps) {
 
     try {
       await api.delete(`/duels/${duelId}`);
+      notifyDuelUpdate(); // ポップアップに通知
       notificationStore.success('対戦記録を削除しました。');
       await fetchDuels();
     } catch (error) {

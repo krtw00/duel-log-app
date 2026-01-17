@@ -49,6 +49,7 @@ import { useRoute } from 'vue-router';
 import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
 import { useAuthStore } from '@/stores/auth';
+import { DUEL_UPDATE_CHANNEL } from '@/services/duelService';
 import { useLocale } from '@/composables/useLocale';
 import { useRanks } from '@/composables/useRanks';
 import type { GameMode } from '@/types';
@@ -61,13 +62,15 @@ const { LL } = useLocale();
 const { getRankName } = useRanks();
 const loading = ref(true);
 const errorMessage = ref<string>('');
+const isInitialLoad = ref(true); // 初回ロードフラグ
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
+let broadcastChannel: BroadcastChannel | null = null;
 
 // クエリパラメータから設定を取得
 const itemsParam = ref((route.query.items as string) || 'win_rate,total_duels');
 const theme = ref((route.query.theme as string) || 'dark');
 const layout = ref((route.query.layout as string) || 'horizontal');
-const refreshInterval = ref(Number(route.query.refresh) || 30000);
+const refreshInterval = ref(Number(route.query.refresh) || 5000);
 
 // デバッグ: テーマパラメータをログ出力
 logger.info(`Popup theme: ${theme.value} (from query: ${route.query.theme})`);
@@ -133,20 +136,12 @@ const statsPeriod = ref((route.query.stats_period as string) || 'monthly');
 // データ
 const statsData = ref<Record<string, unknown>>({});
 
-// セッション統計用: 起動時の統計を保存
-interface InitialStats {
-  total: number;
-  wins: number;
-  first_turn_wins: number;
-  first_turn_total: number;
-  second_turn_wins: number;
-  second_turn_total: number;
-  coin_wins: number;
-  coin_total: number;
-}
-const initialStats = ref<InitialStats | null>(null);
+// セッション統計用: URLパラメータからタイムスタンプを取得
+const fromTimestamp = ref<string | null>(
+  (route.query.from_timestamp as string) || null
+);
 
-// 統計カードへの参照（サイズ測定用）
+// 統計カードへの参照（初回サイズ測定用）
 const statsCardRef = ref<HTMLElement | null>(null);
 
 // 認証状態
@@ -295,23 +290,15 @@ const statsItems = computed(() => {
 const CONTAINER_PADDING = 16; // .streamer-popupのpadding
 
 /**
- * ウィンドウサイズを調整
- * - horizontal/vertical: コンテンツサイズを測定して固定サイズを決定
- * - grid: 自動リサイズなし（ユーザーが手動で調整、ボックスが自動折り返し）
+ * 初回のみウィンドウサイズをコンテンツに合わせて調整
  */
-const resizeWindowToContent = async () => {
+const resizeWindowOnce = async () => {
   // ポップアップウィンドウでない場合はスキップ
   if (!window.opener) return;
 
-  // グリッドレイアウトは自動リサイズしない（ユーザーが手動で調整）
-  if (layout.value === 'grid') {
-    logger.info('Grid layout - skip auto resize (user can manually adjust)');
-    return;
-  }
-
   await nextTick();
 
-  // レンダリング完了を待つ（requestAnimationFrame × 2回でレイアウト確定を待つ）
+  // レンダリング完了を待つ
   await new Promise<void>((resolve) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -320,91 +307,62 @@ const resizeWindowToContent = async () => {
     });
   });
 
-  // 実際のコンテンツサイズを測定
   if (!statsCardRef.value) return;
 
   const contentRect = statsCardRef.value.getBoundingClientRect();
 
-  // コンテンツサイズ + 上下左右のpadding
+  // コンテンツサイズ + padding
   const targetInnerWidth = Math.ceil(contentRect.width) + (CONTAINER_PADDING * 2);
   const targetInnerHeight = Math.ceil(contentRect.height) + (CONTAINER_PADDING * 2);
 
-  // 現在のウィンドウのchrome（枠）サイズを取得
-  const currentChromeWidth = window.outerWidth - window.innerWidth;
-  const currentChromeHeight = window.outerHeight - window.innerHeight;
+  // ウィンドウのchrome（枠）サイズを取得
+  const chromeWidth = window.outerWidth - window.innerWidth;
+  const chromeHeight = window.outerHeight - window.innerHeight;
 
-  // resizeToはouterサイズを指定するので、chromeを加算
-  const targetWidth = targetInnerWidth + currentChromeWidth;
-  const targetHeight = targetInnerHeight + currentChromeHeight;
+  const targetWidth = targetInnerWidth + chromeWidth;
+  const targetHeight = targetInnerHeight + chromeHeight;
 
-  logger.info(`${layout.value} layout - Content: ${contentRect.width}x${contentRect.height}, Target: ${targetWidth}x${targetHeight}`);
+  logger.info(`Initial resize - Content: ${contentRect.width}x${contentRect.height}, Target: ${targetWidth}x${targetHeight}`);
 
   try {
     window.resizeTo(targetWidth, targetHeight);
-    logger.debug(`Window resized to: ${targetWidth}x${targetHeight}`);
   } catch (e) {
     logger.debug('Could not resize window:', e);
   }
 };
 
-/**
- * セッション統計を計算する
- * 現在の統計から起動時の統計を引いて、セッション中の統計を計算
- */
-const calculateSessionStats = (current: InitialStats): Record<string, number> => {
-  if (!initialStats.value) {
-    return {
-      total_duels: 0,
-      win_rate: 0,
-      first_turn_win_rate: 0,
-      second_turn_win_rate: 0,
-      coin_win_rate: 0,
-      go_first_rate: 0,
-    };
-  }
-
-  const initial = initialStats.value;
-  const sessionTotal = current.total - initial.total;
-  const sessionWins = current.wins - initial.wins;
-  const sessionFirstWins = current.first_turn_wins - initial.first_turn_wins;
-  const sessionFirstTotal = current.first_turn_total - initial.first_turn_total;
-  const sessionSecondWins = current.second_turn_wins - initial.second_turn_wins;
-  const sessionSecondTotal = current.second_turn_total - initial.second_turn_total;
-  const sessionCoinWins = current.coin_wins - initial.coin_wins;
-  const sessionCoinTotal = current.coin_total - initial.coin_total;
-
-  return {
-    total_duels: sessionTotal,
-    win_rate: sessionTotal > 0 ? sessionWins / sessionTotal : 0,
-    first_turn_win_rate: sessionFirstTotal > 0 ? sessionFirstWins / sessionFirstTotal : 0,
-    second_turn_win_rate: sessionSecondTotal > 0 ? sessionSecondWins / sessionSecondTotal : 0,
-    coin_win_rate: sessionCoinTotal > 0 ? sessionCoinWins / sessionCoinTotal : 0,
-    go_first_rate: sessionTotal > 0 ? sessionFirstTotal / sessionTotal : 0,
-  };
-};
-
-// データ取得
+// データ取得（初回のみローディング表示、以降はバックグラウンド更新）
 const fetchData = async () => {
+  logger.info(`fetchData called, isAuthenticated: ${isAuthenticated.value}`);
   if (!isAuthenticated.value) {
     loading.value = false;
+    logger.info('fetchData: not authenticated, returning');
     return;
   }
 
   try {
-    logger.debug('Fetching streamer popup data');
+    logger.info('Fetching streamer popup data...');
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
+    // APIパラメータを構築
+    const params: Record<string, string | number> = {
+      game_mode: gameMode.value,
+    };
+
+    // セッション統計モードの場合、from_timestampのみを使用（year/monthは送らない）
+    if (statsPeriod.value === 'session' && fromTimestamp.value) {
+      params.from_timestamp = fromTimestamp.value;
+      logger.debug('Using from_timestamp for session stats:', fromTimestamp.value);
+    } else {
+      // 通常モード: 当月のデータを取得
+      const now = new Date();
+      params.year = now.getFullYear();
+      params.month = now.getMonth() + 1;
+    }
 
     // 統計データを取得
-    const statsResponse = await api.get('/statistics', {
-      params: {
-        year,
-        month,
-        game_mode: gameMode.value,
-      },
-    });
+    logger.info(`API call with params: ${JSON.stringify(params)}`);
+    const statsResponse = await api.get('/statistics', { params });
+    logger.info(`API response received, total duels: ${statsResponse.data[gameMode.value]?.overall_stats?.total}`);
 
     const modeStats = statsResponse.data[gameMode.value];
     if (modeStats) {
@@ -414,113 +372,91 @@ const fetchData = async () => {
       // 最新の対戦からデッキとランク/レート/DCを取得
       const latestDuel = duels.length > 0 ? duels[0] : null;
 
-      // 現在の統計を構造化
-      const currentStats: InitialStats = {
-        total: overall.total || 0,
-        wins: overall.wins || 0,
-        first_turn_wins: overall.first_turn_wins || 0,
-        first_turn_total: overall.first_turn_total || 0,
-        second_turn_wins: overall.second_turn_wins || 0,
-        second_turn_total: overall.second_turn_total || 0,
-        coin_wins: overall.coin_wins || 0,
-        coin_total: overall.coin_total || 0,
+      // 統計データを設定（タイムスタンプフィルタリングはAPIで行われる）
+      statsData.value = {
+        current_deck: latestDuel?.deck?.name || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
+        current_rank: latestDuel?.rank || null,
+        current_rate: latestDuel?.rate_value || null,
+        current_dc: latestDuel?.dc_value || null,
+        total_duels: overall.total || 0,
+        win_rate: overall.win_rate || 0,
+        first_turn_win_rate: overall.first_turn_win_rate || 0,
+        second_turn_win_rate: overall.second_turn_win_rate || 0,
+        coin_win_rate: overall.coin_win_rate || 0,
+        go_first_rate: overall.go_first_rate || 0,
       };
-
-      // 初回取得時にセッション統計の起点を保存
-      if (initialStats.value === null) {
-        // URLパラメータからinitial_statsを取得
-        const initialStatsParam = route.query.initial_stats as string | undefined;
-        if (initialStatsParam && statsPeriod.value === 'session') {
-          try {
-            initialStats.value = JSON.parse(initialStatsParam);
-            logger.debug('Initial stats loaded from URL parameter:', initialStats.value);
-          } catch (error) {
-            logger.error('Failed to parse initial_stats parameter:', error);
-            // パースエラーの場合は現在の統計を使用
-            initialStats.value = { ...currentStats };
-            logger.debug('Fallback: Initial stats saved from current data');
-          }
-        } else {
-          // パラメータがない場合は現在の統計を使用（従来の動作）
-          initialStats.value = { ...currentStats };
-          logger.debug('Initial stats saved from current data for session tracking');
-        }
-      }
-
-      // 統計期間に応じてデータを設定
-      if (statsPeriod.value === 'session') {
-        // セッション統計: 起動時からの差分を計算
-        const sessionStats = calculateSessionStats(currentStats);
-        statsData.value = {
-          current_deck: latestDuel?.deck?.name || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
-          current_rank: latestDuel?.rank || null,
-          current_rate: latestDuel?.rate_value || null,
-          current_dc: latestDuel?.dc_value || null,
-          total_duels: sessionStats.total_duels,
-          win_rate: sessionStats.win_rate,
-          first_turn_win_rate: sessionStats.first_turn_win_rate,
-          second_turn_win_rate: sessionStats.second_turn_win_rate,
-          coin_win_rate: sessionStats.coin_win_rate,
-          go_first_rate: sessionStats.go_first_rate,
-        };
-      } else {
-        // 当月統計: 従来通り
-        statsData.value = {
-          current_deck: latestDuel?.deck?.name || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
-          current_rank: latestDuel?.rank || null,
-          current_rate: latestDuel?.rate_value || null,
-          current_dc: latestDuel?.dc_value || null,
-          total_duels: overall.total || 0,
-          win_rate: overall.win_rate || 0,
-          first_turn_win_rate: overall.first_turn_win_rate || 0,
-          second_turn_win_rate: overall.second_turn_win_rate || 0,
-          coin_win_rate: overall.coin_win_rate || 0,
-          go_first_rate: overall.go_first_rate || 0,
-        };
-      }
     }
 
-    loading.value = false;
-    logger.debug('Data fetched successfully');
-
-    // コンテンツに合わせてウィンドウサイズを調整（CSSレンダリング完了を待つ）
-    setTimeout(() => {
-      resizeWindowToContent();
-    }, 100);
+    // 初回ロード完了
+    if (isInitialLoad.value) {
+      loading.value = false;
+      isInitialLoad.value = false;
+      // 初回のみウィンドウをコンテンツサイズに合わせる
+      setTimeout(() => {
+        resizeWindowOnce();
+      }, 100);
+    }
+    logger.info('Data fetched and updated successfully');
   } catch (error) {
-    logger.error('Failed to fetch data:', error);
-    errorMessage.value = LL.value?.common.dataFetchError() ?? 'Failed to fetch data';
-    loading.value = false;
+    logger.error('Failed to fetch data:', error as Error);
+    // 初回のみエラー表示、以降は静かに失敗
+    if (isInitialLoad.value) {
+      errorMessage.value = LL.value?.common.dataFetchError() ?? 'Failed to fetch data';
+      loading.value = false;
+      isInitialLoad.value = false;
+    }
   }
 };
 
-// 認証状態の監視
+// 認証状態の監視（認証完了時にデータ取得）
 watch(isAuthenticated, (newVal) => {
   if (newVal) {
     fetchData();
   }
 });
 
-onMounted(() => {
+onMounted(async () => {
   document.body.classList.add('streamer-popup-page');
 
-  // 認証初期化を待つ
-  authStore.fetchUser().then(() => {
-    fetchData();
-  });
+  // BroadcastChannelを最初にセットアップ（認証チェック中のメッセージも受信するため）
+  try {
+    broadcastChannel = new BroadcastChannel(DUEL_UPDATE_CHANNEL);
+    broadcastChannel.onmessage = () => {
+      logger.info('Received duel update notification, fetching data');
+      fetchData();
+    };
+    logger.info('BroadcastChannel listener registered');
+  } catch {
+    logger.debug('BroadcastChannel not supported');
+  }
 
-  // 定期的にデータを更新
+  // 定期更新を設定（フォールバック）
   refreshTimer = setInterval(() => {
     if (isAuthenticated.value) {
       fetchData();
     }
   }, refreshInterval.value);
+  logger.info(`Periodic refresh enabled: ${refreshInterval.value}ms`);
+
+  // すでに認証済みなら即座にデータ取得
+  if (isAuthenticated.value) {
+    fetchData();
+  } else {
+    // 認証状態を確認してからデータ取得
+    await authStore.fetchUser();
+    if (isAuthenticated.value) {
+      fetchData();
+    }
+  }
 });
 
 onUnmounted(() => {
   document.body.classList.remove('streamer-popup-page');
   if (refreshTimer) {
     clearInterval(refreshTimer);
+  }
+  if (broadcastChannel) {
+    broadcastChannel.close();
   }
 });
 </script>
@@ -551,31 +487,34 @@ onUnmounted(() => {
 }
 
 .stats-container {
-  // デフォルトは自然なサイズ
+  // グリッドレイアウト時はフル幅
+  &:has(.layout-grid) {
+    width: 100%;
+  }
 }
 
 // レイアウト
 .stats-card {
-  display: inline-flex;
-  gap: 10px;
   background: transparent;
 
   &.layout-grid {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
     width: 100%;
   }
 
   &.layout-horizontal {
+    display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    gap: 8px;
   }
 
   &.layout-vertical {
+    display: flex;
     flex-direction: column;
+    gap: 8px;
   }
 }
 
@@ -583,27 +522,27 @@ onUnmounted(() => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid;
   transition: all 0.3s ease;
-  min-width: max-content;
+  // 固定サイズ（ランク名がフル表示される幅）
+  width: 200px;
+  height: 60px;
+  flex-shrink: 0;
+  overflow: hidden;
 
+  // グリッド: 全カード統一サイズ
   .layout-grid & {
-    min-width: 0;
-    flex: 0 0 auto;
-  }
-
-  &.deck-item {
-    justify-content: center;
     width: 100%;
+    height: 60px;
   }
 }
 
 .stat-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -613,34 +552,40 @@ onUnmounted(() => {
 }
 
 .mdi {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .stat-content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0; // テキスト省略のために必要
 }
 
 .stat-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-  text-align: center;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
-  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 
   &.deck-value {
-    font-size: 16px;
-    white-space: normal;
-    word-break: break-word;
+    font-size: 13px;
   }
 }
 
