@@ -1,0 +1,264 @@
+[security]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+【必読】以下を必ず実行:
+1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
+3. 日本語で思考・出力すること
+
+## タスク
+Issue #313: セキュリティ改善 - 認証経路統一・CORS厳格化・PII対策
+
+### 目的
+認証/認可のセキュリティ強化とCORS設定の厳格化
+
+### 実装内容
+1. **認証経路の統一**
+   - AuthorizationヘッダーとCookieの優先順位を明文化
+   - `backend/app/api/deps.py` の `get_current_user` を確認・整理
+   - 不要な経路があれば削減
+
+2. **user.status チェック追加**
+   - `get_current_user` で `suspended/deleted` ユーザーを403で拒否
+   - `backend/app/models/user.py` の status フィールド確認
+
+3. **CORS厳格化**
+   - `backend/app/main.py` のCORS設定を確認
+   - 許可オリジンを環境変数の明示リストへ限定
+   - ワイルドカード運用を排除
+
+4. **フィードバックのPII最小化**（あれば）
+   - Issue送信時のメール情報を任意・デフォルト非送信に
+
+### 完了条件
+- [ ] 実装が完了している
+- [ ] テストが追加されている（`/test` で確認、失敗時は `/test-fix` で最大3回リトライ）
+- [ ] リントが通っている（`/lint` で確認）
+- [ ] コミットが作成されている（日本語メッセージ）
+- [ ] 「レビュー依頼」を出力している
+
+---
+
+[quality]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+【必読】以下を必ず実行:
+1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
+3. 日本語で思考・出力すること
+
+## タスク
+Issue #314: 品質改善 - エラースキーマ統一・ログPII対策・設定バリデーション
+
+### 目的
+APIエラーレスポンスの統一とログのPII対策
+
+### 実装内容
+1. **エラースキーマの統一**
+   - 共通エラーレスポンススキーマを `backend/app/schemas/` に定義
+   - `{"detail": "message", "code": "ERROR_CODE"}` 形式に統一
+   - 各ルーターの例外ハンドラーを確認・修正
+
+2. **ログPII対策**
+   - `backend/app/core/` にログユーティリティ追加
+   - トークン、メール、パスワードをマスキング
+   - 既存のログ出力箇所を確認・修正
+
+3. **起動時設定バリデーション**
+   - `backend/app/core/config.py` で必須環境変数を検証
+   - 不足時に明確なエラーメッセージを出力
+
+### 完了条件
+- [ ] 実装が完了している
+- [ ] テストが追加されている（`/test` で確認、失敗時は `/test-fix` で最大3回リトライ）
+- [ ] リントが通っている（`/lint` で確認）
+- [ ] コミットが作成されている（日本語メッセージ）
+- [ ] 「レビュー依頼」を出力している
+
+---
+
+[mobile-table]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-frontend.md` に従って動作するフロントエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+【必読】以下を必ず実行:
+1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
+3. 日本語で思考・出力すること
+
+## タスク
+Issue #320: モバイル対応改善 - Phase 1-2（テーブル・フォーム最適化）
+
+### 目的
+統計テーブルとフォームのモバイル対応
+
+### 実装内容
+1. **Phase 1: 統計テーブル最適化**
+   - `frontend/src/components/statistics/` を確認
+   - 相性表などの大きなテーブルをアコーディオン形式に
+   - 横スクロールが発生しないようレスポンシブ対応
+   - ブレークポイント: 600px 以下でモバイル表示
+
+2. **Phase 2: フォーム最適化**
+   - `frontend/src/components/duels/DuelFormDialog.vue` を修正
+   - ラジオボタングループをモバイルで縦並びに（`column` direction）
+   - タッチターゲットを最小44x44pxに
+
+### テスト対象
+- iPhone SE (375px)
+- iPhone 14 (390px)
+- Galaxy S21 (360px)
+
+### 完了条件
+- [ ] 実装が完了している
+- [ ] テストが追加されている（`/test` で確認、失敗時は `/test-fix` で最大3回リトライ）
+- [ ] リントが通っている（`/lint` で確認）
+- [ ] コミットが作成されている（日本語メッセージ）
+- [ ] 「レビュー依頼」を出力している
+
+---
+
+[mobile-layout]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-frontend.md` に従って動作するフロントエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+【必読】以下を必ず実行:
+1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
+3. 日本語で思考・出力すること
+
+## タスク
+Issue #320: モバイル対応改善 - Phase 3-5（レイアウト・ナビ・タッチ）
+
+### 目的
+レイアウト調整とナビゲーション・タッチ操作の改善
+
+### 実装内容
+1. **Phase 3: レイアウト・スペーシング調整**
+   - コンテナpadding調整: `pa-4 pa-sm-6`（モバイルで小さく）
+   - `frontend/src/views/DashboardView.vue`
+   - `frontend/src/views/StatisticsView.vue`
+   - 統計カードのグリッド最適化
+
+2. **Phase 4: ナビゲーション改善**
+   - ボトムナビゲーション導入（v-bottom-navigation）
+   - モバイルのみ表示（600px以下）
+   - 主要ナビ: ホーム、対戦記録、デッキ、統計、プロフィール
+
+3. **Phase 5: タッチ操作最適化**
+   - タッチターゲットサイズ統一（最小44x44px）
+   - ボタン、リンク、アイコンボタンを確認
+   - 必要に応じてpaddingを追加
+
+### 注意
+- mobile-tableワーカーと同じIssue #320 を扱うため、共有ボードで連携すること
+- コンフリクトを避けるため、修正対象ファイルを共有ボードに記載
+
+### 完了条件
+- [ ] 実装が完了している
+- [ ] テストが追加されている（`/test` で確認、失敗時は `/test-fix` で最大3回リトライ）
+- [ ] リントが通っている（`/lint` で確認）
+- [ ] コミットが作成されている（日本語メッセージ）
+- [ ] 「レビュー依頼」を出力している
+
+---
+
+[perf-cache]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+【必読】以下を必ず実行:
+1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
+3. 日本語で思考・出力すること
+
+## タスク
+Issue #294: パフォーマンス - 集計APIの範囲制御とキャッシュ化
+
+### 目的
+統計APIの集計範囲を制御し、キャッシュを導入してパフォーマンス改善
+
+### 実装内容
+1. **集計範囲の制御**
+   - `backend/app/api/routers/statistics.py` を確認
+   - 期間フィルタパラメータを追加（start_date, end_date）
+   - デフォルトは直近90日など合理的な範囲に
+
+2. **キャッシュの導入**
+   - 簡易なインメモリキャッシュを実装（TTL付き）
+   - `backend/app/core/cache.py` を新規作成
+   - 統計APIにキャッシュを適用
+   - キャッシュキー: user_id + フィルタ条件
+
+3. **管理統計のページング**
+   - 管理系APIがあれば、集計結果にページングを導入
+
+### 注意
+- securityワーカーと同じバックエンドを扱うため、共有ボードで連携
+- `deps.py` や `main.py` を変更する場合は事前に共有ボードに記載
+
+### 完了条件
+- [ ] 実装が完了している
+- [ ] テストが追加されている（`/test` で確認、失敗時は `/test-fix` で最大3回リトライ）
+- [ ] リントが通っている（`/lint` で確認）
+- [ ] コミットが作成されている（日本語メッセージ）
+- [ ] 「レビュー依頼」を出力している
+
+---
+
+[e2e-test]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-test-doc.md` に従って動作するテストドキュメンターです。
+このファイルを必ず読み、ルールに従うこと。
+
+【必読】以下を必ず実行:
+1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
+3. 日本語で思考・出力すること
+
+## タスク
+Issue #322: E2Eテスト - agent-browserを使用した全画面UIテスト
+
+### 目的
+agent-browserを使用したE2Eテストケースとコマンドシーケンスの作成（実行はしない）
+
+### 実装内容
+1. **テストケース作成**
+   - `docs/testing/test-cases/` に以下のファイルを作成:
+     - `e2e-auth.md` - 認証フロー（ログイン、ログアウト、登録）
+     - `e2e-decks.md` - デッキ管理（作成、編集、削除）
+     - `e2e-duels.md` - 対戦記録（登録、編集、削除）
+     - `e2e-statistics.md` - 統計表示（フィルタ、共有）
+
+2. **各テストケースに含める内容**
+   - テストの目的
+   - 前提条件
+   - agent-browserコマンドシーケンス
+   - 期待される結果
+
+3. **agent-browserコマンド例**
+   ```bash
+   agent-browser open "http://localhost:5173/login"
+   agent-browser snapshot -i  # インタラクティブ要素のみ
+   agent-browser fill @ref "test@example.com"
+   agent-browser click @ref
+   agent-browser screenshot
+   ```
+
+### 注意
+- **テストは実行しない**（サーバーが起動していない）
+- ドキュメント作成のみ
+- 実際のrefはスナップショット実行時に確定するため、`@email-input`, `@submit-button` のような説明的な名前でOK
+
+### 完了条件
+- [ ] 4つのテストケースドキュメントが作成されている
+- [ ] 各ドキュメントにagent-browserコマンドシーケンスが記載されている
+- [ ] コミットが作成されている（日本語メッセージ）
+- [ ] 「レビュー依頼」を出力している
