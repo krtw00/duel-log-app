@@ -83,14 +83,14 @@
           <v-btn
             icon="mdi-pencil"
             variant="text"
-            size="x-small"
+            size="small"
             color="primary"
             @click.stop="$emit('edit', duel)"
           />
           <v-btn
             icon="mdi-delete"
             variant="text"
-            size="x-small"
+            size="small"
             color="error"
             @click.stop="$emit('delete', duel.id)"
           />
@@ -531,7 +531,8 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
     padding-right: 4px;
     gap: 0;
 
-    .v-btn {
+    // タッチターゲットサイズを確保（最小44x44px）
+    :deep(.v-btn) {
       min-width: 44px !important;
       min-height: 44px !important;
     }
