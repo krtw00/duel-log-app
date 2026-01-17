@@ -641,3 +641,95 @@ def get_game_mode_stats(
     logger.info(f"Admin user {admin_user.username} requested game mode stats")
     service = AdminMetaService(db)
     return service.get_game_mode_stats(days=days)
+
+
+# ========================================
+# 後方互換エイリアス（非推奨）
+# ========================================
+# 注: 以下のエンドポイントは非推奨です。
+# フロントエンド移行後に削除予定。
+# 新しいエンドポイント名: shared-statistics
+
+
+@router.post(
+    "/maintenance/scan-orphaned-shared-urls",
+    response_model=OrphanedSharedStatisticsScanResponse,
+    deprecated=True,
+)
+def scan_orphaned_shared_urls_deprecated(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    [非推奨] 孤立した共有URLをスキャン
+
+    このエンドポイントは非推奨です。
+    代わりに /maintenance/scan-orphaned-shared-statistics を使用してください。
+    """
+    logger.warning(
+        f"Admin user {admin_user.username} used deprecated endpoint: scan-orphaned-shared-urls"
+    )
+    return scan_orphaned_shared_statistics(db, admin_user)
+
+
+@router.post(
+    "/maintenance/cleanup-orphaned-shared-urls",
+    response_model=OrphanedSharedStatisticsCleanupResponse,
+    deprecated=True,
+)
+def cleanup_orphaned_shared_urls_deprecated(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    [非推奨] 孤立した共有URLをクリーンアップ
+
+    このエンドポイントは非推奨です。
+    代わりに /maintenance/cleanup-orphaned-shared-statistics を使用してください。
+    """
+    logger.warning(
+        f"Admin user {admin_user.username} used deprecated endpoint: cleanup-orphaned-shared-urls"
+    )
+    return cleanup_orphaned_shared_statistics(db, admin_user)
+
+
+@router.post(
+    "/maintenance/scan-expired-shared-urls",
+    response_model=ExpiredSharedStatisticsScanResponse,
+    deprecated=True,
+)
+def scan_expired_shared_urls_deprecated(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    [非推奨] 期限切れの共有URLをスキャン
+
+    このエンドポイントは非推奨です。
+    代わりに /maintenance/scan-expired-shared-statistics を使用してください。
+    """
+    logger.warning(
+        f"Admin user {admin_user.username} used deprecated endpoint: scan-expired-shared-urls"
+    )
+    return scan_expired_shared_statistics(db, admin_user)
+
+
+@router.post(
+    "/maintenance/cleanup-expired-shared-urls",
+    response_model=ExpiredSharedStatisticsCleanupResponse,
+    deprecated=True,
+)
+def cleanup_expired_shared_urls_deprecated(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_admin_user),
+):
+    """
+    [非推奨] 期限切れの共有URLを一括削除
+
+    このエンドポイントは非推奨です。
+    代わりに /maintenance/cleanup-expired-shared-statistics を使用してください。
+    """
+    logger.warning(
+        f"Admin user {admin_user.username} used deprecated endpoint: cleanup-expired-shared-urls"
+    )
+    return cleanup_expired_shared_statistics(db, admin_user)
