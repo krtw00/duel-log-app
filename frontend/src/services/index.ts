@@ -58,7 +58,13 @@ export {
 export { getAdminUsers, updateUserAdminStatus } from './adminApi';
 
 // 型エクスポート
-export type { GetDuelsParams, CreateDuelData, UpdateDuelData, LatestValuesResponse, CSVImportResponse } from './duelService';
+export type {
+  GetDuelsParams,
+  CreateDuelData,
+  UpdateDuelData,
+  LatestValuesResponse,
+  CSVImportResponse,
+} from './duelService';
 export type { GetDecksParams } from './deckService';
 export type { AvailableDecksResponse } from './statisticsService';
 export type { UpdateProfileData, DataImportResponse } from './userService';

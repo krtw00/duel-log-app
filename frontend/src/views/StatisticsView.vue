@@ -324,7 +324,7 @@ const monthlyDuelsByMode = ref<Record<GameMode, ExtendedDuel[]>>({
 
 const fetchAvailableDecks = async () => {
   const { signal } = createRequest('available-decks');
-  
+
   try {
     const params: StatisticsQueryParams = {
       year: selectedYear.value,
@@ -379,7 +379,10 @@ const refreshStatisticsWithDecks = async () => {
   };
 
   // Skip if parameters haven't changed
-  if (lastFetchParams.value && JSON.stringify(lastFetchParams.value) === JSON.stringify(currentParams)) {
+  if (
+    lastFetchParams.value &&
+    JSON.stringify(lastFetchParams.value) === JSON.stringify(currentParams)
+  ) {
     logger.debug('Skipping fetch: parameters unchanged');
     return;
   }
@@ -391,10 +394,7 @@ const refreshStatisticsWithDecks = async () => {
   await fetchAvailableDecks();
 
   // Then execute statistics and duels in parallel
-  await Promise.all([
-    fetchStatistics(),
-    fetchMonthlyDuels(currentTab.value as GameMode),
-  ]);
+  await Promise.all([fetchStatistics(), fetchMonthlyDuels(currentTab.value as GameMode)]);
 };
 
 const handleMyDeckFilterChange = async () => {
@@ -411,10 +411,7 @@ const handleMyDeckFilterChange = async () => {
   };
 
   // Parallel execution of API calls
-  await Promise.all([
-    fetchStatistics(),
-    fetchMonthlyDuels(currentTab.value as GameMode),
-  ]);
+  await Promise.all([fetchStatistics(), fetchMonthlyDuels(currentTab.value as GameMode)]);
 };
 
 // Debounced version of refreshStatisticsWithDecks (400ms delay)
@@ -443,7 +440,7 @@ const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: st
 
 const fetchMonthlyDuels = async (mode: GameMode) => {
   const { signal } = createRequest(`monthly-duels-${mode}`);
-  
+
   try {
     monthlyDuelsByMode.value[mode] = [];
     const params: Record<string, any> = {

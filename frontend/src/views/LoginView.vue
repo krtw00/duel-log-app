@@ -158,13 +158,7 @@
           <!-- 新規登録（目立たせる） -->
           <div class="register-section mb-4">
             <p class="register-label">{{ LL?.auth.login.noAccount() }}</p>
-            <v-btn
-              to="/register"
-              block
-              variant="tonal"
-              color="secondary"
-              class="register-btn"
-            >
+            <v-btn to="/register" block variant="tonal" color="secondary" class="register-btn">
               <v-icon start>mdi-account-plus</v-icon>
               {{ LL?.auth.login.register() }}
             </v-btn>
@@ -172,7 +166,9 @@
 
           <!-- リンク -->
           <div class="links-section">
-            <router-link to="/forgot-password" class="link-item">{{ LL?.auth.login.forgotPassword() }}</router-link>
+            <router-link to="/forgot-password" class="link-item">{{
+              LL?.auth.login.forgotPassword()
+            }}</router-link>
           </div>
 
           <!-- 配信者モード（コンパクト） -->
@@ -198,7 +194,9 @@
           <!-- 利用規約 -->
           <p class="terms-text">
             {{ LL?.auth.login.termsAgreement() }}
-            <a class="terms-link" @click="showTermsDialog = true">{{ LL?.auth.login.termsLink() }}</a>
+            <a class="terms-link" @click="showTermsDialog = true">{{
+              LL?.auth.login.termsLink()
+            }}</a>
             {{ LL?.auth.login.termsAgreementEnd() }}
           </p>
         </v-form>
@@ -212,7 +210,12 @@
           <v-icon class="mr-2" color="primary">mdi-file-document-outline</v-icon>
           <span class="text-h5">{{ LL?.auth.login.termsTitle() }}</span>
           <v-spacer />
-          <v-btn icon variant="text" :aria-label="LL?.common.close()" @click="showTermsDialog = false">
+          <v-btn
+            icon
+            variant="text"
+            :aria-label="LL?.common.close()"
+            @click="showTermsDialog = false"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -401,7 +404,8 @@ const handleLogin = async () => {
     await authStore.login(email.value, password.value);
     notificationStore.success(LL.value?.auth.login.successMessage() || 'Success');
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : (LL.value?.common.unknownError() || 'Unknown error');
+    const errorMessage =
+      error instanceof Error ? error.message : LL.value?.common.unknownError() || 'Unknown error';
     notificationStore.error(errorMessage);
   } finally {
     loading.value = false;
@@ -418,7 +422,8 @@ const handleOAuthLogin = async (provider: Provider) => {
 
     await authStore.loginWithOAuth(provider);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : (LL.value?.common.unknownError() || 'Unknown error');
+    const errorMessage =
+      error instanceof Error ? error.message : LL.value?.common.unknownError() || 'Unknown error';
     notificationStore.error(errorMessage);
     oauthLoading.value = null;
   }
@@ -797,7 +802,6 @@ const handleOAuthLogin = async (provider: Provider) => {
     box-shadow: 0 0 30px rgba(0, 217, 255, 0.2);
   }
 }
-
 </style>
 
 <!-- グローバルスタイル（ツールチップ用） -->
