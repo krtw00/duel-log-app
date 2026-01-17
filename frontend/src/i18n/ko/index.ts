@@ -440,7 +440,6 @@ const ko = {
         sec10: '10초',
         sec30: '30초',
         min1: '1분',
-        min5: '5분',
       },
       statsPeriod: '통계 기간',
       statsPeriods: {

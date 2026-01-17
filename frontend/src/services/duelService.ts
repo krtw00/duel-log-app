@@ -6,6 +6,24 @@
 import { api } from './api';
 import type { Duel, GameMode } from '../types';
 
+// ポップアップ更新通知用のBroadcastChannel名
+export const DUEL_UPDATE_CHANNEL = 'duel-log-updates';
+
+/**
+ * デュエル更新をBroadcastChannelで通知
+ * ポップアップなど別ウィンドウに即座に反映させる
+ */
+export const notifyDuelUpdate = (): void => {
+  try {
+    const channel = new BroadcastChannel(DUEL_UPDATE_CHANNEL);
+    channel.postMessage({ type: 'duel-updated', timestamp: Date.now() });
+    // 少し待ってからチャネルを閉じる
+    setTimeout(() => channel.close(), 100);
+  } catch {
+    // BroadcastChannel非対応ブラウザは無視
+  }
+};
+
 /** デュエル一覧取得パラメータ */
 export interface GetDuelsParams {
   limit?: number;
@@ -58,6 +76,7 @@ export interface CSVImportResponse {
 
 /**
  * デュエル一覧を取得
+ * @param params
  */
 export const getDuels = async (params?: GetDuelsParams): Promise<Duel[]> => {
   const queryParams: Record<string, string> = {};
@@ -74,25 +93,32 @@ export const getDuels = async (params?: GetDuelsParams): Promise<Duel[]> => {
 
 /**
  * デュエルを作成
+ * @param data
  */
 export const createDuel = async (data: CreateDuelData): Promise<Duel> => {
   const response = await api.post<Duel>('/duels/', data);
+  notifyDuelUpdate();
   return response.data;
 };
 
 /**
  * デュエルを更新
+ * @param id
+ * @param data
  */
 export const updateDuel = async (id: number, data: UpdateDuelData): Promise<Duel> => {
   const response = await api.put<Duel>(`/duels/${id}`, data);
+  notifyDuelUpdate();
   return response.data;
 };
 
 /**
  * デュエルを削除
+ * @param id
  */
 export const deleteDuel = async (id: number): Promise<void> => {
   await api.delete(`/duels/${id}`);
+  notifyDuelUpdate();
 };
 
 /**
@@ -105,6 +131,7 @@ export const getLatestValues = async (): Promise<LatestValuesResponse> => {
 
 /**
  * CSVファイルからデュエルをインポート
+ * @param file
  */
 export const importDuelsFromCSV = async (file: File): Promise<CSVImportResponse> => {
   const formData = new FormData();
@@ -113,6 +140,7 @@ export const importDuelsFromCSV = async (file: File): Promise<CSVImportResponse>
   const response = await api.post<CSVImportResponse>('/duels/import/csv', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  notifyDuelUpdate();
   return response.data;
 };
 
