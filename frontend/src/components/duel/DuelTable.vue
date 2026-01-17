@@ -180,7 +180,7 @@
     <template v-if="!hiddenColumnsSet.has('rank_or_rate')" #[`item.rank_or_rate`]="{ item }">
       <v-chip v-if="item.game_mode === 'RANK' && item.rank" color="warning" variant="outlined">
         <v-icon start size="small">mdi-crown</v-icon>
-        {{ getRankName(item.rank) }}
+        {{ getRankNameShort(item.rank) }}
       </v-chip>
       <v-chip
         v-else-if="item.game_mode === 'RATE' && item.rate_value !== undefined"
