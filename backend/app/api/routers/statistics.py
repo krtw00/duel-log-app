@@ -3,10 +3,12 @@
 統計関連のデータを提供
 """
 
+import hashlib
+import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_obs_overlay_user
@@ -23,6 +25,21 @@ from app.services.value_sequence_service import value_sequence_service
 from app.services.win_rate_service import win_rate_service
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
+
+
+def calculate_etag(data: Dict[str, Any]) -> str:
+    """
+    レスポンスデータからETagを計算する
+
+    Args:
+        data: レスポンスデータ
+
+    Returns:
+        ETag文字列（MD5ハッシュ）
+    """
+    # JSONシリアライズして安定したハッシュを生成
+    json_str = json.dumps(data, sort_keys=True, ensure_ascii=False)
+    return hashlib.md5(json_str.encode("utf-8")).hexdigest()
 
 
 def get_statistics_filters(
@@ -77,6 +94,8 @@ def get_available_decks_filters(
 @router.get("", response_model=Dict[str, Any])
 def get_all_statistics(
     filters: StatisticsFilters = Depends(get_statistics_filters),
+    include_duels: bool = Query(True, description="デュエル詳細を含めるか"),
+    include_matchup: bool = Query(True, description="相性表を含めるか"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -126,8 +145,12 @@ def get_all_statistics(
         duels = duels_by_mode[mode]
         overall_stats = general_stats_service.calculate_general_stats(duels)
 
-        # DuelWithDeckNamesスキーマに変換
-        duels_with_names = [DuelWithDeckNames.model_validate(d) for d in duels]
+        # DuelWithDeckNamesスキーマに変換（include_duelsがTrueの場合のみ）
+        duels_with_names = (
+            [DuelWithDeckNames.model_validate(d) for d in duels]
+            if include_duels
+            else []
+        )
 
         # from_timestampモードでは年月ベースの統計をスキップ
         if is_timestamp_mode:
@@ -141,6 +164,21 @@ def get_all_statistics(
                 "value_sequence_data": [],
             }
         else:
+            # matchup_dataはinclude_matchupがTrueの場合のみ取得
+            matchup_data = []
+            if include_matchup:
+                matchup_data = matchup_service.get_matchup_chart(
+                    db=db,
+                    user_id=current_user.id,
+                    year=year,
+                    month=month,
+                    game_mode=mode,
+                    range_start=filters.range_start,
+                    range_end=filters.range_end,
+                    my_deck_id=filters.my_deck_id,
+                    opponent_deck_id=filters.opponent_deck_id,
+                )
+
             result[mode] = {
                 "overall_stats": overall_stats,
                 "duels": duels_with_names,
@@ -164,17 +202,7 @@ def get_all_statistics(
                     my_deck_id=filters.my_deck_id,
                     opponent_deck_id=filters.opponent_deck_id,
                 ),
-                "matchup_data": matchup_service.get_matchup_chart(
-                    db=db,
-                    user_id=current_user.id,
-                    year=year,
-                    month=month,
-                    game_mode=mode,
-                    range_start=filters.range_start,
-                    range_end=filters.range_end,
-                    my_deck_id=filters.my_deck_id,
-                    opponent_deck_id=filters.opponent_deck_id,
-                ),
+                "matchup_data": matchup_data,
                 "my_deck_win_rates": win_rate_service.get_my_deck_win_rates(
                     db=db,
                     user_id=current_user.id,
@@ -359,3 +387,57 @@ def get_obs_statistics(
             game_mode=game_mode,
             start_id=start_id,
         )
+
+
+@router.get("/overlay")
+def get_overlay_statistics(
+    response: Response,
+    game_mode: Optional[str] = Query(None, description="ゲームモード"),
+    if_none_match: Optional[str] = Header(None, alias="If-None-Match"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    軽量オーバーレイ用の統計情報を取得
+    - セッション勝敗（当日のみ）
+    - 当日勝率
+    レスポンスサイズを最小限に抑えるため、必要最小限のデータのみを返却
+
+    ETag/If-None-Matchによるキャッシュ検証に対応
+    - クライアントが持つETagが最新の場合、304 Not Modifiedを返す
+    """
+    now = datetime.now(timezone.utc)
+    year = now.year
+    month = now.month
+
+    # 当日の統計を取得
+    today_stats = general_stats_service.get_overall_stats(
+        db=db,
+        user_id=current_user.id,
+        year=year,
+        month=month,
+        game_mode=game_mode,
+    )
+
+    # 軽量レスポンス（セッション勝敗と当日勝率のみ）
+    data = {
+        "session_wins": today_stats.get("win_count", 0),
+        "session_losses": today_stats.get("lose_count", 0),
+        "session_total": today_stats.get("total_duels", 0),
+        "today_win_rate": round(today_stats.get("win_rate", 0), 2),
+    }
+
+    # ETagを計算
+    etag = calculate_etag(data)
+
+    # If-None-Matchヘッダーがあり、ETagが一致する場合は304を返す
+    if if_none_match and if_none_match == etag:
+        response.status_code = status.HTTP_304_NOT_MODIFIED
+        response.headers["ETag"] = etag
+        return None
+
+    # ETagをレスポンスヘッダーに設定
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "no-cache"
+
+    return data
