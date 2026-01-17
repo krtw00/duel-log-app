@@ -524,6 +524,14 @@ const ko = {
     fetchError: '공유 통계 데이터를 가져오는 데 실패했습니다.',
     deleteSuccess: '공유 링크가 삭제되었습니다.',
     deleteError: '공유 링크 삭제에 실패했습니다.',
+    dialog: {
+      title: '공유 링크 생성',
+      expiresAt: '만료일 (YYYY-MM-DD, 선택사항)',
+      generateButton: '링크 생성',
+      invalidDateFormat: '만료일 날짜 형식이 잘못되었습니다. YYYY-MM-DD 형식으로 입력해주세요.',
+      invalidDate: '만료일 날짜가 잘못되었습니다. 존재하지 않는 날짜가 입력되었습니다.',
+      copyFailed: '링크 복사에 실패했습니다. 수동으로 복사해주세요.',
+    },
   },
   validation: {
     required: '필수 항목입니다',

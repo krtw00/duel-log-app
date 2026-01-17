@@ -1,13 +1,13 @@
 <template>
   <v-dialog v-model="dialog" max-width="500px">
     <v-card>
-      <v-card-title class="headline">共有リンクを生成</v-card-title>
+      <v-card-title class="headline">{{ LL?.shared.dialog.title() }}</v-card-title>
       <v-card-text>
         <v-form @submit.prevent="generateLink">
           <v-select
             v-model="selectedYear"
             :items="years"
-            label="年"
+            :label="LL?.common.year()"
             variant="outlined"
             density="compact"
             class="mb-4"
@@ -16,7 +16,7 @@
           <v-select
             v-model="selectedMonth"
             :items="months"
-            label="月"
+            :label="LL?.common.month()"
             variant="outlined"
             density="compact"
             class="mb-4"
@@ -25,7 +25,7 @@
           <v-select
             v-model="selectedGameMode"
             :items="gameModes"
-            label="ゲームモード"
+            :label="LL?.duels.gameMode.label()"
             variant="outlined"
             density="compact"
             class="mb-4"
@@ -43,7 +43,7 @@
             <template #activator="{ props }">
               <v-text-field
                 v-model="expiresAt"
-                label="有効期限 (YYYY-MM-DD, オプション)"
+                :label="LL?.shared.dialog.expiresAt()"
                 prepend-icon="mdi-calendar"
                 readonly
                 v-bind="props"
@@ -63,12 +63,12 @@
           </v-menu>
 
           <v-btn color="primary" type="submit" :loading="sharedStatisticsStore.loading" block>
-            リンクを生成
+            {{ LL?.shared.dialog.generateButton() }}
           </v-btn>
         </v-form>
 
         <v-alert v-if="generatedLink" type="success" class="mt-4" closable variant="tonal">
-          <p>共有リンクが生成されました！</p>
+          <p>{{ LL?.shared.createSuccess() }}</p>
           <v-text-field
             v-model="generatedLink"
             readonly
@@ -82,7 +82,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="grey" text @click="dialog = false">閉じる</v-btn>
+        <v-btn color="grey" text @click="dialog = false">{{ LL?.common.close() }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -94,8 +94,10 @@ import { useSharedStatisticsStore } from '@/stores/shared_statistics';
 import { useNotificationStore } from '@/stores/notification';
 import { createLogger } from '@/utils/logger';
 import { GameMode } from '@/types';
+import { useLocale } from '@/composables/useLocale';
 
 const logger = createLogger('ShareStats');
+const { LL } = useLocale();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -179,7 +181,7 @@ const generateLink = async () => {
     const match = expiresAt.value.match(dateRegex);
 
     if (!match) {
-      notificationStore.error('有効期限の日付形式が不正です。YYYY-MM-DD 形式で入力してください。');
+      notificationStore.error(LL.value!.shared.dialog.invalidDateFormat());
       return;
     }
 
@@ -195,7 +197,7 @@ const generateLink = async () => {
       date.getUTCMonth() !== month - 1 ||
       date.getUTCDate() !== day
     ) {
-      notificationStore.error('有効期限の日付が不正です。存在しない日付が入力されました。');
+      notificationStore.error(LL.value!.shared.dialog.invalidDate());
       return;
     }
 
@@ -219,9 +221,9 @@ const copyLink = async () => {
   if (generatedLink.value) {
     try {
       await navigator.clipboard.writeText(generatedLink.value);
-      notificationStore.success('共有リンクをクリップボードにコピーしました！');
+      notificationStore.success(LL.value!.shared.copySuccess());
     } catch (err) {
-      notificationStore.error('リンクのコピーに失敗しました。手動でコピーしてください。');
+      notificationStore.error(LL.value!.shared.dialog.copyFailed());
       logger.error('Failed to copy link');
     }
   }
