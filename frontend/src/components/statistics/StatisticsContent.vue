@@ -52,7 +52,8 @@
       <v-card :class="statsCardClass">
         <v-card-title>{{ LL?.statistics.myDeckWinRates.title() }}</v-card-title>
         <v-card-text class="pa-0 pa-sm-4">
-          <div class="table-scroll-container">
+          <!-- デスクトップ: テーブル表示 -->
+          <div v-if="!smAndDown" class="table-scroll-container">
             <v-data-table
               :headers="myDeckWinRatesHeaders"
               :items="statistics.myDeckWinRates || []"
@@ -77,6 +78,52 @@
               </template>
             </v-data-table>
           </div>
+
+          <!-- モバイル: アコーディオン表示 -->
+          <v-expansion-panels v-else variant="accordion" class="mobile-accordion">
+            <v-expansion-panel
+              v-for="item in statistics.myDeckWinRates || []"
+              :key="item.deck_name"
+            >
+              <v-expansion-panel-title>
+                <div class="d-flex justify-space-between align-center w-100">
+                  <span class="text-subtitle-2">{{ item.deck_name }}</span>
+                  <v-chip
+                    size="small"
+                    :color="getMatchupColor(item.win_rate)"
+                    :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
+                    class="mr-2"
+                  >
+                    {{ formatPercent(item.win_rate) }}
+                  </v-chip>
+                </div>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <v-list density="compact">
+                  <v-list-item>
+                    <v-list-item-title class="text-caption text-grey">
+                      {{ LL?.statistics.matchup.matches() }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-body-2">
+                      {{ item.total_duels }}
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-title class="text-caption text-grey">
+                      {{ LL?.statistics.matchup.winRate() }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-body-2">
+                      {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                </v-list>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+            <div v-if="!statistics.myDeckWinRates || statistics.myDeckWinRates.length === 0" class="no-data-placeholder py-8">
+              <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
+              <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
+            </div>
+          </v-expansion-panels>
         </v-card-text>
       </v-card>
     </v-col>
@@ -86,7 +133,8 @@
       <v-card :class="statsCardClass">
         <v-card-title>{{ LL?.statistics.matchup.title() }}</v-card-title>
         <v-card-text class="pa-0 pa-sm-4">
-          <div class="table-scroll-container">
+          <!-- デスクトップ: テーブル表示 -->
+          <div v-if="!smAndDown" class="table-scroll-container">
             <v-data-table
               :headers="matchupHeaders"
               :items="statistics.matchupData || []"
@@ -129,6 +177,83 @@
             </template>
             </v-data-table>
           </div>
+
+          <!-- モバイル: アコーディオン表示 -->
+          <v-expansion-panels v-else variant="accordion" class="mobile-accordion">
+            <v-expansion-panel
+              v-for="item in statistics.matchupData || []"
+              :key="`${item.deck_name}-${item.opponent_deck_name}`"
+            >
+              <v-expansion-panel-title>
+                <div class="d-flex flex-column w-100">
+                  <div class="d-flex justify-space-between align-center mb-1">
+                    <span class="text-subtitle-2">{{ item.deck_name }}</span>
+                    <v-chip
+                      size="small"
+                      :color="getMatchupColor(item.win_rate)"
+                      :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
+                      class="mr-2"
+                    >
+                      {{ formatPercent(item.win_rate) }}
+                    </v-chip>
+                  </div>
+                  <span class="text-caption text-grey">vs {{ item.opponent_deck_name }}</span>
+                </div>
+              </v-expansion-panel-title>
+              <v-expansion-panel-text>
+                <v-list density="compact">
+                  <v-list-item>
+                    <v-list-item-title class="text-caption text-grey">
+                      {{ LL?.statistics.matchup.matches() }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-body-2">
+                      {{ item.total_duels }}
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-title class="text-caption text-grey">
+                      {{ LL?.statistics.matchup.winRate() }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-body-2">
+                      {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-title class="text-caption text-grey">
+                      {{ LL?.statistics.matchup.firstWinRate() }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-body-2">
+                      <v-chip
+                        size="x-small"
+                        :color="getMatchupColor(item.win_rate_first)"
+                        :variant="getMatchupColor(item.win_rate_first) ? 'tonal' : 'outlined'"
+                      >
+                        {{ formatPercent(item.win_rate_first) }}
+                      </v-chip>
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-title class="text-caption text-grey">
+                      {{ LL?.statistics.matchup.secondWinRate() }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-body-2">
+                      <v-chip
+                        size="x-small"
+                        :color="getMatchupColor(item.win_rate_second)"
+                        :variant="getMatchupColor(item.win_rate_second) ? 'tonal' : 'outlined'"
+                      >
+                        {{ formatPercent(item.win_rate_second) }}
+                      </v-chip>
+                    </v-list-item-subtitle>
+                  </v-list-item>
+                </v-list>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+            <div v-if="!statistics.matchupData || statistics.matchupData.length === 0" class="no-data-placeholder py-8">
+              <v-icon size="64" color="grey">mdi-table-off</v-icon>
+              <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.matchup.noData() }}</p>
+            </div>
+          </v-expansion-panels>
         </v-card-text>
       </v-card>
     </v-col>
@@ -320,6 +445,33 @@ const matchupHeaders = computed(() => [
   :deep(td) {
     white-space: nowrap !important;
     padding: 8px 12px !important;
+  }
+}
+
+/* モバイルアコーディオン */
+.mobile-accordion {
+  :deep(.v-expansion-panel-title) {
+    padding: 12px 16px;
+    min-height: 60px;
+  }
+
+  :deep(.v-expansion-panel-text__wrapper) {
+    padding: 8px 16px 16px;
+  }
+
+  :deep(.v-list-item) {
+    padding: 4px 0;
+  }
+
+  :deep(.v-list-item-title) {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  :deep(.v-list-item-subtitle) {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: inherit !important;
   }
 }
 
