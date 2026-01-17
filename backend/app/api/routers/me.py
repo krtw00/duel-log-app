@@ -60,12 +60,12 @@ def export_my_data(
     """
     現在のユーザーの全データをCSVとしてエクスポート
     """
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     from fastapi.responses import StreamingResponse
 
     csv_data = user_service.export_all_data_to_csv(db=db, user_id=current_user.id)
-    filename = f"duellog_backup_{datetime.now().strftime('%Y%m%d')}.csv"
+    filename = f"duellog_backup_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
     response = StreamingResponse(
         iter([csv_data]),
         media_type="text/csv; charset=utf-8",
