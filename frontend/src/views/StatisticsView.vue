@@ -126,12 +126,14 @@ import { useChartOptions } from '@/composables/useChartOptions';
 import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
 import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 import { useLocale } from '@/composables/useLocale';
+import { useDeferredLoading } from '@/composables/useDeferredLoading';
 
 const { LL, currentLocale } = useLocale();
 
 const themeStore = useThemeStore();
 const uiStore = useUiStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
+const { isLoading: loading, startLoading, stopLoading } = useDeferredLoading({ delay: 300 });
 
 const determineNiceStep = (count: number) => {
   // キリの良い間隔を決定（10, 20, 50, 100, 200, 500...）
@@ -213,7 +215,7 @@ interface AllStatisticsData {
   [key: string]: StatisticsModeData;
 }
 
-const loading = ref(true);
+// loadingはuseDeferredLoadingから取得
 const currentTab = ref<GameMode>(uiStore.lastGameMode);
 const gameModes: GameMode[] = ['RANK', 'RATE', 'EVENT', 'DC'];
 
@@ -477,7 +479,7 @@ const fetchMonthlyDuels = async (mode: GameMode) => {
 };
 
 const fetchStatistics = async () => {
-  loading.value = true;
+  startLoading();
   try {
     // 統計情報のパラメータ
     const params: StatisticsQueryParams = {
@@ -553,7 +555,7 @@ const fetchStatistics = async () => {
   } catch (error) {
     logger.error('Failed to fetch statistics');
   } finally {
-    loading.value = false;
+    stopLoading();
   }
 };
 
@@ -567,19 +569,6 @@ watch(currentTab, (newMode) => {
   lastFetchParams.value = null;
   refreshStatisticsWithDecks();
 });
-
-// テーマ変更時にグラフを再描画
-watch(
-  () => themeStore.isDark,
-  () => {
-    // Clear cache when theme changes
-    lastFetchParams.value = null;
-    Promise.all([
-      fetchStatistics(),
-      fetchMonthlyDuels(currentTab.value as GameMode),
-    ]);
-  },
-);
 </script>
 
 <style scoped lang="scss">
