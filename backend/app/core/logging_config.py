@@ -15,6 +15,7 @@ class PIIMaskingFormatter(logging.Formatter):
     以下の情報をマスクします：
     - メールアドレス
     - JWTトークン
+    - パスワード（password, passwd等のキー）
     """
 
     def format(self, record: logging.LogRecord) -> str:
@@ -34,6 +35,15 @@ class PIIMaskingFormatter(logging.Formatter):
 
         # JWTトークンをマスク（eyJで始まる標準的なJWTパターン）
         message = re.sub(r"eyJ[\w-]+\.[\w-]+\.[\w-]+", "***TOKEN***", message)
+
+        # パスワードをマスク（password, passwd, pwd等のキーを含むパターン）
+        # JSON形式: "password": "value" or 'password': 'value'
+        message = re.sub(
+            r'["\']?(password|passwd|pwd)["\']?\s*[:=]\s*["\']?[\w\S]+["\']?',
+            r'"\1": "***PASSWORD***"',
+            message,
+            flags=re.IGNORECASE,
+        )
 
         return message
 
