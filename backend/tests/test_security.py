@@ -2,11 +2,7 @@
 セキュリティ設定（CORS、セキュリティヘッダー）のテスト
 """
 
-import os
-from unittest.mock import patch
-
 import pytest
-from fastapi.testclient import TestClient
 
 
 def test_cors_allowed_origin(client):

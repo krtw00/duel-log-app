@@ -137,9 +137,9 @@ class TestWinRateService:
         assert my_deck2_stats is not None
         assert my_deck2_stats["total_duels"] == 3
         assert my_deck2_stats["wins"] == 1
-        assert my_deck2_stats["win_rate"] == pytest.approx(
-            33.33, abs=0.01
-        ), "MyDeck2の勝率が正しくない"
+        assert my_deck2_stats["win_rate"] == pytest.approx(33.33, abs=0.01), (
+            "MyDeck2の勝率が正しくない"
+        )
 
     def test_get_my_deck_win_rates_with_range(
         self, db_session: Session, test_user: User

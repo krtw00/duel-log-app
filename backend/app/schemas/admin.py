@@ -209,33 +209,40 @@ class OrphanedDataCleanupResponse(BaseModel):
     message: str
 
 
-class OrphanedSharedUrlsScanResponse(BaseModel):
-    """孤立共有URLスキャン結果"""
+class OrphanedSharedStatisticsScanResponse(BaseModel):
+    """孤立共有統計スキャン結果"""
 
     orphaned_count: int
 
 
-class OrphanedSharedUrlsCleanupResponse(BaseModel):
-    """孤立共有URLクリーンアップ結果"""
+class OrphanedSharedStatisticsCleanupResponse(BaseModel):
+    """孤立共有統計クリーンアップ結果"""
 
     success: bool
     deleted_count: int
     message: str
 
 
-class ExpiredSharedUrlsScanResponse(BaseModel):
-    """期限切れ共有URLスキャン結果"""
+class ExpiredSharedStatisticsScanResponse(BaseModel):
+    """期限切れ共有統計スキャン結果"""
 
     expired_count: int
     oldest_expired: Optional[datetime] = None
 
 
-class ExpiredSharedUrlsCleanupResponse(BaseModel):
-    """期限切れ共有URLクリーンアップ結果"""
+class ExpiredSharedStatisticsCleanupResponse(BaseModel):
+    """期限切れ共有統計クリーンアップ結果"""
 
     success: bool
     deleted_count: int
     message: str
+
+
+# 後方互換エイリアス（非推奨）
+OrphanedSharedUrlsScanResponse = OrphanedSharedStatisticsScanResponse
+OrphanedSharedUrlsCleanupResponse = OrphanedSharedStatisticsCleanupResponse
+ExpiredSharedUrlsScanResponse = ExpiredSharedStatisticsScanResponse
+ExpiredSharedUrlsCleanupResponse = ExpiredSharedStatisticsCleanupResponse
 
 
 # ========================================
