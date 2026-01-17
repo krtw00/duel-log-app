@@ -4,7 +4,7 @@
 システム全体の統計情報を集計するサービス
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Tuple
 
 from sqlalchemy import extract, func
@@ -40,7 +40,7 @@ class AdminStatisticsService:
         Returns:
             StatisticsOverviewResponse: 統計概要
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         first_day_of_month = now.replace(
             day=1, hour=0, minute=0, second=0, microsecond=0
         )
@@ -91,12 +91,17 @@ class AdminStatisticsService:
         """デッキ統計を取得"""
         # アクティブデッキ数
         active = (
-            self.db.query(func.count(Deck.id)).filter(Deck.active == True).scalar() or 0  # noqa: E712
+            self.db.query(func.count(Deck.id))
+            .filter(Deck.active == True)  # noqa: E712
+            .scalar()
+            or 0
         )
 
         # アーカイブデッキ数
         archived = (
-            self.db.query(func.count(Deck.id)).filter(Deck.active == False).scalar()  # noqa: E712
+            self.db.query(func.count(Deck.id))
+            .filter(Deck.active == False)  # noqa: E712
+            .scalar()
             or 0
         )
 
@@ -110,7 +115,9 @@ class AdminStatisticsService:
 
         # 相手デッキ数
         opponent_decks = (
-            self.db.query(func.count(Deck.id)).filter(Deck.is_opponent == True).scalar()  # noqa: E712
+            self.db.query(func.count(Deck.id))
+            .filter(Deck.is_opponent == True)  # noqa: E712
+            .scalar()
             or 0
         )
 
@@ -172,7 +179,7 @@ class AdminStatisticsService:
             DuelsTimelineResponse: 対戦数推移
         """
         days = min(days, 365)
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=days)
 
         if period == "daily":
@@ -223,8 +230,12 @@ class AdminStatisticsService:
                 func.count(Duel.id).label("count"),
             )
             .filter(Duel.played_date >= start_date, Duel.played_date <= end_date)
-            .group_by(extract("year", Duel.played_date), extract("month", Duel.played_date))
-            .order_by(extract("year", Duel.played_date), extract("month", Duel.played_date))
+            .group_by(
+                extract("year", Duel.played_date), extract("month", Duel.played_date)
+            )
+            .order_by(
+                extract("year", Duel.played_date), extract("month", Duel.played_date)
+            )
             .all()
         )
 
@@ -244,7 +255,7 @@ class AdminStatisticsService:
             UserRegistrationsResponse: ユーザー登録数推移
         """
         months = min(months, 24)
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=months * 30)
 
         results = (
@@ -386,7 +397,7 @@ class AdminStatisticsService:
         Returns:
             (期限切れの数, 最古の期限切れ日時)
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # 期限切れの共有URLをカウント
         expired_count = (
@@ -421,7 +432,7 @@ class AdminStatisticsService:
         Returns:
             削除した共有URLの数
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # 期限切れの共有URLを取得
         expired_urls = (

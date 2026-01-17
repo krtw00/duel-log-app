@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -34,7 +34,7 @@ def test_create_user_duel(db_session: Session, test_user: User):
         rank=10,
         won_coin_toss=True,
         is_going_first=True,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
     )
 
     # Act
@@ -89,7 +89,7 @@ def test_create_user_duel_rejects_other_users_decks(
         rank=10,
         won_coin_toss=True,
         is_going_first=True,
-        played_date=datetime.utcnow(),
+        played_date=datetime.now(timezone.utc),
     )
 
     with pytest.raises(ValueError, match="相手デッキ"):

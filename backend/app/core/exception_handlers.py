@@ -1,11 +1,14 @@
 """
 グローバル例外ハンドラー
+
+全てのAPIエラーを統一フォーマット {"message": ..., "detail": ...} で返却する。
+HTTPExceptionも含め、このハンドラを通すことで一貫したエラーレスポンスを実現。
 """
 
 import logging
 import re
 
-from fastapi import Request, status
+from fastapi import HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -154,6 +157,36 @@ async def sqlalchemy_exception_handler(
         content={
             "message": "データベースエラーが発生しました",
             "detail": "サーバー内部エラー",
+        },
+    )
+
+    return add_cors_headers(response, request)
+
+
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """
+    HTTPExceptionハンドラー
+
+    FastAPIのHTTPExceptionを統一フォーマットに変換する。
+    元の {"detail": ...} 形式を {"message": ..., "detail": ...} に変換。
+    """
+    # ログレベルはステータスコードに応じて調整
+    if exc.status_code >= 500:
+        logger.error(
+            f"HTTP {exc.status_code}: {exc.detail}",
+            extra={"path": request.url.path},
+        )
+    elif exc.status_code >= 400:
+        logger.warning(
+            f"HTTP {exc.status_code}: {exc.detail}",
+            extra={"path": request.url.path},
+        )
+
+    response = JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "message": exc.detail if isinstance(exc.detail, str) else str(exc.detail),
+            "detail": None,
         },
     )
 
