@@ -20,6 +20,14 @@
       </v-col>
       <v-col cols="6" sm="4" md="2" lg="2">
         <stat-card
+          title="コイン勝率"
+          :value="`${(overallStats?.coin_win_rate ?? 0).toFixed(1)}%`"
+          icon="mdi-poker-chip"
+          color="yellow"
+        />
+      </v-col>
+      <v-col cols="6" sm="4" md="2" lg="2">
+        <stat-card
           title="先攻勝率"
           :value="`${(overallStats?.first_turn_win_rate ?? 0).toFixed(1)}%`"
           icon="mdi-lightning-bolt"
@@ -32,14 +40,6 @@
           :value="`${(overallStats?.second_turn_win_rate ?? 0).toFixed(1)}%`"
           icon="mdi-shield"
           color="secondary"
-        />
-      </v-col>
-      <v-col cols="6" sm="4" md="2" lg="2">
-        <stat-card
-          title="コイン勝率"
-          :value="`${(overallStats?.coin_win_rate ?? 0).toFixed(1)}%`"
-          icon="mdi-poker-chip"
-          color="yellow"
         />
       </v-col>
       <v-col cols="6" sm="4" md="2" lg="2">
