@@ -137,7 +137,10 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useLocale } from '@/composables/useLocale';
 import { useAuthStore, type ChromaKeyBackground } from '@/stores/auth';
+import { api } from '@/services/api';
+import { createLogger } from '@/utils/logger';
 
+const logger = createLogger('StreamerPopupSettings');
 const { LL } = useLocale();
 const authStore = useAuthStore();
 
@@ -456,10 +459,55 @@ const popupUrl = computed(() => {
 });
 
 // ポップアップを開く（コンテンツに合わせて自動リサイズされる）
-const openPopup = () => {
+const openPopup = async () => {
+  let finalUrl = popupUrl.value;
+
+  // セッション統計モードの場合、現在の統計を取得してURLパラメータに追加
+  if (statsPeriod.value === 'session') {
+    try {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+
+      const statsResponse = await api.get('/statistics', {
+        params: {
+          year,
+          month,
+          game_mode: gameMode.value,
+        },
+      });
+
+      const modeStats = statsResponse.data[gameMode.value];
+      if (modeStats) {
+        const overall = modeStats.overall_stats || {};
+
+        // 現在の統計をURLパラメータとして追加
+        const initialStats = {
+          total: overall.total || 0,
+          wins: overall.wins || 0,
+          first_turn_wins: overall.first_turn_wins || 0,
+          first_turn_total: overall.first_turn_total || 0,
+          second_turn_wins: overall.second_turn_wins || 0,
+          second_turn_total: overall.second_turn_total || 0,
+          coin_wins: overall.coin_wins || 0,
+          coin_total: overall.coin_total || 0,
+        };
+
+        const urlObj = new URL(finalUrl, window.location.origin);
+        urlObj.searchParams.set('initial_stats', JSON.stringify(initialStats));
+        finalUrl = urlObj.toString();
+
+        logger.debug('Opening popup with initial stats:', initialStats);
+      }
+    } catch (error) {
+      logger.error('Failed to fetch initial stats:', error);
+      // エラーが発生してもポップアップは開く
+    }
+  }
+
   // 初期サイズは大きめに設定し、コンテンツ読み込み後に自動調整される
   window.open(
-    popupUrl.value,
+    finalUrl,
     'streamer-popup',
     'width=600,height=500,menubar=no,toolbar=no,resizable=yes',
   );
