@@ -1,7 +1,9 @@
 #!/bin/bash
 # 並列開発環境セットアップ（汎用版）
-# Usage: ./parallel-dev-setup.sh [config_file]
+# Usage: ./parallel-dev-setup.sh [config_file] [options]
 #   config_file: タスク定義ファイル（デフォルト: scripts/parallel-tasks/default.conf）
+#   options:
+#     --with-worktree: Worktreeをこのスクリプトで作成（デフォルト: ワーカーが作成）
 #
 # 設定ファイル形式（1行1ワーカー）:
 #   worker_name:branch_name:issue_numbers
@@ -9,6 +11,11 @@
 #   backend:fix/datetime-aware:#299,#316
 #   frontend:fix/i18n-hardcoded:#318
 #   tester:test/admin-permissions:#315,#297
+#
+# デフォルト動作:
+#   - ブランチ作成
+#   - tmuxセッション作成（全ペインはメインディレクトリで開始）
+#   - Worktreeはワーカーが自分で作成する
 
 set -e
 
@@ -104,12 +111,9 @@ for w in "${WORKERS[@]}"; do
 done
 echo ""
 
-# 2. Worktree作成（オプション: --no-worktreeでスキップ可能）
-# ワーカー自身がWorktreeを作成する方式を推奨
-if [[ "${2:-}" == "--no-worktree" ]]; then
-    log_info "Worktree作成をスキップ（ワーカーが自分で作成）"
-    WORKER_CREATES_WORKTREE=true
-else
+# 2. Worktree作成（オプション: --with-worktreeで有効化）
+# デフォルトはワーカー自身がWorktreeを作成する方式
+if [[ "${2:-}" == "--with-worktree" ]]; then
     log_info "Worktree作成..."
     cd "$WORK_DIR"
 
@@ -136,6 +140,9 @@ else
     done
     log_success ".claude/agents, .claude/rules のシンボリックリンクを作成"
     WORKER_CREATES_WORKTREE=false
+else
+    log_info "Worktree作成をスキップ（ワーカーが自分で作成）"
+    WORKER_CREATES_WORKTREE=true
 fi
 echo ""
 
@@ -154,30 +161,32 @@ TOTAL_PANES=$((WORKER_COUNT + 1))
 # - 4-6: 2行×(2-3)列
 # - 7+:  3行×n列
 
+# 全ペインはメインのプロジェクトディレクトリで開始
+# （ワーカーが自分でWorktreeを作成・移動する）
 if [ $TOTAL_PANES -le 2 ]; then
     # PM | Worker1
-    tmux split-window -t "$SESSION:0" -h -c "$WORK_DIR/duel-log-app-${WORKERS[0]}"
+    tmux split-window -t "$SESSION:0" -h -c "$PROJECT_ROOT"
 elif [ $TOTAL_PANES -le 4 ]; then
     # 2x2 グリッド
     # PM      | Worker1
     # Worker2 | Worker3
-    tmux split-window -t "$SESSION:0" -h -c "$WORK_DIR/duel-log-app-${WORKERS[0]}"
-    tmux split-window -t "$SESSION:0.0" -v -c "$WORK_DIR/duel-log-app-${WORKERS[1]}"
+    tmux split-window -t "$SESSION:0" -h -c "$PROJECT_ROOT"
+    tmux split-window -t "$SESSION:0.0" -v -c "$PROJECT_ROOT"
     if [ $WORKER_COUNT -ge 3 ]; then
-        tmux split-window -t "$SESSION:0.1" -v -c "$WORK_DIR/duel-log-app-${WORKERS[2]}"
+        tmux split-window -t "$SESSION:0.1" -v -c "$PROJECT_ROOT"
     fi
 elif [ $TOTAL_PANES -le 6 ]; then
     # 2x3 グリッド
     # PM      | Worker1 | Worker2
     # Worker3 | Worker4 | Worker5
-    tmux split-window -t "$SESSION:0" -h -c "$WORK_DIR/duel-log-app-${WORKERS[0]}"
-    tmux split-window -t "$SESSION:0.1" -h -c "$WORK_DIR/duel-log-app-${WORKERS[1]}"
-    tmux split-window -t "$SESSION:0.0" -v -c "$WORK_DIR/duel-log-app-${WORKERS[2]}"
+    tmux split-window -t "$SESSION:0" -h -c "$PROJECT_ROOT"
+    tmux split-window -t "$SESSION:0.1" -h -c "$PROJECT_ROOT"
+    tmux split-window -t "$SESSION:0.0" -v -c "$PROJECT_ROOT"
     if [ $WORKER_COUNT -ge 4 ]; then
-        tmux split-window -t "$SESSION:0.2" -v -c "$WORK_DIR/duel-log-app-${WORKERS[3]}"
+        tmux split-window -t "$SESSION:0.2" -v -c "$PROJECT_ROOT"
     fi
     if [ $WORKER_COUNT -ge 5 ]; then
-        tmux split-window -t "$SESSION:0.4" -v -c "$WORK_DIR/duel-log-app-${WORKERS[4]}"
+        tmux split-window -t "$SESSION:0.4" -v -c "$PROJECT_ROOT"
     fi
 else
     # 汎用: まず縦に分割し、その後横に分割
@@ -186,21 +195,18 @@ else
     half=$((WORKER_COUNT / 2))
 
     # 上下分割
-    tmux split-window -t "$SESSION:0" -v
+    tmux split-window -t "$SESSION:0" -v -c "$PROJECT_ROOT"
 
     # 上段にワーカー追加
     for ((i=0; i<half && i<${#WORKERS[@]}; i++)); do
-        tmux split-window -t "$SESSION:0.0" -h -c "$WORK_DIR/duel-log-app-${WORKERS[$i]}"
+        tmux split-window -t "$SESSION:0.0" -h -c "$PROJECT_ROOT"
     done
 
     # 下段にワーカー追加
     pane_idx=$((half + 1))
     for ((i=half; i<${#WORKERS[@]}; i++)); do
-        if [ $i -eq $half ]; then
-            # 最初の下段ペインは既存のペインを使う
-            tmux send-keys -t "$SESSION:0.$pane_idx" "cd $WORK_DIR/duel-log-app-${WORKERS[$i]}" Enter
-        else
-            tmux split-window -t "$SESSION:0.$pane_idx" -h -c "$WORK_DIR/duel-log-app-${WORKERS[$i]}"
+        if [ $i -ne $half ]; then
+            tmux split-window -t "$SESSION:0.$pane_idx" -h -c "$PROJECT_ROOT"
         fi
     done
 fi
@@ -244,17 +250,23 @@ echo ""
 echo "レイアウト: 1画面 $((TOTAL_PANES + 1)) ペイン分割"
 echo "  [0] 監視役 - $PROJECT_ROOT"
 for i in "${!WORKERS[@]}"; do
-    w="${WORKERS[$w]}"
+    w="${WORKERS[$i]}"
     echo "  [$((i+1))] $w - ${BRANCHES[$w]} (${ISSUES[$w]})"
 done
-echo "  [$SENIOR_ENG_PANE] Codexレビューワー（Claude Code）"
+echo "  [$SENIOR_ENG_PANE] シニアエンジニア（Claude Code）"
 echo ""
+if [ "$WORKER_CREATES_WORKTREE" = true ]; then
+    echo "Worktree: ワーカーが自分で作成します"
+    echo "  各ワーカーは起動時に以下を実行:"
+    echo "    git worktree add ../duel-log-app-\$WORKER_NAME \$BRANCH_NAME"
+    echo ""
+fi
 echo "次のステップ:"
 echo "  1. セッションにアタッチ:"
 echo "     tmux attach -t $SESSION"
 echo ""
 echo "  2. ワーカーにタスクを送信:"
-echo "     ./scripts/parallel-dev-start.sh"
+echo "     ./scripts/parallel-dev-start.sh scripts/parallel-tasks/sprint-XX"
 echo ""
 echo "ペイン操作:"
 echo "  Ctrl+b q      → ペイン番号表示"
