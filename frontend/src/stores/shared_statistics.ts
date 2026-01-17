@@ -39,7 +39,9 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
       return response.data.share_id;
     } catch (error: unknown) {
       const LL = getLL();
-      notificationStore.error(getErrorMessage(error, LL?.shared.createError() ?? 'Failed to create share link.'));
+      notificationStore.error(
+        getErrorMessage(error, LL?.shared.createError() ?? 'Failed to create share link.'),
+      );
       return null;
     } finally {
       loading.value = false;
@@ -86,7 +88,9 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
       return true;
     } catch (error: unknown) {
       const LL = getLL();
-      notificationStore.error(getErrorMessage(error, LL?.shared.fetchError() ?? 'Failed to fetch shared statistics.'));
+      notificationStore.error(
+        getErrorMessage(error, LL?.shared.fetchError() ?? 'Failed to fetch shared statistics.'),
+      );
       return false;
     } finally {
       loading.value = false;
@@ -102,7 +106,9 @@ export const useSharedStatisticsStore = defineStore('sharedStatistics', () => {
       return true;
     } catch (error: unknown) {
       const LL = getLL();
-      notificationStore.error(getErrorMessage(error, LL?.shared.deleteError() ?? 'Failed to delete share link.'));
+      notificationStore.error(
+        getErrorMessage(error, LL?.shared.deleteError() ?? 'Failed to delete share link.'),
+      );
       return false;
     } finally {
       loading.value = false;

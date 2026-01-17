@@ -192,10 +192,9 @@ export function useScreenCaptureAnalysisTfjs() {
   const initWorker = async (): Promise<void> => {
     try {
       // Worker を作成
-      worker = new Worker(
-        new URL('../workers/screenAnalysisTfjs.worker.ts', import.meta.url),
-        { type: 'module' }
-      );
+      worker = new Worker(new URL('../workers/screenAnalysisTfjs.worker.ts', import.meta.url), {
+        type: 'module',
+      });
 
       setupWorkerMessageHandler();
 
