@@ -4,7 +4,7 @@
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
@@ -50,7 +50,7 @@ def export_duels_csv(
         )
 
         # ファイル名に日付を追加
-        filename = f"duels_{datetime.now().strftime('%Y%m%d')}.csv"
+        filename = f"duels_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
 
         response = StreamingResponse(
             iter([csv_data]),
