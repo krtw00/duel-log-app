@@ -1,0 +1,46 @@
+[backend]
+あなたはバックエンド開発者です。
+
+【タスク】Issue #299, #316 対応
+- backend/app/api/routers/ 内の naive datetime.now() を datetime.now(timezone.utc) に修正
+- 対象ファイル: duels.py, statistics.py, me.py など
+- 修正後 ruff check と pytest --tb=short を実行して確認
+
+【重要】
+- サーバー起動は不要（コード変更とテストのみ）
+- 完了したらコミットしてください
+- コミットメッセージ: fix(api): use timezone-aware datetime
+
+[frontend]
+あなたはフロントエンド開発者です。
+
+【タスク】Issue #318 対応
+- ShareStatsDialog.vue と AppLayout.vue のハードコード文字列を i18n 化
+- frontend/src/locales/ に翻訳キー追加（ja/en/ko）
+
+【確認手順】
+1. npm run lint
+2. npm run build
+3. npm run i18n:check（あれば）
+
+【重要】
+- サーバー起動は不要
+- 完了したらコミットしてください
+- コミットメッセージ: fix(i18n): extract hardcoded strings
+
+[tester]
+あなたはテストエンジニアです。
+
+【タスク】Issue #315, #297 対応
+- test_admin_api.py に管理API権限テスト追加
+- test_shared_statistics.py に期限切れ判定テスト追加
+
+【確認手順】
+1. pytest tests/test_admin_api.py -v
+2. pytest tests/test_shared_statistics.py -v
+3. ruff check .
+
+【重要】
+- サーバー起動は不要
+- 完了したらコミットしてください
+- コミットメッセージ: test: add permission and expiration tests

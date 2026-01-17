@@ -1,0 +1,168 @@
+# Sprint 02 タスク定義
+# 2026-01-17
+
+[sharedurls]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+## タスク
+Issue #316: データ整合性改善 - sharedurls排除
+
+### 目的
+レガシーな`sharedurls`テーブルを排除し、`shared_statistics`に一本化する。
+
+### 実装内容
+1. `sharedurls`テーブルの参照箇所を棚卸し
+2. `shared_statistics`への移行処理を確認
+3. `sharedurls`モデル・関連コードを削除
+4. 不要なマイグレーションファイルの整理
+
+### 完了条件
+- [ ] sharedurlsへの参照がコードから削除されている
+- [ ] shared_statisticsのみで共有機能が動作する
+- [ ] テストが追加されている
+- [ ] コミットが作成されている
+
+---
+
+[auth]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+## タスク
+Issue #291: セキュリティ - 認証経路統一とuser.statusアクセス制御
+
+### 目的
+`user.status`が`suspended/deleted`のユーザーをAPIで拒否する。
+
+### 実装内容
+1. `backend/app/api/deps.py`の`get_current_user`に`status`チェックを追加
+2. suspended/deletedユーザーは403を返す
+3. 認証方式のドキュメント化
+
+### 実装例
+```python
+# backend/app/api/deps.py
+async def get_current_user(...):
+    user = ...
+    if user.status in ['suspended', 'deleted']:
+        raise HTTPException(status_code=403, detail="Account is suspended or deleted")
+    return user
+```
+
+### 完了条件
+- [ ] suspended/deletedユーザーが403で拒否される
+- [ ] テストが追加されている
+- [ ] コミットが作成されている
+
+---
+
+[cors]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+## タスク
+Issue #292: セキュリティ - CORS設定の厳格化
+
+### 目的
+CORS設定を見直し、許可オリジンを明示リスト化する。
+
+### 実装内容
+1. `backend/app/main.py`のCORS設定を確認
+2. 環境変数`ALLOWED_ORIGINS`で許可オリジンを明示的に指定
+3. 本番環境でワイルドカード運用を廃止
+4. `X-Frame-Options`ヘッダの追加検討
+
+### 完了条件
+- [ ] CORS設定が環境変数ベースになっている
+- [ ] 本番環境で明示リストのみ許可
+- [ ] テストが追加されている
+- [ ] コミットが作成されている
+
+---
+
+[stats-perf]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-frontend.md` に従って動作するフロントエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+## タスク
+Issue #307: パフォーマンス - 統計画面のリクエスト発火を最適化
+
+### 目的
+フィルタ変更時の過剰リクエストを抑制し、パフォーマンスを改善する。
+
+### 実装内容
+1. フィルタ変更のdebounce処理（300-500ms）を追加
+2. 複数APIの並列取得（`Promise.all`）
+3. キャッシュ済みデータの再取得をスキップ
+
+### 対象ファイル
+- `frontend/src/views/StatisticsView.vue`
+- `frontend/src/stores/statistics.ts`
+
+### 完了条件
+- [ ] フィルタ連続変更時に最後の変更から一定時間後に1回だけリクエスト発火
+- [ ] 複数APIが並列実行される
+- [ ] テストが追加されている
+- [ ] コミットが作成されている
+
+---
+
+[touch-ux]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-frontend.md` に従って動作するフロントエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+## タスク
+Issue #317: フロントUX改善 - タッチターゲット・アクセシビリティ
+
+### 目的
+モバイルでのタッチ操作を改善し、UXを向上させる。
+
+### 実装内容
+1. タッチターゲットのサイズを最低44x44pxに
+2. モバイル時のラジオ群を縦並び化
+3. 重要CTAが画面内に収まるよう調整
+
+### 対象ファイル
+- フォーム系コンポーネント
+- モバイル向けスタイル
+
+### 完了条件
+- [ ] タッチターゲットが十分なサイズになっている
+- [ ] モバイルでの操作性が改善されている
+- [ ] テストが追加されている
+- [ ] コミットが作成されている
+
+---
+
+[worker]
+## エージェント定義
+あなたは `.claude/agents/parallel-worker-frontend.md` に従って動作するフロントエンドワーカーです。
+このファイルを必ず読み、ルールに従うこと。
+
+## タスク
+Issue #293: パフォーマンス - 画面解析のWorker移行
+
+### 目的
+画面解析処理をWeb Workerに移行し、メインスレッドの負荷を軽減する。
+
+### 実装内容
+1. 画面解析処理をWeb Workerに移行
+2. OffscreenCanvasの活用を検討
+3. FPSの可変制御（ゲーム中は高FPS、待機中は低FPS）
+
+### 対象ファイル
+- `frontend/src/composables/useScreenCaptureAnalysis.ts`
+- `frontend/src/composables/useScreenCaptureAnalysisTfjs.ts`
+- `frontend/src/utils/tfjsImageClassification.ts`
+
+### 完了条件
+- [ ] 画面解析がWeb Workerで動作する
+- [ ] メインスレッドの負荷が軽減されている
+- [ ] テストが追加されている
+- [ ] コミットが作成されている
