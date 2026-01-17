@@ -26,13 +26,22 @@ router = APIRouter(prefix="/statistics", tags=["statistics"])
 
 
 def get_statistics_filters(
-    year: int = Query(datetime.now().year, description="年"),
-    month: int = Query(datetime.now().month, description="月"),
+    year: Optional[int] = Query(None, description="年（from_timestamp未指定時のデフォルト:今年）"),
+    month: Optional[int] = Query(None, description="月（from_timestamp未指定時のデフォルト:今月）"),
     range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
     range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
     my_deck_id: Optional[int] = Query(None, description="使用デッキでフィルター"),
     opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
+    from_timestamp: Optional[str] = Query(
+        None, description="この時刻以降のデータのみ取得（ISO8601形式）。指定時はyear/monthを無視"
+    ),
 ) -> StatisticsFilters:
+    # from_timestampがない場合はデフォルトで今月を使用
+    if from_timestamp is None:
+        if year is None:
+            year = datetime.now().year
+        if month is None:
+            month = datetime.now().month
     return StatisticsFilters(
         year=year,
         month=month,
@@ -40,6 +49,7 @@ def get_statistics_filters(
         range_end=range_end,
         my_deck_id=my_deck_id,
         opponent_deck_id=opponent_deck_id,
+        from_timestamp=from_timestamp,
     )
 
 
@@ -78,17 +88,24 @@ def get_all_statistics(
     game_modes = ["RANK", "RATE", "EVENT", "DC"]
     result = {}
 
+    # フィルターパラメータを取得（from_timestamp使用時はyear/monthがNoneになる）
+    filter_kwargs = filters.to_service_kwargs()
+    year = filter_kwargs.get("year")
+    month = filter_kwargs.get("month")
+    start_date = filter_kwargs.get("start_date")
+
     # パフォーマンス最適化: 全ゲームモードのデュエルを一度に取得
     all_duels = duel_service.get_user_duels(
         db=db,
         user_id=current_user.id,
-        year=filters.year,
-        month=filters.month,
+        year=year,
+        month=month,
         game_mode=None,  # 全ゲームモードを取得
         range_start=filters.range_start,
         range_end=filters.range_end,
         deck_id=filters.my_deck_id,
         opponent_deck_id=filters.opponent_deck_id,
+        start_date=start_date,  # タイムスタンプフィルタ
     )
 
     # メモリ内でゲームモード別に分割
@@ -97,6 +114,9 @@ def get_all_statistics(
         if duel.game_mode in duels_by_mode:
             duels_by_mode[duel.game_mode].append(duel)
 
+    # from_timestampモード（year/monthがNone）かどうかを判定
+    is_timestamp_mode = year is None or month is None
+
     for mode in game_modes:
         duels = duels_by_mode[mode]
         overall_stats = general_stats_service.calculate_general_stats(duels)
@@ -104,70 +124,82 @@ def get_all_statistics(
         # DuelWithDeckNamesスキーマに変換
         duels_with_names = [DuelWithDeckNames.model_validate(d) for d in duels]
 
-        result[mode] = {
-            "overall_stats": overall_stats,
-            "duels": duels_with_names,
-            "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
-                db=db,
-                user_id=current_user.id,
-                year=filters.year,
-                month=filters.month,
-                game_mode=mode,
-                range_start=filters.range_start,
-                range_end=filters.range_end,
-                my_deck_id=filters.my_deck_id,
-                opponent_deck_id=filters.opponent_deck_id,
-            ),
-            "recent_deck_distribution": deck_distribution_service.get_deck_distribution_recent(
-                db=db,
-                user_id=current_user.id,
-                game_mode=mode,
-                range_start=filters.range_start,
-                range_end=filters.range_end,
-                my_deck_id=filters.my_deck_id,
-                opponent_deck_id=filters.opponent_deck_id,
-            ),
-            "matchup_data": matchup_service.get_matchup_chart(
-                db=db,
-                user_id=current_user.id,
-                year=filters.year,
-                month=filters.month,
-                game_mode=mode,
-                range_start=filters.range_start,
-                range_end=filters.range_end,
-                my_deck_id=filters.my_deck_id,
-                opponent_deck_id=filters.opponent_deck_id,
-            ),
-            "my_deck_win_rates": win_rate_service.get_my_deck_win_rates(
-                db=db,
-                user_id=current_user.id,
-                year=filters.year,
-                month=filters.month,
-                game_mode=mode,
-                range_start=filters.range_start,
-                range_end=filters.range_end,
-                my_deck_id=filters.my_deck_id,
-                opponent_deck_id=filters.opponent_deck_id,
-            ),
-        }
-
-        # レートとDCの場合は値シーケンスも取得
-        if mode in ["RATE", "DC"]:
-            result[mode]["value_sequence_data"] = (
-                value_sequence_service.get_value_sequence_data(
+        # from_timestampモードでは年月ベースの統計をスキップ
+        if is_timestamp_mode:
+            result[mode] = {
+                "overall_stats": overall_stats,
+                "duels": duels_with_names,
+                "monthly_deck_distribution": [],
+                "recent_deck_distribution": [],
+                "matchup_data": [],
+                "my_deck_win_rates": [],
+                "value_sequence_data": [],
+            }
+        else:
+            result[mode] = {
+                "overall_stats": overall_stats,
+                "duels": duels_with_names,
+                "monthly_deck_distribution": deck_distribution_service.get_deck_distribution_monthly(
                     db=db,
                     user_id=current_user.id,
+                    year=year,
+                    month=month,
                     game_mode=mode,
-                    year=filters.year,
-                    month=filters.month,
                     range_start=filters.range_start,
                     range_end=filters.range_end,
                     my_deck_id=filters.my_deck_id,
                     opponent_deck_id=filters.opponent_deck_id,
+                ),
+                "recent_deck_distribution": deck_distribution_service.get_deck_distribution_recent(
+                    db=db,
+                    user_id=current_user.id,
+                    game_mode=mode,
+                    range_start=filters.range_start,
+                    range_end=filters.range_end,
+                    my_deck_id=filters.my_deck_id,
+                    opponent_deck_id=filters.opponent_deck_id,
+                ),
+                "matchup_data": matchup_service.get_matchup_chart(
+                    db=db,
+                    user_id=current_user.id,
+                    year=year,
+                    month=month,
+                    game_mode=mode,
+                    range_start=filters.range_start,
+                    range_end=filters.range_end,
+                    my_deck_id=filters.my_deck_id,
+                    opponent_deck_id=filters.opponent_deck_id,
+                ),
+                "my_deck_win_rates": win_rate_service.get_my_deck_win_rates(
+                    db=db,
+                    user_id=current_user.id,
+                    year=year,
+                    month=month,
+                    game_mode=mode,
+                    range_start=filters.range_start,
+                    range_end=filters.range_end,
+                    my_deck_id=filters.my_deck_id,
+                    opponent_deck_id=filters.opponent_deck_id,
+                ),
+            }
+
+            # レートとDCの場合は値シーケンスも取得
+            if mode in ["RATE", "DC"]:
+                result[mode]["value_sequence_data"] = (
+                    value_sequence_service.get_value_sequence_data(
+                        db=db,
+                        user_id=current_user.id,
+                        game_mode=mode,
+                        year=year,
+                        month=month,
+                        range_start=filters.range_start,
+                        range_end=filters.range_end,
+                        my_deck_id=filters.my_deck_id,
+                        opponent_deck_id=filters.opponent_deck_id,
+                    )
                 )
-            )
-        else:
-            result[mode]["value_sequence_data"] = []
+            else:
+                result[mode]["value_sequence_data"] = []
 
     return result
 

@@ -23,6 +23,7 @@
       <!-- デスクトップ: インラインフォーム表示 -->
       <DuelEntrySection
         v-if="!isMobile"
+        id="duel-entry-section"
         :decks="decks"
         :default-game-mode="currentMode"
         :default-first-or-second="defaultFirstOrSecond"
@@ -41,6 +42,7 @@
         :default-game-mode="currentMode"
         @refresh="fetchDuels"
         @duel-saved="handleDuelSaved"
+        @add-duel="handleAddDuel"
       />
     </v-container>
 
@@ -190,6 +192,20 @@ const upsertDuel = (duel: Duel) => {
 const handleDuelSaved = (payload: { duel: Duel; upsertDecks: Deck[] }) => {
   payload.upsertDecks.forEach(upsertDeck);
   upsertDuel(payload.duel);
+};
+
+// 空状態から「対戦を追加」ボタンがクリックされた時の処理
+const handleAddDuel = () => {
+  if (!isMobile.value) {
+    // デスクトップ: DuelEntrySectionにスクロール
+    const entrySection = document.getElementById('duel-entry-section');
+    if (entrySection) {
+      entrySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } else {
+    // モバイル: ダイアログを開く
+    duelHistoryRef.value?.openNewDuelDialog();
+  }
 };
 
 // Data fetching - declare before using in composables

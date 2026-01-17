@@ -25,7 +25,7 @@
         @refresh="onRefresh"
         @edit="editDuel"
         @delete="deleteDuel"
-        @add-duel="openNewDuelDialog"
+        @add-duel="emit('add-duel')"
       />
     </v-card>
 
@@ -81,6 +81,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'duel-saved', payload: { duel: Duel; upsertDecks: Deck[] }): void;
+  (e: 'add-duel'): void;
 }>();
 
 const shareDialogOpened = ref(false);
