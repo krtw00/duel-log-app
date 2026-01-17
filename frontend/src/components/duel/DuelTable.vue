@@ -16,7 +16,15 @@
         class="duel-card-compact"
       >
         <!-- 勝敗インジケーター -->
-        <div class="result-indicator" :class="duel.is_win ? 'win' : 'lose'" />
+        <div
+          class="result-indicator"
+          :class="duel.is_win ? 'win' : 'lose'"
+          :aria-label="duel.is_win ? LL?.duels.result.win() : LL?.duels.result.lose()"
+        >
+          <v-icon size="14" color="white">
+            {{ duel.is_win ? 'mdi-check' : 'mdi-close' }}
+          </v-icon>
+        </div>
 
         <!-- メインコンテンツ -->
         <div class="card-content">
@@ -32,10 +40,24 @@
 
           <!-- 2行目: 詳細情報（テキスト表示） -->
           <div class="detail-row">
-            <span class="detail-item" :class="duel.is_going_first ? 'first' : 'second'">
+            <span
+              class="detail-item"
+              :class="duel.is_going_first ? 'first' : 'second'"
+              :aria-label="duel.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()"
+            >
+              <v-icon size="12">
+                {{ duel.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
+              </v-icon>
               {{ duel.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second() }}
             </span>
-            <span class="detail-item" :class="duel.won_coin_toss ? 'coin-win' : 'coin-lose'">
+            <span
+              class="detail-item"
+              :class="duel.won_coin_toss ? 'coin-win' : 'coin-lose'"
+              :aria-label="duel.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose()"
+            >
+              <v-icon size="12">
+                {{ duel.won_coin_toss ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
+              </v-icon>
               {{ duel.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose() }}
             </span>
             <!-- ランク/レート/DC表示 -->
@@ -107,7 +129,12 @@
 
     <!-- 勝敗カラム -->
     <template #[`item.is_win`]="{ item }">
-      <v-chip :color="item.is_win ? 'success' : 'error'" variant="flat" class="font-weight-bold">
+      <v-chip
+        :color="item.is_win ? 'success' : 'error'"
+        variant="flat"
+        class="font-weight-bold"
+        :aria-label="item.is_win ? LL?.duels.result.win() : LL?.duels.result.lose()"
+      >
         <v-icon start>
           {{ item.is_win ? 'mdi-check-circle' : 'mdi-close-circle' }}
         </v-icon>
@@ -131,18 +158,22 @@
 
     <!-- コインカラム -->
     <template v-if="!hiddenColumnsSet.has('won_coin_toss')" #[`item.won_coin_toss`]="{ item }">
-      <v-icon :color="item.won_coin_toss ? 'warning' : 'grey'">
-        {{ item.won_coin_toss ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
-      </v-icon>
-      {{ item.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose() }}
+      <span :aria-label="item.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose()">
+        <v-icon :color="item.won_coin_toss ? 'warning' : 'grey'">
+          {{ item.won_coin_toss ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
+        </v-icon>
+        {{ item.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose() }}
+      </span>
     </template>
 
     <!-- 先攻/後攻カラム -->
     <template v-if="!hiddenColumnsSet.has('is_going_first')" #[`item.is_going_first`]="{ item }">
-      <v-icon :color="item.is_going_first ? 'info' : 'purple'">
-        {{ item.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
-      </v-icon>
-      {{ item.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second() }}
+      <span :aria-label="item.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()">
+        <v-icon :color="item.is_going_first ? 'info' : 'purple'">
+          {{ item.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
+        </v-icon>
+        {{ item.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second() }}
+      </span>
     </template>
 
     <!-- ランク/レートカラム -->
@@ -348,8 +379,11 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);
 
   .result-indicator {
-    width: 4px;
+    width: 24px;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &.win {
       background: rgb(var(--v-theme-success));
