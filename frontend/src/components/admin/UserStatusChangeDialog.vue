@@ -10,7 +10,10 @@
 
       <v-card-text class="pa-6">
         <p class="mb-4">
-          {{ LL?.admin.userDetail?.changeStatusDescription({ username: user.username }) || `${user.username} の状態を変更します。` }}
+          {{
+            LL?.admin.userDetail?.changeStatusDescription({ username: user.username }) ||
+            `${user.username} の状態を変更します。`
+          }}
         </p>
 
         <v-select
@@ -37,7 +40,9 @@
         <v-textarea
           v-model="reason"
           :label="LL?.admin.userDetail?.reason() || '理由（任意）'"
-          :placeholder="LL?.admin.userDetail?.reasonPlaceholder() || '状態変更の理由を入力してください'"
+          :placeholder="
+            LL?.admin.userDetail?.reasonPlaceholder() || '状態変更の理由を入力してください'
+          "
           variant="outlined"
           density="comfortable"
           rows="3"
@@ -52,7 +57,10 @@
           density="compact"
           class="mt-4"
         >
-          {{ LL?.admin.userDetail?.suspendedWarning() || 'アカウントを停止すると、ユーザーはログインできなくなります。' }}
+          {{
+            LL?.admin.userDetail?.suspendedWarning() ||
+            'アカウントを停止すると、ユーザーはログインできなくなります。'
+          }}
         </v-alert>
 
         <v-alert
@@ -62,7 +70,10 @@
           density="compact"
           class="mt-4"
         >
-          {{ LL?.admin.userDetail?.deletedWarning() || 'アカウントを削除扱いにすると、復旧が必要になります。' }}
+          {{
+            LL?.admin.userDetail?.deletedWarning() ||
+            'アカウントを削除扱いにすると、復旧が必要になります。'
+          }}
         </v-alert>
       </v-card-text>
 
@@ -127,13 +138,16 @@ const statusOptions = computed(() => [
   },
 ]);
 
-watch(() => props.modelValue, (newValue) => {
-  isVisible.value = newValue;
-  if (newValue && props.user) {
-    selectedStatus.value = props.user.status as UpdateUserStatusRequest['status'];
-    reason.value = props.user.status_reason || '';
-  }
-});
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    isVisible.value = newValue;
+    if (newValue && props.user) {
+      selectedStatus.value = props.user.status as UpdateUserStatusRequest['status'];
+      reason.value = props.user.status_reason || '';
+    }
+  },
+);
 
 watch(isVisible, (newValue) => {
   emit('update:modelValue', newValue);

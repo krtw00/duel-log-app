@@ -18,10 +18,7 @@ import {
   type CoinResult,
   type AnalysisResult,
 } from '@/utils/screenAnalysis';
-import type {
-  TemplateWorkerMessage,
-  TemplateWorkerResponse,
-} from '@/workers/types';
+import type { TemplateWorkerMessage, TemplateWorkerResponse } from '@/workers/types';
 
 // Logging helper for worker
 const log = (level: 'info' | 'warn' | 'error', message: string, ...args: unknown[]) => {
@@ -201,7 +198,9 @@ const handleInit = async (message: {
 /**
  * Analyze turn choice (coin toss)
  */
-const analyzeTurnChoice = (now: number): {
+const analyzeTurnChoice = (
+  now: number,
+): {
   detected: boolean;
   result: CoinResult | null;
   eventId: number;

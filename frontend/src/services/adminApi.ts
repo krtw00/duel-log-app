@@ -95,7 +95,9 @@ export const getUserRegistrations = async (
 // ========================================
 
 export const scanOrphanedData = async (): Promise<OrphanedDataScanResponse> => {
-  const response = await api.post<OrphanedDataScanResponse>('/admin/maintenance/scan-orphaned-data');
+  const response = await api.post<OrphanedDataScanResponse>(
+    '/admin/maintenance/scan-orphaned-data',
+  );
   return response.data;
 };
 
@@ -178,7 +180,9 @@ export const getPopularDecks = async (
   if (gameMode) {
     params.append('game_mode', gameMode);
   }
-  const response = await api.get<PopularDecksResponse>(`/admin/meta/popular-decks?${params.toString()}`);
+  const response = await api.get<PopularDecksResponse>(
+    `/admin/meta/popular-decks?${params.toString()}`,
+  );
   return response.data;
 };
 
@@ -196,7 +200,9 @@ export const getDeckTrends = async (
   if (gameMode) {
     params.append('game_mode', gameMode);
   }
-  const response = await api.get<DeckTrendsResponse>(`/admin/meta/deck-trends?${params.toString()}`);
+  const response = await api.get<DeckTrendsResponse>(
+    `/admin/meta/deck-trends?${params.toString()}`,
+  );
   return response.data;
 };
 

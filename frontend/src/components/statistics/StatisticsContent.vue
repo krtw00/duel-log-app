@@ -3,7 +3,9 @@
     <!-- 月間デッキ分布 -->
     <v-col cols="12" lg="6">
       <v-card :class="statsCardClass">
-        <v-card-title>{{ LL?.statistics.distribution.monthlyTitle() }} ({{ displayMonth }})</v-card-title>
+        <v-card-title
+          >{{ LL?.statistics.distribution.monthlyTitle() }} ({{ displayMonth }})</v-card-title
+        >
         <v-card-text>
           <apexchart
             v-if="
@@ -119,7 +121,10 @@
                 </v-list>
               </v-expansion-panel-text>
             </v-expansion-panel>
-            <div v-if="!statistics.myDeckWinRates || statistics.myDeckWinRates.length === 0" class="no-data-placeholder py-8">
+            <div
+              v-if="!statistics.myDeckWinRates || statistics.myDeckWinRates.length === 0"
+              class="no-data-placeholder py-8"
+            >
               <v-icon size="64" color="grey">mdi-chart-bar</v-icon>
               <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.noData() }}</p>
             </div>
@@ -142,39 +147,39 @@
               class="matchup-table"
               density="compact"
             >
-            <template #item.win_rate="{ item }">
-              <v-chip
-                size="small"
-                :color="getMatchupColor(item.win_rate)"
-                :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
-              >
-                {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
-              </v-chip>
-            </template>
-            <template #item.win_rate_first="{ item }">
-              <v-chip
-                size="small"
-                :color="getMatchupColor(item.win_rate_first)"
-                :variant="getMatchupColor(item.win_rate_first) ? 'tonal' : 'outlined'"
-              >
-                {{ formatPercent(item.win_rate_first) }}
-              </v-chip>
-            </template>
-            <template #item.win_rate_second="{ item }">
-              <v-chip
-                size="small"
-                :color="getMatchupColor(item.win_rate_second)"
-                :variant="getMatchupColor(item.win_rate_second) ? 'tonal' : 'outlined'"
-              >
-                {{ formatPercent(item.win_rate_second) }}
-              </v-chip>
-            </template>
-            <template #no-data>
-              <div class="no-data-placeholder py-8">
-                <v-icon size="64" color="grey">mdi-table-off</v-icon>
-                <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.matchup.noData() }}</p>
-              </div>
-            </template>
+              <template #item.win_rate="{ item }">
+                <v-chip
+                  size="small"
+                  :color="getMatchupColor(item.win_rate)"
+                  :variant="getMatchupColor(item.win_rate) ? 'tonal' : 'outlined'"
+                >
+                  {{ item.wins }} / {{ item.total_duels }} ({{ formatPercent(item.win_rate) }})
+                </v-chip>
+              </template>
+              <template #item.win_rate_first="{ item }">
+                <v-chip
+                  size="small"
+                  :color="getMatchupColor(item.win_rate_first)"
+                  :variant="getMatchupColor(item.win_rate_first) ? 'tonal' : 'outlined'"
+                >
+                  {{ formatPercent(item.win_rate_first) }}
+                </v-chip>
+              </template>
+              <template #item.win_rate_second="{ item }">
+                <v-chip
+                  size="small"
+                  :color="getMatchupColor(item.win_rate_second)"
+                  :variant="getMatchupColor(item.win_rate_second) ? 'tonal' : 'outlined'"
+                >
+                  {{ formatPercent(item.win_rate_second) }}
+                </v-chip>
+              </template>
+              <template #no-data>
+                <div class="no-data-placeholder py-8">
+                  <v-icon size="64" color="grey">mdi-table-off</v-icon>
+                  <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.matchup.noData() }}</p>
+                </div>
+              </template>
             </v-data-table>
           </div>
 
@@ -249,7 +254,10 @@
                 </v-list>
               </v-expansion-panel-text>
             </v-expansion-panel>
-            <div v-if="!statistics.matchupData || statistics.matchupData.length === 0" class="no-data-placeholder py-8">
+            <div
+              v-if="!statistics.matchupData || statistics.matchupData.length === 0"
+              class="no-data-placeholder py-8"
+            >
               <v-icon size="64" color="grey">mdi-table-off</v-icon>
               <p class="text-body-1 text-grey mt-4">{{ LL?.statistics.matchup.noData() }}</p>
             </div>
@@ -262,7 +270,10 @@
     <v-col v-if="gameMode === 'RATE' || gameMode === 'DC'" cols="12">
       <v-card :class="statsCardClass">
         <v-card-title>
-          {{ gameMode === 'RATE' ? LL?.statistics.rateChart.title() : LL?.statistics.dcChart.title() }} ({{ displayMonth }})
+          {{
+            gameMode === 'RATE' ? LL?.statistics.rateChart.title() : LL?.statistics.dcChart.title()
+          }}
+          ({{ displayMonth }})
         </v-card-title>
         <v-card-text class="pa-0 pa-sm-4">
           <div class="chart-scroll-container">
@@ -394,11 +405,23 @@ const myDeckWinRatesHeaders = computed(() => [
 
 const matchupHeaders = computed(() => [
   { title: LL.value?.statistics.matchup.myDeck() || '', key: 'deck_name', sortable: false },
-  { title: LL.value?.statistics.matchup.opponent() || '', key: 'opponent_deck_name', sortable: false },
+  {
+    title: LL.value?.statistics.matchup.opponent() || '',
+    key: 'opponent_deck_name',
+    sortable: false,
+  },
   { title: LL.value?.statistics.matchup.matches() || '', key: 'total_duels', sortable: true },
   { title: LL.value?.statistics.matchup.winRate() || '', key: 'win_rate', sortable: true },
-  { title: LL.value?.statistics.matchup.firstWinRate() || '', key: 'win_rate_first', sortable: true },
-  { title: LL.value?.statistics.matchup.secondWinRate() || '', key: 'win_rate_second', sortable: true },
+  {
+    title: LL.value?.statistics.matchup.firstWinRate() || '',
+    key: 'win_rate_first',
+    sortable: true,
+  },
+  {
+    title: LL.value?.statistics.matchup.secondWinRate() || '',
+    key: 'win_rate_second',
+    sortable: true,
+  },
 ]);
 </script>
 
