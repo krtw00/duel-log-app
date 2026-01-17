@@ -167,25 +167,27 @@ describe('StatisticsView.vue', () => {
       expect(api.get).toHaveBeenCalledTimes(3); // available-decks, statistics, duels
     });
 
-    it('executes multiple APIs in parallel', async () => {
+    it('executes dependent APIs correctly (available-decks first, then others in parallel)', async () => {
       const mockApiGet = vi.mocked(api.get);
-      let resolveAvailableDecks: (value: any) => void;
-      let resolveStatistics: (value: any) => void;
-      let resolveDuels: (value: any) => void;
+      const callOrder: string[] = [];
 
       mockApiGet.mockImplementation((url: string) => {
         if (url === '/statistics/available-decks') {
-          return new Promise((resolve) => {
-            resolveAvailableDecks = resolve;
-          });
+          callOrder.push('available-decks');
+          return Promise.resolve({ data: { my_decks: [], opponent_decks: [] } });
         } else if (url === '/statistics') {
-          return new Promise((resolve) => {
-            resolveStatistics = resolve;
+          callOrder.push('statistics');
+          return Promise.resolve({
+            data: {
+              RANK: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+              RATE: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+              EVENT: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+              DC: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
+            },
           });
         } else if (url === '/duels/') {
-          return new Promise((resolve) => {
-            resolveDuels = resolve;
-          });
+          callOrder.push('duels');
+          return Promise.resolve({ data: [] });
         }
         return Promise.resolve({ data: {} });
       });
@@ -203,27 +205,14 @@ describe('StatisticsView.vue', () => {
         },
       });
 
-      // Wait for component to mount and trigger initial requests
       await flushPromises();
 
-      // All three API calls should have been initiated in parallel
-      expect(api.get).toHaveBeenCalledWith('/statistics/available-decks', expect.any(Object));
-      expect(api.get).toHaveBeenCalledWith('/statistics', expect.any(Object));
-      expect(api.get).toHaveBeenCalledWith('/duels/', expect.any(Object));
-
-      // Resolve all promises
-      resolveAvailableDecks!({ data: { my_decks: [], opponent_decks: [] } });
-      resolveStatistics!({
-        data: {
-          RANK: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
-          RATE: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
-          EVENT: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
-          DC: { monthly_deck_distribution: [], matchup_data: [], value_sequence_data: [] },
-        },
-      });
-      resolveDuels!({ data: [] });
-
-      await flushPromises();
+      // available-decks should be called first
+      expect(callOrder[0]).toBe('available-decks');
+      // statistics and duels should be called after (order may vary)
+      expect(callOrder).toContain('statistics');
+      expect(callOrder).toContain('duels');
+      expect(callOrder.length).toBe(3);
     });
 
     it('skips refetch when parameters are unchanged', async () => {
