@@ -1756,6 +1756,32 @@ type RootTranslation = {
 		 * 共​有​リ​ン​ク​の​削​除​に​失​敗​し​ま​し​た​。
 		 */
 		deleteError: string
+		dialog: {
+			/**
+			 * 共​有​リ​ン​ク​を​生​成
+			 */
+			title: string
+			/**
+			 * 有​効​期​限​ ​(​Y​Y​Y​Y​-​M​M​-​D​D​,​ ​オ​プ​シ​ョ​ン​)
+			 */
+			expiresAt: string
+			/**
+			 * リ​ン​ク​を​生​成
+			 */
+			generateButton: string
+			/**
+			 * 有​効​期​限​の​日​付​形​式​が​不​正​で​す​。​Y​Y​Y​Y​-​M​M​-​D​D​ ​形​式​で​入​力​し​て​く​だ​さ​い​。
+			 */
+			invalidDateFormat: string
+			/**
+			 * 有​効​期​限​の​日​付​が​不​正​で​す​。​存​在​し​な​い​日​付​が​入​力​さ​れ​ま​し​た​。
+			 */
+			invalidDate: string
+			/**
+			 * リ​ン​ク​の​コ​ピ​ー​に​失​敗​し​ま​し​た​。​手​動​で​コ​ピ​ー​し​て​く​だ​さ​い​。
+			 */
+			copyFailed: string
+		}
 	}
 	validation: {
 		/**
@@ -4154,6 +4180,32 @@ export type TranslationFunctions = {
 		 * 共有リンクの削除に失敗しました。
 		 */
 		deleteError: () => LocalizedString
+		dialog: {
+			/**
+			 * 共有リンクを生成
+			 */
+			title: () => LocalizedString
+			/**
+			 * 有効期限 (YYYY-MM-DD, オプション)
+			 */
+			expiresAt: () => LocalizedString
+			/**
+			 * リンクを生成
+			 */
+			generateButton: () => LocalizedString
+			/**
+			 * 有効期限の日付形式が不正です。YYYY-MM-DD 形式で入力してください。
+			 */
+			invalidDateFormat: () => LocalizedString
+			/**
+			 * 有効期限の日付が不正です。存在しない日付が入力されました。
+			 */
+			invalidDate: () => LocalizedString
+			/**
+			 * リンクのコピーに失敗しました。手動でコピーしてください。
+			 */
+			copyFailed: () => LocalizedString
+		}
 	}
 	validation: {
 		/**

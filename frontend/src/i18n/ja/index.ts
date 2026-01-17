@@ -525,6 +525,14 @@ const ja = {
     fetchError: '共有統計データの取得に失敗しました。',
     deleteSuccess: '共有リンクが削除されました。',
     deleteError: '共有リンクの削除に失敗しました。',
+    dialog: {
+      title: '共有リンクを生成',
+      expiresAt: '有効期限 (YYYY-MM-DD, オプション)',
+      generateButton: 'リンクを生成',
+      invalidDateFormat: '有効期限の日付形式が不正です。YYYY-MM-DD 形式で入力してください。',
+      invalidDate: '有効期限の日付が不正です。存在しない日付が入力されました。',
+      copyFailed: 'リンクのコピーに失敗しました。手動でコピーしてください。',
+    },
   },
   validation: {
     required: '必須項目です',
