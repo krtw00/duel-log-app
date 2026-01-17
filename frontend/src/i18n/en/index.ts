@@ -1,4 +1,4 @@
-import type { Translation } from '../i18n-types'
+import type { Translation } from '../i18n-types';
 
 const en = {
   common: {
@@ -70,7 +70,8 @@ const en = {
       hasAccount: 'Already have an account?',
       login: 'Login',
       success: 'Registration complete!',
-      successWithConfirmation: 'Confirmation email sent. Please check your email to activate your account.',
+      successWithConfirmation:
+        'Confirmation email sent. Please check your email to activate your account.',
     },
     forgotPassword: {
       title: 'Reset Password',
@@ -121,7 +122,8 @@ const en = {
       recommended: 'Recommended',
       obsBrowserSource: 'OBS Browser Source',
       deprecated: 'Deprecated',
-      deprecationWarning: 'This feature will be deprecated. Please use the new "Streaming Popup Window" instead.',
+      deprecationWarning:
+        'This feature will be deprecated. Please use the new "Streaming Popup Window" instead.',
       obsDescription: 'Display real-time statistics in OBS browser source.',
       getObsUrl: 'Get OBS URL',
       winRate: 'Win Rate',
@@ -263,7 +265,8 @@ const en = {
       registered: 'Registered',
       canRegister: 'Can Register',
       switchToSecond: 'Switch to Second',
-      description: 'Select Master Duel window for auto-analysis. Duel results are auto-registered when detected.',
+      description:
+        'Select Master Duel window for auto-analysis. Duel results are auto-registered when detected.',
       templateMode: 'Template Matching',
       mlMode: 'Machine Learning (TF.js)',
       modeDescription: 'mode for analysis.',
@@ -393,8 +396,7 @@ const en = {
     copySuccess: 'URL copied',
     preview: 'Preview',
     regenerateToken: 'Regenerate Token',
-    regenerateConfirm:
-      'Regenerating the token will invalidate the current URL. Continue?',
+    regenerateConfirm: 'Regenerating the token will invalidate the current URL. Continue?',
     noToken: 'No token in URL',
     settings: {
       title: 'Display Settings',
@@ -465,7 +467,8 @@ const en = {
       loginRequiredDetail: 'Please open this page while logged in',
       chromaKey: {
         title: 'Chroma Key Background',
-        description: 'Enable OBS chroma key filter to make background transparent during window capture.',
+        description:
+          'Enable OBS chroma key filter to make background transparent during window capture.',
         none: 'Normal',
         green: 'Green',
         blue: 'Blue',
@@ -473,7 +476,8 @@ const en = {
     },
     configPanel: {
       title: 'OBS Integration Settings',
-      description: 'Display real-time statistics as an overlay in OBS browser source. Customize display items and aggregation period.',
+      description:
+        'Display real-time statistics as an overlay in OBS browser source. Customize display items and aggregation period.',
       periodType: 'Aggregation Period',
       periodMonthly: 'Monthly',
       periodRecent: 'Recent N Matches',
@@ -675,7 +679,8 @@ const en = {
     version: 'Version',
   },
   feedback: {
-    intro: 'We welcome bug reports, feature requests, and inquiries. They will be registered as GitHub Issues.',
+    intro:
+      'We welcome bug reports, feature requests, and inquiries. They will be registered as GitHub Issues.',
     tabs: {
       bug: 'Bug Report',
       enhancement: 'Feature Request',
@@ -713,7 +718,8 @@ const en = {
     contactInfo: {
       title: 'Contact Info',
     },
-    githubDisabled: 'GitHub integration is disabled. Please contact us via X (Twitter) or GitHub directly.',
+    githubDisabled:
+      'GitHub integration is disabled. Please contact us via X (Twitter) or GitHub directly.',
     success: {
       title: 'Submitted',
       viewIssue: 'View Issue on GitHub',
@@ -732,6 +738,6 @@ const en = {
     dark: 'Dark',
     system: 'System',
   },
-} satisfies Translation
+} satisfies Translation;
 
-export default en
+export default en;

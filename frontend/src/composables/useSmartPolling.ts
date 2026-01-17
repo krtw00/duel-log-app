@@ -79,7 +79,10 @@ export function useSmartPolling(options: UseSmartPollingOptions): UseSmartPollin
         errorCount++;
         const backoffMultiplier = Math.pow(2, errorCount - 1);
         currentInterval = Math.min(interval * backoffMultiplier, maxBackoff);
-        logger.warn(`Poll failed (attempt ${errorCount}), next poll in ${currentInterval}ms`, error);
+        logger.warn(
+          `Poll failed (attempt ${errorCount}), next poll in ${currentInterval}ms`,
+          error,
+        );
       }
 
       scheduleNext();
@@ -111,7 +114,10 @@ export function useSmartPolling(options: UseSmartPollingOptions): UseSmartPollin
         } catch (error) {
           errorCount++;
           currentInterval = Math.min(interval * Math.pow(2, errorCount - 1), maxBackoff);
-          logger.warn(`Poll failed (attempt ${errorCount}), next poll in ${currentInterval}ms`, error);
+          logger.warn(
+            `Poll failed (attempt ${errorCount}), next poll in ${currentInterval}ms`,
+            error,
+          );
         }
         scheduleNext();
       })();
@@ -127,7 +133,9 @@ export function useSmartPolling(options: UseSmartPollingOptions): UseSmartPollin
       return;
     }
 
-    logger.info(`Starting smart polling (interval: ${interval}ms, maxBackoff: ${maxBackoff}ms, pauseOnHidden: ${pauseOnHidden})`);
+    logger.info(
+      `Starting smart polling (interval: ${interval}ms, maxBackoff: ${maxBackoff}ms, pauseOnHidden: ${pauseOnHidden})`,
+    );
     isPolling.value = true;
     errorCount = 0;
     currentInterval = interval;

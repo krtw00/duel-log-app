@@ -1,11 +1,13 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { createLogger } from '@/utils/logger';
 import { useLocale } from './useLocale';
-import { AnalysisResult, CoinResult, SCREEN_ANALYSIS_CONFIG, createCanvas } from '@/utils/screenAnalysis';
-import type {
-  TemplateWorkerMessage,
-  TemplateWorkerResponse,
-} from '@/workers/types';
+import {
+  AnalysisResult,
+  CoinResult,
+  SCREEN_ANALYSIS_CONFIG,
+  createCanvas,
+} from '@/utils/screenAnalysis';
+import type { TemplateWorkerMessage, TemplateWorkerResponse } from '@/workers/types';
 
 // 戦績登録のロック状態を管理する型
 type ResultLockState = 'unlocked' | 'locked';
@@ -166,10 +168,9 @@ export function useScreenCaptureAnalysis() {
   const initWorker = async (): Promise<void> => {
     try {
       // Worker を作成
-      worker = new Worker(
-        new URL('../workers/screenAnalysis.worker.ts', import.meta.url),
-        { type: 'module' }
-      );
+      worker = new Worker(new URL('../workers/screenAnalysis.worker.ts', import.meta.url), {
+        type: 'module',
+      });
 
       setupWorkerMessageHandler();
 

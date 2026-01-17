@@ -174,7 +174,12 @@ const navItems = computed(() => {
   return [
     { name: LL.value.nav.dashboard(), path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
     { name: LL.value.nav.decks(), path: '/decks', view: 'decks', icon: 'mdi-cards' },
-    { name: LL.value.nav.statistics(), path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+    {
+      name: LL.value.nav.statistics(),
+      path: '/statistics',
+      view: 'statistics',
+      icon: 'mdi-chart-bar',
+    },
   ];
 });
 

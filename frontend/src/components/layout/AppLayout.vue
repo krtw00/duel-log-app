@@ -22,18 +22,17 @@
     <slot name="overlay" />
 
     <!-- モバイル用ボトムナビゲーション -->
-    <v-bottom-navigation
-      v-if="isMobile"
-      v-model="activeRoute"
-      grow
-      class="bottom-nav"
-    >
+    <v-bottom-navigation v-if="isMobile" v-model="activeRoute" grow class="bottom-nav">
       <v-btn value="/" :to="{ path: '/' }" :class="{ 'nav-active': currentView === 'dashboard' }">
         <v-icon>mdi-home</v-icon>
         <span>{{ LL?.nav.dashboard() }}</span>
       </v-btn>
 
-      <v-btn value="/statistics" :to="{ path: '/statistics' }" :class="{ 'nav-active': currentView === 'statistics' }">
+      <v-btn
+        value="/statistics"
+        :to="{ path: '/statistics' }"
+        :class="{ 'nav-active': currentView === 'statistics' }"
+      >
         <v-icon>mdi-chart-line</v-icon>
         <span>{{ LL?.nav.statistics() }}</span>
       </v-btn>
@@ -43,12 +42,20 @@
         <v-icon size="28">mdi-plus</v-icon>
       </v-btn>
 
-      <v-btn value="/decks" :to="{ path: '/decks' }" :class="{ 'nav-active': currentView === 'decks' }">
+      <v-btn
+        value="/decks"
+        :to="{ path: '/decks' }"
+        :class="{ 'nav-active': currentView === 'decks' }"
+      >
         <v-icon>mdi-cards</v-icon>
         <span>{{ LL?.nav.decks() }}</span>
       </v-btn>
 
-      <v-btn value="/profile" :to="{ path: '/profile' }" :class="{ 'nav-active': currentView === 'profile' }">
+      <v-btn
+        value="/profile"
+        :to="{ path: '/profile' }"
+        :class="{ 'nav-active': currentView === 'profile' }"
+      >
         <v-icon>mdi-account</v-icon>
         <span>{{ LL?.nav.profile() }}</span>
       </v-btn>
@@ -97,7 +104,12 @@ const activeRoute = computed(() => route.path);
 const defaultNavItems = computed<NavItem[]>(() => [
   { name: LL.value!.nav.dashboard(), path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
   { name: LL.value!.nav.decks(), path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: LL.value!.nav.statistics(), path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+  {
+    name: LL.value!.nav.statistics(),
+    path: '/statistics',
+    view: 'statistics',
+    icon: 'mdi-chart-bar',
+  },
 ]);
 
 const resolvedNavItems = computed(() => props.navItems ?? defaultNavItems.value);
