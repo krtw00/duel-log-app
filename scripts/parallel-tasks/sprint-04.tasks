@@ -1,10 +1,20 @@
 [security]
+## ワーカー情報
+- **ワーカー名**: security
+- **ブランチ名**: fix/security-auth-cors
+- **Issue**: #313
+
 ## エージェント定義
 あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
 このファイルを必ず読み、ルールに従うこと。
 
-【必読】以下を必ず実行:
-1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+【必読】作業開始前に以下を必ず実行:
+1. Worktree作成と移動:
+   ```bash
+   git worktree add ../duel-log-app-security fix/security-auth-cors 2>/dev/null || true
+   cd ../duel-log-app-security
+   pwd && git branch --show-current
+   ```
 2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
 3. 日本語で思考・出力すること
 
@@ -42,12 +52,22 @@ Issue #313: セキュリティ改善 - 認証経路統一・CORS厳格化・PII�
 ---
 
 [quality]
+## ワーカー情報
+- **ワーカー名**: quality
+- **ブランチ名**: fix/quality-error-schema
+- **Issue**: #314
+
 ## エージェント定義
 あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
 このファイルを必ず読み、ルールに従うこと。
 
-【必読】以下を必ず実行:
-1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+【必読】作業開始前に以下を必ず実行:
+1. Worktree作成と移動:
+   ```bash
+   git worktree add ../duel-log-app-quality fix/quality-error-schema 2>/dev/null || true
+   cd ../duel-log-app-quality
+   pwd && git branch --show-current
+   ```
 2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
 3. 日本語で思考・出力すること
 
@@ -82,12 +102,22 @@ APIエラーレスポンスの統一とログのPII対策
 ---
 
 [mobile-table]
+## ワーカー情報
+- **ワーカー名**: mobile-table
+- **ブランチ名**: feat/mobile-phase1-2
+- **Issue**: #320 (Phase 1-2)
+
 ## エージェント定義
 あなたは `.claude/agents/parallel-worker-frontend.md` に従って動作するフロントエンドワーカーです。
 このファイルを必ず読み、ルールに従うこと。
 
-【必読】以下を必ず実行:
-1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+【必読】作業開始前に以下を必ず実行:
+1. Worktree作成と移動:
+   ```bash
+   git worktree add ../duel-log-app-mobile-table feat/mobile-phase1-2 2>/dev/null || true
+   cd ../duel-log-app-mobile-table
+   pwd && git branch --show-current
+   ```
 2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
 3. 日本語で思考・出力すること
 
@@ -124,12 +154,22 @@ Issue #320: モバイル対応改善 - Phase 1-2（テーブル・フォーム�
 ---
 
 [mobile-layout]
+## ワーカー情報
+- **ワーカー名**: mobile-layout
+- **ブランチ名**: feat/mobile-phase3-5
+- **Issue**: #320 (Phase 3-5)
+
 ## エージェント定義
 あなたは `.claude/agents/parallel-worker-frontend.md` に従って動作するフロントエンドワーカーです。
 このファイルを必ず読み、ルールに従うこと。
 
-【必読】以下を必ず実行:
-1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+【必読】作業開始前に以下を必ず実行:
+1. Worktree作成と移動:
+   ```bash
+   git worktree add ../duel-log-app-mobile-layout feat/mobile-phase3-5 2>/dev/null || true
+   cd ../duel-log-app-mobile-layout
+   pwd && git branch --show-current
+   ```
 2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
 3. 日本語で思考・出力すること
 
@@ -170,12 +210,22 @@ Issue #320: モバイル対応改善 - Phase 3-5（レイアウト・ナビ・�
 ---
 
 [perf-cache]
+## ワーカー情報
+- **ワーカー名**: perf-cache
+- **ブランチ名**: perf/api-cache
+- **Issue**: #294
+
 ## エージェント定義
 あなたは `.claude/agents/parallel-worker-backend.md` に従って動作するバックエンドワーカーです。
 このファイルを必ず読み、ルールに従うこと。
 
-【必読】以下を必ず実行:
-1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+【必読】作業開始前に以下を必ず実行:
+1. Worktree作成と移動:
+   ```bash
+   git worktree add ../duel-log-app-perf-cache perf/api-cache 2>/dev/null || true
+   cd ../duel-log-app-perf-cache
+   pwd && git branch --show-current
+   ```
 2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
 3. 日本語で思考・出力すること
 
@@ -214,12 +264,22 @@ Issue #294: パフォーマンス - 集計APIの範囲制御とキャッシュ�
 ---
 
 [e2e-test]
+## ワーカー情報
+- **ワーカー名**: e2e-test
+- **ブランチ名**: test/e2e-agent-browser
+- **Issue**: #322
+
 ## エージェント定義
 あなたは `.claude/agents/parallel-worker-test-doc.md` に従って動作するテストドキュメンターです。
 このファイルを必ず読み、ルールに従うこと。
 
-【必読】以下を必ず実行:
-1. 環境確認: `pwd` と `git branch --show-current` で正しいWorktreeにいるか確認
+【必読】作業開始前に以下を必ず実行:
+1. Worktree作成と移動:
+   ```bash
+   git worktree add ../duel-log-app-e2e-test test/e2e-agent-browser 2>/dev/null || true
+   cd ../duel-log-app-e2e-test
+   pwd && git branch --show-current
+   ```
 2. 共有ボード確認: `cat /home/iguchi/work/.parallel-dev-status/shared-board.md`
 3. 日本語で思考・出力すること
 
