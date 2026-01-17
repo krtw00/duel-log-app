@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from fastapi import status
+from freezegun import freeze_time
 
 
 class TestSharedStatisticsEndpoints:
@@ -219,3 +220,193 @@ def mock_statistics_service(mocker):
         # リンクがまだ存在することを確認
         get_response = authenticated_client.get(f"/shared-statistics/{share_id}")
         assert get_response.status_code == status.HTTP_200_OK
+
+
+class TestSharedStatisticsExpiration:
+    """共有統計の有効期限テスト（時刻固定）"""
+
+    @pytest.fixture
+    def mock_statistics_service(self, mocker):
+        """各サービスメソッドをモック"""
+        # 共有リンク作成時のバリデーション用
+        mocker.patch(
+            "app.services.deck_distribution_service.deck_distribution_service.get_deck_distribution_monthly",
+            return_value=[{"deck_name": "Test Deck", "count": 10, "percentage": 100}],
+        )
+        # 統計取得用
+        mocker.patch(
+            "app.api.routers.statistics.deck_distribution_service.get_deck_distribution_monthly",
+            return_value=[{"deck_name": "Test Deck", "count": 10, "percentage": 100}],
+        )
+        mocker.patch(
+            "app.api.routers.statistics.deck_distribution_service.get_deck_distribution_recent",
+            return_value=[],
+        )
+        mocker.patch(
+            "app.api.routers.statistics.matchup_service.get_matchup_chart",
+            return_value=[],
+        )
+        mocker.patch(
+            "app.api.routers.statistics.win_rate_service.get_my_deck_win_rates",
+            return_value=[],
+        )
+        mocker.patch(
+            "app.api.routers.statistics.value_sequence_service.get_value_sequence_data",
+            return_value=[],
+        )
+        mocker.patch(
+            "app.api.routers.statistics.general_stats_service.calculate_general_stats",
+            return_value={"total_duels": 10, "wins": 5, "losses": 5, "win_rate": 0.5},
+        )
+        mocker.patch(
+            "app.api.routers.statistics.duel_service.get_user_duels",
+            return_value=[],
+        )
+
+    @freeze_time("2026-01-17 12:00:00", tz_offset=0)
+    def test_expiration_boundary_just_before(
+        self, authenticated_client, mock_statistics_service
+    ):
+        """期限切れ直前（まだ有効）のテスト"""
+        # 期限を12:00:01に設定（現在時刻12:00:00の1秒後）
+        expires_at = datetime(2026, 1, 17, 12, 0, 1, tzinfo=timezone.utc)
+
+        # 共有リンクを作成
+        create_response = authenticated_client.post(
+            "/shared-statistics/",
+            json={
+                "year": 2026,
+                "month": 1,
+                "game_mode": "RANK",
+                "expires_at": expires_at.isoformat(),
+            },
+        )
+        assert create_response.status_code == status.HTTP_201_CREATED
+        share_id = create_response.json()["share_id"]
+
+        # 期限切れ直前なのでアクセス可能
+        response = authenticated_client.get(f"/shared-statistics/{share_id}")
+        assert response.status_code == status.HTTP_200_OK
+
+    @freeze_time("2026-01-17 12:00:00", tz_offset=0)
+    def test_expiration_boundary_exactly_at(
+        self, authenticated_client, mock_statistics_service
+    ):
+        """期限切れちょうど（期限切れ）のテスト"""
+        # 期限を12:00:00に設定（現在時刻と同じ）
+        expires_at = datetime(2026, 1, 17, 12, 0, 0, tzinfo=timezone.utc)
+
+        # 共有リンクを作成
+        create_response = authenticated_client.post(
+            "/shared-statistics/",
+            json={
+                "year": 2026,
+                "month": 1,
+                "game_mode": "RANK",
+                "expires_at": expires_at.isoformat(),
+            },
+        )
+        assert create_response.status_code == status.HTTP_201_CREATED
+        share_id = create_response.json()["share_id"]
+
+        # 期限切れちょうどなので期限切れとして扱われる（<比較のため）
+        response = authenticated_client.get(f"/shared-statistics/{share_id}")
+        # expires_at < now なので、expires_at == now は期限切れではない
+        assert response.status_code == status.HTTP_200_OK
+
+    @freeze_time("2026-01-17 12:00:01", tz_offset=0)
+    def test_expiration_boundary_just_after(
+        self, authenticated_client, mock_statistics_service
+    ):
+        """期限切れ直後（期限切れ）のテスト"""
+        # 期限を12:00:00に設定（現在時刻12:00:01の1秒前）
+        expires_at = datetime(2026, 1, 17, 12, 0, 0, tzinfo=timezone.utc)
+
+        # 共有リンクを作成（freeze_timeで時間を巻き戻してから作成）
+        with freeze_time("2026-01-17 11:59:00", tz_offset=0):
+            create_response = authenticated_client.post(
+                "/shared-statistics/",
+                json={
+                    "year": 2026,
+                    "month": 1,
+                    "game_mode": "RANK",
+                    "expires_at": expires_at.isoformat(),
+                },
+            )
+            assert create_response.status_code == status.HTTP_201_CREATED
+            share_id = create_response.json()["share_id"]
+
+        # 期限切れ直後なのでアクセス不可
+        response = authenticated_client.get(f"/shared-statistics/{share_id}")
+        assert response.status_code == status.HTTP_410_GONE
+        assert "有効期限" in response.json()["message"]
+
+    @freeze_time("2026-01-17 12:00:00", tz_offset=0)
+    def test_no_expiration_always_valid(
+        self, authenticated_client, mock_statistics_service
+    ):
+        """有効期限なし（常に有効）のテスト"""
+        # 有効期限なしで共有リンクを作成
+        create_response = authenticated_client.post(
+            "/shared-statistics/",
+            json={
+                "year": 2026,
+                "month": 1,
+                "game_mode": "RANK",
+            },
+        )
+        assert create_response.status_code == status.HTTP_201_CREATED
+        share_id = create_response.json()["share_id"]
+        assert create_response.json()["expires_at"] is None
+
+        # 有効期限なしなのでアクセス可能
+        response = authenticated_client.get(f"/shared-statistics/{share_id}")
+        assert response.status_code == status.HTTP_200_OK
+
+    @freeze_time("2026-01-17 12:00:00", tz_offset=0)
+    def test_csv_export_expiration_boundary(
+        self, authenticated_client, mock_statistics_service, mocker
+    ):
+        """CSVエクスポートの期限切れテスト"""
+        mocker.patch(
+            "app.services.duel_service.duel_service.export_duels_to_csv",
+            return_value="date,result\n2026-01-01,WIN",
+        )
+
+        # 有効な共有リンクを作成
+        expires_at = datetime(2026, 1, 17, 13, 0, 0, tzinfo=timezone.utc)
+        create_response = authenticated_client.post(
+            "/shared-statistics/",
+            json={
+                "year": 2026,
+                "month": 1,
+                "game_mode": "RANK",
+                "expires_at": expires_at.isoformat(),
+            },
+        )
+        share_id = create_response.json()["share_id"]
+
+        # 有効期限内なのでCSVエクスポート可能
+        response = authenticated_client.get(f"/shared-statistics/{share_id}/export/csv")
+        assert response.status_code == status.HTTP_200_OK
+
+    @freeze_time("2026-01-17 14:00:00", tz_offset=0)
+    def test_csv_export_expired(self, authenticated_client, mock_statistics_service):
+        """CSVエクスポートの期限切れテスト（期限切れ後）"""
+        # 過去に有効だった共有リンクを作成（freeze_timeで時間を巻き戻す）
+        expires_at = datetime(2026, 1, 17, 13, 0, 0, tzinfo=timezone.utc)
+        with freeze_time("2026-01-17 12:00:00", tz_offset=0):
+            create_response = authenticated_client.post(
+                "/shared-statistics/",
+                json={
+                    "year": 2026,
+                    "month": 1,
+                    "game_mode": "RANK",
+                    "expires_at": expires_at.isoformat(),
+                },
+            )
+            share_id = create_response.json()["share_id"]
+
+        # 期限切れなのでCSVエクスポート不可
+        response = authenticated_client.get(f"/shared-statistics/{share_id}/export/csv")
+        assert response.status_code == status.HTTP_410_GONE
