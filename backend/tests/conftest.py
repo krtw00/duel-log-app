@@ -117,6 +117,38 @@ def authenticated_client(db_session, test_user):
 
 
 @pytest.fixture(scope="function")
+def test_deck(db_session, test_user):
+    """テスト用デッキ（プレイヤーデッキ）"""
+    from app.models.deck import Deck
+
+    deck = Deck(
+        user_id=test_user.id,
+        name="Test Deck",
+        is_opponent=False,
+    )
+    db_session.add(deck)
+    db_session.commit()
+    db_session.refresh(deck)
+    return deck
+
+
+@pytest.fixture(scope="function")
+def test_opponent_deck(db_session, test_user):
+    """テスト用デッキ（相手デッキ）"""
+    from app.models.deck import Deck
+
+    deck = Deck(
+        user_id=test_user.id,
+        name="Test Opponent Deck",
+        is_opponent=True,
+    )
+    db_session.add(deck)
+    db_session.commit()
+    db_session.refresh(deck)
+    return deck
+
+
+@pytest.fixture(scope="function")
 def sample_duel_data():
     """テスト用の対戦データ"""
     from datetime import datetime, timezone
