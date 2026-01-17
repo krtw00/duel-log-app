@@ -3,7 +3,7 @@
 統計関連のデータを提供
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -39,9 +39,9 @@ def get_statistics_filters(
     # from_timestampがない場合はデフォルトで今月を使用
     if from_timestamp is None:
         if year is None:
-            year = datetime.now().year
+            year = datetime.now(timezone.utc).year
         if month is None:
-            month = datetime.now().month
+            month = datetime.now(timezone.utc).month
     return StatisticsFilters(
         year=year,
         month=month,
@@ -54,8 +54,8 @@ def get_statistics_filters(
 
 
 def get_available_decks_filters(
-    year: int = Query(datetime.now().year, description="年"),
-    month: int = Query(datetime.now().month, description="月"),
+    year: int = Query(datetime.now(timezone.utc).year, description="年"),
+    month: int = Query(datetime.now(timezone.utc).month, description="月"),
     range_start: Optional[int] = Query(None, description="範囲指定:開始試合数"),
     range_end: Optional[int] = Query(None, description="範囲指定:終了試合数"),
     game_mode: Optional[str] = Query(None, description="ゲームモード"),
@@ -206,8 +206,8 @@ def get_all_statistics(
 
 @router.get("/deck-distribution/monthly", response_model=List[Dict[str, Any]])
 def get_monthly_deck_distribution(
-    year: int = Query(datetime.now().year, description="年"),
-    month: int = Query(datetime.now().month, description="月"),
+    year: int = Query(datetime.now(timezone.utc).year, description="年"),
+    month: int = Query(datetime.now(timezone.utc).month, description="月"),
     game_mode: Optional[str] = Query(None, description="ゲームモード"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -259,8 +259,8 @@ def get_matchup_chart(
 @router.get("/value-sequence/{game_mode}", response_model=List[Dict[str, Any]])
 def get_value_sequence_data(
     game_mode: str,
-    year: int = Query(datetime.now().year, description="年"),
-    month: int = Query(datetime.now().month, description="月"),
+    year: int = Query(datetime.now(timezone.utc).year, description="年"),
+    month: int = Query(datetime.now(timezone.utc).month, description="月"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -325,8 +325,8 @@ def get_obs_statistics(
     elif period_type == "monthly":
         # 月間統計
         if not year or not month:
-            year = datetime.now().year
-            month = datetime.now().month
+            year = datetime.now(timezone.utc).year
+            month = datetime.now(timezone.utc).month
         return general_stats_service.get_overall_stats(
             db=db,
             user_id=current_user.id,
