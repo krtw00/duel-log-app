@@ -91,7 +91,11 @@ def get_shared_statistics(
         range_end=range_end,
     )
     statistics_data = get_all_statistics(
-        db=db, current_user=shared_link.user, filters=filters
+        db=db,
+        current_user=shared_link.user,
+        filters=filters,
+        include_duels=True,
+        include_matchup=True,
     )
 
     return SharedStatisticsResponse(
