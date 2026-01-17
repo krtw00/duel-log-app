@@ -68,7 +68,6 @@ class UserStatsDetail(BaseModel):
 class UserFeatureUsage(BaseModel):
     """ユーザー機能利用状況"""
 
-    has_obs_overlay: bool
     has_shared_statistics: bool
     has_streamer_mode: bool
     has_screen_analysis: bool
