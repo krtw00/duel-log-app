@@ -78,7 +78,7 @@
                 </label>
                 <v-radio-group
                   v-model.number="form.coin"
-                  inline
+                  :inline="$vuetify.display.smAndUp"
                   color="primary"
                   :rules="[rules.required]"
                   hide-details="auto"
@@ -98,7 +98,7 @@
                 </label>
                 <v-radio-group
                   v-model.number="form.first_or_second"
-                  inline
+                  :inline="$vuetify.display.smAndUp"
                   color="primary"
                   :rules="[rules.required]"
                   hide-details="auto"
@@ -118,7 +118,7 @@
                 </label>
                 <v-radio-group
                   v-model.number="form.result"
-                  inline
+                  :inline="$vuetify.display.smAndUp"
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
@@ -1173,6 +1173,16 @@ const closeDialog = () => {
   :deep(.v-selection-control-group) {
     gap: 16px;
   }
+
+  // タッチターゲットを最低44pxに確保
+  :deep(.v-radio) {
+    min-height: 44px;
+    align-items: center;
+
+    .v-selection-control {
+      min-height: 44px;
+    }
+  }
 }
 
 .duel-form-wrapper {
@@ -1256,6 +1266,21 @@ const closeDialog = () => {
   .radio-group-wrapper {
     :deep(.v-selection-control-group) {
       gap: 8px;
+    }
+  }
+
+  // モバイル時のタッチターゲット確保（最低44x44px）
+  .screen-analysis-panel {
+    :deep(.v-btn) {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  .v-card-actions {
+    :deep(.v-btn) {
+      min-height: 44px;
+      min-width: 44px;
     }
   }
 }
