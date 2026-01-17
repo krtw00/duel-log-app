@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-import StatisticsContent from '../StatisticsContent.vue'
-import { createTestingPinia } from '@pinia/testing'
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mount } from '@vue/test-utils';
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
+import StatisticsContent from '../StatisticsContent.vue';
+import { createTestingPinia } from '@pinia/testing';
 
 // Vuetify セットアップ
 const vuetify = createVuetify({
   components,
   directives,
-})
+});
 
 describe('StatisticsContent.vue', () => {
   const mockStatistics = {
@@ -57,7 +57,7 @@ describe('StatisticsContent.vue', () => {
       series: [{ name: 'レート', data: [{ x: '2024-01', y: 1500 }] }],
       chartOptions: {} as any,
     },
-  }
+  };
 
   const defaultProps = {
     statistics: mockStatistics,
@@ -65,12 +65,12 @@ describe('StatisticsContent.vue', () => {
     displayMonth: '2024年1月',
     loading: false,
     isShared: false,
-  }
+  };
 
   beforeEach(() => {
     // display mock をリセット
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   describe('デスクトップ表示', () => {
     it('smAndDownがfalseの場合、テーブルコンテナが表示される', () => {
@@ -118,17 +118,17 @@ describe('StatisticsContent.vue', () => {
             DuelTable: true,
           },
         },
-      })
+      });
 
       // デスクトップではtable-scroll-containerが表示される
-      const tableContainers = wrapper.findAll('.table-scroll-container')
-      expect(tableContainers.length).toBeGreaterThan(0)
+      const tableContainers = wrapper.findAll('.table-scroll-container');
+      expect(tableContainers.length).toBeGreaterThan(0);
 
       // アコーディオンは表示されない
-      const expansionPanels = wrapper.findAllComponents({ name: 'VExpansionPanels' })
-      expect(expansionPanels.length).toBe(0)
-    })
-  })
+      const expansionPanels = wrapper.findAllComponents({ name: 'VExpansionPanels' });
+      expect(expansionPanels.length).toBe(0);
+    });
+  });
 
   describe('モバイル表示', () => {
     it('smAndDownがtrueの場合、v-expansion-panelsを表示する（自分のデッキ勝率）', async () => {
@@ -136,7 +136,7 @@ describe('StatisticsContent.vue', () => {
       const useDisplayMock = vi.fn(() => ({
         xs: { value: false },
         smAndDown: { value: true },
-      }))
+      }));
 
       const wrapper = mount(StatisticsContent, {
         props: defaultProps,
@@ -182,21 +182,21 @@ describe('StatisticsContent.vue', () => {
             DuelTable: true,
           },
         },
-      })
+      });
 
       // smAndDownをtrueに設定
-      ;(wrapper.vm as any).smAndDown = true
-      await wrapper.vm.$nextTick()
+      (wrapper.vm as any).smAndDown = true;
+      await wrapper.vm.$nextTick();
 
       // アコーディオンが表示される
-      const expansionPanels = wrapper.findAllComponents({ name: 'VExpansionPanels' })
-      expect(expansionPanels.length).toBeGreaterThan(0)
+      const expansionPanels = wrapper.findAllComponents({ name: 'VExpansionPanels' });
+      expect(expansionPanels.length).toBeGreaterThan(0);
 
       // デッキ名が表示される
-      const panelTitles = wrapper.findAll('.text-subtitle-2')
-      expect(panelTitles.length).toBeGreaterThan(0)
-      expect(panelTitles[0].text()).toContain('デッキA')
-    })
+      const panelTitles = wrapper.findAll('.text-subtitle-2');
+      expect(panelTitles.length).toBeGreaterThan(0);
+      expect(panelTitles[0].text()).toContain('デッキA');
+    });
 
     it('smAndDownがtrueの場合、相性表もアコーディオンで表示する', async () => {
       const wrapper = mount(StatisticsContent, {
@@ -243,26 +243,26 @@ describe('StatisticsContent.vue', () => {
             DuelTable: true,
           },
         },
-      })
+      });
 
       // smAndDownをtrueに設定
-      ;(wrapper.vm as any).smAndDown = true
-      await wrapper.vm.$nextTick()
+      (wrapper.vm as any).smAndDown = true;
+      await wrapper.vm.$nextTick();
 
       // 相手デッキ名がアコーディオンに表示される
-      const vsTexts = wrapper.findAll('.text-caption')
-      const vsLabels = vsTexts.filter((el) => el.text().includes('vs'))
-      expect(vsLabels.length).toBeGreaterThan(0)
-      expect(vsLabels[0].text()).toContain('相手デッキX')
-    })
-  })
+      const vsTexts = wrapper.findAll('.text-caption');
+      const vsLabels = vsTexts.filter((el) => el.text().includes('vs'));
+      expect(vsLabels.length).toBeGreaterThan(0);
+      expect(vsLabels[0].text()).toContain('相手デッキX');
+    });
+  });
 
   describe('データが空の場合', () => {
     it('自分のデッキ勝率が空の場合、noDataメッセージを表示する', () => {
       const emptyStats = {
         ...mockStatistics,
         myDeckWinRates: [],
-      }
+      };
 
       const wrapper = mount(StatisticsContent, {
         props: {
@@ -311,10 +311,10 @@ describe('StatisticsContent.vue', () => {
             DuelTable: true,
           },
         },
-      })
+      });
 
-      const noDataText = wrapper.findAll('.no-data-placeholder')
-      expect(noDataText.length).toBeGreaterThan(0)
-    })
-  })
-})
+      const noDataText = wrapper.findAll('.no-data-placeholder');
+      expect(noDataText.length).toBeGreaterThan(0);
+    });
+  });
+});

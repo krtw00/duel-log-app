@@ -89,7 +89,9 @@
 
           <!-- ログインページへのリンク -->
           <div class="text-center">
-            <router-link to="/login" class="text-caption text-grey">{{ LL?.auth.resetPassword.backToLogin() }}</router-link>
+            <router-link to="/login" class="text-caption text-grey">{{
+              LL?.auth.resetPassword.backToLogin()
+            }}</router-link>
           </div>
         </v-form>
       </v-card-text>
@@ -122,7 +124,8 @@ const checkingSession = ref(true);
 const rules = computed(() => ({
   required: (v: string) => !!v || LL.value?.validation.required() || '',
   min: (v: string) => v.length >= 8 || LL.value?.validation.passwordMinLength() || '',
-  passwordMatch: (v: string) => v === newPassword.value || LL.value?.validation.passwordMatch() || '',
+  passwordMatch: (v: string) =>
+    v === newPassword.value || LL.value?.validation.passwordMatch() || '',
 }));
 
 // Supabaseのパスワードリセットリンクからのセッション確認

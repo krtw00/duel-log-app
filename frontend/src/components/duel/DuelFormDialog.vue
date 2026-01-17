@@ -11,7 +11,9 @@
 
       <v-card-title class="pa-4 pa-md-6">
         <v-icon class="mr-2" color="primary">mdi-file-document-edit</v-icon>
-        <span class="text-h6 text-md-h5">{{ isEdit ? LL?.duels.form.editTitle() : LL?.duels.form.newTitle() }}</span>
+        <span class="text-h6 text-md-h5">{{
+          isEdit ? LL?.duels.form.editTitle() : LL?.duels.form.newTitle()
+        }}</span>
       </v-card-title>
 
       <v-divider />
@@ -135,7 +137,9 @@
                   <div class="analysis-title">
                     <v-icon class="mr-2" size="small">mdi-monitor-eye</v-icon>
                     <span class="text-subtitle-2">{{ LL?.duels.screenAnalysis.title() }}</span>
-                    <span class="text-caption text-error ml-2">{{ LL?.duels.screenAnalysis.testFeature() }}</span>
+                    <span class="text-caption text-error ml-2">{{
+                      LL?.duels.screenAnalysis.testFeature()
+                    }}</span>
                   </div>
                   <v-spacer />
                   <v-btn-toggle
@@ -164,7 +168,12 @@
                     <v-icon start>
                       {{ autoRegisterEnabled ? 'mdi-robot' : 'mdi-robot-off' }}
                     </v-icon>
-                    {{ LL?.duels.screenAnalysis.autoRegister() }}{{ autoRegisterEnabled ? LL?.duels.screenAnalysis.on() : LL?.duels.screenAnalysis.off() }}
+                    {{ LL?.duels.screenAnalysis.autoRegister()
+                    }}{{
+                      autoRegisterEnabled
+                        ? LL?.duels.screenAnalysis.on()
+                        : LL?.duels.screenAnalysis.off()
+                    }}
                   </v-btn>
                   <v-btn
                     size="small"
@@ -175,7 +184,11 @@
                     <v-icon start>
                       {{ analysisRunning ? 'mdi-stop-circle-outline' : 'mdi-monitor-screenshot' }}
                     </v-icon>
-                    {{ analysisRunning ? LL?.duels.screenAnalysis.stop() : LL?.duels.screenAnalysis.start() }}
+                    {{
+                      analysisRunning
+                        ? LL?.duels.screenAnalysis.stop()
+                        : LL?.duels.screenAnalysis.start()
+                    }}
                   </v-btn>
                 </div>
 
@@ -185,7 +198,9 @@
                     {{ LL?.duels.screenAnalysis.description() }}
                     <br />
                     <strong>{{
-                      analysisMethod === 'template' ? LL?.duels.screenAnalysis.templateMode() : LL?.duels.screenAnalysis.mlMode()
+                      analysisMethod === 'template'
+                        ? LL?.duels.screenAnalysis.templateMode()
+                        : LL?.duels.screenAnalysis.mlMode()
                     }}</strong>
                     {{ LL?.duels.screenAnalysis.modeDescription() }}
                   </span>
@@ -197,14 +212,22 @@
                     :color="analysisRunning ? 'success' : undefined"
                     variant="tonal"
                   >
-                    {{ analysisRunning ? LL?.duels.screenAnalysis.running() : LL?.duels.screenAnalysis.stopped() }}
+                    {{
+                      analysisRunning
+                        ? LL?.duels.screenAnalysis.running()
+                        : LL?.duels.screenAnalysis.stopped()
+                    }}
                   </v-chip>
                   <v-chip
                     size="small"
                     :color="turnChoiceAvailable ? 'info' : undefined"
                     variant="tonal"
                   >
-                    {{ turnChoiceAvailable ? LL?.duels.screenAnalysis.turnChoiceDetected() : LL?.duels.screenAnalysis.turnChoiceNotDetected() }}
+                    {{
+                      turnChoiceAvailable
+                        ? LL?.duels.screenAnalysis.turnChoiceDetected()
+                        : LL?.duels.screenAnalysis.turnChoiceNotDetected()
+                    }}
                   </v-chip>
                   <v-chip
                     size="small"
@@ -218,7 +241,11 @@
                     :color="resultLockState === 'locked' ? 'warning' : 'success'"
                     variant="tonal"
                   >
-                    {{ resultLockState === 'locked' ? LL?.duels.screenAnalysis.registered() : LL?.duels.screenAnalysis.canRegister() }}
+                    {{
+                      resultLockState === 'locked'
+                        ? LL?.duels.screenAnalysis.registered()
+                        : LL?.duels.screenAnalysis.canRegister()
+                    }}
                   </v-chip>
                   <v-chip v-if="missingTemplateLabel" size="small" color="warning" variant="tonal">
                     {{ missingTemplateLabel }}
@@ -362,7 +389,9 @@ import { useScreenCaptureAnalysisTfjs } from '@/composables/useScreenCaptureAnal
 import { useAuthStore } from '@/stores/auth';
 import { useLocale } from '@/composables/useLocale';
 import { useRanks } from '@/composables/useRanks';
-import MLTrainingDataButtons, { type DebugLabel } from '@/components/duel/MLTrainingDataButtons.vue';
+import MLTrainingDataButtons, {
+  type DebugLabel,
+} from '@/components/duel/MLTrainingDataButtons.vue';
 
 // 解析手法の型
 type AnalysisMethod = 'template' | 'tfjs';
@@ -576,16 +605,24 @@ const trainingFolderSelected = computed(() => tfjsAnalysis.hasTrainingDataFolder
 const selectTrainingFolder = async () => {
   const success = await tfjsAnalysis.selectTrainingDataFolder();
   if (success) {
-    notificationStore.success(LL.value?.duels.screenAnalysis.trainingFolderSet() ?? '学習データ保存先フォルダを設定しました');
+    notificationStore.success(
+      LL.value?.duels.screenAnalysis.trainingFolderSet() ??
+        '学習データ保存先フォルダを設定しました',
+    );
   } else {
-    notificationStore.warning(LL.value?.duels.screenAnalysis.trainingFolderCancelled() ?? 'フォルダの選択がキャンセルされました');
+    notificationStore.warning(
+      LL.value?.duels.screenAnalysis.trainingFolderCancelled() ??
+        'フォルダの選択がキャンセルされました',
+    );
   }
 };
 
 const saveDebugImage = async (label: DebugLabel) => {
   if (analysisMethod.value !== 'tfjs') return;
   await tfjsAnalysis.saveDebugImages(label);
-  notificationStore.success(`${LL.value?.duels.screenAnalysis.trainingDataSaved() ?? '学習データを保存しました'}: ${label}`);
+  notificationStore.success(
+    `${LL.value?.duels.screenAnalysis.trainingDataSaved() ?? '学習データを保存しました'}: ${label}`,
+  );
 };
 
 const setSecondTurn = () => {
@@ -896,14 +933,18 @@ const autoRegisterDuel = async () => {
 
   // 使用デッキが設定されていない場合は登録しない
   if (!selectedMyDeck.value) {
-    notificationStore.warning(LL.value?.duels.form.autoRegisterNoDeck() ?? '自動登録: 使用デッキが設定されていません');
+    notificationStore.warning(
+      LL.value?.duels.form.autoRegisterNoDeck() ?? '自動登録: 使用デッキが設定されていません',
+    );
     return;
   }
 
   // 相手デッキが空欄の場合は「不明」に自動設定
   if (!selectedOpponentDeck.value) {
     const unknownLabel = LL.value?.duels.table.unknown() ?? '不明';
-    const unknownDeck = opponentDecksForUser.value.find((d) => d.name === unknownLabel && d.is_opponent);
+    const unknownDeck = opponentDecksForUser.value.find(
+      (d) => d.name === unknownLabel && d.is_opponent,
+    );
     selectedOpponentDeck.value = unknownDeck ?? unknownLabel;
   }
 
@@ -928,7 +969,9 @@ const autoRegisterDuel = async () => {
     const myDeckId = resolvedMyDeck?.id ?? null;
     const opponentDeckId = resolvedOpponentDeck?.id ?? null;
     if (!myDeckId || !opponentDeckId) {
-      notificationStore.error(LL.value?.duels.form.deckResolveFailed() ?? 'デッキの登録に失敗しました');
+      notificationStore.error(
+        LL.value?.duels.form.deckResolveFailed() ?? 'デッキの登録に失敗しました',
+      );
       return;
     }
 
@@ -948,7 +991,9 @@ const autoRegisterDuel = async () => {
 
     const response = await api.post('/duels/', submitData);
     notifyDuelUpdate(); // ポップアップに通知
-    notificationStore.success(LL.value?.duels.form.autoRegisterSuccess() ?? '対戦記録を自動登録しました');
+    notificationStore.success(
+      LL.value?.duels.form.autoRegisterSuccess() ?? '対戦記録を自動登録しました',
+    );
     const savedDuel = response.data as Duel;
 
     const deckPayload = buildDeckPayload(resolvedMyDeck, selectedMyDeck.value, myDeckId, false);
@@ -1027,7 +1072,9 @@ const handleSubmit = async () => {
     const opponentDeckId = resolvedOpponentDeck?.id ?? null;
 
     if (!myDeckId || !opponentDeckId) {
-      notificationStore.error(LL.value?.duels.form.deckResolveFailed() ?? 'デッキの登録に失敗しました');
+      notificationStore.error(
+        LL.value?.duels.form.deckResolveFailed() ?? 'デッキの登録に失敗しました',
+      );
       loading.value = false;
       return;
     }
@@ -1253,7 +1300,8 @@ const closeDialog = () => {
     .v-card-title {
       padding: 16px !important;
 
-      .text-h5, .text-h6 {
+      .text-h5,
+      .text-h6 {
         font-size: 1.1rem !important;
       }
     }

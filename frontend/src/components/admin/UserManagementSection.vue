@@ -76,12 +76,7 @@
 
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
-            <v-btn
-              color="info"
-              size="small"
-              variant="outlined"
-              @click="openUserDetail(item.id)"
-            >
+            <v-btn color="info" size="small" variant="outlined" @click="openUserDetail(item.id)">
               <v-icon size="small">mdi-account-details</v-icon>
             </v-btn>
             <v-btn

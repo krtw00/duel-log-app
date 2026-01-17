@@ -19,71 +19,71 @@
  * ```
  */
 
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted } from 'vue';
 
 export interface UseDeferredLoadingOptions {
   /**
    * ローディング表示までの遅延時間（ミリ秒）
    * @default 300
    */
-  delay?: number
+  delay?: number;
 }
 
 export function useDeferredLoading(options: UseDeferredLoadingOptions = {}) {
-  const { delay = 300 } = options
+  const { delay = 300 } = options;
 
-  const isLoading = ref(false)
-  const isPending = ref(false)
-  let delayTimer: ReturnType<typeof setTimeout> | null = null
+  const isLoading = ref(false);
+  const isPending = ref(false);
+  let delayTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * ローディング開始
    * 指定された遅延時間後にローディング表示を開始
    */
   const startLoading = () => {
-    isPending.value = true
+    isPending.value = true;
 
     // 既存のタイマーをクリア
     if (delayTimer) {
-      clearTimeout(delayTimer)
+      clearTimeout(delayTimer);
     }
 
     // 遅延後にローディング表示
     delayTimer = setTimeout(() => {
       if (isPending.value) {
-        isLoading.value = true
+        isLoading.value = true;
       }
-    }, delay)
-  }
+    }, delay);
+  };
 
   /**
    * ローディング終了
    * ローディング表示とペンディング状態をクリア
    */
   const stopLoading = () => {
-    isPending.value = false
-    isLoading.value = false
+    isPending.value = false;
+    isLoading.value = false;
 
     // タイマーをクリア
     if (delayTimer) {
-      clearTimeout(delayTimer)
-      delayTimer = null
+      clearTimeout(delayTimer);
+      delayTimer = null;
     }
-  }
+  };
 
   /**
    * リセット（強制的にローディング状態をクリア）
    */
   const reset = () => {
-    stopLoading()
-  }
+    stopLoading();
+  };
 
   // コンポーネントがアンマウントされたらタイマーをクリア
   onUnmounted(() => {
     if (delayTimer) {
-      clearTimeout(delayTimer)
+      clearTimeout(delayTimer);
     }
-  })
+  });
 
   return {
     isLoading,
@@ -91,5 +91,5 @@ export function useDeferredLoading(options: UseDeferredLoadingOptions = {}) {
     startLoading,
     stopLoading,
     reset,
-  }
+  };
 }

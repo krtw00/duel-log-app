@@ -2,13 +2,17 @@
   <div class="streamer-popup" :class="['theme-' + theme, chromaKeyClass]">
     <!-- ローディング中 -->
     <div v-if="loading" class="loading-container">
-      <div class="loading-text" :style="{ color: themeStyles.textPrimary }">{{ LL?.common.loading() }}</div>
+      <div class="loading-text" :style="{ color: themeStyles.textPrimary }">
+        {{ LL?.common.loading() }}
+      </div>
     </div>
 
     <!-- 未認証 -->
     <div v-else-if="!isAuthenticated" class="error-container">
       <div class="error-text">{{ LL?.obs.streamerPopup.loginRequired() }}</div>
-      <div class="error-detail" :style="{ color: themeStyles.textSecondary }">{{ LL?.obs.streamerPopup.loginRequiredDetail() }}</div>
+      <div class="error-detail" :style="{ color: themeStyles.textSecondary }">
+        {{ LL?.obs.streamerPopup.loginRequiredDetail() }}
+      </div>
     </div>
 
     <!-- エラー -->
@@ -31,14 +35,19 @@
             <span class="mdi" :class="item.icon" :style="iconStyle"></span>
           </div>
           <div class="stat-content">
-            <div class="stat-label" :style="{ color: themeStyles.textSecondary }">{{ item.label }}</div>
-            <div class="stat-value" :class="{ 'deck-value': item.key === 'current_deck' }" :style="valueStyle">
+            <div class="stat-label" :style="{ color: themeStyles.textSecondary }">
+              {{ item.label }}
+            </div>
+            <div
+              class="stat-value"
+              :class="{ 'deck-value': item.key === 'current_deck' }"
+              :style="valueStyle"
+            >
               {{ item.format(statsData[item.key]) }}
             </div>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -137,9 +146,7 @@ const statsPeriod = ref((route.query.stats_period as string) || 'monthly');
 const statsData = ref<Record<string, unknown>>({});
 
 // セッション統計用: URLパラメータからタイムスタンプを取得
-const fromTimestamp = ref<string | null>(
-  (route.query.from_timestamp as string) || null
-);
+const fromTimestamp = ref<string | null>((route.query.from_timestamp as string) || null);
 
 // 統計カードへの参照（初回サイズ測定用）
 const statsCardRef = ref<HTMLElement | null>(null);
@@ -240,25 +247,73 @@ const allDisplayItems = computed<DisplayItemDef[]>(() => [
     key: 'current_deck',
     label: LL.value?.obs.streamerPopup.items.currentDeck() ?? 'Current Deck',
     icon: 'mdi-cards-playing-outline',
-    format: (v) => (v as string | undefined) || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
+    format: (v) =>
+      (v as string | undefined) || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
   },
-  { key: 'total_duels', label: LL.value?.obs.streamerPopup.items.totalDuels() ?? 'Total Matches', icon: 'mdi-sword-cross', format: formatIntegerValue },
-  { key: 'win_rate', label: LL.value?.obs.streamerPopup.items.winRate() ?? 'Win Rate', icon: 'mdi-trophy', format: (v) => formatPercentageValue(v) },
-  { key: 'first_turn_win_rate', label: LL.value?.obs.streamerPopup.items.firstTurnWinRate() ?? 'Going First Win Rate', icon: 'mdi-lightning-bolt', format: (v) => formatPercentageValue(v) },
-  { key: 'second_turn_win_rate', label: LL.value?.obs.streamerPopup.items.secondTurnWinRate() ?? 'Going Second Win Rate', icon: 'mdi-shield', format: (v) => formatPercentageValue(v) },
-  { key: 'coin_win_rate', label: LL.value?.obs.streamerPopup.items.coinWinRate() ?? 'Coin Win Rate', icon: 'mdi-poker-chip', format: (v) => formatPercentageValue(v) },
-  { key: 'go_first_rate', label: LL.value?.obs.streamerPopup.items.goFirstRate() ?? 'Going First Rate', icon: 'mdi-arrow-up-bold-hexagon-outline', format: (v) => formatPercentageValue(v) },
+  {
+    key: 'total_duels',
+    label: LL.value?.obs.streamerPopup.items.totalDuels() ?? 'Total Matches',
+    icon: 'mdi-sword-cross',
+    format: formatIntegerValue,
+  },
+  {
+    key: 'win_rate',
+    label: LL.value?.obs.streamerPopup.items.winRate() ?? 'Win Rate',
+    icon: 'mdi-trophy',
+    format: (v) => formatPercentageValue(v),
+  },
+  {
+    key: 'first_turn_win_rate',
+    label: LL.value?.obs.streamerPopup.items.firstTurnWinRate() ?? 'Going First Win Rate',
+    icon: 'mdi-lightning-bolt',
+    format: (v) => formatPercentageValue(v),
+  },
+  {
+    key: 'second_turn_win_rate',
+    label: LL.value?.obs.streamerPopup.items.secondTurnWinRate() ?? 'Going Second Win Rate',
+    icon: 'mdi-shield',
+    format: (v) => formatPercentageValue(v),
+  },
+  {
+    key: 'coin_win_rate',
+    label: LL.value?.obs.streamerPopup.items.coinWinRate() ?? 'Coin Win Rate',
+    icon: 'mdi-poker-chip',
+    format: (v) => formatPercentageValue(v),
+  },
+  {
+    key: 'go_first_rate',
+    label: LL.value?.obs.streamerPopup.items.goFirstRate() ?? 'Going First Rate',
+    icon: 'mdi-arrow-up-bold-hexagon-outline',
+    format: (v) => formatPercentageValue(v),
+  },
 ]);
 
 // ゲームモードに応じた値の設定を取得
-const getGameModeValueConfig = (mode: GameMode): { key: string; label: string; icon: string; format: (v: unknown) => string } | null => {
+const getGameModeValueConfig = (
+  mode: GameMode,
+): { key: string; label: string; icon: string; format: (v: unknown) => string } | null => {
   switch (mode) {
     case 'RANK':
-      return { key: 'current_rank', label: LL.value?.obs.streamerPopup.items.rank() ?? 'Rank', icon: 'mdi-crown', format: formatRankValue };
+      return {
+        key: 'current_rank',
+        label: LL.value?.obs.streamerPopup.items.rank() ?? 'Rank',
+        icon: 'mdi-crown',
+        format: formatRankValue,
+      };
     case 'RATE':
-      return { key: 'current_rate', label: LL.value?.obs.streamerPopup.items.rate() ?? 'Rate', icon: 'mdi-chart-line', format: (v) => formatDecimalValue(v) };
+      return {
+        key: 'current_rate',
+        label: LL.value?.obs.streamerPopup.items.rate() ?? 'Rate',
+        icon: 'mdi-chart-line',
+        format: (v) => formatDecimalValue(v),
+      };
     case 'DC':
-      return { key: 'current_dc', label: LL.value?.obs.streamerPopup.items.dc() ?? 'DC', icon: 'mdi-medal', format: (v) => formatDecimalValue(v) };
+      return {
+        key: 'current_dc',
+        label: LL.value?.obs.streamerPopup.items.dc() ?? 'DC',
+        icon: 'mdi-medal',
+        format: (v) => formatDecimalValue(v),
+      };
     case 'EVENT':
       return null; // EVENTモードでは表示しない
     default:
@@ -315,8 +370,8 @@ const resizeWindowOnce = async () => {
   const contentRect = statsCardRef.value.getBoundingClientRect();
 
   // コンテンツサイズ + padding
-  const targetInnerWidth = Math.ceil(contentRect.width) + (CONTAINER_PADDING * 2);
-  const targetInnerHeight = Math.ceil(contentRect.height) + (CONTAINER_PADDING * 2);
+  const targetInnerWidth = Math.ceil(contentRect.width) + CONTAINER_PADDING * 2;
+  const targetInnerHeight = Math.ceil(contentRect.height) + CONTAINER_PADDING * 2;
 
   // ウィンドウのchrome（枠）サイズを取得
   const chromeWidth = window.outerWidth - window.innerWidth;
@@ -325,7 +380,9 @@ const resizeWindowOnce = async () => {
   const targetWidth = targetInnerWidth + chromeWidth;
   const targetHeight = targetInnerHeight + chromeHeight;
 
-  logger.info(`Initial resize - Content: ${contentRect.width}x${contentRect.height}, Target: ${targetWidth}x${targetHeight}`);
+  logger.info(
+    `Initial resize - Content: ${contentRect.width}x${contentRect.height}, Target: ${targetWidth}x${targetHeight}`,
+  );
 
   try {
     window.resizeTo(targetWidth, targetHeight);
@@ -365,7 +422,9 @@ const fetchData = async () => {
     // 統計データを取得
     logger.info(`API call with params: ${JSON.stringify(params)}`);
     const statsResponse = await api.get('/statistics', { params });
-    logger.info(`API response received, total duels: ${statsResponse.data[gameMode.value]?.overall_stats?.total}`);
+    logger.info(
+      `API response received, total duels: ${statsResponse.data[gameMode.value]?.overall_stats?.total}`,
+    );
 
     const modeStats = statsResponse.data[gameMode.value];
     if (modeStats) {
@@ -377,7 +436,8 @@ const fetchData = async () => {
 
       // 統計データを設定（タイムスタンプフィルタリングはAPIで行われる）
       statsData.value = {
-        current_deck: latestDuel?.deck?.name || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
+        current_deck:
+          latestDuel?.deck?.name || (LL.value?.obs.streamerPopup.items.notSet() ?? 'Not Set'),
         current_rank: latestDuel?.rank || null,
         current_rate: latestDuel?.rate_value || null,
         current_dc: latestDuel?.dc_value || null,
@@ -488,11 +548,11 @@ onUnmounted(() => {
 
   // クロマキー背景
   &.chroma-key-green {
-    background: #00FF00 !important;
+    background: #00ff00 !important;
   }
 
   &.chroma-key-blue {
-    background: #0000FF !important;
+    background: #0000ff !important;
   }
 }
 

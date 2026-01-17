@@ -40,7 +40,9 @@ export function useDuelFormValidation() {
      * 最大文字数チェック（1000文字）
      */
     maxLength: (v: string): boolean | string =>
-      !v || v.length <= 1000 || (LL.value?.validation.maxLength({ max: 1000 }) ?? 'Must be at most 1000 characters'),
+      !v ||
+      v.length <= 1000 ||
+      (LL.value?.validation.maxLength({ max: 1000 }) ?? 'Must be at most 1000 characters'),
   };
 
   return { rules };
