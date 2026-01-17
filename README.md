@@ -284,6 +284,49 @@ pre-commit run --all-files
 - **アプリ内フィードバック**: ヘルプメニューからのバグ報告・機能要望
 - **システム統計ダッシュボード**: 管理者向けシステム全体の統計表示
 
+## プロジェクトの引き継ぎについて
+
+### ベンダロックインに関する注意事項
+
+このプロジェクトは以下のSaaSに依存しています：
+
+- **Supabase**: 認証（OAuth含む）およびPostgreSQLデータベース
+- **Vercel**: フロントエンドホスティング
+- **Render**: バックエンドホスティング
+
+特にSupabaseについては、プロジェクトの所有権移転が困難（Enterpriseプランのみ対応）であるため、管理者交代時には**新規プロジェクトのセットアップとデータ移行**が必要になります。
+
+### 移行の容易さ
+
+ただし、以下の理由により、他の環境への移行は比較的容易です：
+
+- **データベース**: 標準的なPostgreSQL + SQLAlchemyを使用（Supabase固有機能は未使用）
+- **認証**: フロントエンドのみSupabase SDKに依存。バックエンドは標準的なJWT検証
+- **その他機能**: Realtime、Storage、Edge Functionsなど、Supabase固有機能は使用していない
+
+### 引き継ぎドキュメント
+
+管理者交代や環境移行を行う場合は、以下のドキュメントを参照してください：
+
+- **[プロジェクト引き継ぎガイド](docs/operations/handover-guide.md)**: 完全な引き継ぎ手順（ステップバイステップ）
+- **[引き継ぎチェックリスト](docs/operations/handover-checklist.md)**: 作業漏れを防ぐチェックリスト
+
+### データのエクスポート/インポート
+
+本番環境のデータを移行するためのスクリプトを用意しています：
+
+```bash
+# データエクスポート（現在の管理者）
+export DATABASE_URL="postgresql://..."
+./scripts/export-production-data.sh
+
+# データインポート（新しい管理者）
+export DATABASE_URL="postgresql://..."
+./scripts/import-production-data.sh data-exports/backup_YYYYMMDD_HHMMSS
+```
+
+詳細は [プロジェクト引き継ぎガイド](docs/operations/handover-guide.md) を参照してください。
+
 ## ライセンス
 
 このプロジェクトは MIT ライセンスの下で公開されています。詳細については [LICENSE](LICENSE) ファイルを参照してください。
