@@ -54,7 +54,9 @@ class AdminMetaService:
         query = self.db.query(
             Deck.name,
             func.count(Duel.id).label("usage_count"),
-            func.sum(func.cast(Duel.is_win == False, Integer)).label("win_count"),  # noqa: E712
+            func.sum(func.cast(Duel.is_win == False, Integer)).label(  # noqa: E712
+                "win_count"
+            ),
         ).join(Duel, Duel.opponent_deck_id == Deck.id)
 
         # 期間フィルタ
@@ -86,11 +88,13 @@ class AdminMetaService:
             # 相手デッキとしての勝敗（ユーザー視点で相手が使ったデッキ）
             # is_win=Trueはユーザーの勝利=相手デッキの敗北
             # 相手デッキの勝率を計算するため、is_win=Falseの数が相手デッキの勝利数
-            win_query = self.db.query(func.count(Duel.id)).join(
-                Deck, Duel.opponent_deck_id == Deck.id
-            ).filter(
-                Deck.name == deck_name,
-                Duel.is_win == False,  # noqa: E712
+            win_query = (
+                self.db.query(func.count(Duel.id))
+                .join(Deck, Duel.opponent_deck_id == Deck.id)
+                .filter(
+                    Deck.name == deck_name,
+                    Duel.is_win == False,  # noqa: E712
+                )
             )
 
             if days > 0:
@@ -223,7 +227,9 @@ class AdminMetaService:
                 current_date = week_end
         else:
             # 日単位で集計
-            current_date = period_start.replace(hour=0, minute=0, second=0, microsecond=0)
+            current_date = period_start.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
             while current_date <= now:
                 next_date = current_date + timedelta(days=1)
                 date_str = current_date.strftime("%Y-%m-%d")
@@ -269,9 +275,7 @@ class AdminMetaService:
 
         return DeckTrendsResponse(trends=trends, top_decks=top_decks)
 
-    def get_game_mode_stats(
-        self, days: int = 30
-    ) -> GameModeStatsDetailResponse:
+    def get_game_mode_stats(self, days: int = 30) -> GameModeStatsDetailResponse:
         """ゲームモード別統計を取得
 
         Args:
