@@ -52,6 +52,7 @@ import { useAuthStore } from '@/stores/auth';
 import { DUEL_UPDATE_CHANNEL } from '@/services/duelService';
 import { useLocale } from '@/composables/useLocale';
 import { useRanks } from '@/composables/useRanks';
+import { useSmartPolling } from '@/composables/useSmartPolling';
 import type { GameMode } from '@/types';
 
 const logger = createLogger('StreamerPopup');
@@ -63,7 +64,6 @@ const { getRankName } = useRanks();
 const loading = ref(true);
 const errorMessage = ref<string>('');
 const isInitialLoad = ref(true); // 初回ロードフラグ
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
 let broadcastChannel: BroadcastChannel | null = null;
 
 // クエリパラメータから設定を取得
@@ -411,10 +411,25 @@ const fetchData = async () => {
   }
 };
 
-// 認証状態の監視（認証完了時にデータ取得）
+// スマートポーリングの設定
+const { start: startPolling, stop: stopPolling } = useSmartPolling({
+  fn: async () => {
+    if (isAuthenticated.value) {
+      await fetchData();
+    }
+  },
+  interval: refreshInterval.value,
+  maxBackoff: 60000,
+  pauseOnHidden: true,
+});
+
+// 認証状態の監視（認証完了時にデータ取得とポーリング開始）
 watch(isAuthenticated, (newVal) => {
   if (newVal) {
     fetchData();
+    startPolling();
+  } else {
+    stopPolling();
   }
 });
 
@@ -433,31 +448,23 @@ onMounted(async () => {
     logger.debug('BroadcastChannel not supported');
   }
 
-  // 定期更新を設定（フォールバック）
-  refreshTimer = setInterval(() => {
-    if (isAuthenticated.value) {
-      fetchData();
-    }
-  }, refreshInterval.value);
-  logger.info(`Periodic refresh enabled: ${refreshInterval.value}ms`);
-
-  // すでに認証済みなら即座にデータ取得
+  // すでに認証済みなら即座にデータ取得してポーリング開始
   if (isAuthenticated.value) {
-    fetchData();
+    await fetchData();
+    startPolling();
   } else {
-    // 認証状態を確認してからデータ取得
+    // 認証状態を確認してからデータ取得とポーリング開始
     await authStore.fetchUser();
     if (isAuthenticated.value) {
-      fetchData();
+      await fetchData();
+      startPolling();
     }
   }
 });
 
 onUnmounted(() => {
   document.body.classList.remove('streamer-popup-page');
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-  }
+  stopPolling();
   if (broadcastChannel) {
     broadcastChannel.close();
   }
