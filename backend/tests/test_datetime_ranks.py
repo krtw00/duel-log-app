@@ -258,6 +258,6 @@ class TestRankConsistency:
 
         # 昇順になっている
         for i in range(len(values) - 1):
-            assert values[i] < values[i + 1], (
-                f"{ranks[i]} should be lower than {ranks[i + 1]}"
-            )
+            assert (
+                values[i] < values[i + 1]
+            ), f"{ranks[i]} should be lower than {ranks[i + 1]}"
