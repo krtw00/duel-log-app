@@ -525,6 +525,14 @@ const en = {
     fetchError: 'Failed to fetch shared statistics.',
     deleteSuccess: 'Share link deleted.',
     deleteError: 'Failed to delete share link.',
+    dialog: {
+      title: 'Generate Share Link',
+      expiresAt: 'Expiration Date (YYYY-MM-DD, Optional)',
+      generateButton: 'Generate Link',
+      invalidDateFormat: 'Invalid date format. Please enter in YYYY-MM-DD format.',
+      invalidDate: 'Invalid date. The entered date does not exist.',
+      copyFailed: 'Failed to copy link. Please copy manually.',
+    },
   },
   validation: {
     required: 'This field is required',
