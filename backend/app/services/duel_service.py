@@ -158,7 +158,8 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
                 .filter(
                     Duel.user_id == user_id,
                     Duel.game_mode == mode,
-                    value_field != None,  # noqa: E711 - SQLAlchemy requires != None for IS NOT NULL
+                    value_field
+                    != None,  # noqa: E711 - SQLAlchemy requires != None for IS NOT NULL
                 )
                 .order_by(Duel.played_date.desc())
                 .first()
