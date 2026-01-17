@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, 
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_obs_overlay_user
+from app.core.cache import cache, generate_cache_key
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.duel import DuelWithDeckNames
@@ -44,10 +45,10 @@ def calculate_etag(data: Dict[str, Any]) -> str:
 
 def get_statistics_filters(
     year: Optional[int] = Query(
-        None, description="年（from_timestamp未指定時のデフォルト:今年）"
+        None, description="年（タイムスタンプ未指定時のデフォルト:今年）"
     ),
     month: Optional[int] = Query(
-        None, description="月（from_timestamp未指定時のデフォルト:今月）"
+        None, description="月（タイムスタンプ未指定時のデフォルト:今月）"
     ),
     range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
     range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
@@ -55,11 +56,19 @@ def get_statistics_filters(
     opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
     from_timestamp: Optional[str] = Query(
         None,
-        description="この時刻以降のデータのみ取得（ISO8601形式）。指定時はyear/monthを無視",
+        description="この時刻以降のデータのみ取得（ISO8601形式、後方互換性のため残す）",
+    ),
+    start_date: Optional[str] = Query(
+        None,
+        description="開始日時（ISO8601形式）。未指定時のデフォルト: 90日前",
+    ),
+    end_date: Optional[str] = Query(
+        None,
+        description="終了日時（ISO8601形式）。未指定時は制限なし",
     ),
 ) -> StatisticsFilters:
-    # from_timestampがない場合はデフォルトで今月を使用
-    if from_timestamp is None:
+    # タイムスタンプベースのフィルタがない場合はデフォルトで今月を使用
+    if from_timestamp is None and start_date is None and end_date is None:
         if year is None:
             year = datetime.now(timezone.utc).year
         if month is None:
@@ -72,6 +81,8 @@ def get_statistics_filters(
         my_deck_id=my_deck_id,
         opponent_deck_id=opponent_deck_id,
         from_timestamp=from_timestamp,
+        start_date=start_date,
+        end_date=end_date,
     )
 
 
@@ -101,14 +112,36 @@ def get_all_statistics(
 ):
     """全ゲームモードの統計情報を一括取得
 
-    パフォーマンス最適化 (部分的):
+    パフォーマンス最適化:
     - 全デュエルデータを一度に取得し、メモリ内でゲームモード別に分割
     - 以前: 4回のDB往復（各ゲームモードごと）
     - 現在: 1回のクエリで全データを取得
+    - キャッシュ: フィルタ条件ごとに結果をキャッシュ（TTL: 5分）
 
     注: 各統計サービス（deck_distribution、matchup等）は依然として
     個別にクエリを実行しているため、完全な最適化には至っていません。
     """
+    # キャッシュキーを生成（フィルタ条件 + include_duels + include_matchup）
+    cache_key = generate_cache_key(
+        prefix="statistics",
+        user_id=current_user.id,
+        year=filters.year,
+        month=filters.month,
+        range_start=filters.range_start,
+        range_end=filters.range_end,
+        my_deck_id=filters.my_deck_id,
+        opponent_deck_id=filters.opponent_deck_id,
+        start_date=filters.start_date,
+        end_date=filters.end_date,
+        include_duels=include_duels,
+        include_matchup=include_matchup,
+    )
+
+    # キャッシュを確認
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     game_modes = ["RANK", "RATE", "EVENT", "DC"]
     result = {}
 
@@ -117,6 +150,7 @@ def get_all_statistics(
     year = filter_kwargs.get("year")
     month = filter_kwargs.get("month")
     start_date = filter_kwargs.get("start_date")
+    end_date = filter_kwargs.get("end_date")
 
     # パフォーマンス最適化: 全ゲームモードのデュエルを一度に取得
     all_duels = duel_service.get_user_duels(
@@ -129,7 +163,8 @@ def get_all_statistics(
         range_end=filters.range_end,
         deck_id=filters.my_deck_id,
         opponent_deck_id=filters.opponent_deck_id,
-        start_date=start_date,  # タイムスタンプフィルタ
+        start_date=start_date,  # タイムスタンプフィルタ（開始日時）
+        end_date=end_date,  # タイムスタンプフィルタ（終了日時）
     )
 
     # メモリ内でゲームモード別に分割
@@ -233,6 +268,9 @@ def get_all_statistics(
                 )
             else:
                 result[mode]["value_sequence_data"] = []
+
+    # 結果をキャッシュに保存（TTL: 300秒 = 5分）
+    cache.set(cache_key, result, ttl=300)
 
     return result
 
