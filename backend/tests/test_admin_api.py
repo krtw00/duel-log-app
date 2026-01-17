@@ -604,3 +604,57 @@ class TestAdminSharedStatisticsMaintenance:
         for endpoint in endpoints:
             response = client.post(endpoint)
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestAdminSharedUrlsDeprecatedEndpoints:
+    """非推奨の共有URLエンドポイント（後方互換エイリアス）のテスト"""
+
+    def test_scan_orphaned_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 孤立した共有URLのスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-orphaned-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "orphaned_count" in data
+        assert isinstance(data["orphaned_count"], int)
+
+    def test_cleanup_orphaned_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 孤立した共有URLのクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-orphaned-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "success" in data
+        assert "deleted_count" in data
+        assert data["success"] is True
+
+    def test_scan_expired_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 期限切れ共有URLのスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-expired-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "expired_count" in data
+        assert isinstance(data["expired_count"], int)
+
+    def test_cleanup_expired_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 期限切れ共有URLのクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-expired-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "success" in data
+        assert "deleted_count" in data
+        assert data["success"] is True
