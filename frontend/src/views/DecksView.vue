@@ -149,7 +149,7 @@
     </v-container>
 
     <!-- デッキ登録/編集ダイアログ -->
-    <v-dialog v-model="dialogOpen" max-width="500" persistent>
+    <v-dialog v-model="dialogOpen" :max-width="$vuetify.display.mobile ? '100%' : '500'" persistent>
       <v-card class="deck-form-card">
         <div class="card-glow"></div>
 

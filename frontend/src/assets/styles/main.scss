@@ -66,3 +66,15 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+// モバイルタッチターゲット最小サイズ確保（44x44px）
+@media (max-width: 599px) {
+  .v-btn,
+  .v-radio,
+  .v-checkbox,
+  .v-list-item,
+  .v-chip--clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
