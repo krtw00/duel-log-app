@@ -13,7 +13,7 @@
             variant="outlined"
             density="compact"
             hide-details
-            @update:model-value="refreshStatisticsWithDecks"
+            @update:model-value="debouncedRefreshStatistics"
           ></v-select>
         </v-col>
         <v-col cols="6" sm="3">
@@ -24,7 +24,7 @@
             variant="outlined"
             density="compact"
             hide-details
-            @update:model-value="refreshStatisticsWithDecks"
+            @update:model-value="debouncedRefreshStatistics"
           ></v-select>
         </v-col>
       </v-row>
@@ -36,10 +36,10 @@
         v-model:range-end="filterRangeEnd"
         v-model:my-deck-id="filterMyDeckId"
         :available-my-decks="availableMyDecks"
-        @update:period-type="refreshStatisticsWithDecks"
-        @update:range-start="refreshStatisticsWithDecks"
-        @update:range-end="refreshStatisticsWithDecks"
-        @update:my-deck-id="handleMyDeckFilterChange"
+        @update:period-type="debouncedRefreshStatistics"
+        @update:range-start="debouncedRefreshStatistics"
+        @update:range-end="debouncedRefreshStatistics"
+        @update:my-deck-id="debouncedHandleMyDeckFilterChange"
         @reset="resetFilters"
       />
 
@@ -114,6 +114,7 @@
  * 3. APIレスポンス → 各モードの統計データを構築してビューに反映
  */
 import { ref, onMounted, computed, watch } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
 
@@ -258,12 +259,26 @@ const filterOpponentDeckId = ref<number | null>(null);
 const availableMyDecks = ref<{ id: number; name: string }[]>([]);
 const availableOpponentDecks = ref<{ id: number; name: string }[]>([]);
 
+// --- Cache for request parameters ---
+const lastFetchParams = ref<{
+  year: number;
+  month: number;
+  periodType: 'all' | 'range';
+  rangeStart: number;
+  rangeEnd: number;
+  myDeckId: number | null;
+  opponentDeckId: number | null;
+  gameMode: GameMode;
+} | null>(null);
+
 const resetFilters = () => {
   filterPeriodType.value = 'all';
   filterRangeStart.value = 1;
   filterRangeEnd.value = 30;
   filterMyDeckId.value = null;
   filterOpponentDeckId.value = null;
+  // Reset immediately without debounce
+  lastFetchParams.value = null;
   refreshStatisticsWithDecks();
 };
 
@@ -341,15 +356,62 @@ const fetchAvailableDecks = async () => {
 };
 
 const refreshStatisticsWithDecks = async () => {
+  // Check if parameters have changed
+  const currentParams = {
+    year: selectedYear.value,
+    month: selectedMonth.value,
+    periodType: filterPeriodType.value,
+    rangeStart: filterRangeStart.value,
+    rangeEnd: filterRangeEnd.value,
+    myDeckId: filterMyDeckId.value,
+    opponentDeckId: filterOpponentDeckId.value,
+    gameMode: currentTab.value as GameMode,
+  };
+
+  // Skip if parameters haven't changed
+  if (lastFetchParams.value && JSON.stringify(lastFetchParams.value) === JSON.stringify(currentParams)) {
+    logger.debug('Skipping fetch: parameters unchanged');
+    return;
+  }
+
+  // Update cache
+  lastFetchParams.value = currentParams;
+
+  // First, fetch available decks (other calls depend on this)
   await fetchAvailableDecks();
-  await fetchStatistics();
-  await fetchMonthlyDuels(currentTab.value as GameMode);
+
+  // Then execute statistics and duels in parallel
+  await Promise.all([
+    fetchStatistics(),
+    fetchMonthlyDuels(currentTab.value as GameMode),
+  ]);
 };
 
 const handleMyDeckFilterChange = async () => {
-  await fetchStatistics();
-  await fetchMonthlyDuels(currentTab.value as GameMode);
+  // Update cache to force refresh
+  lastFetchParams.value = {
+    year: selectedYear.value,
+    month: selectedMonth.value,
+    periodType: filterPeriodType.value,
+    rangeStart: filterRangeStart.value,
+    rangeEnd: filterRangeEnd.value,
+    myDeckId: filterMyDeckId.value,
+    opponentDeckId: filterOpponentDeckId.value,
+    gameMode: currentTab.value as GameMode,
+  };
+
+  // Parallel execution of API calls
+  await Promise.all([
+    fetchStatistics(),
+    fetchMonthlyDuels(currentTab.value as GameMode),
+  ]);
 };
+
+// Debounced version of refreshStatisticsWithDecks (400ms delay)
+const debouncedRefreshStatistics = useDebounceFn(refreshStatisticsWithDecks, 400);
+
+// Debounced version of handleMyDeckFilterChange (400ms delay)
+const debouncedHandleMyDeckFilterChange = useDebounceFn(handleMyDeckFilterChange, 400);
 
 const resolveDeckName = (deckId: number): string => {
   const deck = availableMyDecks.value.find((d) => d.id === deckId);
@@ -501,6 +563,8 @@ onMounted(() => {
 
 watch(currentTab, (newMode) => {
   uiStore.setLastGameMode(newMode);
+  // Clear cache when switching tabs
+  lastFetchParams.value = null;
   refreshStatisticsWithDecks();
 });
 
@@ -508,8 +572,12 @@ watch(currentTab, (newMode) => {
 watch(
   () => themeStore.isDark,
   () => {
-    fetchStatistics();
-    fetchMonthlyDuels(currentTab.value as GameMode);
+    // Clear cache when theme changes
+    lastFetchParams.value = null;
+    Promise.all([
+      fetchStatistics(),
+      fetchMonthlyDuels(currentTab.value as GameMode),
+    ]);
   },
 );
 </script>
