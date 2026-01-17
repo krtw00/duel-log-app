@@ -341,20 +341,20 @@ class AdminStatisticsService:
         self.db.commit()
         return deleted_count
 
-    def scan_orphaned_shared_urls(self) -> int:
+    def scan_orphaned_shared_statistics(self) -> int:
         """
-        孤立した共有URLをスキャン（ユーザー削除後に残存）
+        孤立した共有統計をスキャン（ユーザー削除後に残存）
 
         Note: 通常はCASCADE DELETEで削除されるため、
         この関数は過去データや異常系の対応用
 
         Returns:
-            孤立した共有URLの数
+            孤立した共有統計の数
         """
         # 存在するユーザーIDのサブクエリ
         existing_user_ids = self.db.query(User.id).distinct()
 
-        # 存在しないユーザーの共有URLをカウント
+        # 存在しないユーザーの共有統計をカウント
         orphaned_count = (
             self.db.query(func.count(SharedStatistics.id))
             .filter(~SharedStatistics.user_id.in_(existing_user_ids))
@@ -364,42 +364,42 @@ class AdminStatisticsService:
 
         return orphaned_count
 
-    def cleanup_orphaned_shared_urls(self) -> int:
+    def cleanup_orphaned_shared_statistics(self) -> int:
         """
-        孤立した共有URLを削除
+        孤立した共有統計を削除
 
         Returns:
-            削除した共有URLの数
+            削除した共有統計の数
         """
         # 存在するユーザーIDのサブクエリ
         existing_user_ids = self.db.query(User.id).distinct()
 
-        # 存在しないユーザーの共有URLを取得
-        orphaned_urls = (
+        # 存在しないユーザーの共有統計を取得
+        orphaned_statistics = (
             self.db.query(SharedStatistics)
             .filter(~SharedStatistics.user_id.in_(existing_user_ids))
             .all()
         )
 
-        deleted_count = len(orphaned_urls)
+        deleted_count = len(orphaned_statistics)
 
         # 削除
-        for url in orphaned_urls:
-            self.db.delete(url)
+        for stat in orphaned_statistics:
+            self.db.delete(stat)
 
         self.db.commit()
         return deleted_count
 
-    def scan_expired_shared_urls(self) -> Tuple[int, datetime | None]:
+    def scan_expired_shared_statistics(self) -> Tuple[int, datetime | None]:
         """
-        期限切れの共有URLをスキャン
+        期限切れの共有統計をスキャン
 
         Returns:
             (期限切れの数, 最古の期限切れ日時)
         """
         now = datetime.now(timezone.utc)
 
-        # 期限切れの共有URLをカウント
+        # 期限切れの共有統計をカウント
         expired_count = (
             self.db.query(func.count(SharedStatistics.id))
             .filter(
@@ -425,17 +425,17 @@ class AdminStatisticsService:
 
         return expired_count, oldest_expired
 
-    def cleanup_expired_shared_urls(self) -> int:
+    def cleanup_expired_shared_statistics(self) -> int:
         """
-        期限切れの共有URLを削除
+        期限切れの共有統計を削除
 
         Returns:
-            削除した共有URLの数
+            削除した共有統計の数
         """
         now = datetime.now(timezone.utc)
 
-        # 期限切れの共有URLを取得
-        expired_urls = (
+        # 期限切れの共有統計を取得
+        expired_statistics = (
             self.db.query(SharedStatistics)
             .filter(
                 SharedStatistics.expires_at.isnot(None),
@@ -444,11 +444,11 @@ class AdminStatisticsService:
             .all()
         )
 
-        deleted_count = len(expired_urls)
+        deleted_count = len(expired_statistics)
 
         # 削除
-        for url in expired_urls:
-            self.db.delete(url)
+        for stat in expired_statistics:
+            self.db.delete(stat)
 
         self.db.commit()
         return deleted_count

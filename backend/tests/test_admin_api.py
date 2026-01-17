@@ -522,3 +522,139 @@ class TestAdminMetaAnalysis:
         """未認証でのゲームモード別統計取得（失敗 - 401 Unauthorized）"""
         response = client.get("/admin/meta/game-mode-stats")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestAdminSharedStatisticsMaintenance:
+    """共有統計のメンテナンスエンドポイントのテスト"""
+
+    def test_scan_orphaned_shared_statistics_success(self, admin_authenticated_client):
+        """孤立した共有統計のスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-orphaned-shared-statistics"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "orphaned_count" in data
+        assert isinstance(data["orphaned_count"], int)
+        assert data["orphaned_count"] >= 0
+
+    def test_cleanup_orphaned_shared_statistics_success(
+        self, admin_authenticated_client
+    ):
+        """孤立した共有統計のクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-orphaned-shared-statistics"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "success" in data
+        assert "deleted_count" in data
+        assert "message" in data
+        assert data["success"] is True
+        assert isinstance(data["deleted_count"], int)
+
+    def test_scan_expired_shared_statistics_success(self, admin_authenticated_client):
+        """期限切れ共有統計のスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-expired-shared-statistics"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "expired_count" in data
+        assert isinstance(data["expired_count"], int)
+        assert data["expired_count"] >= 0
+
+    def test_cleanup_expired_shared_statistics_success(
+        self, admin_authenticated_client
+    ):
+        """期限切れ共有統計のクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-expired-shared-statistics"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "success" in data
+        assert "deleted_count" in data
+        assert "message" in data
+        assert data["success"] is True
+        assert isinstance(data["deleted_count"], int)
+
+    def test_shared_statistics_maintenance_as_regular_user_forbidden(
+        self, regular_authenticated_client
+    ):
+        """一般ユーザーによる共有統計メンテナンス（失敗 - 403 Forbidden）"""
+        endpoints = [
+            "/admin/maintenance/scan-orphaned-shared-statistics",
+            "/admin/maintenance/cleanup-orphaned-shared-statistics",
+            "/admin/maintenance/scan-expired-shared-statistics",
+            "/admin/maintenance/cleanup-expired-shared-statistics",
+        ]
+        for endpoint in endpoints:
+            response = regular_authenticated_client.post(endpoint)
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_shared_statistics_maintenance_unauthenticated_forbidden(self, client):
+        """未認証での共有統計メンテナンス（失敗 - 401 Unauthorized）"""
+        endpoints = [
+            "/admin/maintenance/scan-orphaned-shared-statistics",
+            "/admin/maintenance/cleanup-orphaned-shared-statistics",
+            "/admin/maintenance/scan-expired-shared-statistics",
+            "/admin/maintenance/cleanup-expired-shared-statistics",
+        ]
+        for endpoint in endpoints:
+            response = client.post(endpoint)
+            assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestAdminSharedUrlsDeprecatedEndpoints:
+    """非推奨の共有URLエンドポイント（後方互換エイリアス）のテスト"""
+
+    def test_scan_orphaned_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 孤立した共有URLのスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-orphaned-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "orphaned_count" in data
+        assert isinstance(data["orphaned_count"], int)
+
+    def test_cleanup_orphaned_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 孤立した共有URLのクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-orphaned-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "success" in data
+        assert "deleted_count" in data
+        assert data["success"] is True
+
+    def test_scan_expired_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 期限切れ共有URLのスキャン（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/scan-expired-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "expired_count" in data
+        assert isinstance(data["expired_count"], int)
+
+    def test_cleanup_expired_shared_urls_deprecated_success(
+        self, admin_authenticated_client
+    ):
+        """[非推奨] 期限切れ共有URLのクリーンアップ（成功）"""
+        response = admin_authenticated_client.post(
+            "/admin/maintenance/cleanup-expired-shared-urls"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "success" in data
+        assert "deleted_count" in data
+        assert data["success"] is True
