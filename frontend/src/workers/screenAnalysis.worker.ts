@@ -13,7 +13,6 @@ import {
   matchTemplateNcc,
   extractAndPreprocess,
   roiToRect,
-  createCanvas,
   calculateScaledSigma,
   type TemplateSet,
   type CoinResult,

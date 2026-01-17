@@ -122,7 +122,6 @@ import { useCancellableRequest } from '@/composables/useCancellableRequest';
 
 const logger = createLogger('Statistics');
 import AppLayout from '@/components/layout/AppLayout.vue';
-import { useThemeStore } from '@/stores/theme';
 import { useUiStore } from '@/stores/ui';
 import { useChartOptions } from '@/composables/useChartOptions';
 import StatisticsContent from '@/components/statistics/StatisticsContent.vue';
@@ -133,7 +132,6 @@ import { useDeferredLoading } from '@/composables/useDeferredLoading';
 const { LL, currentLocale } = useLocale();
 const { createRequest } = useCancellableRequest();
 
-const themeStore = useThemeStore();
 const uiStore = useUiStore();
 const { basePieChartOptions, baseLineChartOptions } = useChartOptions();
 const { isLoading: loading, startLoading, stopLoading } = useDeferredLoading({ delay: 300 });
