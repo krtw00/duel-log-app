@@ -94,13 +94,13 @@ const drawer = ref(false);
 const isMobile = computed(() => smAndDown.value);
 const activeRoute = computed(() => route.path);
 
-const defaultNavItems: NavItem[] = [
-  { name: 'ダッシュボード', path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
-  { name: 'デッキ管理', path: '/decks', view: 'decks', icon: 'mdi-cards' },
-  { name: '統計', path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
-];
+const defaultNavItems = computed<NavItem[]>(() => [
+  { name: LL.value!.nav.dashboard(), path: '/', view: 'dashboard', icon: 'mdi-view-dashboard' },
+  { name: LL.value!.nav.decks(), path: '/decks', view: 'decks', icon: 'mdi-cards' },
+  { name: LL.value!.nav.statistics(), path: '/statistics', view: 'statistics', icon: 'mdi-chart-bar' },
+]);
 
-const resolvedNavItems = computed(() => props.navItems ?? defaultNavItems);
+const resolvedNavItems = computed(() => props.navItems ?? defaultNavItems.value);
 const mainClass = computed(() => {
   const classes = ['main-content', props.mainClass].filter(Boolean);
   // モバイル時はボトムナビ分のパディングを追加
