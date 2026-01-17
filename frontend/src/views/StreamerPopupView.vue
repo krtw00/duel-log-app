@@ -428,8 +428,23 @@ const fetchData = async () => {
 
       // 初回取得時にセッション統計の起点を保存
       if (initialStats.value === null) {
-        initialStats.value = { ...currentStats };
-        logger.debug('Initial stats saved for session tracking');
+        // URLパラメータからinitial_statsを取得
+        const initialStatsParam = route.query.initial_stats as string | undefined;
+        if (initialStatsParam && statsPeriod.value === 'session') {
+          try {
+            initialStats.value = JSON.parse(initialStatsParam);
+            logger.debug('Initial stats loaded from URL parameter:', initialStats.value);
+          } catch (error) {
+            logger.error('Failed to parse initial_stats parameter:', error);
+            // パースエラーの場合は現在の統計を使用
+            initialStats.value = { ...currentStats };
+            logger.debug('Fallback: Initial stats saved from current data');
+          }
+        } else {
+          // パラメータがない場合は現在の統計を使用（従来の動作）
+          initialStats.value = { ...currentStats };
+          logger.debug('Initial stats saved from current data for session tracking');
+        }
       }
 
       // 統計期間に応じてデータを設定
