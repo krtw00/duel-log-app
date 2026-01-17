@@ -1,8 +1,5 @@
 <template>
-  <app-layout
-    current-view="dashboard"
-    main-class="dashboard-main"
-  >
+  <app-layout current-view="dashboard" main-class="dashboard-main">
     <v-container fluid class="pa-4 pa-sm-6">
       <DashboardHeader
         v-model:game-mode="currentMode"
@@ -45,7 +42,6 @@
         @add-duel="handleAddDuel"
       />
     </v-container>
-
 
     <template #overlay>
       <share-stats-dialog

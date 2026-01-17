@@ -169,7 +169,7 @@ const allDisplayItems = computed<OBSDisplayItemDefinition[]>(() => [
   {
     key: 'current_deck',
     label: LL.value?.duels.myDeck() || 'My Deck',
-    format: (v) => (v as string | undefined) || (LL.value?.common.noData() || '-'),
+    format: (v) => (v as string | undefined) || LL.value?.common.noData() || '-',
   },
   {
     key: 'total_duels',
@@ -207,11 +207,23 @@ const allDisplayItems = computed<OBSDisplayItemDefinition[]>(() => [
 const getGameModeValueConfig = (mode: string | undefined): OBSDisplayItemDefinition | null => {
   switch (mode) {
     case 'RANK':
-      return { key: 'current_rank', label: LL.value?.duels.gameMode.rank() || 'Rank', format: (v) => formatRankValue(v) };
+      return {
+        key: 'current_rank',
+        label: LL.value?.duels.gameMode.rank() || 'Rank',
+        format: (v) => formatRankValue(v),
+      };
     case 'RATE':
-      return { key: 'current_rate', label: LL.value?.duels.gameMode.rate() || 'Rate', format: (v) => formatDecimalValue(v) };
+      return {
+        key: 'current_rate',
+        label: LL.value?.duels.gameMode.rate() || 'Rate',
+        format: (v) => formatDecimalValue(v),
+      };
     case 'DC':
-      return { key: 'current_dc', label: LL.value?.duels.gameMode.dc() || 'DC', format: (v) => formatDecimalValue(v) };
+      return {
+        key: 'current_dc',
+        label: LL.value?.duels.gameMode.dc() || 'DC',
+        format: (v) => formatDecimalValue(v),
+      };
     case 'EVENT':
       return null;
     default:

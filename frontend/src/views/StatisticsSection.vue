@@ -21,7 +21,6 @@
 
     <!-- 統計カード -->
     <stats-display-cards :stats="currentStats" :coin-win-rate-color="coinWinRateColor" />
-
   </div>
 </template>
 

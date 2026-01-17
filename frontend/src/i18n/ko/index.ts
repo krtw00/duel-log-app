@@ -1,4 +1,4 @@
-import type { Translation } from '../i18n-types'
+import type { Translation } from '../i18n-types';
 
 const ko = {
   common: {
@@ -70,7 +70,8 @@ const ko = {
       hasAccount: '이미 계정이 있으신가요?',
       login: '로그인',
       success: '가입이 완료되었습니다!',
-      successWithConfirmation: '확인 이메일을 보냈습니다. 이메일을 확인하여 계정을 활성화해 주세요.',
+      successWithConfirmation:
+        '확인 이메일을 보냈습니다. 이메일을 확인하여 계정을 활성화해 주세요.',
     },
     forgotPassword: {
       title: '비밀번호 재설정',
@@ -121,7 +122,8 @@ const ko = {
       recommended: '추천',
       obsBrowserSource: 'OBS 브라우저 소스',
       deprecated: '지원 중단 예정',
-      deprecationWarning: '이 기능은 향후 지원이 중단됩니다. 새로운 "스트리밍 팝업 창"을 사용해 주세요.',
+      deprecationWarning:
+        '이 기능은 향후 지원이 중단됩니다. 새로운 "스트리밍 팝업 창"을 사용해 주세요.',
       obsDescription: 'OBS 브라우저 소스에서 실시간 통계를 표시할 수 있습니다.',
       getObsUrl: 'OBS URL 가져오기',
       winRate: '승률',
@@ -263,7 +265,8 @@ const ko = {
       registered: '등록됨',
       canRegister: '등록 가능',
       switchToSecond: '후공으로 전환',
-      description: '마스터 듀얼 창을 선택하여 화면을 자동 분석합니다. 결과가 감지되면 자동으로 듀얼 기록을 등록할 수 있습니다.',
+      description:
+        '마스터 듀얼 창을 선택하여 화면을 자동 분석합니다. 결과가 감지되면 자동으로 듀얼 기록을 등록할 수 있습니다.',
       templateMode: '템플릿 매칭',
       mlMode: '머신러닝(TF.js)',
       modeDescription: '모드로 분석합니다.',
@@ -472,7 +475,8 @@ const ko = {
     },
     configPanel: {
       title: 'OBS 연동 설정',
-      description: 'OBS 브라우저 소스에서 실시간 통계를 오버레이로 표시합니다. 표시 항목과 집계 기간을 설정할 수 있습니다.',
+      description:
+        'OBS 브라우저 소스에서 실시간 통계를 오버레이로 표시합니다. 표시 항목과 집계 기간을 설정할 수 있습니다.',
       periodType: '집계 기간',
       periodMonthly: '월간',
       periodRecent: '최근 N경기',
@@ -712,7 +716,8 @@ const ko = {
     contactInfo: {
       title: '연락처',
     },
-    githubDisabled: 'GitHub 연동이 비활성화되어 있습니다. X (Twitter) 또는 GitHub으로 직접 문의해 주세요.',
+    githubDisabled:
+      'GitHub 연동이 비활성화되어 있습니다. X (Twitter) 또는 GitHub으로 직접 문의해 주세요.',
     success: {
       title: '전송 완료',
       viewIssue: 'GitHub에서 Issue 보기',
@@ -731,6 +736,6 @@ const ko = {
     dark: '다크',
     system: '시스템',
   },
-} satisfies Translation
+} satisfies Translation;
 
-export default ko
+export default ko;

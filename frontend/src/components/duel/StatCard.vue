@@ -24,7 +24,10 @@
             <span>{{ Math.abs(trend).toFixed(1) }}%</span>
           </div>
         </div>
-        <div class="stat-card__icon-wrapper" :class="{ 'stat-card__icon-wrapper--large': size === 'large' }">
+        <div
+          class="stat-card__icon-wrapper"
+          :class="{ 'stat-card__icon-wrapper--large': size === 'large' }"
+        >
           <v-icon
             :icon="icon"
             :size="size === 'large' ? 56 : 40"

@@ -10,11 +10,7 @@
           <div class="text-caption text-grey">ID: #{{ userDetail.id }}</div>
         </div>
         <v-spacer />
-        <v-chip
-          :color="getStatusColor(userDetail.status)"
-          size="small"
-          variant="flat"
-        >
+        <v-chip :color="getStatusColor(userDetail.status)" size="small" variant="flat">
           {{ getStatusLabel(userDetail.status) }}
         </v-chip>
       </v-card-title>
@@ -30,24 +26,34 @@
           </h3>
           <v-row dense>
             <v-col cols="6">
-              <div class="text-caption text-grey">{{ LL?.admin.userDetail?.email() || 'メールアドレス' }}</div>
+              <div class="text-caption text-grey">
+                {{ LL?.admin.userDetail?.email() || 'メールアドレス' }}
+              </div>
               <div>{{ userDetail.email || '-' }}</div>
             </v-col>
             <v-col cols="6">
-              <div class="text-caption text-grey">{{ LL?.admin.userDetail?.registeredAt() || '登録日' }}</div>
+              <div class="text-caption text-grey">
+                {{ LL?.admin.userDetail?.registeredAt() || '登録日' }}
+              </div>
               <div>{{ formatDate(userDetail.createdat) }}</div>
             </v-col>
             <v-col cols="6">
-              <div class="text-caption text-grey">{{ LL?.admin.userDetail?.lastLoginAt() || '最終ログイン' }}</div>
+              <div class="text-caption text-grey">
+                {{ LL?.admin.userDetail?.lastLoginAt() || '最終ログイン' }}
+              </div>
               <div>{{ userDetail.last_login_at ? formatDate(userDetail.last_login_at) : '-' }}</div>
             </v-col>
             <v-col cols="6">
-              <div class="text-caption text-grey">{{ LL?.admin.userDetail?.theme() || 'テーマ' }}</div>
+              <div class="text-caption text-grey">
+                {{ LL?.admin.userDetail?.theme() || 'テーマ' }}
+              </div>
               <div>{{ userDetail.theme_preference === 'dark' ? 'ダーク' : 'ライト' }}</div>
             </v-col>
           </v-row>
           <div v-if="userDetail.status_reason" class="mt-3">
-            <div class="text-caption text-grey">{{ LL?.admin.userDetail?.statusReason() || '状態変更理由' }}</div>
+            <div class="text-caption text-grey">
+              {{ LL?.admin.userDetail?.statusReason() || '状態変更理由' }}
+            </div>
             <div class="text-error">{{ userDetail.status_reason }}</div>
           </div>
         </div>
@@ -62,18 +68,25 @@
             <v-col cols="6" sm="3">
               <v-card variant="outlined" class="text-center pa-3">
                 <div class="text-h5 font-weight-bold">{{ userDetail.stats.total_duels }}</div>
-                <div class="text-caption">{{ LL?.admin.userDetail?.totalDuels() || '総対戦数' }}</div>
+                <div class="text-caption">
+                  {{ LL?.admin.userDetail?.totalDuels() || '総対戦数' }}
+                </div>
               </v-card>
             </v-col>
             <v-col cols="6" sm="3">
               <v-card variant="outlined" class="text-center pa-3">
                 <div class="text-h5 font-weight-bold">{{ userDetail.stats.this_month_duels }}</div>
-                <div class="text-caption">{{ LL?.admin.userDetail?.thisMonthDuels() || '今月の対戦' }}</div>
+                <div class="text-caption">
+                  {{ LL?.admin.userDetail?.thisMonthDuels() || '今月の対戦' }}
+                </div>
               </v-card>
             </v-col>
             <v-col cols="6" sm="3">
               <v-card variant="outlined" class="text-center pa-3">
-                <div class="text-h5 font-weight-bold" :class="getWinRateColor(userDetail.stats.win_rate)">
+                <div
+                  class="text-h5 font-weight-bold"
+                  :class="getWinRateColor(userDetail.stats.win_rate)"
+                >
                   {{ userDetail.stats.win_rate.toFixed(1) }}%
                 </div>
                 <div class="text-caption">{{ LL?.admin.userDetail?.winRate() || '勝率' }}</div>
@@ -90,11 +103,15 @@
           </v-row>
           <v-row class="mt-2">
             <v-col cols="6">
-              <div class="text-caption text-grey">{{ LL?.admin.userDetail?.playerDecks() || '自分のデッキ' }}</div>
+              <div class="text-caption text-grey">
+                {{ LL?.admin.userDetail?.playerDecks() || '自分のデッキ' }}
+              </div>
               <div>{{ userDetail.stats.player_decks_count }}件</div>
             </v-col>
             <v-col cols="6">
-              <div class="text-caption text-grey">{{ LL?.admin.userDetail?.opponentDecks() || '相手のデッキ' }}</div>
+              <div class="text-caption text-grey">
+                {{ LL?.admin.userDetail?.opponentDecks() || '相手のデッキ' }}
+              </div>
               <div>{{ userDetail.stats.opponent_decks_count }}件</div>
             </v-col>
           </v-row>
@@ -214,12 +231,15 @@ const userDetail = ref<UserDetailResponse | null>(null);
 const loading = ref(false);
 const resettingPassword = ref(false);
 
-watch(() => props.modelValue, (newValue) => {
-  isVisible.value = newValue;
-  if (newValue && props.userId) {
-    fetchUserDetail(props.userId);
-  }
-});
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    isVisible.value = newValue;
+    if (newValue && props.userId) {
+      fetchUserDetail(props.userId);
+    }
+  },
+);
 
 watch(isVisible, (newValue) => {
   emit('update:modelValue', newValue);

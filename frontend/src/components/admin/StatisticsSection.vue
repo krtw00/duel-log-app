@@ -8,12 +8,7 @@
             <v-icon size="48" color="primary" class="mb-2">mdi-account-group</v-icon>
             <div class="text-h3 font-weight-bold">{{ stats?.users.total ?? '-' }}</div>
             <div class="text-subtitle-1 text-grey">{{ LL?.admin.statistics.totalUsers() }}</div>
-            <v-chip
-              v-if="stats?.users.new_this_month"
-              color="success"
-              size="small"
-              class="mt-2"
-            >
+            <v-chip v-if="stats?.users.new_this_month" color="success" size="small" class="mt-2">
               +{{ stats.users.new_this_month }} {{ LL?.admin.statistics.thisMonth() }}
             </v-chip>
           </v-card-text>
@@ -43,12 +38,7 @@
             <v-icon size="48" color="warning" class="mb-2">mdi-sword-cross</v-icon>
             <div class="text-h3 font-weight-bold">{{ stats?.duels.total ?? '-' }}</div>
             <div class="text-subtitle-1 text-grey">{{ LL?.admin.statistics.totalDuels() }}</div>
-            <v-chip
-              v-if="stats?.duels.this_month"
-              color="warning"
-              size="small"
-              class="mt-2"
-            >
+            <v-chip v-if="stats?.duels.this_month" color="warning" size="small" class="mt-2">
               {{ stats.duels.this_month }} {{ LL?.admin.statistics.thisMonth() }}
             </v-chip>
           </v-card-text>
@@ -122,11 +112,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
 import { useLocale } from '@/composables/useLocale';
-import {
-  getStatisticsOverview,
-  getDuelsTimeline,
-  getUserRegistrations,
-} from '@/services/adminApi';
+import { getStatisticsOverview, getDuelsTimeline, getUserRegistrations } from '@/services/adminApi';
 import type {
   StatisticsOverviewResponse,
   DuelsTimelineResponse,

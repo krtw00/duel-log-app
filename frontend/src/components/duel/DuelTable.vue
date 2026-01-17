@@ -2,19 +2,10 @@
   <!-- モバイル: コンパクトカード表示 -->
   <div v-if="isMobile" class="duel-cards">
     <div v-if="loading" class="pa-2">
-      <v-skeleton-loader
-        v-for="i in 5"
-        :key="i"
-        type="list-item-two-line"
-        class="mb-2"
-      />
+      <v-skeleton-loader v-for="i in 5" :key="i" type="list-item-two-line" class="mb-2" />
     </div>
     <template v-else-if="duels.length > 0">
-      <div
-        v-for="duel in duels"
-        :key="duel.id"
-        class="duel-card-compact"
-      >
+      <div v-for="duel in duels" :key="duel.id" class="duel-card-compact">
         <!-- 勝敗インジケーター -->
         <div
           class="result-indicator"
@@ -43,7 +34,9 @@
             <span
               class="detail-item"
               :class="duel.is_going_first ? 'first' : 'second'"
-              :aria-label="duel.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()"
+              :aria-label="
+                duel.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()
+              "
             >
               <v-icon size="12">
                 {{ duel.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
@@ -53,7 +46,9 @@
             <span
               class="detail-item"
               :class="duel.won_coin_toss ? 'coin-win' : 'coin-lose'"
-              :aria-label="duel.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose()"
+              :aria-label="
+                duel.won_coin_toss ? LL?.duels.coinToss.win() : LL?.duels.coinToss.lose()
+              "
             >
               <v-icon size="12">
                 {{ duel.won_coin_toss ? 'mdi-alpha-h-circle' : 'mdi-alpha-t-circle' }}
@@ -64,10 +59,16 @@
             <span v-if="duel.game_mode === 'RANK' && duel.rank" class="detail-item metric">
               {{ getRankNameShort(duel.rank) }}
             </span>
-            <span v-else-if="duel.game_mode === 'RATE' && duel.rate_value !== undefined" class="detail-item metric">
+            <span
+              v-else-if="duel.game_mode === 'RATE' && duel.rate_value !== undefined"
+              class="detail-item metric"
+            >
               {{ duel.rate_value }}
             </span>
-            <span v-else-if="duel.game_mode === 'DC' && duel.dc_value !== undefined" class="detail-item metric">
+            <span
+              v-else-if="duel.game_mode === 'DC' && duel.dc_value !== undefined"
+              class="detail-item metric"
+            >
               {{ duel.dc_value }}
             </span>
             <!-- 備考アイコン -->
@@ -82,14 +83,14 @@
           <v-btn
             icon="mdi-pencil"
             variant="text"
-            size="x-small"
+            size="small"
             color="primary"
             @click.stop="$emit('edit', duel)"
           />
           <v-btn
             icon="mdi-delete"
             variant="text"
-            size="x-small"
+            size="small"
             color="error"
             @click.stop="$emit('delete', duel.id)"
           />
@@ -168,7 +169,11 @@
 
     <!-- 先攻/後攻カラム -->
     <template v-if="!hiddenColumnsSet.has('is_going_first')" #[`item.is_going_first`]="{ item }">
-      <span :aria-label="item.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()">
+      <span
+        :aria-label="
+          item.is_going_first ? LL?.duels.turnOrder.first() : LL?.duels.turnOrder.second()
+        "
+      >
         <v-icon :color="item.is_going_first ? 'info' : 'purple'">
           {{ item.is_going_first ? 'mdi-numeric-1-circle' : 'mdi-numeric-2-circle' }}
         </v-icon>
@@ -218,8 +223,19 @@
 
     <!-- アクションカラム -->
     <template v-if="showActionButtons" #[`item.actions`]="{ item }">
-      <v-btn icon="mdi-pencil" variant="text" :aria-label="LL?.common.edit()" @click="$emit('edit', item)" />
-      <v-btn icon="mdi-delete" variant="text" color="error" :aria-label="LL?.common.delete()" @click="$emit('delete', item.id)" />
+      <v-btn
+        icon="mdi-pencil"
+        variant="text"
+        :aria-label="LL?.common.edit()"
+        @click="$emit('edit', item)"
+      />
+      <v-btn
+        icon="mdi-delete"
+        variant="text"
+        color="error"
+        :aria-label="LL?.common.delete()"
+        @click="$emit('delete', item.id)"
+      />
     </template>
 
     <!-- ローディング -->
@@ -280,12 +296,47 @@ const headers = computed(() => [
   { title: LL.value?.duels.myDeck() ?? '使用デッキ', key: 'deck', sortable: false },
   { title: LL.value?.duels.opponentDeck() ?? '相手デッキ', key: 'opponent_deck', sortable: false },
   { title: LL.value?.duels.result.label() ?? '勝敗', key: 'is_win', sortable: true, width: 100 },
-  { title: LL.value?.duels.coinToss.label() ?? 'コイン', key: 'won_coin_toss', sortable: false, width: 100, class: 'hidden-xs' },
-  { title: LL.value?.duels.turnOrder.label() ?? '先攻/後攻', key: 'is_going_first', sortable: false, width: 120, class: 'hidden-xs' },
-  { title: LL.value?.duels.table.rankOrRate() ?? 'ランク/レート', key: 'rank_or_rate', sortable: false, width: 120, class: 'hidden-xs' },
-  { title: LL.value?.duels.memo() ?? '備考', key: 'notes', sortable: false, width: 200, class: 'hidden-sm-and-down' },
-  { title: LL.value?.duels.playedAt() ?? 'プレイ日時', key: 'played_date', sortable: true, class: 'hidden-sm-and-down' },
-  { title: LL.value?.duels.table.actions() ?? 'アクション', key: 'actions', sortable: false, width: 120, align: 'center' as const },
+  {
+    title: LL.value?.duels.coinToss.label() ?? 'コイン',
+    key: 'won_coin_toss',
+    sortable: false,
+    width: 100,
+    class: 'hidden-xs',
+  },
+  {
+    title: LL.value?.duels.turnOrder.label() ?? '先攻/後攻',
+    key: 'is_going_first',
+    sortable: false,
+    width: 120,
+    class: 'hidden-xs',
+  },
+  {
+    title: LL.value?.duels.table.rankOrRate() ?? 'ランク/レート',
+    key: 'rank_or_rate',
+    sortable: false,
+    width: 120,
+    class: 'hidden-xs',
+  },
+  {
+    title: LL.value?.duels.memo() ?? '備考',
+    key: 'notes',
+    sortable: false,
+    width: 200,
+    class: 'hidden-sm-and-down',
+  },
+  {
+    title: LL.value?.duels.playedAt() ?? 'プレイ日時',
+    key: 'played_date',
+    sortable: true,
+    class: 'hidden-sm-and-down',
+  },
+  {
+    title: LL.value?.duels.table.actions() ?? 'アクション',
+    key: 'actions',
+    sortable: false,
+    width: 120,
+    align: 'center' as const,
+  },
 ]);
 
 const formatDate = (dateString: string) => {
@@ -312,13 +363,13 @@ const getRankNameShort = (rank: number) => {
   const name = getRankName(rank);
   // "ダイヤモンド1" -> "D1", "プラチナ5" -> "P5" など
   const shortNames: Record<string, string> = {
-    'ルーキー': 'R',
-    'ブロンズ': 'B',
-    'シルバー': 'S',
-    'ゴールド': 'G',
-    'プラチナ': 'P',
-    'ダイヤモンド': 'D',
-    'マスター': 'M',
+    ルーキー: 'R',
+    ブロンズ: 'B',
+    シルバー: 'S',
+    ゴールド: 'G',
+    プラチナ: 'P',
+    ダイヤモンド: 'D',
+    マスター: 'M',
   };
   for (const [full, short] of Object.entries(shortNames)) {
     if (name.startsWith(full)) {
@@ -360,7 +411,8 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
     border-radius: 50%;
   }
 
-  h2, h3 {
+  h2,
+  h3 {
     color: rgb(var(--v-theme-on-surface));
   }
 }
@@ -478,6 +530,12 @@ const tableHeightValue = computed(() => props.tableHeight ?? '70vh');
     justify-content: center;
     padding-right: 4px;
     gap: 0;
+
+    // タッチターゲットサイズを確保（最小44x44px）
+    :deep(.v-btn) {
+      min-width: 44px !important;
+      min-height: 44px !important;
+    }
   }
 }
 

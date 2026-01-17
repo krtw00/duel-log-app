@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ローカルストレージからクロマキー背景設定を読み込む
   const chromaKeyBackground = ref<ChromaKeyBackground>(
-    (localStorage.getItem('chromaKeyBackground') as ChromaKeyBackground) || 'none'
+    (localStorage.getItem('chromaKeyBackground') as ChromaKeyBackground) || 'none',
   );
 
   const isAuthenticated = computed(() => !!user.value);
@@ -408,7 +408,9 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         const profileStart = performance.now();
         const profile = await withTimeout(fetchProfile(), 10000);
-        logger.debug(`fetchProfile completed in ${(performance.now() - profileStart).toFixed(0)}ms`);
+        logger.debug(
+          `fetchProfile completed in ${(performance.now() - profileStart).toFixed(0)}ms`,
+        );
         if (profile) {
           user.value = profile;
         } else {
