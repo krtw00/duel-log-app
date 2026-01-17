@@ -469,7 +469,9 @@ class TestDuelStatsEndpoints:
         """デッキ別勝率取得エンドポイントのテスト"""
         my_deck_id, _ = self._create_test_duels_for_stats(authenticated_client)
 
-        response = authenticated_client.get(f"/duels/stats/win-rate?deck_id={my_deck_id}")
+        response = authenticated_client.get(
+            f"/duels/stats/win-rate?deck_id={my_deck_id}"
+        )
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

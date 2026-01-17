@@ -66,20 +66,17 @@ def upgrade() -> None:
     # ========================================
     # 4. 外部キーのインデックスを追加
     # ========================================
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_decks_user_id ON decks(user_id)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_decks_user_id ON decks(user_id)")
     op.execute(
         "CREATE INDEX IF NOT EXISTS idx_shared_statistics_user_id ON shared_statistics(user_id)"
     )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_sharedurls_user_id ON sharedurls(user_id)"
-    )
+    # Note: sharedurlsテーブルは後のマイグレーション(fc690e860af8)で削除されるため、
+    # インデックス追加はスキップ
 
     # ========================================
     # 5. 未使用のインデックスを削除
     # ========================================
-    op.execute("DROP INDEX IF EXISTS ix_sharedurls_id")
+    # ix_sharedurls_id は sharedurlsテーブルと一緒に後のマイグレーションで削除される
     op.execute("DROP INDEX IF EXISTS ix_shared_statistics_id")
     # ix_password_reset_tokens_id は password_reset_tokens テーブルと一緒に削除済み
 
@@ -88,12 +85,10 @@ def downgrade() -> None:
     # インデックスを削除
     op.execute("DROP INDEX IF EXISTS idx_decks_user_id")
     op.execute("DROP INDEX IF EXISTS idx_shared_statistics_user_id")
-    op.execute("DROP INDEX IF EXISTS idx_sharedurls_user_id")
+    # Note: sharedurlsテーブルのインデックスは削除しない（テーブル自体が存在しない可能性があるため）
 
     # 未使用インデックスを復元
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_sharedurls_id ON sharedurls(id)"
-    )
+    # ix_sharedurls_id は sharedurlsテーブルが存在しない可能性があるため復元しない
     op.execute(
         "CREATE INDEX IF NOT EXISTS ix_shared_statistics_id ON shared_statistics(id)"
     )

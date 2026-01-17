@@ -23,7 +23,9 @@ def csv_service():
 def sample_duels(db_session: Session, test_user):
     """テスト用のデュエルデータを作成"""
     my_deck = Deck(name="Test My Deck", user_id=test_user.id, is_opponent=False)
-    opponent_deck = Deck(name="Test Opponent Deck", user_id=test_user.id, is_opponent=True)
+    opponent_deck = Deck(
+        name="Test Opponent Deck", user_id=test_user.id, is_opponent=True
+    )
     db_session.add_all([my_deck, opponent_deck])
     db_session.commit()
 
@@ -104,15 +106,11 @@ class TestCSVExport:
     ):
         """月フィルター付きエクスポート"""
         # 5月のデータあり
-        result_may = csv_service.export_duels_to_csv(
-            db_session, test_user.id, month=5
-        )
+        result_may = csv_service.export_duels_to_csv(db_session, test_user.id, month=5)
         assert "Test My Deck" in result_may
 
         # 1月のデータなし
-        result_jan = csv_service.export_duels_to_csv(
-            db_session, test_user.id, month=1
-        )
+        result_jan = csv_service.export_duels_to_csv(db_session, test_user.id, month=1)
         lines = result_jan.strip().split("\n")
         assert len(lines) == 1  # ヘッダーのみ
 
@@ -142,7 +140,9 @@ class TestCSVImport:
             "Import Deck,Import Opponent,勝利,RANK,10,,,表,先攻,2023-06-15 10:00:00,Imported note\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 1
         assert result["skipped"] == 0
@@ -155,7 +155,9 @@ class TestCSVImport:
             "BOM Deck,BOM Opponent,勝利,RANK,10,,,表,先攻,2023-06-15 10:00:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 1
         assert result["skipped"] == 0
@@ -168,20 +170,26 @@ class TestCSVImport:
             ",Missing Opponent,勝利,RANK,10,,,表,先攻,2023-06-15 10:00:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 0
         assert len(result["errors"]) == 1
         assert "使用デッキ" in result["errors"][0]
 
-    def test_import_missing_opponent_deck_name(self, csv_service, db_session, test_user):
+    def test_import_missing_opponent_deck_name(
+        self, csv_service, db_session, test_user
+    ):
         """相手デッキ名が欠けている場合"""
         csv_content = (
             "使用デッキ,相手デッキ,結果,ゲームモード,ランク,レート,DC値,コイン,先攻/後攻,対戦日時,メモ\n"
             "My Deck,,勝利,RANK,10,,,表,先攻,2023-06-15 10:00:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 0
         assert len(result["errors"]) == 1
@@ -194,7 +202,9 @@ class TestCSVImport:
             "My Deck,Opponent Deck,勝利,RANK,10,,,表,先攻,,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 0
         assert len(result["errors"]) == 1
@@ -207,7 +217,9 @@ class TestCSVImport:
             "My Deck,Opponent Deck,勝利,RANK,10,,,表,先攻,invalid-date,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 0
         assert len(result["errors"]) == 1
@@ -220,7 +232,9 @@ class TestCSVImport:
             "My Deck,Opponent Deck,勝利,RANK,10,,,表,先攻,2023/06/15 10:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 1
         assert result["skipped"] == 0
@@ -234,11 +248,15 @@ class TestCSVImport:
         )
 
         # 1回目
-        result1 = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result1 = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
         assert result1["created"] == 1
 
         # 2回目（重複）
-        result2 = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result2 = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
         assert result2["created"] == 0
         assert result2["skipped"] == 1
 
@@ -249,7 +267,9 @@ class TestCSVImport:
             "Rate Deck,Rate Opponent,勝利,RATE,,1500,,表,先攻,2023-06-15 10:00:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 1
 
@@ -265,7 +285,9 @@ class TestCSVImport:
             "DC Deck,DC Opponent,敗北,DC,,,500,裏,後攻,2023-06-15 10:00:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 1
 
@@ -283,7 +305,9 @@ class TestCSVImport:
             "Rank Deck,Rank Opponent,勝利,RANK,マスター1,,,表,先攻,2023-06-15 10:00:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 1
 
@@ -299,7 +323,9 @@ class TestCSVImport:
             "Deck C,Opponent C,勝利,RATE,,1500,,表,先攻,2023-06-15 12:00:00,Note C\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 3
         assert result["skipped"] == 0
@@ -314,18 +340,20 @@ class TestCSVImport:
             "Good Deck 2,Good Opponent 2,勝利,RANK,10,,,表,先攻,2023-06-15 12:00:00,\n"
         )
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 2
         assert len(result["errors"]) == 1
 
     def test_import_empty_csv(self, csv_service, db_session, test_user):
         """空のCSV（ヘッダーのみ）"""
-        csv_content = (
-            "使用デッキ,相手デッキ,結果,ゲームモード,ランク,レート,DC値,コイン,先攻/後攻,対戦日時,メモ\n"
-        )
+        csv_content = "使用デッキ,相手デッキ,結果,ゲームモード,ランク,レート,DC値,コイン,先攻/後攻,対戦日時,メモ\n"
 
-        result = csv_service.import_duels_from_csv(db_session, test_user.id, csv_content)
+        result = csv_service.import_duels_from_csv(
+            db_session, test_user.id, csv_content
+        )
 
         assert result["created"] == 0
         assert result["skipped"] == 0

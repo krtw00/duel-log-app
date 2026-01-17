@@ -36,7 +36,9 @@ def downgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("used", sa.Boolean(), server_default=sa.text("false"), nullable=False),
+        sa.Column(
+            "used", sa.Boolean(), server_default=sa.text("false"), nullable=False
+        ),
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["users.id"],
@@ -47,8 +49,14 @@ def downgrade() -> None:
         sa.UniqueConstraint("token"),
     )
     op.create_index(
-        "ix_password_reset_tokens_token", "password_reset_tokens", ["token"], unique=True
+        "ix_password_reset_tokens_token",
+        "password_reset_tokens",
+        ["token"],
+        unique=True,
     )
     op.create_index(
-        "ix_password_reset_tokens_user_id", "password_reset_tokens", ["user_id"], unique=False
+        "ix_password_reset_tokens_user_id",
+        "password_reset_tokens",
+        ["user_id"],
+        unique=False,
     )

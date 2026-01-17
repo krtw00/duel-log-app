@@ -26,14 +26,19 @@ router = APIRouter(prefix="/statistics", tags=["statistics"])
 
 
 def get_statistics_filters(
-    year: Optional[int] = Query(None, description="年（from_timestamp未指定時のデフォルト:今年）"),
-    month: Optional[int] = Query(None, description="月（from_timestamp未指定時のデフォルト:今月）"),
+    year: Optional[int] = Query(
+        None, description="年（from_timestamp未指定時のデフォルト:今年）"
+    ),
+    month: Optional[int] = Query(
+        None, description="月（from_timestamp未指定時のデフォルト:今月）"
+    ),
     range_start: Optional[int] = Query(None, description="範囲指定：開始試合数"),
     range_end: Optional[int] = Query(None, description="範囲指定：終了試合数"),
     my_deck_id: Optional[int] = Query(None, description="使用デッキでフィルター"),
     opponent_deck_id: Optional[int] = Query(None, description="相手デッキでフィルター"),
     from_timestamp: Optional[str] = Query(
-        None, description="この時刻以降のデータのみ取得（ISO8601形式）。指定時はyear/monthを無視"
+        None,
+        description="この時刻以降のデータのみ取得（ISO8601形式）。指定時はyear/monthを無視",
     ),
 ) -> StatisticsFilters:
     # from_timestampがない場合はデフォルトで今月を使用
