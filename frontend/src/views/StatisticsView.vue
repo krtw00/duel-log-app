@@ -377,9 +377,11 @@ const refreshStatisticsWithDecks = async () => {
   // Update cache
   lastFetchParams.value = currentParams;
 
-  // Parallel execution of API calls
+  // First, fetch available decks (other calls depend on this)
+  await fetchAvailableDecks();
+
+  // Then execute statistics and duels in parallel
   await Promise.all([
-    fetchAvailableDecks(),
     fetchStatistics(),
     fetchMonthlyDuels(currentTab.value as GameMode),
   ]);
