@@ -5,6 +5,7 @@
     variant="flat"
     class="streak-badge"
     size="small"
+    :aria-label="streakText"
   >
     <v-icon start size="16">
       {{ streak > 0 ? 'mdi-fire' : 'mdi-snowflake' }}
