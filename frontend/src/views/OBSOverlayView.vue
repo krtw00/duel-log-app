@@ -40,6 +40,7 @@ import axios, { AxiosError } from 'axios';
 import { createLogger } from '@/utils/logger';
 import { useLocale } from '@/composables/useLocale';
 import { useRanks } from '@/composables/useRanks';
+import { useSmartPolling } from '@/composables/useSmartPolling';
 import type { OBSStatsResponse, OBSDisplayItemDefinition, OBSQueryParams } from '@/types/obs';
 import type { ApiErrorResponse } from '@/types/api';
 import type { GameMode } from '@/types';
@@ -344,21 +345,31 @@ const fetchStats = async () => {
   }
 };
 
+// スマートポーリングの設定
+const { start: startPolling, stop: stopPolling } = useSmartPolling({
+  fn: fetchStats,
+  interval: refreshInterval.value,
+  maxBackoff: 60000,
+  pauseOnHidden: true,
+});
+
 onMounted(() => {
   // OBSオーバーレイ用のクラスをbody要素に追加
   document.body.classList.add('obs-overlay-page');
 
+  // 初回データ取得
   fetchStats();
 
-  // 定期的に統計情報を更新
-  setInterval(() => {
-    fetchStats();
-  }, refreshInterval.value);
+  // スマートポーリングを開始
+  startPolling();
 });
 
 onUnmounted(() => {
   // コンポーネント破棄時にクラスを削除
   document.body.classList.remove('obs-overlay-page');
+
+  // ポーリングを停止
+  stopPolling();
 });
 </script>
 
