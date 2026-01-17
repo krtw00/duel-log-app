@@ -9,6 +9,34 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 
 
+class ErrorCode:
+    """
+    エラーコード定義
+
+    クライアント側でのエラー識別に使用する
+    """
+
+    # 認証・認可エラー
+    UNAUTHORIZED = "UNAUTHORIZED"
+    FORBIDDEN = "FORBIDDEN"
+    INVALID_TOKEN = "INVALID_TOKEN"
+
+    # リソースエラー
+    NOT_FOUND = "NOT_FOUND"
+    ALREADY_EXISTS = "ALREADY_EXISTS"
+
+    # バリデーションエラー
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    INVALID_INPUT = "INVALID_INPUT"
+
+    # サーバーエラー
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+    DATABASE_ERROR = "DATABASE_ERROR"
+
+    # その他
+    BAD_REQUEST = "BAD_REQUEST"
+
+
 class ErrorResponse(BaseModel):
     """
     統一エラーレスポンススキーマ
@@ -19,6 +47,10 @@ class ErrorResponse(BaseModel):
     """
 
     message: str = Field(..., description="ユーザー向けエラーメッセージ")
+    code: Optional[str] = Field(
+        default=None,
+        description="エラーコード（クライアント側でのエラー識別用）",
+    )
     detail: Optional[Any] = Field(
         default=None,
         description="追加の詳細情報（バリデーションエラーの場合はエラーリスト）",

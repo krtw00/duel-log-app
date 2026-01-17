@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.exceptions import AppException
+from app.schemas.error import ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +96,7 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
         status_code=exc.status_code,
         content={
             "message": exc.message,
+            "code": getattr(exc, "code", None),
             "detail": exc.detail,
         },
     )
@@ -131,6 +133,7 @@ async def validation_exception_handler(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "message": "入力値が不正です",
+            "code": ErrorCode.VALIDATION_ERROR,
             "detail": errors,
         },
     )
@@ -156,6 +159,7 @@ async def sqlalchemy_exception_handler(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "message": "データベースエラーが発生しました",
+            "code": ErrorCode.DATABASE_ERROR,
             "detail": "サーバー内部エラー",
         },
     )
@@ -168,7 +172,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     HTTPExceptionハンドラー
 
     FastAPIのHTTPExceptionを統一フォーマットに変換する。
-    元の {"detail": ...} 形式を {"message": ..., "detail": ...} に変換。
+    元の {\"detail\": ...} 形式を {\"message\": ..., \"code\": ..., \"detail\": ...} に変換。
     """
     # ログレベルはステータスコードに応じて調整
     if exc.status_code >= 500:
@@ -182,10 +186,22 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
             extra={"path": request.url.path},
         )
 
+    # ステータスコードに応じたエラーコードを設定
+    error_code_map = {
+        400: ErrorCode.BAD_REQUEST,
+        401: ErrorCode.UNAUTHORIZED,
+        403: ErrorCode.FORBIDDEN,
+        404: ErrorCode.NOT_FOUND,
+        422: ErrorCode.VALIDATION_ERROR,
+        500: ErrorCode.INTERNAL_ERROR,
+    }
+    error_code = error_code_map.get(exc.status_code, ErrorCode.INTERNAL_ERROR)
+
     response = JSONResponse(
         status_code=exc.status_code,
         content={
             "message": exc.detail if isinstance(exc.detail, str) else str(exc.detail),
+            "code": error_code,
             "detail": None,
         },
     )
@@ -209,6 +225,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "message": "予期しないエラーが発生しました",
+            "code": ErrorCode.INTERNAL_ERROR,
             "detail": (
                 str(exc) if logger.level == logging.DEBUG else "サーバー内部エラー"
             ),
