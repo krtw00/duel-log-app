@@ -78,7 +78,7 @@
                 </label>
                 <v-radio-group
                   v-model.number="form.coin"
-                  :inline="$vuetify.display.smAndUp"
+                  :inline="!$vuetify.display.mobile"
                   color="primary"
                   :rules="[rules.required]"
                   hide-details="auto"
@@ -98,7 +98,7 @@
                 </label>
                 <v-radio-group
                   v-model.number="form.first_or_second"
-                  :inline="$vuetify.display.smAndUp"
+                  :inline="!$vuetify.display.mobile"
                   color="primary"
                   :rules="[rules.required]"
                   hide-details="auto"
@@ -118,7 +118,7 @@
                 </label>
                 <v-radio-group
                   v-model.number="form.result"
-                  :inline="$vuetify.display.smAndUp"
+                  :inline="!$vuetify.display.mobile"
                   :rules="[rules.required]"
                   hide-details="auto"
                 >
