@@ -186,6 +186,13 @@ class TestAdminUpdateUserStatus:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_update_admin_status_unauthenticated_forbidden(self, client, admin_user):
+        """未認証での管理者権限変更（失敗 - 401 Unauthorized）"""
+        response = client.put(
+            f"/admin/users/{admin_user.id}/admin-status", json={"is_admin": False}
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 class TestAdminGetUserDetail:
     """GET /admin/users/{user_id} のテスト"""
@@ -239,6 +246,11 @@ class TestAdminGetUserDetail:
         response = regular_authenticated_client.get(f"/admin/users/{admin_user.id}")
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_get_user_detail_unauthenticated_forbidden(self, client, admin_user):
+        """未認証でのユーザー詳細取得（失敗 - 401 Unauthorized）"""
+        response = client.get(f"/admin/users/{admin_user.id}")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 class TestAdminUpdateAccountStatus:
     """PUT /admin/users/{user_id}/status のテスト"""
@@ -280,6 +292,14 @@ class TestAdminUpdateAccountStatus:
             json={"status": "suspended"},
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_status_unauthenticated_forbidden(self, client, regular_user):
+        """未認証でのアカウント状態変更（失敗 - 401 Unauthorized）"""
+        response = client.put(
+            f"/admin/users/{regular_user.id}/status",
+            json={"status": "suspended", "reason": "Test"},
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 class TestAdminStatistics:
@@ -323,6 +343,21 @@ class TestAdminStatistics:
         """一般ユーザーによる統計取得（失敗）"""
         response = regular_authenticated_client.get("/admin/statistics/overview")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_statistics_overview_unauthenticated_forbidden(self, client):
+        """未認証での統計概要取得（失敗 - 401 Unauthorized）"""
+        response = client.get("/admin/statistics/overview")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_duels_timeline_unauthenticated_forbidden(self, client):
+        """未認証での対戦数推移取得（失敗 - 401 Unauthorized）"""
+        response = client.get("/admin/statistics/duels-timeline")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_user_registrations_unauthenticated_forbidden(self, client):
+        """未認証でのユーザー登録数推移取得（失敗 - 401 Unauthorized）"""
+        response = client.get("/admin/statistics/user-registrations")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 class TestAdminMaintenance:
@@ -392,6 +427,36 @@ class TestAdminMaintenance:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_scan_orphaned_data_unauthenticated_forbidden(self, client):
+        """未認証での孤立データスキャン（失敗 - 401 Unauthorized）"""
+        response = client.post("/admin/maintenance/scan-orphaned-data")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_cleanup_orphaned_data_unauthenticated_forbidden(self, client):
+        """未認証での孤立データクリーンアップ（失敗 - 401 Unauthorized）"""
+        response = client.post("/admin/maintenance/cleanup-orphaned-data")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_scan_orphaned_shared_urls_unauthenticated_forbidden(self, client):
+        """未認証での孤立共有URLスキャン（失敗 - 401 Unauthorized）"""
+        response = client.post("/admin/maintenance/scan-orphaned-shared-urls")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_cleanup_orphaned_shared_urls_unauthenticated_forbidden(self, client):
+        """未認証での孤立共有URLクリーンアップ（失敗 - 401 Unauthorized）"""
+        response = client.post("/admin/maintenance/cleanup-orphaned-shared-urls")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_scan_expired_shared_urls_unauthenticated_forbidden(self, client):
+        """未認証での期限切れ共有URLスキャン（失敗 - 401 Unauthorized）"""
+        response = client.post("/admin/maintenance/scan-expired-shared-urls")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_cleanup_expired_shared_urls_unauthenticated_forbidden(self, client):
+        """未認証での期限切れ共有URLクリーンアップ（失敗 - 401 Unauthorized）"""
+        response = client.post("/admin/maintenance/cleanup-expired-shared-urls")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 class TestAdminMetaAnalysis:
     """管理者メタ分析エンドポイントのテスト"""
@@ -442,3 +507,18 @@ class TestAdminMetaAnalysis:
         """一般ユーザーによるメタ分析（失敗）"""
         response = regular_authenticated_client.get("/admin/meta/popular-decks")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_popular_decks_unauthenticated_forbidden(self, client):
+        """未認証での人気デッキ取得（失敗 - 401 Unauthorized）"""
+        response = client.get("/admin/meta/popular-decks")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_deck_trends_unauthenticated_forbidden(self, client):
+        """未認証でのデッキトレンド取得（失敗 - 401 Unauthorized）"""
+        response = client.get("/admin/meta/deck-trends")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_game_mode_stats_unauthenticated_forbidden(self, client):
+        """未認証でのゲームモード別統計取得（失敗 - 401 Unauthorized）"""
+        response = client.get("/admin/meta/game-mode-stats")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
