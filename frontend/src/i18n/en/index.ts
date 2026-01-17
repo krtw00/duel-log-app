@@ -441,7 +441,6 @@ const en = {
         sec10: '10 seconds',
         sec30: '30 seconds',
         min1: '1 minute',
-        min5: '5 minutes',
       },
       statsPeriod: 'Stats Period',
       statsPeriods: {

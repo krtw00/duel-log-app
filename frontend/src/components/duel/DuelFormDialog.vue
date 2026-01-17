@@ -349,6 +349,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { api } from '@/services/api';
+import { notifyDuelUpdate } from '@/services/duelService';
 import { createLogger } from '@/utils/logger';
 import { Duel, DuelCreate, Deck, GameMode } from '@/types';
 import { useNotificationStore } from '@/stores/notification';
@@ -946,6 +947,7 @@ const autoRegisterDuel = async () => {
     };
 
     const response = await api.post('/duels/', submitData);
+    notifyDuelUpdate(); // ポップアップに通知
     notificationStore.success(LL.value?.duels.form.autoRegisterSuccess() ?? '対戦記録を自動登録しました');
     const savedDuel = response.data as Duel;
 
@@ -1062,6 +1064,7 @@ const handleSubmit = async () => {
 
     if (isEdit.value && props.duel) {
       const response = await api.put(`/duels/${props.duel.id}`, submitData);
+      notifyDuelUpdate(); // ポップアップに通知
       notificationStore.success(LL.value?.duels.saveSuccess() ?? '対戦記録を保存しました');
       savedDuel = {
         ...(props.duel as Duel),
@@ -1073,6 +1076,7 @@ const handleSubmit = async () => {
       };
     } else {
       const response = await api.post('/duels/', submitData);
+      notifyDuelUpdate(); // ポップアップに通知
       notificationStore.success(LL.value?.duels.saveSuccess() ?? '対戦記録を保存しました');
       savedDuel = {
         ...(response.data as Duel),

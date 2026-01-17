@@ -1462,10 +1462,6 @@ type RootTranslation = {
 				 * 1​分
 				 */
 				min1: string
-				/**
-				 * 5​分
-				 */
-				min5: string
 			}
 			/**
 			 * 統​計​期​間
@@ -3864,10 +3860,6 @@ export type TranslationFunctions = {
 				 * 1分
 				 */
 				min1: () => LocalizedString
-				/**
-				 * 5分
-				 */
-				min5: () => LocalizedString
 			}
 			/**
 			 * 統計期間
