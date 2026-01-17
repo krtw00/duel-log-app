@@ -95,19 +95,30 @@ def get_current_user(
     """
     JWTトークン（クッキーまたはAuthorizationヘッダーから取得）を検証し、現在のユーザーを返す
 
-    Safari ITP対策として、Authorizationヘッダーでの認証にも対応
-    優先順位: 1. Authorizationヘッダー, 2. Cookie
+    ## 認証経路の優先順位（セキュリティポリシー）
+    1. **Authorizationヘッダー** (Bearer トークン)
+       - Safari ITP (Intelligent Tracking Prevention) 対策
+       - モバイルアプリやSPAからの明示的な認証に使用
+    2. **Cookie** (access_token)
+       - 通常のブラウザセッション認証
+       - HttpOnly、SameSite=Lax で CSRF 対策済み
+
+    ## セキュリティチェック
+    - Supabase JWT トークンの検証（署名、有効期限）
+    - ユーザーのステータスチェック (suspended/deleted は 403 Forbidden)
+    - JIT Provisioning: 新規ユーザーは自動作成（Supabase Auth連携）
 
     Args:
         access_token: リクエストクッキー内のJWTトークン（オプショナル）
-        authorization: Authorizationヘッダー（オプショナル）
+        authorization: Authorizationヘッダー（オプショナル、"Bearer <token>" 形式）
         db: データベースセッション
 
     Returns:
-        認証されたユーザーオブジェクト
+        認証されたユーザーオブジェクト（status="active" のみ）
 
     Raises:
-        UnauthorizedException: 認証失敗時
+        UnauthorizedException: 認証失敗時（トークンなし、無効、期限切れ）
+        HTTPException (403): アカウントが suspended または deleted の場合
     """
     token = None
 
