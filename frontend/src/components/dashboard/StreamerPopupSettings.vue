@@ -52,16 +52,6 @@
         </v-col>
         <v-col cols="12" sm="6" md="3">
           <v-select
-            v-model="refreshInterval"
-            :items="refreshOptions"
-            :label="LL?.obs.streamerPopup.refreshInterval()"
-            variant="outlined"
-            density="compact"
-            hide-details
-          />
-        </v-col>
-        <v-col cols="12" sm="6" md="3">
-          <v-select
             v-model="chromaKeyBackground"
             :items="chromaKeyOptions"
             :label="LL?.obs.streamerPopup.chromaKey.title()"
@@ -126,6 +116,18 @@
         {{ LL?.common.reset() }}
       </v-btn>
       <v-spacer />
+      <v-btn
+        variant="outlined"
+        color="primary"
+        prepend-icon="mdi-content-save"
+        :disabled="!hasUnsavedChanges"
+        @click="saveSettings"
+      >
+        {{ LL?.common.save() }}
+        <template v-if="hasUnsavedChanges">
+          <v-icon size="x-small" class="ml-1" color="warning">mdi-circle</v-icon>
+        </template>
+      </v-btn>
       <v-btn color="purple" variant="elevated" prepend-icon="mdi-open-in-new" @click="openPopup">
         {{ LL?.obs.streamerPopup.openPopup() }}
       </v-btn>
@@ -137,11 +139,23 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useLocale } from '@/composables/useLocale';
 import { useAuthStore, type ChromaKeyBackground } from '@/stores/auth';
+import { createLogger } from '@/utils/logger';
 
+const logger = createLogger('StreamerPopupSettings');
 const { LL } = useLocale();
 const authStore = useAuthStore();
 
 const STORAGE_KEY = 'duellog.streamerPopupSettings';
+
+// 保存済み設定のスナップショット（未保存変更の検出用）
+interface SavedSettingsSnapshot {
+  displayItems: { key: string; selected: boolean }[];
+  gameMode: string;
+  statsPeriod: string;
+  theme: string;
+  layout: string;
+}
+const savedSnapshot = ref<SavedSettingsSnapshot | null>(null);
 
 interface DisplayItem {
   key: string;
@@ -191,7 +205,6 @@ const defaultSettings = {
   statsPeriod: 'monthly',
   theme: 'dark',
   layout: 'grid',
-  refreshInterval: 30000,
 };
 
 // 表示項目（順序と選択状態を保持）- ラベルは後で動的に更新
@@ -216,7 +229,6 @@ const gameMode = ref(defaultSettings.gameMode);
 const statsPeriod = ref(defaultSettings.statsPeriod);
 const theme = ref(defaultSettings.theme);
 const layout = ref(defaultSettings.layout);
-const refreshInterval = ref(defaultSettings.refreshInterval);
 
 // クロマキー背景（authStoreと同期）
 const chromaKeyBackground = ref<ChromaKeyBackground>(authStore.chromaKeyBackground);
@@ -235,6 +247,31 @@ const displayItemsPanel = ref<string | undefined>(undefined);
 
 // 選択中のアイテム数
 const selectedCount = computed(() => displayItems.value.filter((item) => item.selected).length);
+
+// 未保存の変更があるかどうか
+const hasUnsavedChanges = computed(() => {
+  if (!savedSnapshot.value) return false;
+
+  const saved = savedSnapshot.value;
+
+  // 基本設定の比較
+  if (gameMode.value !== saved.gameMode) return true;
+  if (statsPeriod.value !== saved.statsPeriod) return true;
+  if (theme.value !== saved.theme) return true;
+  if (layout.value !== saved.layout) return true;
+
+  // 表示項目の比較（順序と選択状態）
+  if (displayItems.value.length !== saved.displayItems.length) return true;
+  for (let i = 0; i < displayItems.value.length; i++) {
+    const current = displayItems.value[i];
+    const savedItem = saved.displayItems[i];
+    if (current.key !== savedItem.key || current.selected !== savedItem.selected) {
+      return true;
+    }
+  }
+
+  return false;
+});
 
 // オプション（国際化対応）
 const gameModeOptions = computed(() => [
@@ -260,12 +297,8 @@ const layoutOptions = computed(() => [
   { title: LL.value?.obs.streamerPopup.layouts.vertical() ?? 'Vertical', value: 'vertical' },
 ]);
 
-const refreshOptions = computed(() => [
-  { title: LL.value?.obs.streamerPopup.intervals.sec10() ?? '10s', value: 10000 },
-  { title: LL.value?.obs.streamerPopup.intervals.sec30() ?? '30s', value: 30000 },
-  { title: LL.value?.obs.streamerPopup.intervals.min1() ?? '1m', value: 60000 },
-  { title: LL.value?.obs.streamerPopup.intervals.min5() ?? '5m', value: 300000 },
-]);
+// フォールバック用の固定更新間隔（BroadcastChannelが効かない場合用）
+const FALLBACK_REFRESH_INTERVAL = 30000;
 
 const chromaKeyOptions = computed(() => [
   { title: LL.value?.obs.streamerPopup.chromaKey.none() ?? 'Normal', value: 'none' },
@@ -361,6 +394,17 @@ const migrateOldSettings = (settings: Record<string, unknown>): void => {
 };
 
 /**
+ * 現在の設定からスナップショットを作成
+ */
+const createSnapshot = (): SavedSettingsSnapshot => ({
+  displayItems: displayItems.value.map((item) => ({ key: item.key, selected: item.selected })),
+  gameMode: gameMode.value,
+  statsPeriod: statsPeriod.value,
+  theme: theme.value,
+  layout: layout.value,
+});
+
+/**
  * ローカルストレージから設定を読み込む
  */
 const loadSettings = () => {
@@ -382,13 +426,13 @@ const loadSettings = () => {
       if (settings.layout) {
         layout.value = settings.layout;
       }
-      if (typeof settings.refreshInterval === 'number') {
-        refreshInterval.value = settings.refreshInterval;
-      }
     }
   } catch {
     // ストレージエラーは無視
   }
+
+  // 読み込み後にスナップショットを作成（未保存変更の検出基準）
+  savedSnapshot.value = createSnapshot();
 };
 
 /**
@@ -402,9 +446,13 @@ const saveSettings = () => {
       statsPeriod: statsPeriod.value,
       theme: theme.value,
       layout: layout.value,
-      refreshInterval: refreshInterval.value,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+
+    // スナップショットを更新
+    savedSnapshot.value = createSnapshot();
+
+    logger.debug('Settings saved');
   } catch {
     // ストレージエラーは無視
   }
@@ -419,17 +467,7 @@ const resetToDefaults = () => {
   statsPeriod.value = defaultSettings.statsPeriod;
   theme.value = defaultSettings.theme;
   layout.value = defaultSettings.layout;
-  refreshInterval.value = defaultSettings.refreshInterval;
 };
-
-// 設定変更時に自動保存
-watch(
-  [displayItems, gameMode, statsPeriod, theme, layout, refreshInterval],
-  () => {
-    saveSettings();
-  },
-  { deep: true },
-);
 
 // マウント時に設定を読み込む
 onMounted(() => {
@@ -450,18 +488,45 @@ const popupUrl = computed(() => {
     stats_period: statsPeriod.value,
     theme: theme.value,
     layout: layout.value,
-    refresh: refreshInterval.value.toString(),
+    refresh: FALLBACK_REFRESH_INTERVAL.toString(),
   });
   return `${baseUrl}/streamer-popup?${params.toString()}`;
 });
 
 // ポップアップを開く（コンテンツに合わせて自動リサイズされる）
 const openPopup = () => {
-  // 初期サイズは大きめに設定し、コンテンツ読み込み後に自動調整される
+  // 未保存の変更があれば保存してから開く
+  if (hasUnsavedChanges.value) {
+    saveSettings();
+  }
+
+  let finalUrl = popupUrl.value;
+
+  // セッション統計モードの場合、現在時刻の少し前をfrom_timestampとして渡す
+  // （フォームが先に開かれている場合に対応するため1分前を基準にする）
+  if (statsPeriod.value === 'session') {
+    const urlObj = new URL(finalUrl, window.location.origin);
+    const timestamp = new Date(Date.now() - 60 * 1000); // 1分前
+    urlObj.searchParams.set('from_timestamp', timestamp.toISOString());
+    finalUrl = urlObj.toString();
+
+    logger.debug('Opening popup with from_timestamp:', timestamp.toISOString());
+  }
+
+  // レイアウトに応じたサイズを設定（カード幅200px基準）
+  let width = 1200;
+  let height = 120;
+  if (layout.value === 'vertical') {
+    width = 250;
+    height = 600;
+  } else if (layout.value === 'grid') {
+    width = 900;
+    height = 400;
+  }
   window.open(
-    popupUrl.value,
+    finalUrl,
     'streamer-popup',
-    'width=600,height=500,menubar=no,toolbar=no,resizable=yes',
+    `width=${width},height=${height},menubar=no,toolbar=no,resizable=yes`,
   );
 };
 </script>
