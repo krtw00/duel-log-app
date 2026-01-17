@@ -644,6 +644,7 @@ const handleOAuthLogin = async (provider: Provider) => {
   flex: 1;
   max-width: 120px;
   height: 48px !important;
+  min-width: 48px !important; // タッチターゲット確保
   transition: all 0.3s ease;
 
   &:hover {
