@@ -66,7 +66,13 @@
                   </v-list-item-subtitle>
 
                   <template #append>
-                    <v-btn icon="mdi-pencil" size="small" variant="text" :aria-label="LL?.decks.editDeck()" @click="editDeck(deck)" />
+                    <v-btn
+                      icon="mdi-pencil"
+                      size="small"
+                      variant="text"
+                      :aria-label="LL?.decks.editDeck()"
+                      @click="editDeck(deck)"
+                    />
                     <v-btn
                       icon="mdi-delete"
                       size="small"
@@ -124,7 +130,13 @@
                   </v-list-item-subtitle>
 
                   <template #append>
-                    <v-btn icon="mdi-pencil" size="small" variant="text" :aria-label="LL?.decks.editDeck()" @click="editDeck(deck)" />
+                    <v-btn
+                      icon="mdi-pencil"
+                      size="small"
+                      variant="text"
+                      :aria-label="LL?.decks.editDeck()"
+                      @click="editDeck(deck)"
+                    />
                     <v-btn
                       icon="mdi-delete"
                       size="small"

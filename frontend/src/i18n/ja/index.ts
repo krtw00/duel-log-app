@@ -1,4 +1,4 @@
-import type { BaseTranslation } from '../i18n-types'
+import type { BaseTranslation } from '../i18n-types';
 
 const ja = {
   common: {
@@ -70,12 +70,14 @@ const ja = {
       hasAccount: '既にアカウントをお持ちの方は',
       login: 'ログイン',
       success: '登録が完了しました！',
-      successWithConfirmation: '確認メールを送信しました。メールを確認してアカウントを有効化してください。',
+      successWithConfirmation:
+        '確認メールを送信しました。メールを確認してアカウントを有効化してください。',
     },
     forgotPassword: {
       title: 'パスワードリセット',
       subtitle: 'Enter your email to reset your password.',
-      description: '登録済みのメールアドレスを入力してください。パスワードリセット用のリンクをお送りします。',
+      description:
+        '登録済みのメールアドレスを入力してください。パスワードリセット用のリンクをお送りします。',
       email: 'メールアドレス',
       submit: '再設定メールを送信',
       success: 'パスワード再設定の案内をメールで送信しました。',
@@ -121,7 +123,8 @@ const ja = {
       recommended: '推奨',
       obsBrowserSource: 'OBSブラウザソース',
       deprecated: '廃止予定',
-      deprecationWarning: 'この機能は将来廃止予定です。新しい「配信用ポップアップウィンドウ」の使用をお勧めします。',
+      deprecationWarning:
+        'この機能は将来廃止予定です。新しい「配信用ポップアップウィンドウ」の使用をお勧めします。',
       obsDescription: 'OBSのブラウザソースで統計情報をリアルタイム表示できます。',
       getObsUrl: 'OBS URLを取得',
       winRate: '勝率',
@@ -170,7 +173,8 @@ const ja = {
         '新弾リリース時など、全デッキを一括アーカイブできます。アーカイブしても過去の対戦記録は保持されます。',
       button: '全デッキをアーカイブ',
       confirm: '全てのデッキをアーカイブしますか？',
-      confirmWithCount: '{count:number}件のデッキをアーカイブしますか？\n\nアーカイブしても過去の対戦記録は保持されます。',
+      confirmWithCount:
+        '{count:number}件のデッキをアーカイブしますか？\n\nアーカイブしても過去の対戦記録は保持されます。',
       success: '全デッキをアーカイブしました',
       noDecks: 'アーカイブするデッキがありません',
       failed: 'アーカイブに失敗しました',
@@ -263,7 +267,8 @@ const ja = {
       registered: '登録済',
       canRegister: '登録可',
       switchToSecond: '後攻に切替',
-      description: 'マスターデュエルのウィンドウを選択して、画面を自動解析します。勝敗結果を検出すると自動で対戦記録を登録できます。',
+      description:
+        'マスターデュエルのウィンドウを選択して、画面を自動解析します。勝敗結果を検出すると自動で対戦記録を登録できます。',
       templateMode: 'テンプレートマッチング',
       mlMode: '機械学習(TF.js)',
       modeDescription: 'モードで解析します。',
@@ -473,7 +478,8 @@ const ja = {
     },
     configPanel: {
       title: 'OBS連携設定',
-      description: 'OBSのブラウザソースで統計情報をリアルタイムでオーバーレイ表示できます。表示する項目と集計期間をカスタマイズできます。',
+      description:
+        'OBSのブラウザソースで統計情報をリアルタイムでオーバーレイ表示できます。表示する項目と集計期間をカスタマイズできます。',
       periodType: '集計期間',
       periodMonthly: '月間',
       periodRecent: '直近N戦',
@@ -675,7 +681,8 @@ const ja = {
     version: 'バージョン',
   },
   feedback: {
-    intro: 'バグ報告、機能要望、お問い合わせをお待ちしております。GitHubのIssueとして登録されます。',
+    intro:
+      'バグ報告、機能要望、お問い合わせをお待ちしております。GitHubのIssueとして登録されます。',
     tabs: {
       bug: 'バグ報告',
       enhancement: '機能要望',
@@ -713,7 +720,8 @@ const ja = {
     contactInfo: {
       title: '連絡先',
     },
-    githubDisabled: 'GitHub連携が無効のため、フォームからの送信はできません。X (Twitter) またはGitHubから直接ご連絡ください。',
+    githubDisabled:
+      'GitHub連携が無効のため、フォームからの送信はできません。X (Twitter) またはGitHubから直接ご連絡ください。',
     success: {
       title: '送信完了',
       viewIssue: 'GitHubでIssueを確認する',
@@ -732,6 +740,6 @@ const ja = {
     dark: 'ダーク',
     system: 'システム設定に従う',
   },
-} satisfies BaseTranslation
+} satisfies BaseTranslation;
 
-export default ja
+export default ja;

@@ -68,7 +68,9 @@
 
           <!-- ログインページへのリンク -->
           <div class="text-center">
-            <router-link to="/login" class="text-caption text-grey">{{ LL?.auth.forgotPassword.backToLogin() }}</router-link>
+            <router-link to="/login" class="text-caption text-grey">{{
+              LL?.auth.forgotPassword.backToLogin()
+            }}</router-link>
           </div>
         </v-form>
       </v-card-text>

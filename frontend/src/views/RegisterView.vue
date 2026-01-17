@@ -112,7 +112,9 @@
             <v-divider class="my-3" />
             <p class="text-caption text-grey">
               {{ LL?.auth.register.hasAccount() }}
-              <router-link to="/login" class="text-secondary">{{ LL?.auth.register.login() }}</router-link>
+              <router-link to="/login" class="text-secondary">{{
+                LL?.auth.register.login()
+              }}</router-link>
             </p>
           </div>
         </v-form>

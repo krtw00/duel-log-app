@@ -33,11 +33,7 @@
                 :rules="[rules.required, rules.email]"
                 class="mb-4"
                 :readonly="form.streamerMode"
-                :hint="
-                  form.streamerMode
-                    ? LL?.profile.streamerMode.emailMaskedHint()
-                    : ''
-                "
+                :hint="form.streamerMode ? LL?.profile.streamerMode.emailMaskedHint() : ''"
                 persistent-hint
               ></v-text-field>
 
@@ -90,7 +86,9 @@
                 <div class="d-flex align-center mb-2">
                   <v-icon color="warning" class="mr-2">mdi-flask</v-icon>
                   <span class="text-h6">{{ LL?.profile.experimental.title() }}</span>
-                  <v-chip size="x-small" color="warning" class="ml-2">{{ LL?.profile.experimental.badge() }}</v-chip>
+                  <v-chip size="x-small" color="warning" class="ml-2">{{
+                    LL?.profile.experimental.badge()
+                  }}</v-chip>
                 </div>
                 <p class="text-caption text-grey mb-3">
                   {{ LL?.profile.experimental.screenAnalysis.description() }}
@@ -309,7 +307,9 @@ const rules = computed(() => ({
     if (!v) return true;
     return (
       (v.length >= 8 && v.length <= 72) ||
-      LL.value?.validation.minLength({ min: 8 }) + ' ' + LL.value?.validation.maxLength({ max: 72 }) ||
+      LL.value?.validation.minLength({ min: 8 }) +
+        ' ' +
+        LL.value?.validation.maxLength({ max: 72 }) ||
       ''
     );
   },

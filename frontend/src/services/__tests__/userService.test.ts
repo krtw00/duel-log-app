@@ -117,11 +117,9 @@ describe('userService', () => {
 
       const result = await importUserData(mockFile);
 
-      expect(api.post).toHaveBeenCalledWith(
-        '/me/import',
-        expect.any(FormData),
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
+      expect(api.post).toHaveBeenCalledWith('/me/import', expect.any(FormData), {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       expect(result.created_count).toBe(10);
       expect(result.skipped_count).toBe(2);
       expect(result.errors).toEqual([]);

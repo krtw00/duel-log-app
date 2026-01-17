@@ -1,15 +1,15 @@
-import { computed } from 'vue'
-import { useI18n, SUPPORTED_LOCALES, LOCALE_NAMES, setLocale } from '@/i18n'
-import type { SupportedLocale } from '@/i18n'
+import { computed } from 'vue';
+import { useI18n, SUPPORTED_LOCALES, LOCALE_NAMES, setLocale } from '@/i18n';
+import type { SupportedLocale } from '@/i18n';
 
 export function useLocale() {
-  const { locale, LL } = useI18n()
+  const { locale, LL } = useI18n();
 
-  const currentLocale = computed(() => locale.value)
-  const currentLocaleName = computed(() => LOCALE_NAMES[locale.value])
+  const currentLocale = computed(() => locale.value);
+  const currentLocaleName = computed(() => LOCALE_NAMES[locale.value]);
 
   async function changeLocale(newLocale: SupportedLocale) {
-    await setLocale(newLocale)
+    await setLocale(newLocale);
   }
 
   return {
@@ -19,5 +19,5 @@ export function useLocale() {
     localeNames: LOCALE_NAMES,
     changeLocale,
     LL,
-  }
+  };
 }
