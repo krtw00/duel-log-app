@@ -74,7 +74,9 @@ def create_supabase_user(email: str, password: str, username: str) -> str | None
             if response.status_code == 200:
                 user_data = response.json()
                 supabase_uuid = user_data.get("id")
-                logger.info(f"✅ Supabase user created: {email} (UUID: {supabase_uuid})")
+                logger.info(
+                    f"✅ Supabase user created: {email} (UUID: {supabase_uuid})"
+                )
                 return supabase_uuid
             elif response.status_code == 422:
                 # ユーザーが既に存在する場合、既存ユーザーを取得
@@ -191,7 +193,9 @@ def get_or_create_local_user(
         user.is_admin = True
         db.commit()
         db.refresh(user)
-        logger.info(f"Linked existing user to Supabase and granted admin: {user.username}")
+        logger.info(
+            f"Linked existing user to Supabase and granted admin: {user.username}"
+        )
         return user
 
     # 新規作成（テストユーザーは管理者権限付き）
@@ -233,7 +237,9 @@ def seed_data(db: Session):
 
         # ローカルDBにユーザーを同期
         user = get_or_create_local_user(db, supabase_uuid, fixed_email, fixed_username)
-        logger.info(f"User ready: {user.username} (ID: {user.id}, UUID: {supabase_uuid})")
+        logger.info(
+            f"User ready: {user.username} (ID: {user.id}, UUID: {supabase_uuid})"
+        )
 
         # --- 2. ダミーデッキの作成 (自分用と相手用) ---
         logger.info("Creating dummy decks...")
