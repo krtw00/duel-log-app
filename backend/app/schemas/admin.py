@@ -238,6 +238,13 @@ class ExpiredSharedStatisticsCleanupResponse(BaseModel):
     message: str
 
 
+# 後方互換エイリアス（非推奨）
+OrphanedSharedUrlsScanResponse = OrphanedSharedStatisticsScanResponse
+OrphanedSharedUrlsCleanupResponse = OrphanedSharedStatisticsCleanupResponse
+ExpiredSharedUrlsScanResponse = ExpiredSharedStatisticsScanResponse
+ExpiredSharedUrlsCleanupResponse = ExpiredSharedStatisticsCleanupResponse
+
+
 # ========================================
 # メタ分析
 # ========================================
