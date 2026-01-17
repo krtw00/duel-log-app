@@ -296,6 +296,9 @@ const resizeWindowOnce = async () => {
   // ポップアップウィンドウでない場合はスキップ
   if (!window.opener) return;
 
+  // gridレイアウトはユーザーが自由にリサイズするためスキップ
+  if (layout.value === 'grid') return;
+
   await nextTick();
 
   // レンダリング完了を待つ
