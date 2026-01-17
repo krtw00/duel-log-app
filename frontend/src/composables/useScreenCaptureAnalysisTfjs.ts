@@ -6,18 +6,9 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { createLogger } from '@/utils/logger';
-import {
-  initTfjs,
-  ImageClassifier,
-  TFJS_CONFIG,
-  extractRoiImageData,
-  resizeImageData,
-  classifyByColorHistogram,
-  MODEL_INPUT_SIZE,
-  logMemoryUsage,
-} from '@/utils/tfjsImageClassification';
+import { TFJS_CONFIG } from '@/utils/tfjsImageClassification';
 import { createCanvas } from '@/utils/screenAnalysis';
-import type { RoiRatio } from '@/utils/screenAnalysis';
+import type { TfjsWorkerMessage, TfjsWorkerResponse } from '@/workers/types';
 
 const logger = createLogger('ScreenCaptureAnalysisTfjs');
 
@@ -30,35 +21,6 @@ type ResultLockState = 'unlocked' | 'locked';
 const ANALYSIS_CONFIG = {
   scanFps: 5,
   normalizedWidth: 1280,
-  warmupFrames: 10, // 開始後 10 フレーム（2秒）はスキップ
-  // コイントス判定
-  coin: {
-    roi: TFJS_CONFIG.coin.roi,
-    threshold: 0.9, // ML モデル用に高めに設定（誤検出防止）
-    requiredStreak: 5, // 5 フレーム連続で検出が必要（誤検出防止）
-    cooldownMs: 15000,
-    activeMs: 20000,
-  },
-  // 勝敗判定
-  result: {
-    roi: TFJS_CONFIG.result.roi,
-    threshold: 0.8, // ML モデル用に高めに設定
-    requiredStreak: 3, // 3 フレーム連続で検出が必要
-    cooldownMs: 12000,
-  },
-  // 色ベース判定用の設定（モデルがない場合のフォールバック）
-  colorHeuristics: {
-    coin: {
-      // コイントス画面の特徴色
-      win: { rgb: [255, 215, 0] as [number, number, number], tolerance: 80 }, // 金色系（先攻）
-      lose: { rgb: [192, 192, 192] as [number, number, number], tolerance: 80 }, // 銀色系（後攻）
-    },
-    result: {
-      // 勝敗画面の特徴色
-      victory: { rgb: [255, 200, 50] as [number, number, number], tolerance: 100 }, // VICTORY の金色
-      lose: { rgb: [100, 100, 180] as [number, number, number], tolerance: 100 }, // LOSE の青系
-    },
-  },
 };
 
 export function useScreenCaptureAnalysisTfjs() {
@@ -91,8 +53,12 @@ export function useScreenCaptureAnalysisTfjs() {
     tfjsReady: false,
     coinModelLoaded: false,
     resultModelLoaded: false,
-    usingFallback: true, // モデルがない場合は色ベースヒューリスティックを使用
+    usingFallback: true,
   });
+
+  // Worker-related state
+  let worker: Worker | null = null;
+  const currentFps = ref(ANALYSIS_CONFIG.scanFps);
 
   // キャプチャ関連
   let stream: MediaStream | null = null;
@@ -101,22 +67,6 @@ export function useScreenCaptureAnalysisTfjs() {
   let ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
   let intervalId: number | null = null;
   let drawParams: { sx: number; sy: number; sWidth: number; sHeight: number } | null = null;
-
-  // 分類器
-  let coinClassifier: ImageClassifier | null = null;
-  let resultClassifier: ImageClassifier | null = null;
-
-  // 連続検出用
-  let coinStreak = 0;
-  let coinCandidate: CoinResult | null = null;
-  let resultStreak = 0;
-  let resultCandidate: AnalysisResult | null = null;
-  let coinCooldownUntil = 0;
-  let coinActiveUntil = 0;
-  let resultCooldownUntil = 0;
-  let frameCount = 0;
-  let coinDetectedOnce = false; // コインが一度でも検出されたか
-  let captureStartTime = 0; // キャプチャ開始時刻
 
   // 不足テンプレート（互換性のため）
   const missingTemplates = computed(() => {
@@ -153,13 +103,12 @@ export function useScreenCaptureAnalysisTfjs() {
     lastCoinResult.value = null;
     turnChoiceAvailable.value = false;
     lastScores.value = { coinWin: 0, coinLose: 0, win: 0, lose: 0 };
-    coinStreak = 0;
-    coinCandidate = null;
-    resultStreak = 0;
-    resultCandidate = null;
-    coinCooldownUntil = 0;
-    coinActiveUntil = 0;
-    resultCooldownUntil = 0;
+
+    // Worker にリセットを通知
+    if (worker) {
+      const message: TfjsWorkerMessage = { type: 'reset' };
+      worker.postMessage(message);
+    }
   };
 
   /**
@@ -170,219 +119,142 @@ export function useScreenCaptureAnalysisTfjs() {
     turnChoiceEventId.value = 0;
     resultEventId.value = 0;
     resultLockState.value = 'unlocked';
-    frameCount = 0;
-    coinDetectedOnce = false;
-    captureStartTime = 0;
   };
 
   /**
-   * TensorFlow.js とモデルを初期化
+   * Worker メッセージハンドラを設定
    */
-  const initModels = async () => {
+  const setupWorkerMessageHandler = () => {
+    if (!worker) return;
+
+    worker.onmessage = (event: MessageEvent<TfjsWorkerResponse>) => {
+      const response = event.data;
+
+      switch (response.type) {
+        case 'init':
+          if (response.success) {
+            logger.info('Worker initialized successfully');
+            if (response.modelStatus) {
+              modelStatus.value = { ...response.modelStatus };
+              // Update template status for compatibility
+              templateStatus.value = {
+                coinWin: true,
+                coinLose: true,
+                win: true,
+                lose: true,
+              };
+            }
+          } else {
+            logger.error('Worker initialization failed:', response.error);
+            errorMessage.value = response.error ?? 'Worker initialization failed';
+          }
+          break;
+
+        case 'analysis':
+          // Update scores
+          lastScores.value = { ...response.scores };
+
+          // Update predicted labels
+          lastPredictedLabels.value = { ...response.predictedLabels };
+
+          // Update coin result
+          if (response.coinResult.detected) {
+            lastCoinResult.value = response.coinResult.result;
+            turnChoiceEventId.value = response.coinResult.eventId;
+          }
+          turnChoiceAvailable.value = response.coinResult.available;
+
+          // Update match result
+          if (response.matchResult.detected) {
+            lastResult.value = response.matchResult.result;
+            resultEventId.value = response.matchResult.eventId;
+          }
+
+          // Update lock state
+          resultLockState.value = response.lockState;
+          break;
+
+        default:
+          logger.warn('Unknown worker response type:', response);
+      }
+    };
+
+    worker.onerror = (error) => {
+      logger.error('Worker error:', error);
+      errorMessage.value = 'Worker execution error';
+      stopCapture();
+    };
+  };
+
+  /**
+   * Worker を初期化
+   */
+  const initWorker = async (): Promise<void> => {
     try {
-      // TensorFlow.js 初期化
-      await initTfjs();
-      modelStatus.value.tfjsReady = true;
-      logger.info('TensorFlow.js initialized');
-
-      // コイン分類器を初期化
-      coinClassifier = new ImageClassifier(TFJS_CONFIG.coin);
-      const coinLoaded = await coinClassifier.load();
-      modelStatus.value.coinModelLoaded = coinLoaded;
-
-      // 勝敗分類器を初期化
-      resultClassifier = new ImageClassifier(TFJS_CONFIG.result);
-      const resultLoaded = await resultClassifier.load();
-      modelStatus.value.resultModelLoaded = resultLoaded;
-
-      // モデルがロードできなかった場合はフォールバックモード
-      modelStatus.value.usingFallback = !coinLoaded || !resultLoaded;
-
-      if (modelStatus.value.usingFallback) {
-        logger.info('Using color heuristics fallback (models not available)');
-      }
-
-      // 互換性のためテンプレートステータスを更新
-      templateStatus.value = {
-        coinWin: true,
-        coinLose: true,
-        win: true,
-        lose: true,
-      };
-    } catch (error) {
-      logger.error('Failed to initialize models:', error);
-      modelStatus.value.usingFallback = true;
-    }
-  };
-
-  /**
-   * ROI から画像データを抽出して分類
-   */
-  const classifyRoi = async (
-    roi: RoiRatio,
-    classifier: ImageClassifier | null,
-    colorConfig: { label: string; rgb: [number, number, number]; tolerance: number }[],
-  ): Promise<{ label: string; confidence: number }> => {
-    if (!ctx || !canvas) {
-      return { label: 'none', confidence: 0 };
-    }
-
-    // ROI を抽出
-    const imageData = extractRoiImageData(ctx, roi, canvas.width, canvas.height);
-
-    // モデルが使える場合は TensorFlow.js で分類
-    if (classifier?.isLoaded && !modelStatus.value.usingFallback) {
-      const resized = resizeImageData(imageData, MODEL_INPUT_SIZE);
-      const result = await classifier.classify(resized);
-      return result || { label: 'none', confidence: 0 };
-    }
-
-    // フォールバック：色ヒストグラムベースの判定
-    return classifyByColorHistogram(imageData, {
-      targetColors: colorConfig,
-    });
-  };
-
-  /**
-   * コイントス判定
-   */
-  const analyzeCoin = async (now: number) => {
-    if (!ctx || !canvas) return;
-
-    // スコア表示用に常に分類を実行
-    const result = await classifyRoi(ANALYSIS_CONFIG.coin.roi, coinClassifier, [
-      { label: 'win', ...ANALYSIS_CONFIG.colorHeuristics.coin.win },
-      { label: 'lose', ...ANALYSIS_CONFIG.colorHeuristics.coin.lose },
-    ]);
-
-    // 予測ラベルを記録
-    lastPredictedLabels.value = { ...lastPredictedLabels.value, coin: result.label };
-
-    // スコア更新 - 常に更新（予測ラベルに関わらず信頼度を表示）
-    if (result.label === 'win') {
-      lastScores.value = { ...lastScores.value, coinWin: result.confidence, coinLose: 0 };
-    } else if (result.label === 'lose') {
-      lastScores.value = { ...lastScores.value, coinWin: 0, coinLose: result.confidence };
-    } else {
-      // 'none' の場合も信頼度を表示（デバッグ用）
-      lastScores.value = { ...lastScores.value, coinWin: result.confidence, coinLose: 0 };
-    }
-
-    // 以下は検出判定のブロック条件（スコア更新後にチェック）
-    if (now < coinCooldownUntil) return;
-
-    // しきい値チェック
-    if (result.confidence < ANALYSIS_CONFIG.coin.threshold || result.label === 'none') {
-      coinStreak = 0;
-      coinCandidate = null;
-      return;
-    }
-
-    const candidate = result.label as CoinResult;
-    if (coinCandidate && coinCandidate !== candidate) {
-      coinStreak = 0;
-    }
-
-    coinCandidate = candidate;
-    coinStreak += 1;
-
-    if (coinStreak >= ANALYSIS_CONFIG.coin.requiredStreak) {
-      lastCoinResult.value = candidate;
-      coinStreak = 0;
-      coinCandidate = null;
-      turnChoiceAvailable.value = true;
-      coinActiveUntil = now + ANALYSIS_CONFIG.coin.activeMs;
-      coinCooldownUntil = now + ANALYSIS_CONFIG.coin.cooldownMs;
-      turnChoiceEventId.value += 1;
-      resultLockState.value = 'unlocked';
-      coinDetectedOnce = true; // コインが検出されたことを記録
-      logger.info(
-        `Coin result detected: ${candidate} (confidence: ${result.confidence.toFixed(2)})`,
+      // Worker を作成
+      worker = new Worker(
+        new URL('../workers/screenAnalysisTfjs.worker.ts', import.meta.url),
+        { type: 'module' }
       );
+
+      setupWorkerMessageHandler();
+
+      // Worker に初期化メッセージを送信
+      const message: TfjsWorkerMessage = {
+        type: 'init',
+        config: {
+          coin: {
+            modelUrl: TFJS_CONFIG.coin.modelUrl,
+            inputSize: TFJS_CONFIG.coin.inputSize,
+            labels: TFJS_CONFIG.coin.labels,
+            threshold: TFJS_CONFIG.coin.threshold,
+            roi: TFJS_CONFIG.coin.roi,
+          },
+          result: {
+            modelUrl: TFJS_CONFIG.result.modelUrl,
+            inputSize: TFJS_CONFIG.result.inputSize,
+            labels: TFJS_CONFIG.result.labels,
+            threshold: TFJS_CONFIG.result.threshold,
+            roi: TFJS_CONFIG.result.roi,
+          },
+        },
+      };
+
+      worker.postMessage(message);
+
+      logger.info('Worker initialization message sent');
+    } catch (error) {
+      logger.error('Failed to initialize worker:', error);
+      throw error;
     }
   };
 
-  // 勝敗判定を許可する最小経過時間（コインが検出されない場合のフォールバック）
-  const MIN_TIME_BEFORE_RESULT_MS = 60000; // 60秒
-
   /**
-   * 勝敗判定
+   * FPS を設定
    */
-  const analyzeResult = async (now: number) => {
-    if (!ctx || !canvas) return;
+  const setAnalysisFps = (fps: number) => {
+    currentFps.value = fps;
 
-    // スコア表示用に常に分類を実行
-    const result = await classifyRoi(ANALYSIS_CONFIG.result.roi, resultClassifier, [
-      { label: 'victory', ...ANALYSIS_CONFIG.colorHeuristics.result.victory },
-      { label: 'lose', ...ANALYSIS_CONFIG.colorHeuristics.result.lose },
-    ]);
-
-    // 予測ラベルを記録
-    lastPredictedLabels.value = { ...lastPredictedLabels.value, result: result.label };
-
-    // スコア更新（victory -> win に変換）- 常に更新
-    if (result.label === 'victory') {
-      lastScores.value = { ...lastScores.value, win: result.confidence, lose: 0 };
-    } else if (result.label === 'lose') {
-      lastScores.value = { ...lastScores.value, win: 0, lose: result.confidence };
-    } else {
-      // 'none' の場合も信頼度を表示（デバッグ用）
-      lastScores.value = { ...lastScores.value, win: result.confidence, lose: 0 };
+    // インターバル再設定
+    if (intervalId !== null && isRunning.value) {
+      window.clearInterval(intervalId);
+      intervalId = window.setInterval(() => void analyzeFrame(), 1000 / fps);
     }
 
-    // 以下は検出判定のブロック条件（スコア更新後にチェック）
-    if (now < resultCooldownUntil) return;
-    if (resultLockState.value === 'locked') return;
-    if (turnChoiceAvailable.value) return;
-
-    // コインが検出されていない場合は、十分な時間が経過するまで勝敗判定をブロック
-    // （コイン判定中に誤って勝敗を検出するのを防ぐ）
-    if (!coinDetectedOnce) {
-      const elapsed = now - captureStartTime;
-      if (elapsed < MIN_TIME_BEFORE_RESULT_MS) {
-        return; // まだコインが検出されていないのでスキップ
-      }
+    // Worker に通知
+    if (worker) {
+      const message: TfjsWorkerMessage = { type: 'setFps', fps };
+      worker.postMessage(message);
     }
 
-    // しきい値チェック
-    if (result.confidence < ANALYSIS_CONFIG.result.threshold || result.label === 'none') {
-      resultStreak = 0;
-      resultCandidate = null;
-      return;
-    }
-
-    // victory -> win に変換
-    const candidate: AnalysisResult = result.label === 'victory' ? 'win' : 'lose';
-    if (resultCandidate && resultCandidate !== candidate) {
-      resultStreak = 0;
-    }
-
-    resultCandidate = candidate;
-    resultStreak += 1;
-
-    if (resultStreak >= ANALYSIS_CONFIG.result.requiredStreak) {
-      lastResult.value = candidate;
-      resultEventId.value += 1;
-      resultStreak = 0;
-      resultCandidate = null;
-      resultCooldownUntil = now + ANALYSIS_CONFIG.result.cooldownMs;
-      resultLockState.value = 'locked';
-      logger.info(`Result detected: ${candidate} (confidence: ${result.confidence.toFixed(2)})`);
-    }
+    logger.info(`Analysis FPS set to ${fps}`);
   };
 
   /**
    * フレーム解析
    */
   const analyzeFrame = async () => {
-    frameCount++;
-
-    if (!ctx || !canvas || !video) {
-      if (frameCount <= 3) {
-        logger.warn(
-          `analyzeFrame early return: ctx=${!!ctx}, canvas=${!!canvas}, video=${!!video}`,
-        );
-      }
+    if (!ctx || !canvas || !video || !worker) {
       return;
     }
 
@@ -403,34 +275,17 @@ export function useScreenCaptureAnalysisTfjs() {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
 
-    const now = Date.now();
+    // ImageData を取得して Worker に送信
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    // コイントス表示期間の終了チェック
-    if (turnChoiceAvailable.value && now > coinActiveUntil) {
-      turnChoiceAvailable.value = false;
-    }
+    const message: TfjsWorkerMessage = {
+      type: 'analyze',
+      imageData,
+      timestamp: Date.now(),
+    };
 
-    // ウォームアップ期間中は解析をスキップ（誤検出防止）
-    if (frameCount <= ANALYSIS_CONFIG.warmupFrames) {
-      if (frameCount === ANALYSIS_CONFIG.warmupFrames) {
-        logger.info(`Warmup complete after ${frameCount} frames, starting analysis`);
-      }
-      return;
-    }
-
-    // 定期ログ
-    if (frameCount % 25 === 1) {
-      logger.info(
-        `Frame ${frameCount}: ${canvas.width}x${canvas.height}, ` +
-          `tfjs=${modelStatus.value.tfjsReady}, fallback=${modelStatus.value.usingFallback}, ` +
-          `scores=${JSON.stringify(lastScores.value)}`,
-      );
-      logMemoryUsage();
-    }
-
-    // 解析実行
-    await analyzeCoin(now);
-    await analyzeResult(now);
+    // Transferable Objects を使用してゼロコピー転送
+    worker.postMessage(message, [imageData.data.buffer]);
   };
 
   /**
@@ -442,10 +297,13 @@ export function useScreenCaptureAnalysisTfjs() {
     resetStateComplete();
 
     try {
+      // Worker を初期化
+      await initWorker();
+
       // 画面共有を開始
       stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
-          frameRate: ANALYSIS_CONFIG.scanFps,
+          frameRate: currentFps.value,
         },
         audio: false,
       });
@@ -491,12 +349,6 @@ export function useScreenCaptureAnalysisTfjs() {
 
       logger.info(`Starting TF.js capture at resolution: ${canvasWidth}x${canvasHeight}`);
 
-      // キャプチャ開始時刻を記録
-      captureStartTime = Date.now();
-
-      // モデル初期化（バックグラウンド）
-      void initModels();
-
       // トラック終了時の処理
       const track = stream.getVideoTracks()[0];
       track.addEventListener('ended', () => {
@@ -506,8 +358,8 @@ export function useScreenCaptureAnalysisTfjs() {
       isRunning.value = true;
 
       // 解析インターバル開始
-      const intervalMs = 1000 / ANALYSIS_CONFIG.scanFps;
-      logger.info(`Setting up analysis interval: ${intervalMs}ms (${ANALYSIS_CONFIG.scanFps} FPS)`);
+      const intervalMs = 1000 / currentFps.value;
+      logger.info(`Setting up analysis interval: ${intervalMs}ms (${currentFps.value} FPS)`);
       intervalId = window.setInterval(() => void analyzeFrame(), intervalMs);
     } catch (error) {
       logger.error('Failed to start capture:', error);
@@ -535,14 +387,9 @@ export function useScreenCaptureAnalysisTfjs() {
       video = null;
     }
 
-    // 分類器のリソース解放
-    if (coinClassifier) {
-      coinClassifier.dispose();
-      coinClassifier = null;
-    }
-    if (resultClassifier) {
-      resultClassifier.dispose();
-      resultClassifier = null;
+    if (worker) {
+      worker.terminate();
+      worker = null;
     }
 
     canvas = null;
@@ -557,7 +404,9 @@ export function useScreenCaptureAnalysisTfjs() {
    * テンプレート読み込み（互換性のため）
    */
   const ensureTemplatesLoaded = async () => {
-    await initModels();
+    // Worker handles model loading, so this is a no-op
+    // Keep for compatibility with existing code
+    logger.info('ensureTemplatesLoaded called (handled by worker)');
   };
 
   /**
@@ -663,7 +512,13 @@ export function useScreenCaptureAnalysisTfjs() {
     try {
       // ROI を抽出
       const roiConfig = label.startsWith('coin') ? TFJS_CONFIG.coin : TFJS_CONFIG.result;
-      const roiImageData = extractRoiImageData(ctx, roiConfig.roi, canvas.width, canvas.height);
+      const rect = {
+        x: Math.round(roiConfig.roi.x * canvas.width),
+        y: Math.round(roiConfig.roi.y * canvas.height),
+        width: Math.round(roiConfig.roi.width * canvas.width),
+        height: Math.round(roiConfig.roi.height * canvas.height),
+      };
+      const roiImageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
 
       // ROI を HTMLCanvas に描画
       const roiHtmlCanvas = document.createElement('canvas');
@@ -715,7 +570,7 @@ export function useScreenCaptureAnalysisTfjs() {
 
   // ライフサイクル
   onMounted(() => {
-    void initModels();
+    // Worker will load models when initialized
   });
 
   onBeforeUnmount(() => {
@@ -749,5 +604,9 @@ export function useScreenCaptureAnalysisTfjs() {
     saveDebugImages,
     selectTrainingDataFolder,
     hasTrainingDataFolder,
+
+    // New exports
+    setAnalysisFps,
+    currentFps: computed(() => currentFps.value),
   };
 }
