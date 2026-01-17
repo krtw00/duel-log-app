@@ -115,8 +115,10 @@
  */
 import { ref, onMounted, computed, watch } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
+import axios from 'axios';
 import { api } from '@/services/api';
 import { createLogger } from '@/utils/logger';
+import { useCancellableRequest } from '@/composables/useCancellableRequest';
 
 const logger = createLogger('Statistics');
 import AppLayout from '@/components/layout/AppLayout.vue';
@@ -128,6 +130,7 @@ import StatisticsFilter from '@/components/statistics/StatisticsFilter.vue';
 import { useLocale } from '@/composables/useLocale';
 
 const { LL, currentLocale } = useLocale();
+const { createRequest } = useCancellableRequest();
 
 const themeStore = useThemeStore();
 const uiStore = useUiStore();
@@ -320,6 +323,8 @@ const monthlyDuelsByMode = ref<Record<GameMode, ExtendedDuel[]>>({
 });
 
 const fetchAvailableDecks = async () => {
+  const { signal } = createRequest('available-decks');
+  
   try {
     const params: StatisticsQueryParams = {
       year: selectedYear.value,
@@ -332,7 +337,7 @@ const fetchAvailableDecks = async () => {
       params.range_end = filterRangeEnd.value;
     }
 
-    const response = await api.get('/statistics/available-decks', { params });
+    const response = await api.get('/statistics/available-decks', { params, signal });
     availableMyDecks.value = response.data.my_decks || [];
     availableOpponentDecks.value = response.data.opponent_decks || [];
 
@@ -351,6 +356,11 @@ const fetchAvailableDecks = async () => {
       }
     }
   } catch (error) {
+    // リクエストがキャンセルされた場合は無視
+    if (axios.isCancel(error)) {
+      logger.debug('Available decks request cancelled');
+      return;
+    }
     logger.error('Failed to fetch available decks');
   }
 };
@@ -432,6 +442,8 @@ const buildDeckStub = (id: number, name: string, isOpponent: boolean, userId: st
 });
 
 const fetchMonthlyDuels = async (mode: GameMode) => {
+  const { signal } = createRequest(`monthly-duels-${mode}`);
+  
   try {
     monthlyDuelsByMode.value[mode] = [];
     const params: Record<string, any> = {
@@ -454,7 +466,7 @@ const fetchMonthlyDuels = async (mode: GameMode) => {
       params.opponent_deck_id = filterOpponentDeckId.value;
     }
 
-    const response = await api.get('/duels/', { params });
+    const response = await api.get('/duels/', { params, signal });
     const duels: Duel[] = response.data;
     const offset = filterPeriodType.value === 'range' ? Math.max(0, filterRangeStart.value - 1) : 0;
     const total = duels.length + offset;
@@ -471,12 +483,19 @@ const fetchMonthlyDuels = async (mode: GameMode) => {
       };
     });
   } catch (error) {
+    // リクエストがキャンセルされた場合は無視
+    if (axios.isCancel(error)) {
+      logger.debug(`Monthly duels request for ${mode} cancelled`);
+      return;
+    }
     logger.error('Failed to fetch monthly duels');
     monthlyDuelsByMode.value[mode] = [];
   }
 };
 
 const fetchStatistics = async () => {
+  const { signal } = createRequest('statistics');
+  
   loading.value = true;
   try {
     // 統計情報のパラメータ
@@ -499,7 +518,7 @@ const fetchStatistics = async () => {
       params.opponent_deck_id = filterOpponentDeckId.value;
     }
 
-    const response = await api.get('/statistics', { params });
+    const response = await api.get('/statistics', { params, signal });
     const data = response.data;
 
     const modes = ['RANK', 'RATE', 'EVENT', 'DC'];
@@ -551,6 +570,11 @@ const fetchStatistics = async () => {
       };
     });
   } catch (error) {
+    // リクエストがキャンセルされた場合は無視
+    if (axios.isCancel(error)) {
+      logger.debug('Statistics request cancelled');
+      return;
+    }
     logger.error('Failed to fetch statistics');
   } finally {
     loading.value = false;
