@@ -14,13 +14,13 @@ from app.models.user import User
 from app.schemas.admin import (
     DeckTrendsResponse,
     DuelsTimelineResponse,
-    ExpiredSharedUrlsCleanupResponse,
-    ExpiredSharedUrlsScanResponse,
+    ExpiredSharedStatisticsCleanupResponse,
+    ExpiredSharedStatisticsScanResponse,
     GameModeStatsDetailResponse,
     OrphanedDataCleanupResponse,
     OrphanedDataScanResponse,
-    OrphanedSharedUrlsCleanupResponse,
-    OrphanedSharedUrlsScanResponse,
+    OrphanedSharedStatisticsCleanupResponse,
+    OrphanedSharedStatisticsScanResponse,
     PasswordResetResponse,
     PopularDecksResponse,
     StatisticsOverviewResponse,
@@ -452,99 +452,103 @@ def cleanup_orphaned_data(
 
 
 @router.post(
-    "/maintenance/scan-orphaned-shared-urls",
-    response_model=OrphanedSharedUrlsScanResponse,
+    "/maintenance/scan-orphaned-shared-statistics",
+    response_model=OrphanedSharedStatisticsScanResponse,
 )
-def scan_orphaned_shared_urls(
+def scan_orphaned_shared_statistics(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_admin_user),
 ):
     """
-    孤立した共有URLをスキャン
+    孤立した共有統計をスキャン
 
-    ユーザー削除後に残存した共有URLを検出
+    ユーザー削除後に残存した共有統計を検出
     （通常はCASCADE DELETEで削除されるため、過去データや異常系の対応用）
 
     Returns:
-        孤立した共有URLの数
+        孤立した共有統計の数
     """
-    logger.info(f"Admin user {admin_user.username} scanning orphaned shared URLs")
+    logger.info(f"Admin user {admin_user.username} scanning orphaned shared statistics")
     service = AdminStatisticsService(db)
-    orphaned_count = service.scan_orphaned_shared_urls()
-    return OrphanedSharedUrlsScanResponse(orphaned_count=orphaned_count)
+    orphaned_count = service.scan_orphaned_shared_statistics()
+    return OrphanedSharedStatisticsScanResponse(orphaned_count=orphaned_count)
 
 
 @router.post(
-    "/maintenance/cleanup-orphaned-shared-urls",
-    response_model=OrphanedSharedUrlsCleanupResponse,
+    "/maintenance/cleanup-orphaned-shared-statistics",
+    response_model=OrphanedSharedStatisticsCleanupResponse,
 )
-def cleanup_orphaned_shared_urls(
+def cleanup_orphaned_shared_statistics(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_admin_user),
 ):
     """
-    孤立した共有URLをクリーンアップ
+    孤立した共有統計をクリーンアップ
 
-    ユーザー削除後に残存した共有URLを削除
+    ユーザー削除後に残存した共有統計を削除
 
     Returns:
-        削除した共有URLの数
+        削除した共有統計の数
     """
-    logger.info(f"Admin user {admin_user.username} cleaning up orphaned shared URLs")
+    logger.info(
+        f"Admin user {admin_user.username} cleaning up orphaned shared statistics"
+    )
     service = AdminStatisticsService(db)
-    deleted_count = service.cleanup_orphaned_shared_urls()
-    logger.info(f"Cleaned up {deleted_count} orphaned shared URLs")
-    return OrphanedSharedUrlsCleanupResponse(
+    deleted_count = service.cleanup_orphaned_shared_statistics()
+    logger.info(f"Cleaned up {deleted_count} orphaned shared statistics")
+    return OrphanedSharedStatisticsCleanupResponse(
         success=True,
         deleted_count=deleted_count,
-        message=f"{deleted_count}件の孤立した共有URLを削除しました",
+        message=f"{deleted_count}件の孤立した共有統計を削除しました",
     )
 
 
 @router.post(
-    "/maintenance/scan-expired-shared-urls",
-    response_model=ExpiredSharedUrlsScanResponse,
+    "/maintenance/scan-expired-shared-statistics",
+    response_model=ExpiredSharedStatisticsScanResponse,
 )
-def scan_expired_shared_urls(
+def scan_expired_shared_statistics(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_admin_user),
 ):
     """
-    期限切れの共有URLをスキャン
+    期限切れの共有統計をスキャン
 
     Returns:
-        期限切れの共有URLの数と最古の期限切れ日時
+        期限切れの共有統計の数と最古の期限切れ日時
     """
-    logger.info(f"Admin user {admin_user.username} scanning expired shared URLs")
+    logger.info(f"Admin user {admin_user.username} scanning expired shared statistics")
     service = AdminStatisticsService(db)
-    expired_count, oldest_expired = service.scan_expired_shared_urls()
-    return ExpiredSharedUrlsScanResponse(
+    expired_count, oldest_expired = service.scan_expired_shared_statistics()
+    return ExpiredSharedStatisticsScanResponse(
         expired_count=expired_count, oldest_expired=oldest_expired
     )
 
 
 @router.post(
-    "/maintenance/cleanup-expired-shared-urls",
-    response_model=ExpiredSharedUrlsCleanupResponse,
+    "/maintenance/cleanup-expired-shared-statistics",
+    response_model=ExpiredSharedStatisticsCleanupResponse,
 )
-def cleanup_expired_shared_urls(
+def cleanup_expired_shared_statistics(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_admin_user),
 ):
     """
-    期限切れの共有URLを一括削除
+    期限切れの共有統計を一括削除
 
     Returns:
-        削除した共有URLの数
+        削除した共有統計の数
     """
-    logger.info(f"Admin user {admin_user.username} cleaning up expired shared URLs")
+    logger.info(
+        f"Admin user {admin_user.username} cleaning up expired shared statistics"
+    )
     service = AdminStatisticsService(db)
-    deleted_count = service.cleanup_expired_shared_urls()
-    logger.info(f"Cleaned up {deleted_count} expired shared URLs")
-    return ExpiredSharedUrlsCleanupResponse(
+    deleted_count = service.cleanup_expired_shared_statistics()
+    logger.info(f"Cleaned up {deleted_count} expired shared statistics")
+    return ExpiredSharedStatisticsCleanupResponse(
         success=True,
         deleted_count=deleted_count,
-        message=f"{deleted_count}件の期限切れ共有URLを削除しました",
+        message=f"{deleted_count}件の期限切れ共有統計を削除しました",
     )
 
 
@@ -590,9 +594,7 @@ def get_deck_trends(
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_admin_user),
     days: int = Query(30, ge=7, le=90, description="対象期間（日数）"),
-    interval: str = Query(
-        "daily", pattern="^(daily|weekly)$", description="集計間隔"
-    ),
+    interval: str = Query("daily", pattern="^(daily|weekly)$", description="集計間隔"),
     game_mode: Optional[str] = Query(
         None, pattern="^(RANK|RATE|EVENT|DC)$", description="ゲームモード"
     ),

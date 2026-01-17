@@ -94,7 +94,9 @@ def _format_contact_body(req: ContactRequest) -> str:
 @router.get("/status", response_model=FeedbackStatusResponse)
 async def get_feedback_status():
     """フィードバック機能の状態を取得"""
-    github_repo_url = f"https://github.com/{settings.GITHUB_REPO_OWNER}/{settings.GITHUB_REPO_NAME}"
+    github_repo_url = (
+        f"https://github.com/{settings.GITHUB_REPO_OWNER}/{settings.GITHUB_REPO_NAME}"
+    )
     return FeedbackStatusResponse(
         github_enabled=github_service.is_configured,
         x_handle=settings.DEVELOPER_X_HANDLE,
