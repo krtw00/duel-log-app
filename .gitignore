@@ -68,3 +68,6 @@ frontend/public/ml-traning/
 .serena/
 backend/uv.lock
 docs/reviews/
+
+# DevHive
+.devhive/
