@@ -63,21 +63,9 @@ echo -e "${GREEN}[2/3] Starting Backend...${NC}"
 
 cd "$BACKEND_DIR"
 
-# Python仮想環境のセットアップ (uv使用)
-if [ ! -d ".venv" ]; then
-    echo -e "${YELLOW}      Creating Python virtual environment with uv...${NC}"
-    uv venv --python 3.11
-fi
-
-# 仮想環境をアクティベート
-source .venv/bin/activate
-
-# 依存関係のインストール（必要な場合）
-if [ ! -f ".venv/.installed" ] || [ "requirements.txt" -nt ".venv/.installed" ]; then
-    echo -e "${YELLOW}      Installing dependencies with uv...${NC}"
-    uv pip install -r requirements.txt
-    touch .venv/.installed
-fi
+# 依存関係のインストール（uv sync使用）
+echo -e "${YELLOW}      Syncing dependencies with uv...${NC}"
+uv sync
 
 # 環境変数を設定
 export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:55322/postgres"
@@ -89,8 +77,8 @@ export ENVIRONMENT="development"
 export FRONTEND_URL="http://localhost:5173"
 export HOST="127.0.0.1"
 
-# バックエンドをバックグラウンドで起動
-python start.py &
+# バックエンドをバックグラウンドで起動（uv run使用）
+uv run python start.py &
 BACKEND_PID=$!
 
 echo -e "${YELLOW}      Waiting for backend to start...${NC}"

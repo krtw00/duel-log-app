@@ -27,22 +27,9 @@ fi
 
 cd "$BACKEND_DIR"
 
-# Python仮想環境のセットアップ
-if [ ! -d "venv" ]; then
-    echo -e "${YELLOW}Creating Python virtual environment...${NC}"
-    python3 -m venv venv
-fi
-
-# 仮想環境をアクティベート
-source venv/bin/activate
-
-# 依存関係のインストール（必要な場合）
-if [ ! -f "venv/.installed" ] || [ "requirements.txt" -nt "venv/.installed" ]; then
-    echo -e "${YELLOW}Installing dependencies...${NC}"
-    pip install -q --upgrade pip
-    pip install -q -r requirements.txt
-    touch venv/.installed
-fi
+# 依存関係のインストール（uv sync使用）
+echo -e "${YELLOW}Syncing dependencies with uv...${NC}"
+uv sync
 
 # 環境変数を設定
 export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:55322/postgres"
@@ -58,5 +45,5 @@ echo -e "${GREEN}Database: Local Supabase (port 55322)${NC}"
 echo -e "${GREEN}API URL: http://127.0.0.1:8000${NC}"
 echo ""
 
-# バックエンドを起動
-python start.py
+# バックエンドを起動（uv run使用）
+uv run python start.py

@@ -17,20 +17,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.11"
-          cache: "pip"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: uv sync
 
       - name: Lint with Ruff
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Run tests
-        run: pytest --tb=short
+        run: uv run pytest --tb=short
         env:
           DATABASE_URL: "sqlite:///./test.db"
           SECRET_KEY: "ci-github-actions-secret-key-32-chars!"
