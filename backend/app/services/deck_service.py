@@ -95,10 +95,54 @@ class DeckService(BaseService[Deck, DeckCreate, DeckUpdate]):
             return query.all()
 
         # is_opponent=None の場合（全デッキ取得）
-        query = db.query(Deck).filter(Deck.user_id == user_id)
+        # 各デッキの対戦数（deck_id または opponent_deck_id として使用）を合算してソート
+        start_utc, end_utc = recent_two_months_range_utc()
+
+        # deck_id としての対戦数
+        my_deck_counts = (
+            db.query(
+                Duel.deck_id.label("deck_id"),
+                func.count(Duel.id).label("duel_count"),
+            )
+            .filter(
+                Duel.user_id == user_id,
+                Duel.played_date >= start_utc,
+                Duel.played_date < end_utc,
+            )
+            .group_by(Duel.deck_id)
+            .subquery("my_deck_counts")
+        )
+
+        # opponent_deck_id としての対戦数
+        opponent_deck_counts = (
+            db.query(
+                Duel.opponent_deck_id.label("deck_id"),
+                func.count(Duel.id).label("duel_count"),
+            )
+            .filter(
+                Duel.user_id == user_id,
+                Duel.played_date >= start_utc,
+                Duel.played_date < end_utc,
+            )
+            .group_by(Duel.opponent_deck_id)
+            .subquery("opponent_deck_counts")
+        )
+
+        query = (
+            db.query(Deck)
+            .outerjoin(my_deck_counts, Deck.id == my_deck_counts.c.deck_id)
+            .outerjoin(opponent_deck_counts, Deck.id == opponent_deck_counts.c.deck_id)
+        )
+        query = query.filter(Deck.user_id == user_id)
 
         if active_only:
             query = query.filter(Deck.active.is_(True))
+
+        # 両方の対戦数を合算してソート
+        total_count = func.coalesce(my_deck_counts.c.duel_count, 0) + func.coalesce(
+            opponent_deck_counts.c.duel_count, 0
+        )
+        query = query.order_by(total_count.desc(), Deck.name)
 
         return query.all()
 
