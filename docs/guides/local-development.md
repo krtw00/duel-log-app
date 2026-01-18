@@ -107,7 +107,6 @@ docker --version
 
 ```bash
 cd backend
-source venv/bin/activate  # 仮想環境が未作成の場合は先に作成
 
 # 環境変数を設定
 export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:55322/postgres"
@@ -115,7 +114,7 @@ export SECRET_KEY="your-secret-key"
 export ENVIRONMENT="development"
 export FRONTEND_URL="http://localhost:5173"
 
-python start.py
+uv run python start.py
 ```
 
 ### フロントエンドのみ
@@ -140,10 +139,9 @@ psql postgresql://postgres:postgres@127.0.0.1:55322/postgres
 
 ```bash
 cd backend
-source venv/bin/activate
-alembic upgrade head      # マイグレーション適用
-alembic downgrade -1      # ロールバック
-alembic revision --autogenerate -m "説明"  # 新規作成
+uv run alembic upgrade head      # マイグレーション適用
+uv run alembic downgrade -1      # ロールバック
+uv run alembic revision --autogenerate -m "説明"  # 新規作成
 ```
 
 ## テスト実行
@@ -152,10 +150,9 @@ alembic revision --autogenerate -m "説明"  # 新規作成
 
 ```bash
 cd backend
-source venv/bin/activate
-pytest                           # 全テスト
-pytest --cov=app                 # カバレッジ付き
-pytest tests/test_auth.py -v     # 特定ファイル
+uv run pytest                           # 全テスト
+uv run pytest --cov=app                 # カバレッジ付き
+uv run pytest tests/test_auth.py -v     # 特定ファイル
 ```
 
 ### フロントエンド
@@ -208,10 +205,8 @@ kill -9 <PID>
 
 ```bash
 cd backend
-rm -rf venv
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+rm -rf .venv
+uv sync
 ```
 
 ### フロントエンド依存関係エラー
