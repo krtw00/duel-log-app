@@ -48,19 +48,21 @@ FastAPI + SQLAlchemy + PostgreSQL を使用したデュエルログアプリケ�
 
 ### 手動セットアップ
 
-#### 1. Python仮想環境の作成
+#### 1. uvのインストール（未インストールの場合）
 
 ```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate   # Windows
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# または pip で
+pip install uv
 ```
 
 #### 2. 依存関係のインストール
 
 ```bash
-pip install -r requirements.txt
+cd backend
+uv sync
 ```
 
 #### 3. ローカルSupabaseの起動
@@ -101,10 +103,10 @@ openssl rand -hex 32
 
 ```bash
 # start.pyを使用（推奨）
-python start.py
+uv run python start.py
 
 # または直接uvicornを実行
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 サーバーが起動したら、以下のURLにアクセスできます：
