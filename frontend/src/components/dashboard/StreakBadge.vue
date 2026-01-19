@@ -1,6 +1,6 @@
 <template>
   <v-chip
-    v-if="streak !== 0"
+    v-if="Math.abs(streak) >= 2"
     :color="streak > 0 ? 'success' : 'error'"
     variant="flat"
     class="streak-badge"
