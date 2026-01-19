@@ -108,8 +108,8 @@ async def get_feedback_status():
 @router.post("/bug", response_model=FeedbackResponse)
 @limiter.limit(RateLimits.FEEDBACK)
 async def submit_bug_report(
-    request: BugReportRequest,
-    http_request: Request,
+    request: Request,
+    data: BugReportRequest,
     current_user: User = Depends(get_current_user),
 ):
     """バグ報告を送信（認証必須）"""
@@ -119,11 +119,11 @@ async def submit_bug_report(
             detail="GitHub連携が設定されていません",
         )
 
-    user_agent = http_request.headers.get("user-agent")
-    body = _format_bug_report_body(request)
+    user_agent = request.headers.get("user-agent")
+    body = _format_bug_report_body(data)
 
     result = await github_service.create_issue(
-        title=f"[Bug] {request.title}",
+        title=f"[Bug] {data.title}",
         body=body,
         issue_type="bug",
         user_agent=user_agent,
@@ -150,8 +150,8 @@ async def submit_bug_report(
 @router.post("/enhancement", response_model=FeedbackResponse)
 @limiter.limit(RateLimits.FEEDBACK)
 async def submit_enhancement_request(
-    request: EnhancementRequest,
-    http_request: Request,
+    request: Request,
+    data: EnhancementRequest,
     current_user: User = Depends(get_current_user),
 ):
     """機能要望を送信（認証必須）"""
@@ -161,11 +161,11 @@ async def submit_enhancement_request(
             detail="GitHub連携が設定されていません",
         )
 
-    user_agent = http_request.headers.get("user-agent")
-    body = _format_enhancement_body(request)
+    user_agent = request.headers.get("user-agent")
+    body = _format_enhancement_body(data)
 
     result = await github_service.create_issue(
-        title=f"[Enhancement] {request.title}",
+        title=f"[Enhancement] {data.title}",
         body=body,
         issue_type="enhancement",
         user_agent=user_agent,
@@ -192,8 +192,8 @@ async def submit_enhancement_request(
 @router.post("/contact", response_model=FeedbackResponse)
 @limiter.limit(RateLimits.FEEDBACK)
 async def submit_contact(
-    request: ContactRequest,
-    http_request: Request,
+    request: Request,
+    data: ContactRequest,
     current_user: User = Depends(get_current_user),
 ):
     """お問い合わせを送信（認証必須）"""
@@ -203,11 +203,11 @@ async def submit_contact(
             detail="GitHub連携が設定されていません",
         )
 
-    user_agent = http_request.headers.get("user-agent")
-    body = _format_contact_body(request)
+    user_agent = request.headers.get("user-agent")
+    body = _format_contact_body(data)
 
     result = await github_service.create_issue(
-        title=f"[Contact] {request.subject}",
+        title=f"[Contact] {data.subject}",
         body=body,
         issue_type="question",
         user_agent=user_agent,
