@@ -6,6 +6,7 @@
         <div class="d-flex align-center mb-3">
           <v-icon class="mr-2" color="primary">mdi-table</v-icon>
           <span class="text-h6">{{ LL?.dashboard.history.title() }}</span>
+          <streak-badge :duels="duels" class="ml-3" />
         </div>
         <duel-actions-bar
           ref="actionsBarRef"
@@ -61,6 +62,7 @@ import DuelActionsBar from '@/components/dashboard/DuelActionsBar.vue';
 import DuelTable from '@/components/duel/DuelTable.vue';
 import DuelFormDialog from '@/components/duel/DuelFormDialog.vue';
 import ShareStatsDialog from '@/components/common/ShareStatsDialog.vue';
+import StreakBadge from '@/components/dashboard/StreakBadge.vue';
 
 // Composables
 import { useCSVOperations } from '@/composables/useCSVOperations';
