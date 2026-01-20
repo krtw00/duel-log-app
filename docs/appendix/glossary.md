@@ -72,7 +72,11 @@ OBS Studio等の配信ソフトウェアで表示するための統計情報画�
 
 ### JWT (JSON Web Token)
 
-認証に使用されるトークン形式。Supabase Authが発行し、バックエンドが検証する。HttpOnly Cookieに保存してXSS攻撃を防止。
+認証に使用されるトークン形式。Supabase Authが発行し、バックエンドが検証する。
+
+**トークンの送信方法（優先順位順）:**
+1. **Authorizationヘッダー** (`Bearer <token>`) - Safari ITP対策、モバイルアプリ対応
+2. **HttpOnly Cookie** (`access_token`) - 通常のブラウザセッション、XSS対策
 
 ### HttpOnly Cookie
 

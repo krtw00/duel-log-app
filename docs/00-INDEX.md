@@ -4,7 +4,7 @@
 
 ## ドキュメント構造
 
-このドキュメントは**C4モデル + arc42**に基づいて階層化されています。
+このドキュメントは階層化された構造で整理されています。
 
 ```
 00-INDEX (このファイル)              ← ナビゲーション・入り口
@@ -112,6 +112,7 @@ cd frontend && npm run test
 - **エラーハンドリング**: @03-core-concepts/error-handling.md
 - **コード品質**: @03-core-concepts/code-readability-guide.md
 - **アーキテクチャ決定**: @10-decisions/ (ADR)
+- **用語集**: @appendix/glossary.md
 
 ### データ
 
@@ -121,7 +122,7 @@ cd frontend && npm run test
 ### 機能設計
 
 - **統計情報共有**: @05-features/sharing-feature-design.md
-- **OBSオーバーレイ**: @05-features/obs-overlay.md (TODO)
+- **OBSオーバーレイ**: 実装済み（設計書は未作成）
 - **画面録画分析**: @05-features/screen-recording-analysis.md
 - **管理者画面**: @05-features/admin-panel-design.md
 - **デッキアーカイブマージ**: @05-features/archive-deck-merge-design.md
