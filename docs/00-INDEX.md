@@ -122,7 +122,7 @@ cd frontend && npm run test
 ### 機能設計
 
 - **統計情報共有**: @05-features/sharing-feature-design.md
-- **OBSオーバーレイ**: 実装済み（設計書は未作成）
+- **OBSオーバーレイ**: @05-features/obs-overlay-design.md
 - **画面録画分析**: @05-features/screen-recording-analysis.md
 - **管理者画面**: @05-features/admin-panel-design.md
 - **デッキアーカイブマージ**: @05-features/archive-deck-merge-design.md
@@ -189,7 +189,7 @@ cd frontend && npm run test
 | 管理者画面 | @05-features/admin-panel-design.md | ⚠️ 部分実装 |
 | 画面録画分析 | @05-features/screen-recording-analysis.md | ⚠️ 部分実装 |
 | 統計情報共有 | @05-features/sharing-feature-design.md | ✅ 完全実装 |
-| OBSオーバーレイ | - | ✅ 完全実装（設計書なし） |
+| OBSオーバーレイ | @05-features/obs-overlay-design.md | ✅ 完全実装 |
 | 初手カード勝率分析 | @05-features/opening-hand-analysis-design.md | ❌ 未実装 |
 | フィードバック機能 | @05-features/feedback-and-contact.md | ❌ 未実装 |
 | 多言語対応（i18n） | @05-features/internationalization.md | ❌ 未実装 |
