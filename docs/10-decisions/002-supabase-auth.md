@@ -63,7 +63,8 @@ Duel Log Appの認証基盤とデータベースホスティングを選定す�
 ### 運用上の注意
 
 - ローカル開発では`npx supabase`を使用
-- 本番環境はSupabase CloudまたはNeon PostgreSQL
+- 本番環境: 認証はSupabase Auth、DBはSupabase CloudまたはNeon PostgreSQL
+  - DBホスティングは認証とは独立して選択可能
 
 ## JWT認証フロー
 
@@ -77,12 +78,27 @@ Duel Log Appの認証基盤とデータベースホスティングを選定す�
 │     ↓                                                           │
 │  3. JWTトークン発行（access_token, refresh_token）              │
 │     ↓                                                           │
-│  4. HttpOnly Cookieに保存（XSS対策）                            │
+│  4. フロントエンドがトークンを保存                              │
+│     - HttpOnly Cookie（通常ブラウザ用）                         │
+│     - メモリ（Safari ITP対策用）                                │
 │     ↓                                                           │
-│  5. バックエンドがCookieからJWT検証                             │
+│  5. バックエンドがJWT検証                                       │
+│     - 優先: Authorization header (Bearer token)                 │
+│       → Safari ITP、モバイルアプリ対応                          │
+│     - フォールバック: HttpOnly Cookie                           │
+│       → 通常ブラウザセッション用                                │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+### トークン取得の優先順位（実装詳細）
+
+1. **Authorizationヘッダー** (`Bearer <token>`)
+   - Safari ITP (Intelligent Tracking Prevention) 対策
+   - モバイルアプリやSPAからの明示的な認証
+2. **Cookie** (`access_token`)
+   - 通常のブラウザセッション認証
+   - HttpOnly、SameSite=Lax で XSS/CSRF 対策
 
 ## 関連ドキュメント
 

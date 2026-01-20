@@ -148,7 +148,7 @@ Duel Log Appの6つの中核となる設計原則。すべての機能・実装�
 
 ### チェックポイント
 
-- [ ] RouterにビジネスロジックがないかA
+- [ ] Routerにビジネスロジックがないか？
 - [ ] ServiceがHTTPの概念（status code等）を知らないか？
 - [ ] ComponentがAPIを直接呼んでいないか？
 
