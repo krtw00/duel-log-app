@@ -1,17 +1,22 @@
-# 運用ツール・管理
+# operations - 運用ツール・管理
 
-このディレクトリは、バグ管理、プロジェクト管理など、プロジェクト運用に関するツール設定をまとめたものです。
+このセクションでは、プロジェクト運用に関するツール設定を説明します。
 
-## 📚 ドキュメント一覧
+## ドキュメント一覧
 
-- **[bug-tracking-setup.md](./bug-tracking-setup.md)** - GitHub Issues と Projects を用いたバグ管理システムのセットアップ方法について説明します。
+| ファイル | 説明 |
+|---------|------|
+| [bug-tracking-setup.md](./bug-tracking-setup.md) | GitHub Issues/Projectsでのバグ管理 |
+| [handover-guide.md](./handover-guide.md) | 引継ぎガイド |
+| [handover-checklist.md](./handover-checklist.md) | 引継ぎチェックリスト |
 
-## 🎯 このセクションを読むべき人
+## このセクションを読むべき人
 
-- **プロジェクトマネージャー**: バグ管理システムを構築・管理したい場合
-- **全開発者**: バグ報告の方法を理解したい場合
-- **チームリード**: 非エンジニアメンバーを含めた統一的なバグ報告フローを確立したい場合
+- プロジェクトマネージャー
+- チームリード
+- 引継ぎを行う/受ける開発者
 
-## 📖 読む順序
+## 次に読むべきドキュメント
 
-1. [bug-tracking-setup.md](./bug-tracking-setup.md) - バグ管理システムのセットアップと運用方法を確認
+- @../07-deployment/ - デプロイ・運用
+- @../08-development/development-guide.md - 開発ワークフロー
