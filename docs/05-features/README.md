@@ -6,6 +6,7 @@
 
 | ファイル | 機能 | 状態 |
 |---------|------|------|
+| [obs-overlay-design.md](./obs-overlay-design.md) | OBSオーバーレイ | ✅ 完全実装 |
 | [sharing-feature-design.md](./sharing-feature-design.md) | 統計情報共有 | ✅ 完全実装 |
 | [archive-deck-merge-design.md](./archive-deck-merge-design.md) | デッキアーカイブ・マージ | ✅ 完全実装 |
 | [admin-panel-design.md](./admin-panel-design.md) | 管理者画面 | ⚠️ 部分実装 |
@@ -24,7 +25,6 @@
 
 以下の機能は設計ドキュメントなしで実装されています：
 
-- **OBSオーバーレイ**: 配信用のオーバーレイ表示機能
 - **CSVインポート/エクスポート**: データのバックアップ・復元機能
 - **配信者モード**: プライバシー保護機能
 
