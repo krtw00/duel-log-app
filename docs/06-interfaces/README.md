@@ -1,20 +1,30 @@
-# 06-interfaces - インターフェース仕様
+# インターフェース仕様
 
-このセクションでは、API仕様を説明します。
+API仕様とスキーマ定義。
+
+---
 
 ## ドキュメント一覧
 
 | ファイル | 説明 |
 |---------|------|
-| [api-reference.md](./api-reference.md) | RESTful API エンドポイント仕様 |
+| @./api-reference.md | RESTful API エンドポイント仕様 |
 
-## このセクションを読むべき人
+---
 
-- フロントエンド開発者
-- API連携を行う外部開発者
-- バックエンドAPIを実装する人
+## 対象読者
 
-## 次に読むべきドキュメント
+| 状況 | 推奨 |
+|------|------|
+| フロントエンド開発 | @./api-reference.md |
+| API連携 | @./api-reference.md |
+| バックエンド実装 | @../02-architecture/backend-architecture.md |
 
-- @../02-architecture/backend-architecture.md - バックエンド構造
-- @../04-data/data-model.md - データモデル
+---
+
+## 関連ドキュメント
+
+| ドキュメント | 内容 |
+|------------|------|
+| @../02-architecture/backend-architecture.md | バックエンド構造 |
+| @../04-data/data-model.md | データモデル |

@@ -1,106 +1,116 @@
 # フロントエンドアーキテクチャ
 
-このドキュメントは、Duel Log Appのフロントエンドアーキテクチャについて記述します。
-
----
-
-## 概要
-
-フロントエンドは、Vue.js 3（Composition API）とTypeScriptをベースに構築されています。UIフレームワークにはVuetify 3を採用し、モダンでレスポンシブなデザインを実現しています。ビルドツールにはViteを使用し、高速な開発サーバーと最適化された本番ビルドを提供します。
+Vue 3 + TypeScript + Vuetify 3によるSPA。
 
 ## 技術スタック
 
-- **フレームワーク**: Vue.js (Composition API)
-- **言語**: TypeScript
-- **ビルドツール**: Vite
-- **UIフレームワーク**: Vuetify
-- **状態管理**: Pinia
-- **ルーティング**: Vue Router
-- **HTTP通信**: Axios
-- **チャート**: ApexCharts
+| 技術 | 用途 |
+|------|------|
+| Vue 3 | フレームワーク（Composition API） |
+| TypeScript | 言語 |
+| Vite | ビルドツール |
+| Vuetify 3 | UIフレームワーク |
+| Pinia | 状態管理 |
+| Vue Router | ルーティング |
+| Axios | HTTP通信 |
+| ApexCharts | チャート描画 |
 
 ---
 
 ## ディレクトリ構造
 
-主要なディレクトリとその役割は以下の通りです。
-
-```
-frontend/
-└── src/
-    ├── assets/        # SCSSファイルや画像などの静的アセット
-    ├── components/    # 再利用可能なVueコンポーネント
-    │   ├── common/    # アプリケーション全体で使われる共通コンポーネント
-    │   ├── duel/      # 対戦履歴関連のコンポーネント
-    │   └── layout/    # AppBarなど、レイアウトを構成するコンポーネント
-    ├── composables/   # Composition API用の再利用可能なロジック
-    ├── plugins/       # Vuetifyなどのプラグイン設定
-    ├── router/        # Vue Routerによるルーティング設定
-    ├── services/      # APIクライアントと通信ロジック
-    ├── stores/        # Piniaによるグローバルな状態管理
-    ├── types/         # TypeScriptの型定義
-    ├── utils/         # 汎用的なユーティリティ関数
-    ├── views/         # 各ページに対応するコンポーネント
-    ├── App.vue        # アプリケーションのルートコンポーネント
-    └── main.ts        # アプリケーションのエントリーポイント
-```
+| ディレクトリ | 役割 |
+|-------------|------|
+| `src/views/` | ページコンポーネント |
+| `src/components/` | 再利用可能なUIコンポーネント |
+| `src/composables/` | Composition API用の再利用ロジック |
+| `src/stores/` | Pinia状態管理 |
+| `src/services/` | APIクライアント |
+| `src/router/` | ルーティング設定 |
+| `src/types/` | TypeScript型定義 |
+| `src/plugins/` | Vuetifyなどのプラグイン設定 |
 
 ---
 
-## アーキテクチャの主要要素
+## 主要コンポーネント
 
-### 1. コンポーネント設計
+### Views（ページ）
 
-- **`views`**: 各URL（ページ）に対応するトップレベルのコンポーネントを配置します。これらのコンポーネントは、主にレイアウトの構成と、複数の`components`を組み合わせてページ全体を構築する責務を持ちます。
-  - 例: `DashboardView.vue`, `DecksView.vue`
-- **`components`**: 再利用可能なUI部品を配置します。`views`で利用されることを想定し、特定のページに依存しないように設計されています。
-  - **`common`**: `LoadingOverlay`や`ToastNotification`など、アプリケーション全体で利用される汎用コンポーネント。
-  - **`layout`**: `AppBar`など、ページの骨格となるレイアウト用コンポーネント。
-  - **`duel`**: `DuelTable`や`DuelFormDialog`など、対戦履歴という特定のドメインに特化したコンポーネント。
+| View | 機能 |
+|------|------|
+| `DashboardView` | メインダッシュボード |
+| `DecksView` | デッキ管理 |
+| `StatisticsView` | 詳細統計（フィルター付き） |
+| `ProfileView` | ユーザープロフィール |
+| `StreamerPopupView` | 配信用リアルタイム統計表示 |
+| `SharedStatisticsView` | 統計情報の公開共有 |
 
-### 2. 状態管理 (Pinia)
+### Components
 
-グローバルな状態管理にはPiniaを使用しています。`src/stores/`配下に、機能ごとにストアを定義します。
+| カテゴリ | 例 |
+|---------|-----|
+| `common/` | LoadingOverlay, ToastNotification |
+| `layout/` | AppBar |
+| `duel/` | DuelTable, DuelFormDialog |
 
-- **`auth.ts`**: ユーザーの認証状態（ログインしているか、ユーザー情報など）を管理します。ログイン、ログアウト、ユーザー情報取得などのアクションを提供します。
-- **`notification.ts`**: 画面に表示されるトースト通知の状態（メッセージ、色、表示状態）を管理します。
-- **`loading.ts`**: グローバルなローディングオーバーレイの表示状態を管理します。
+---
 
-各コンポーネントは、これらのストアから状態をリアクティブに取得し、必要に応じてアクションを呼び出すことで状態を変更します。
+## 状態管理（Pinia）
 
-### 3. Composables (Composition API)
+| ストア | 責務 |
+|--------|------|
+| `auth` | 認証状態、ユーザー情報 |
+| `decks` | デッキ一覧、CRUD |
+| `duels` | 対戦履歴、CRUD |
+| `statistics` | 統計データ |
+| `notification` | トースト通知 |
+| `loading` | ローディング状態 |
 
-`src/composables/`には、Composition APIを活用した再利用可能なロジックが配置されています。
+---
 
-- **`useCSVOperations.ts`**: CSV インポート/エクスポート機能を提供
-- **`useChartOptions.ts`**: ApexChartsの共通設定を管理
-- **`useDashboardFilters.ts`**: ダッシュボードのフィルター状態とロジック
-- **`useDateTimeFormat.ts`**: 日時フォーマットのユーティリティ
-- **`useDeckResolution.ts`**: デッキIDから名前を解決する機能
-- **`useDuelFormValidation.ts`**: デュエル入力フォームのバリデーション
-- **`useDuelManagement.ts`**: デュエルの作成・更新・削除ロジック
-- **`useLatestDuelValues.ts`**: 最新のデュエル値を取得
-- **`useOBSConfiguration.ts`**: OBSオーバーレイの設定管理
-- **`useStatsCalculation.ts`**: 統計計算のロジック
+## Composables
 
-これらのComposablesは、複数のコンポーネント間でロジックを共有し、コードの重複を避けるために使用されています。
+| ファイル | 機能 |
+|----------|------|
+| `useCSVOperations` | CSV インポート/エクスポート |
+| `useChartOptions` | ApexCharts共通設定 |
+| `useDashboardFilters` | ダッシュボードフィルター |
+| `useDateTimeFormat` | 日時フォーマット |
+| `useDeckResolution` | デッキID→名前解決 |
+| `useDuelFormValidation` | フォームバリデーション |
+| `useDuelManagement` | デュエルCRUD |
+| `useStatsCalculation` | 統計計算 |
 
-### 4. ルーティング (Vue Router)
+---
 
-`src/router/index.ts`で、アプリケーションのルーティングを定義しています。
+## ルーティング
 
-- **ナビゲーションガード (`router.beforeEach`)**: ページ遷移のたびに、ユーザーの認証状態をチェックします。
-  - `meta: { requiresAuth: true }` が設定されたルートに未認証のユーザーがアクセスしようとすると、ログインページにリダイレクトします。
-  - アプリケーションの初回読み込み時には、`authStore.fetchUser()`を呼び出して、クッキーを元にユーザーのログイン状態を復元しようと試みます。
+認証ガード付きのVue Router。
 
-### 5. API通信 (Axios)
+| 設定 | 説明 |
+|------|------|
+| `meta.requiresAuth` | 認証必須ルートのマーク |
+| `beforeEach` | 認証状態チェック、未認証時はログインへリダイレクト |
 
-`src/services/api.ts`で、Axiosのインスタンスを生成し、バックエンドAPIとの通信設定を一元管理しています。
+---
 
-- **ベースURL**: 環境変数 `VITE_API_URL` からAPIのベースURLを設定します。
-- **認証**: Supabaseセッションからアクセストークンを取得し、`Authorization: Bearer <token>` ヘッダーとして送信します。これはSafari ITP（Intelligent Tracking Prevention）対策として、クッキーよりも信頼性の高い認証方法です。`withCredentials: true` も設定されており、クッキーベースの認証もフォールバックとしてサポートしています。
-- **エラーハンドリング**: Axiosのインターセプターを使用して、APIからのエラーレスポンス（401 Unauthorizedなど）をグローバルにハンドリングし、必要に応じてログインページへのリダイレクトや、エラーメッセージの通知を行います。
+## API通信
 
-### 6. 型定義 (TypeScript)
+`src/services/api.ts`でAxiosインスタンスを一元管理。
 
-`src/types/index.ts`に、アプリケーション全体で使用されるデータ構造の型定義（`User`, `Deck`, `Duel`など）を集約しています。これにより、コンポーネントやストア、サービス間で安全なデータの受け渡しを実現しています。
+| 設定 | 説明 |
+|------|------|
+| ベースURL | `VITE_API_URL`環境変数 |
+| 認証 | `Authorization: Bearer <token>`ヘッダー |
+| フォールバック | `withCredentials: true`でCookie認証もサポート |
+| エラーハンドリング | インターセプターでグローバル処理 |
+
+---
+
+## 関連ドキュメント
+
+| ドキュメント | 内容 |
+|------------|------|
+| @./backend-architecture.md | バックエンド詳細 |
+| @../04-data/data-model.md | データベーススキーマ |
+| @../03-core-concepts/error-handling.md | エラーハンドリング |

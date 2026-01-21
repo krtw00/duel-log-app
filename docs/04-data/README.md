@@ -1,24 +1,27 @@
-# 04-data - データモデル
+# データモデル
 
-このセクションでは、データベーススキーマとデータ設計を説明します。
+データベーススキーマとデータ設計。
 
 ## ドキュメント一覧
 
 | ファイル | 説明 |
 |---------|------|
-| [data-model.md](./data-model.md) | データベーススキーマ、テーブル定義、リレーション |
+| @./data-model.md | テーブル定義、リレーション |
 
-## このセクションを読むべき人
+---
 
-- バックエンド開発者
-- データベース設計を理解したい人
-- マイグレーションを作成する人
+## 対象読者
 
-## 関連情報
+| 状況 | 推奨 |
+|------|------|
+| バックエンド開発 | @./data-model.md |
+| マイグレーション作成 | `.claude/rules/database.md` |
 
-マイグレーション操作の詳細は `.claude/rules/database.md` を参照。
+---
 
-## 次に読むべきドキュメント
+## 関連ドキュメント
 
-- @../02-architecture/backend-architecture.md - バックエンド構造
-- @../06-interfaces/api-reference.md - API仕様
+| ドキュメント | 内容 |
+|------------|------|
+| @../02-architecture/backend-architecture.md | バックエンド構造 |
+| @../06-interfaces/api-reference.md | API仕様 |
