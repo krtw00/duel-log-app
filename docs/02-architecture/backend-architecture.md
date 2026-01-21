@@ -1,93 +1,73 @@
 # バックエンドアーキテクチャ
 
-このドキュメントは、Duel Log Appのバックエンドアーキテクチャについて記述します。
-
----
-
-## 概要
-
-バックエンドは、PythonのWebフレームワークであるFastAPIをベースに構築されています。非同期処理をサポートし、高いパフォーマンスを発揮します。データベースとのやり取りにはSQLAlchemy ORMを使用し、スキーマのバリデーションにはPydanticを活用しています。
+FastAPIベースのPythonバックエンド。
 
 ## 技術スタック
 
-- **フレームワーク**: FastAPI
-- **言語**: Python 3.11
-- **データベース**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **スキーマバリデーション**: Pydantic
-- **非同期処理**: `asyncio`
-- **認証**: Supabase Auth (JWT) with Bearer tokens + Cookie fallback
-- **データベースマイグレーション**: Alembic
-- **テスト**: Pytest
+| 技術 | 用途 |
+|------|------|
+| Python 3.11+ | 言語 |
+| FastAPI | Webフレームワーク |
+| SQLAlchemy 2.0 | ORM |
+| Pydantic v2 | バリデーション |
+| Alembic | マイグレーション |
+| Pytest | テスト |
 
 ---
 
 ## ディレクトリ構造
 
-主要なディレクトリとその役割は以下の通りです。
-
-```
-backend/
-└── app/
-    ├── api/
-    │   ├── deps.py       # APIエンドポイントの依存性注入
-    │   └── routers/      # 各エンドポイントのルーター
-    ├── core/
-    │   ├── config.py     # 環境変数などの設定管理
-    │   └── security.py   # パスワードハッシュ化やJWT生成などのセキュリティ関連ロジック
-    ├── db/
-    │   ├── session.py    # SQLAlchemyのセッション管理
-    │   └── seed.py       # 開発用の初期データ投入スクリプト
-    ├── models/
-    │   └── *.py          # SQLAlchemyのORMモデル（テーブル定義）
-    ├── schemas/
-    │   └── *.py          # Pydanticのスキーマ（APIの入出力データ構造）
-    ├── services/
-    │   └── *.py          # ビジネスロジックを実装するサービスクラス
-    ├── utils/            # 汎用的なユーティリティ関数
-    └── main.py           # FastAPIアプリケーションのエントリーポイント
-```
+| ディレクトリ | 役割 |
+|-------------|------|
+| `app/api/routers/` | HTTPエンドポイント |
+| `app/api/deps.py` | 依存性注入（DBセッション、認証） |
+| `app/services/` | ビジネスロジック |
+| `app/models/` | SQLAlchemyモデル |
+| `app/schemas/` | Pydanticスキーマ |
+| `app/core/` | 設定、セキュリティ |
+| `alembic/` | マイグレーション |
 
 ---
 
-## アーキテクチャの主要要素
+## レイヤー構成
 
-### 1. レイヤー化アーキテクチャ
+| レイヤー | 責務 | 場所 |
+|---------|------|------|
+| API (Routers) | HTTPリクエスト処理、バリデーション | `app/api/routers/` |
+| Service | ビジネスロジック | `app/services/` |
+| Model | データベース構造定義 | `app/models/` |
+| Schema | API入出力定義 | `app/schemas/` |
 
-バックエンドは、関心の分離を目的とした3層のレイヤー化アーキテクチャを採用しています。
+---
 
-- **API (Routers)**: `app/api/routers/`
-  - HTTPリクエストを受け取り、レスポンスを返す責務を持ちます。
-  - リクエストのバリデーションはPydanticスキーマによって自動的に行われます。
-  - ビジネスロジックは直接実装せず、サービスクラスを呼び出します。
+## 認証
 
-- **Service (Services)**: `app/services/`
-  - アプリケーションのコアとなるビジネスロジックを実装します。
-  - データベース操作のために、モデルを直接操作します。
-  - 複数のモデルにまたがる複雑な処理や、外部サービスとの連携などを担当します。
+| 方式 | 説明 |
+|------|------|
+| Authorization ヘッダー | `Bearer <token>` 形式（推奨） |
+| Cookie | `access_token` クッキー（フォールバック） |
+| OBSトークン | `scope=obs_overlay` の専用トークン |
 
-- **Model (Models & Schemas)**: `app/models/`, `app/schemas/`
-  - **Models**: SQLAlchemyのモデルで、データベースのテーブル構造を定義します。
-  - **Schemas**: Pydanticのスキーマで、APIの入出力データ（リクエストボディやレスポンス）の構造とバリデーションルールを定義します。
+認証フロー:
+1. Supabase Authでログイン
+2. JWTトークンをES256/HS256で検証
+3. ユーザーがDBに存在しない場合はJIT Provisioning
 
-### 2. データベースセッション管理
+---
 
-`app/api/deps.py` の `get_db` 関数で、リクエストごとにデータベースセッションを生成し、処理が完了した後に自動的にクローズする依存性注入パターンを採用しています。これにより、セッションリークを防ぎ、効率的なコネクション管理を実現しています。
+## 設定管理
 
-### 3. 認証と認可
+| 設定 | 説明 |
+|------|------|
+| `app/core/config.py` | Pydantic BaseSettingsで環境変数を読み込み |
+| `.env` | ローカル開発用の環境変数 |
 
-- **認証**: Supabase Authを使用してユーザー認証を行います。JWTトークンは2つの方法で受け取ります：
-  1. **Authorization ヘッダー**（推奨）: `Bearer <token>` 形式。Safari ITP対策として、フロントエンドはSupabaseセッションから取得したトークンをヘッダーに設定します。
-  2. **Cookie**（フォールバック）: `access_token` クッキー。
+---
 
-  トークンは `verify_supabase_token()` でES256またはHS256アルゴリズムで検証されます。初回認証時にユーザーがDBに存在しない場合、JIT Provisioning（Just-In-Time）で自動作成されます。
-- **OBSオーバーレイ認証**: OBS用の専用トークン（`scope=obs_overlay`）とSupabase JWTの両方に対応しています。
-- **認可**: `deps.py` の `get_current_user` のような依存性注入関数を使用して、保護されたエンドポイントにアクセスするユーザーの認証状態と権限を確認します。管理者権限の確認には `get_admin_user` を使用します。
+## 関連ドキュメント
 
-### 4. 設定管理
-
-`app/core/config.py` の `Settings` クラス（Pydanticの`BaseSettings`を継承）で、環境変数（`.env`ファイル）から設定を読み込みます。これにより、開発環境と本番環境で異なるデータベース接続情報やシークレットキーを安全に管理できます。
-
-### 5. データベースマイグレーション (Alembic)
-
-`alembic/` ディレクトリで、データベーススキーマの変更をバージョン管理しています。`models/` 配下のORMモデルを変更した場合は、Alembicを使用してマイグレーションスクリプトを生成し、データベーススキーマを安全に更新します。
+| ドキュメント | 内容 |
+|------------|------|
+| @../04-data/data-model.md | データベーススキーマ |
+| @../03-core-concepts/error-handling.md | エラーハンドリング |
+| @../06-interfaces/api-reference.md | API仕様 |

@@ -1,24 +1,34 @@
-# 07-deployment - デプロイ・運用
+# デプロイ・運用
 
-このセクションでは、本番環境へのデプロイとCI/CD設定を説明します。
+本番環境へのデプロイとCI/CD設定。
+
+---
 
 ## ドキュメント一覧
 
 | ファイル | 説明 |
 |---------|------|
-| [deployment.md](./deployment.md) | Vercel/Renderへのデプロイ手順 |
-| [ci-cd-guide.md](./ci-cd-guide.md) | GitHub Actionsワークフロー |
-| [notification-settings.md](./notification-settings.md) | CI通知設定 |
-| [supabase-deployment-guide.md](./supabase-deployment-guide.md) | Supabase本番設定 |
-| [supabase-oauth-setup.md](./supabase-oauth-setup.md) | OAuth設定（Google/Discord/GitHub） |
+| @./deployment.md | Vercel/Renderへのデプロイ手順 |
+| @./ci-cd-guide.md | GitHub Actionsワークフロー |
+| @./notification-settings.md | CI通知設定 |
+| @./supabase-deployment-guide.md | Supabase本番設定 |
+| @./supabase-oauth-setup.md | OAuth設定（Google/Discord/GitHub） |
 
-## このセクションを読むべき人
+---
 
-- デプロイ担当者
-- DevOps/CI-CD担当者
-- 全開発者（通知設定）
+## 対象読者
 
-## 次に読むべきドキュメント
+| 状況 | 推奨 |
+|------|------|
+| 初回デプロイ | @./deployment.md, @./supabase-deployment-guide.md |
+| CI/CD設定 | @./ci-cd-guide.md, @./notification-settings.md |
+| OAuth設定 | @./supabase-oauth-setup.md |
 
-- @../08-development/local-development.md - ローカル環境セットアップ
-- @../operations/ - 運用ツール・管理
+---
+
+## 関連ドキュメント
+
+| ドキュメント | 内容 |
+|------------|------|
+| @../08-development/local-development.md | ローカル環境セットアップ |
+| @../operations/ | 運用ツール・管理 |
