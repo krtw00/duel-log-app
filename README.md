@@ -46,7 +46,49 @@ flowchart TB
 
 ---
 
-## インストール
+## インストール（Docker）
+
+### 必要条件
+
+- Docker Desktop
+- Traefik起動済み（`~/work/infra/traefik`）
+
+### 起動
+
+```bash
+# Traefikネットワーク作成（初回のみ）
+docker network create traefik
+
+# Traefik起動
+cd ~/work/infra/traefik && docker compose up -d
+
+# プロジェクト起動
+cd ~/work/projects/duel-log-app
+docker compose up -d
+```
+
+### アクセス
+
+- フロントエンド: http://duel-log.localhost
+- バックエンドAPI: http://duel-log.localhost/api
+
+### コマンド
+
+```bash
+# 起動
+docker compose up -d
+
+# ログ確認
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# 停止
+docker compose down
+```
+
+---
+
+## ローカル開発（従来方式）
 
 ```bash
 git clone https://github.com/krtw00/duel-log-app.git
@@ -64,7 +106,7 @@ cd duel-log-app
 
 ## 使用方法
 
-### 開発サーバー
+### 開発サーバー（ローカル）
 
 ```bash
 ./scripts/dev.sh       # 全サービス起動
