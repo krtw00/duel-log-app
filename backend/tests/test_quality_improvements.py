@@ -184,9 +184,10 @@ class TestConfigValidation:
     def test_missing_required_field_raises_error(self):
         """必須フィールドが不足している場合にエラーが発生することを確認"""
         with patch.dict(os.environ, {}, clear=True):
-            # 必須環境変数を全て削除
-            with pytest.raises(SystemExit):
-                validate_settings()
+            # 必須環境変数を全て削除し、.envファイルからの読み込みも無効化
+            with patch.object(Settings, "model_config", {**Settings.model_config, "env_file": None}):
+                with pytest.raises(SystemExit):
+                    validate_settings()
 
     def test_secret_key_validation(self):
         """SECRET_KEYのバリデーションが機能することを確認"""
