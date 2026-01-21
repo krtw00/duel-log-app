@@ -14,7 +14,7 @@
 | ユーザー設定ON/OFF | ✅ `enable_screen_analysis` |
 | 対戦入力UIへの統合 | ✅ DuelFormDialog.vue |
 | FSM状態管理（メインスレッド） | ✅ 実装完了 |
-| 自動対戦記録作成 | ❌ 未実装 |
+| 自動対戦記録作成 | ✅ DuelFormDialog統合 |
 
 ---
 
@@ -49,7 +49,7 @@ frontend/src/
 ├── composables/
 │   └── useScreenAnalysis.ts      # 統合Composable + FSM
 ├── workers/
-│   └── screenAnalysis.worker.ts  # ML分類のみ
+│   └── screenAnalysisML.worker.ts  # ML分類Worker
 └── utils/
     └── screenAnalysis/
         ├── config.ts             # 統合設定
@@ -111,7 +111,7 @@ MLモデルがない場合は色ヒストグラムベースのヒューリステ
 |---------|------|
 | `frontend/src/composables/useScreenAnalysis.ts` | 統合Composable |
 | `frontend/src/utils/screenAnalysis/fsm.ts` | FSM状態機械 |
-| `frontend/src/workers/screenAnalysis.worker.ts` | ML分類Worker |
+| `frontend/src/workers/screenAnalysisML.worker.ts` | ML分類Worker |
 | `frontend/src/views/ProfileView.vue` | 設定UI |
 | `frontend/src/components/duel/DuelFormDialog.vue` | 対戦入力統合 |
 | `backend/app/models/user.py` | `enable_screen_analysis`, `is_debugger` |
