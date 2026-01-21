@@ -39,7 +39,27 @@ Duel N→1 Deck (opponent_deck_id: 相手デッキ)
 
 主要テーブル: `users`, `decks`, `duels`, `shared_statistics`
 
-## 開発サーバー
+## 開発環境（Docker）
+
+```bash
+# 起動（Traefik起動後）
+cd ~/work/projects/duel-log-app
+docker compose up -d
+
+# ログ確認
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# 停止
+docker compose down
+```
+
+| サービス | URL |
+|---------|-----|
+| フロントエンド | http://duel-log.localhost |
+| バックエンドAPI | http://duel-log.localhost/api |
+
+## ローカル開発（従来方式）
 
 ```bash
 ./scripts/dev.sh         # 全サービス起動

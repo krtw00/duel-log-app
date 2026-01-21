@@ -1,0 +1,73 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: duel-log-backend
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app:cached
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/duel_log
+      - SUPABASE_URL=${SUPABASE_URL:-http://localhost:55321}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - FRONTEND_URL=http://duel-log.localhost
+      - ENVIRONMENT=development
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - traefik
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.duel-log-api.rule=Host(`duel-log.localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.services.duel-log-api.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: duel-log-frontend
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app:cached
+      - frontend_node_modules:/app/node_modules
+    environment:
+      - VITE_API_URL=http://duel-log.localhost/api
+      - VITE_SUPABASE_URL=${SUPABASE_URL:-http://localhost:55321}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    networks:
+      - traefik
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.duel-log-frontend.rule=Host(`duel-log.localhost`)"
+      - "traefik.http.services.duel-log-frontend.loadbalancer.server.port=5173"
+      - "traefik.docker.network=traefik"
+
+  db:
+    image: postgres:16-alpine
+    container_name: duel-log-db
+    environment:
+      POSTGRES_DB: duel_log
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  frontend_node_modules:
+  pgdata:
+
+networks:
+  traefik:
+    external: true
