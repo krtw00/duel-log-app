@@ -179,7 +179,7 @@ frontend/src/
 ├── composables/
 │   └── useScreenAnalysis.ts      # 統合Composable + FSM（メインスレッド）
 ├── workers/
-│   └── screenAnalysis.worker.ts  # ML分類のみ（FSMなし、リネーム予定）
+│   └── screenAnalysisML.worker.ts  # ML分類Worker（FSMなし）
 └── utils/
     └── screenAnalysis/
         ├── config.ts             # 統合設定
