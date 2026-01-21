@@ -56,14 +56,16 @@ class DuelService(BaseService[Duel, DuelCreate, DuelUpdate]):
         if end_date is not None:
             query = query.filter(Duel.played_date <= end_date)
 
-        duels = query.order_by(Duel.played_date.desc()).all()
+        duels_query = query.order_by(Duel.played_date.desc())
 
         if range_start is not None or range_end is not None:
-            start_index = max(0, (range_start or 1) - 1)
-            end_index = range_end if range_end is not None else len(duels)
-            duels = duels[start_index:end_index]
+            offset = max(0, (range_start or 1) - 1)
+            limit = max(0, range_end - offset) if range_end is not None else None
+            duels_query = duels_query.offset(offset)
+            if limit is not None:
+                duels_query = duels_query.limit(limit)
 
-        return duels
+        return duels_query.all()
 
     def create_user_duel(self, db: Session, user_id: int, duel_in: DuelCreate) -> Duel:
         """ユーザーのデュエルを作成。"""
