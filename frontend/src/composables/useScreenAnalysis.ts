@@ -1,62 +1,68 @@
 /**
- * TensorFlow.js を使った画面キャプチャ解析
+ * 画面解析Composable
  *
- * 機械学習モデルによる画像分類で、コイントス結果と勝敗を判定する
- * 学習済みモデルがない場合は色ベースのヒューリスティックを使用
+ * TensorFlow.jsによる画面解析を提供
+ * FSMはメインスレッドで管理し、Vue DevToolsでデバッグ可能
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { createLogger } from '@/utils/logger';
-import { TFJS_CONFIG } from '@/utils/tfjsImageClassification';
+import {
+  createFSM,
+  FSM_CONFIG,
+  WORKER_CONFIG,
+  ANALYSIS_CONFIG,
+  ROI_CONFIG,
+  type WorkerMessage,
+  type WorkerResponse,
+  type DetectionScores,
+  type ModelStatus,
+  type CoinResult,
+  type MatchResult,
+} from '@/utils/screenAnalysis/index';
 import { createCanvas } from '@/utils/screenAnalysis';
-import type { TfjsWorkerMessage, TfjsWorkerResponse } from '@/workers/types';
 
-const logger = createLogger('ScreenCaptureAnalysisTfjs');
+const logger = createLogger('ScreenAnalysis');
 
-// 結果の型定義（既存と互換）
-export type AnalysisResult = 'win' | 'lose';
-export type CoinResult = 'win' | 'lose';
-type ResultLockState = 'unlocked' | 'locked';
+export function useScreenAnalysis() {
+  // FSM
+  const fsm = createFSM(FSM_CONFIG);
 
-// 解析設定
-const ANALYSIS_CONFIG = {
-  scanFps: 5,
-  normalizedWidth: 1280,
-};
-
-export function useScreenCaptureAnalysisTfjs() {
   // 状態
   const isRunning = ref(false);
   const errorMessage = ref<string | null>(null);
-  const lastResult = ref<AnalysisResult | null>(null);
+  const lastResult = ref<MatchResult | null>(null);
   const lastCoinResult = ref<CoinResult | null>(null);
-  const turnChoiceAvailable = ref(false);
-  const turnChoiceEventId = ref(0);
-  const resultEventId = ref(0);
-  const resultLockState = ref<ResultLockState>('unlocked');
+
+  // FSM状態から派生
+  const turnChoiceAvailable = computed(() => {
+    const now = Date.now();
+    return fsm.isCoinActive(now) || fsm.state.phase === 'coinDetected';
+  });
+  const turnChoiceEventId = computed(() => fsm.state.coinEventId);
+  const resultEventId = computed(() => fsm.state.resultEventId);
+  const resultLockState = computed(() => (fsm.state.resultLocked ? 'locked' : 'unlocked'));
+  const fsmPhase = computed(() => fsm.state.phase);
 
   // 分類スコア（デバッグ用）
-  const lastScores = ref({
+  const lastScores = ref<DetectionScores>({
     coinWin: 0,
     coinLose: 0,
-    win: 0,
-    lose: 0,
-  });
-
-  // 最後の予測ラベル（デバッグ用）
-  const lastPredictedLabels = ref({
-    coin: 'none',
-    result: 'none',
+    resultWin: 0,
+    resultLose: 0,
+    coinLabel: 'none',
+    resultLabel: 'none',
+    timestamp: 0,
   });
 
   // モデル状態
-  const modelStatus = ref({
+  const modelStatus = ref<ModelStatus>({
     tfjsReady: false,
     coinModelLoaded: false,
     resultModelLoaded: false,
     usingFallback: true,
   });
 
-  // Worker-related state
+  // Worker関連
   let worker: Worker | null = null;
   const currentFps = ref(ANALYSIS_CONFIG.scanFps);
 
@@ -68,7 +74,13 @@ export function useScreenCaptureAnalysisTfjs() {
   let intervalId: number | null = null;
   let drawParams: { sx: number; sy: number; sWidth: number; sHeight: number } | null = null;
 
-  // 不足テンプレート（互換性のため）
+  // 互換性のための空のテンプレートステータス
+  const templateStatus = ref({
+    coinWin: false,
+    coinLose: false,
+    win: false,
+    lose: false,
+  });
   const missingTemplates = computed(() => {
     const missing: string[] = [];
     if (!modelStatus.value.coinModelLoaded && !modelStatus.value.usingFallback) {
@@ -79,20 +91,11 @@ export function useScreenCaptureAnalysisTfjs() {
     }
     return missing;
   });
-
-  // テンプレートエラー（互換性のため）
   const templateErrors = ref({
     coinWin: '',
     coinLose: '',
     win: '',
     lose: '',
-  });
-
-  const templateStatus = ref({
-    coinWin: false,
-    coinLose: false,
-    win: false,
-    lose: false,
   });
 
   /**
@@ -101,12 +104,20 @@ export function useScreenCaptureAnalysisTfjs() {
   const resetState = () => {
     lastResult.value = null;
     lastCoinResult.value = null;
-    turnChoiceAvailable.value = false;
-    lastScores.value = { coinWin: 0, coinLose: 0, win: 0, lose: 0 };
+    lastScores.value = {
+      coinWin: 0,
+      coinLose: 0,
+      resultWin: 0,
+      resultLose: 0,
+      coinLabel: 'none',
+      resultLabel: 'none',
+      timestamp: 0,
+    };
+    fsm.softReset();
 
-    // Worker にリセットを通知
+    // Workerに通知
     if (worker) {
-      const message: TfjsWorkerMessage = { type: 'reset' };
+      const message: WorkerMessage = { type: 'reset' };
       worker.postMessage(message);
     }
   };
@@ -116,18 +127,16 @@ export function useScreenCaptureAnalysisTfjs() {
    */
   const resetStateComplete = () => {
     resetState();
-    turnChoiceEventId.value = 0;
-    resultEventId.value = 0;
-    resultLockState.value = 'unlocked';
+    fsm.reset();
   };
 
   /**
-   * Worker メッセージハンドラを設定
+   * Workerメッセージハンドラを設定
    */
   const setupWorkerMessageHandler = () => {
     if (!worker) return;
 
-    worker.onmessage = (event: MessageEvent<TfjsWorkerResponse>) => {
+    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
       const response = event.data;
 
       switch (response.type) {
@@ -136,7 +145,7 @@ export function useScreenCaptureAnalysisTfjs() {
             logger.info('Worker initialized successfully');
             if (response.modelStatus) {
               modelStatus.value = { ...response.modelStatus };
-              // Update template status for compatibility
+              // 互換性のためtemplate statusも更新
               templateStatus.value = {
                 coinWin: true,
                 coinLose: true,
@@ -147,31 +156,33 @@ export function useScreenCaptureAnalysisTfjs() {
           } else {
             logger.error('Worker initialization failed:', response.error);
             errorMessage.value = response.error ?? 'Worker initialization failed';
+            fsm.setError(response.error ?? 'Worker initialization failed');
           }
           break;
 
-        case 'analysis':
-          // Update scores
+        case 'scores': {
+          // スコアを更新
           lastScores.value = { ...response.scores };
 
-          // Update predicted labels
-          lastPredictedLabels.value = { ...response.predictedLabels };
+          // FSMでスコアを処理
+          const event = fsm.processScores(response.scores);
 
-          // Update coin result
-          if (response.coinResult.detected) {
-            lastCoinResult.value = response.coinResult.result;
-            turnChoiceEventId.value = response.coinResult.eventId;
+          // 検出イベントを処理
+          if (event?.type === 'coinDetected') {
+            lastCoinResult.value = event.result;
+            logger.info(`Coin detected: ${event.result}`);
           }
-          turnChoiceAvailable.value = response.coinResult.available;
-
-          // Update match result
-          if (response.matchResult.detected) {
-            lastResult.value = response.matchResult.result;
-            resultEventId.value = response.matchResult.eventId;
+          if (event?.type === 'resultDetected') {
+            lastResult.value = event.result;
+            logger.info(`Result detected: ${event.result}`);
           }
+          break;
+        }
 
-          // Update lock state
-          resultLockState.value = response.lockState;
+        case 'error':
+          logger.error('Worker error:', response.error);
+          errorMessage.value = response.error;
+          fsm.setError(response.error);
           break;
 
         default:
@@ -182,41 +193,27 @@ export function useScreenCaptureAnalysisTfjs() {
     worker.onerror = (error) => {
       logger.error('Worker error:', error);
       errorMessage.value = 'Worker execution error';
+      fsm.setError('Worker execution error');
       stopCapture();
     };
   };
 
   /**
-   * Worker を初期化
+   * Workerを初期化
    */
   const initWorker = async (): Promise<void> => {
     try {
-      // Worker を作成
-      worker = new Worker(new URL('../workers/screenAnalysisTfjs.worker.ts', import.meta.url), {
+      // Workerを作成
+      worker = new Worker(new URL('../workers/screenAnalysisML.worker.ts', import.meta.url), {
         type: 'module',
       });
 
       setupWorkerMessageHandler();
 
-      // Worker に初期化メッセージを送信
-      const message: TfjsWorkerMessage = {
+      // Workerに初期化メッセージを送信
+      const message: WorkerMessage = {
         type: 'init',
-        config: {
-          coin: {
-            modelUrl: TFJS_CONFIG.coin.modelUrl,
-            inputSize: TFJS_CONFIG.coin.inputSize,
-            labels: TFJS_CONFIG.coin.labels,
-            threshold: TFJS_CONFIG.coin.threshold,
-            roi: TFJS_CONFIG.coin.roi,
-          },
-          result: {
-            modelUrl: TFJS_CONFIG.result.modelUrl,
-            inputSize: TFJS_CONFIG.result.inputSize,
-            labels: TFJS_CONFIG.result.labels,
-            threshold: TFJS_CONFIG.result.threshold,
-            roi: TFJS_CONFIG.result.roi,
-          },
-        },
+        config: WORKER_CONFIG,
       };
 
       worker.postMessage(message);
@@ -229,7 +226,7 @@ export function useScreenCaptureAnalysisTfjs() {
   };
 
   /**
-   * FPS を設定
+   * FPSを設定
    */
   const setAnalysisFps = (fps: number) => {
     currentFps.value = fps;
@@ -240,9 +237,9 @@ export function useScreenCaptureAnalysisTfjs() {
       intervalId = window.setInterval(() => void analyzeFrame(), 1000 / fps);
     }
 
-    // Worker に通知
+    // Workerに通知
     if (worker) {
-      const message: TfjsWorkerMessage = { type: 'setFps', fps };
+      const message: WorkerMessage = { type: 'setFps', fps };
       worker.postMessage(message);
     }
 
@@ -257,7 +254,7 @@ export function useScreenCaptureAnalysisTfjs() {
       return;
     }
 
-    // ビデオフレームを Canvas に描画
+    // ビデオフレームをCanvasに描画
     if (drawParams) {
       ctx.drawImage(
         video,
@@ -274,16 +271,16 @@ export function useScreenCaptureAnalysisTfjs() {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
 
-    // ImageData を取得して Worker に送信
+    // ImageDataを取得してWorkerに送信
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    const message: TfjsWorkerMessage = {
+    const message: WorkerMessage = {
       type: 'analyze',
       imageData,
       timestamp: Date.now(),
     };
 
-    // Transferable Objects を使用してゼロコピー転送
+    // Transferable Objectsを使用してゼロコピー転送
     worker.postMessage(message, [imageData.data.buffer]);
   };
 
@@ -296,7 +293,7 @@ export function useScreenCaptureAnalysisTfjs() {
     resetStateComplete();
 
     try {
-      // Worker を初期化
+      // Workerを初期化
       await initWorker();
 
       // 画面共有を開始
@@ -317,7 +314,7 @@ export function useScreenCaptureAnalysisTfjs() {
       const videoWidth = video.videoWidth || ANALYSIS_CONFIG.normalizedWidth;
       const videoHeight = video.videoHeight || Math.round((videoWidth * 9) / 16);
 
-      // 16:9 にクロップ
+      // 16:9にクロップ
       const targetAspect = 16 / 9;
       const videoAspect = videoWidth / videoHeight;
       let sx = 0;
@@ -337,7 +334,7 @@ export function useScreenCaptureAnalysisTfjs() {
 
       drawParams = { sx, sy, sWidth, sHeight };
 
-      // Canvas 作成
+      // Canvas作成
       const canvasWidth = sWidth;
       const canvasHeight = sHeight;
       canvas = createCanvas(canvasWidth, canvasHeight);
@@ -346,7 +343,7 @@ export function useScreenCaptureAnalysisTfjs() {
         throw new Error('Failed to initialize canvas context');
       }
 
-      logger.info(`Starting TF.js capture at resolution: ${canvasWidth}x${canvasHeight}`);
+      logger.info(`Starting capture at resolution: ${canvasWidth}x${canvasHeight}`);
 
       // トラック終了時の処理
       const track = stream.getVideoTracks()[0];
@@ -363,6 +360,7 @@ export function useScreenCaptureAnalysisTfjs() {
     } catch (error) {
       logger.error('Failed to start capture:', error);
       errorMessage.value = '画面共有の開始に失敗しました';
+      fsm.setError('Failed to start capture');
       stopCapture();
     }
   };
@@ -403,13 +401,12 @@ export function useScreenCaptureAnalysisTfjs() {
    * テンプレート読み込み（互換性のため）
    */
   const ensureTemplatesLoaded = async () => {
-    // Worker handles model loading, so this is a no-op
-    // Keep for compatibility with existing code
+    // Workerがモデルを処理するのでno-op
     logger.info('ensureTemplatesLoaded called (handled by worker)');
   };
 
   /**
-   * Canvas を Blob に変換するヘルパー
+   * CanvasをBlobに変換するヘルパー
    */
   const canvasToBlob = async (
     targetCanvas: HTMLCanvasElement | OffscreenCanvas,
@@ -424,7 +421,7 @@ export function useScreenCaptureAnalysisTfjs() {
     return null;
   };
 
-  // File System Access API 用のディレクトリハンドル
+  // File System Access API用のディレクトリハンドル
   let trainingDataDirHandle: FileSystemDirectoryHandle | null = null;
 
   /**
@@ -475,7 +472,7 @@ export function useScreenCaptureAnalysisTfjs() {
   };
 
   /**
-   * Blob をダウンロード（フォールバック用）
+   * Blobをダウンロード（フォールバック用）
    */
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
@@ -495,7 +492,6 @@ export function useScreenCaptureAnalysisTfjs() {
 
   /**
    * デバッグ用: 現在のフレームとROI領域を保存
-   * 学習データ収集に使用
    */
   const saveDebugImages = async (
     label: 'coin-win' | 'coin-lose' | 'coin-none' | 'result-win' | 'result-lose' | 'result-none',
@@ -509,17 +505,17 @@ export function useScreenCaptureAnalysisTfjs() {
     let savedCount = 0;
 
     try {
-      // ROI を抽出
-      const roiConfig = label.startsWith('coin') ? TFJS_CONFIG.coin : TFJS_CONFIG.result;
+      // ROIを抽出
+      const roiConfig = label.startsWith('coin') ? ROI_CONFIG.coin : ROI_CONFIG.result;
       const rect = {
-        x: Math.round(roiConfig.roi.x * canvas.width),
-        y: Math.round(roiConfig.roi.y * canvas.height),
-        width: Math.round(roiConfig.roi.width * canvas.width),
-        height: Math.round(roiConfig.roi.height * canvas.height),
+        x: Math.round(roiConfig.x * canvas.width),
+        y: Math.round(roiConfig.y * canvas.height),
+        width: Math.round(roiConfig.width * canvas.width),
+        height: Math.round(roiConfig.height * canvas.height),
       };
       const roiImageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
 
-      // ROI を HTMLCanvas に描画
+      // ROIをHTMLCanvasに描画
       const roiHtmlCanvas = document.createElement('canvas');
       roiHtmlCanvas.width = roiImageData.width;
       roiHtmlCanvas.height = roiImageData.height;
@@ -536,10 +532,8 @@ export function useScreenCaptureAnalysisTfjs() {
         return 0;
       }
 
-      // File System Access API が使える場合は直接保存
+      // File System Access APIが使える場合は直接保存
       if (trainingDataDirHandle) {
-        // ラベルからディレクトリ構造を決定
-        // coin-win -> coin/win, result-lose -> result/lose
         const [category, className] = label.split('-') as [string, string];
         const categoryDir = await getOrCreateSubDir(trainingDataDirHandle, category);
         const classDir = await getOrCreateSubDir(
@@ -547,7 +541,6 @@ export function useScreenCaptureAnalysisTfjs() {
           className === 'win' && category === 'result' ? 'victory' : className,
         );
 
-        // ROI のみ保存（学習に使用）
         const roiFilename = `${className}_${timestamp}.png`;
         if (await saveFileToDir(classDir, roiFilename, roiBlob)) {
           savedCount++;
@@ -569,7 +562,7 @@ export function useScreenCaptureAnalysisTfjs() {
 
   // ライフサイクル
   onMounted(() => {
-    // Worker will load models when initialized
+    // Workerはキャプチャ開始時に初期化
   });
 
   onBeforeUnmount(() => {
@@ -591,9 +584,12 @@ export function useScreenCaptureAnalysisTfjs() {
     missingTemplates,
     templateErrors,
 
-    // TF.js 固有
+    // FSM状態（デバッグ用）
+    fsmState: fsm.state,
+    fsmPhase,
+
+    // モデル状態
     modelStatus,
-    lastPredictedLabels,
 
     // メソッド
     startCapture,
@@ -603,8 +599,6 @@ export function useScreenCaptureAnalysisTfjs() {
     saveDebugImages,
     selectTrainingDataFolder,
     hasTrainingDataFolder,
-
-    // New exports
     setAnalysisFps,
     currentFps: computed(() => currentFps.value),
   };

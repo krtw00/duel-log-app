@@ -46,6 +46,7 @@ export interface UserProfile {
   theme_preference: string;
   is_admin: boolean;
   enable_screen_analysis: boolean;
+  is_debugger: boolean;
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -63,6 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
   );
 
   const isAuthenticated = computed(() => !!user.value);
+  const isDebugger = computed(() => user.value?.is_debugger ?? false);
 
   /**
    * プロフィール情報を取得
@@ -172,6 +174,7 @@ export const useAuthStore = defineStore('auth', () => {
           theme_preference: 'dark',
           is_admin: false,
           enable_screen_analysis: false,
+          is_debugger: false,
         };
       }
 
@@ -275,6 +278,7 @@ export const useAuthStore = defineStore('auth', () => {
           theme_preference: 'dark',
           is_admin: false,
           enable_screen_analysis: false,
+          is_debugger: false,
         };
       }
 
@@ -425,6 +429,7 @@ export const useAuthStore = defineStore('auth', () => {
             theme_preference: 'dark',
             is_admin: false,
             enable_screen_analysis: false,
+            is_debugger: false,
           };
         }
       } catch (profileError) {
@@ -440,6 +445,7 @@ export const useAuthStore = defineStore('auth', () => {
           theme_preference: 'dark',
           is_admin: false,
           enable_screen_analysis: false,
+          is_debugger: false,
         };
       }
 
@@ -548,6 +554,7 @@ export const useAuthStore = defineStore('auth', () => {
             theme_preference: 'dark',
             is_admin: false,
             enable_screen_analysis: false,
+            is_debugger: false,
           };
           isInitialized.value = true;
 
@@ -586,6 +593,7 @@ export const useAuthStore = defineStore('auth', () => {
     session,
     isInitialized,
     isAuthenticated,
+    isDebugger,
     isStreamerModeEnabled,
     localStreamerMode,
     chromaKeyBackground,

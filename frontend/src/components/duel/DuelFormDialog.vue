@@ -140,24 +140,16 @@
                     <span class="text-caption text-error ml-2">{{
                       LL?.duels.screenAnalysis.testFeature()
                     }}</span>
+                    <v-chip
+                      v-if="screenAnalysis.modelStatus.value.usingFallback"
+                      size="x-small"
+                      color="warning"
+                      class="ml-2"
+                    >
+                      fallback
+                    </v-chip>
                   </div>
                   <v-spacer />
-                  <v-btn-toggle
-                    v-model="analysisMethod"
-                    density="compact"
-                    mandatory
-                    class="mr-2"
-                    :disabled="analysisRunning"
-                  >
-                    <v-btn value="template" size="small" variant="tonal">
-                      <v-icon start size="small">mdi-image-search</v-icon>
-                      {{ LL?.duels.screenAnalysis.template() }}
-                    </v-btn>
-                    <v-btn value="tfjs" size="small" variant="tonal">
-                      <v-icon start size="small">mdi-brain</v-icon>
-                      {{ LL?.duels.screenAnalysis.ml() }}
-                    </v-btn>
-                  </v-btn-toggle>
                   <v-btn
                     size="small"
                     :color="autoRegisterEnabled ? 'success' : 'grey'"
@@ -197,11 +189,7 @@
                   <span class="text-caption">
                     {{ LL?.duels.screenAnalysis.description() }}
                     <br />
-                    <strong>{{
-                      analysisMethod === 'template'
-                        ? LL?.duels.screenAnalysis.templateMode()
-                        : LL?.duels.screenAnalysis.mlMode()
-                    }}</strong>
+                    <strong>{{ LL?.duels.screenAnalysis.mlMode() }}</strong>
                     {{ LL?.duels.screenAnalysis.modeDescription() }}
                   </span>
                 </div>
@@ -250,7 +238,8 @@
                   <v-chip v-if="missingTemplateLabel" size="small" color="warning" variant="tonal">
                     {{ missingTemplateLabel }}
                   </v-chip>
-                  <span v-if="analysisScoreLabel" class="analysis-scores">
+                  <!-- デバッガーのみ: スコア表示 -->
+                  <span v-if="authStore.isDebugger && analysisScoreLabel" class="analysis-scores">
                     {{ analysisScoreLabel }}
                   </span>
                 </div>
@@ -268,9 +257,9 @@
                   {{ templateErrorLabel }}
                 </div>
 
-                <!-- ML学習データ収集用ボタン -->
+                <!-- デバッガーのみ: ML学習データ収集用ボタン -->
                 <MLTrainingDataButtons
-                  v-if="analysisMethod === 'tfjs' && analysisRunning"
+                  v-if="authStore.isDebugger && analysisRunning"
                   :folder-selected="trainingFolderSelected"
                   @select-folder="selectTrainingFolder"
                   @save-image="saveDebugImage"
@@ -384,17 +373,13 @@ import { useDuelFormValidation } from '@/composables/useDuelFormValidation';
 import { useDateTimeFormat } from '@/composables/useDateTimeFormat';
 import { useDeckResolution } from '@/composables/useDeckResolution';
 import { useLatestDuelValues } from '@/composables/useLatestDuelValues';
-import { useScreenCaptureAnalysis } from '@/composables/useScreenCaptureAnalysis';
-import { useScreenCaptureAnalysisTfjs } from '@/composables/useScreenCaptureAnalysisTfjs';
+import { useScreenAnalysis } from '@/composables/useScreenAnalysis';
 import { useAuthStore } from '@/stores/auth';
 import { useLocale } from '@/composables/useLocale';
 import { useRanks } from '@/composables/useRanks';
 import MLTrainingDataButtons, {
   type DebugLabel,
 } from '@/components/duel/MLTrainingDataButtons.vue';
-
-// 解析手法の型
-type AnalysisMethod = 'template' | 'tfjs';
 
 const logger = createLogger('DuelForm');
 
@@ -446,104 +431,26 @@ const dialogProps = computed(() => ({
 }));
 const isActive = computed(() => (props.inline ? true : props.modelValue));
 
-// 解析手法の選択（デフォルトはテンプレートマッチング）
-const analysisMethod = ref<AnalysisMethod>('template');
+// 画面解析Composable（TensorFlow.js一本化）
+const screenAnalysis = useScreenAnalysis();
 
-// テンプレートマッチング用 composable
-const templateAnalysis = useScreenCaptureAnalysis();
+// Composableから公開された状態（Vue Reactivity用にcomputedでラップ）
+const analysisRunning = computed(() => screenAnalysis.isRunning.value);
+const analysisError = computed(() => screenAnalysis.errorMessage.value);
+const lastResult = computed(() => screenAnalysis.lastResult.value);
+const lastCoinResult = computed(() => screenAnalysis.lastCoinResult.value);
+const turnChoiceAvailable = computed(() => screenAnalysis.turnChoiceAvailable.value);
+const turnChoiceEventId = computed(() => screenAnalysis.turnChoiceEventId.value);
+const resultEventId = computed(() => screenAnalysis.resultEventId.value);
+const resultLockState = computed(() => screenAnalysis.resultLockState.value);
+const lastScores = computed(() => screenAnalysis.lastScores.value);
+const missingTemplates = computed(() => screenAnalysis.missingTemplates.value);
+const templateErrors = computed(() => screenAnalysis.templateErrors.value);
 
-// TensorFlow.js 用 composable
-const tfjsAnalysis = useScreenCaptureAnalysisTfjs();
-
-// 現在の解析手法に応じた状態を公開する computed
-const analysisRunning = computed(
-  () =>
-    (analysisMethod.value === 'template' ? templateAnalysis.isRunning : tfjsAnalysis.isRunning)
-      .value,
-);
-const analysisError = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.errorMessage
-      : tfjsAnalysis.errorMessage
-    ).value,
-);
-const lastResult = computed(
-  () =>
-    (analysisMethod.value === 'template' ? templateAnalysis.lastResult : tfjsAnalysis.lastResult)
-      .value,
-);
-const lastCoinResult = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.lastCoinResult
-      : tfjsAnalysis.lastCoinResult
-    ).value,
-);
-const turnChoiceAvailable = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.turnChoiceAvailable
-      : tfjsAnalysis.turnChoiceAvailable
-    ).value,
-);
-const turnChoiceEventId = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.turnChoiceEventId
-      : tfjsAnalysis.turnChoiceEventId
-    ).value,
-);
-const resultEventId = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.resultEventId
-      : tfjsAnalysis.resultEventId
-    ).value,
-);
-const resultLockState = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.resultLockState
-      : tfjsAnalysis.resultLockState
-    ).value,
-);
-const lastScores = computed(
-  () =>
-    (analysisMethod.value === 'template' ? templateAnalysis.lastScores : tfjsAnalysis.lastScores)
-      .value,
-);
-const missingTemplates = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.missingTemplates
-      : tfjsAnalysis.missingTemplates
-    ).value,
-);
-const templateErrors = computed(
-  () =>
-    (analysisMethod.value === 'template'
-      ? templateAnalysis.templateErrors
-      : tfjsAnalysis.templateErrors
-    ).value,
-);
-
-// 解析開始・停止
-const startCapture = async () => {
-  if (analysisMethod.value === 'template') {
-    await templateAnalysis.startCapture();
-  } else {
-    await tfjsAnalysis.startCapture();
-  }
-};
-const stopCapture = () => {
-  templateAnalysis.stopCapture();
-  tfjsAnalysis.stopCapture();
-};
-const resetScreenAnalysis = () => {
-  templateAnalysis.resetState();
-  tfjsAnalysis.resetState();
-};
+// 解析開始・停止・リセット
+const startCapture = () => screenAnalysis.startCapture();
+const stopCapture = () => screenAnalysis.stopCapture();
+const resetScreenAnalysis = () => screenAnalysis.resetState();
 
 // 自動登録機能
 const autoRegisterEnabled = ref(true);
@@ -567,16 +474,9 @@ const analysisResultLabel = computed(() => {
 const analysisScoreLabel = computed(() => {
   if (!analysisRunning.value) return '';
   const scores = lastScores.value;
-
-  if (analysisMethod.value === 'tfjs') {
-    // ML モード: モデル状態と予測ラベルも表示
-    const status = tfjsAnalysis.modelStatus.value;
-    const labels = tfjsAnalysis.lastPredictedLabels.value;
-    const modelInfo = status.usingFallback ? '[fallback]' : '[ML]';
-    return `${modelInfo} coin:${labels.coin}(${scores.coinWin.toFixed(2)}) result:${labels.result}(${scores.win.toFixed(2)}/${scores.lose.toFixed(2)})`;
-  }
-
-  return `score: ${scores.coinWin.toFixed(2)} / ${scores.coinLose.toFixed(2)} / ${scores.win.toFixed(2)} / ${scores.lose.toFixed(2)}`;
+  const status = screenAnalysis.modelStatus.value;
+  const modelInfo = status.usingFallback ? '[fallback]' : '[ML]';
+  return `${modelInfo} coin:${scores.coinLabel}(${scores.coinWin.toFixed(2)}/${scores.coinLose.toFixed(2)}) result:${scores.resultLabel}(${scores.resultWin.toFixed(2)}/${scores.resultLose.toFixed(2)})`;
 });
 
 const templateErrorLabel = computed(() => {
@@ -599,11 +499,11 @@ const toggleScreenAnalysis = async () => {
 };
 
 // 学習データ保存先フォルダが選択済みか
-const trainingFolderSelected = computed(() => tfjsAnalysis.hasTrainingDataFolder());
+const trainingFolderSelected = computed(() => screenAnalysis.hasTrainingDataFolder());
 
 // 学習データ保存先フォルダを選択
 const selectTrainingFolder = async () => {
-  const success = await tfjsAnalysis.selectTrainingDataFolder();
+  const success = await screenAnalysis.selectTrainingDataFolder();
   if (success) {
     notificationStore.success(
       LL.value?.duels.screenAnalysis.trainingFolderSet() ??
@@ -618,8 +518,7 @@ const selectTrainingFolder = async () => {
 };
 
 const saveDebugImage = async (label: DebugLabel) => {
-  if (analysisMethod.value !== 'tfjs') return;
-  await tfjsAnalysis.saveDebugImages(label);
+  await screenAnalysis.saveDebugImages(label);
   notificationStore.success(
     `${LL.value?.duels.screenAnalysis.trainingDataSaved() ?? '学習データを保存しました'}: ${label}`,
   );
