@@ -13,7 +13,7 @@ TCG対戦履歴を記録・分析するWebアプリケーション。
 
 | レイヤー | 技術 |
 |----------|------|
-| バックエンド | Python 3.11+, FastAPI, SQLAlchemy 2.0, Alembic |
+| バックエンド | Python 3.11+, FastAPI, SQLAlchemy 2.0, Alembic, **uv** |
 | フロントエンド | TypeScript, Vue 3 (Composition API), Vuetify 3, Pinia, Vite |
 | データベース | PostgreSQL (Supabase) |
 | 認証 | Supabase Auth |
@@ -71,6 +71,18 @@ docker compose down
 | フロントエンド | http://localhost:5173 |
 | バックエンドAPI | http://127.0.0.1:8000 |
 | Supabase Studio | http://127.0.0.1:55323 |
+
+## Python実行
+
+**バックエンドのPythonコマンドは必ず `uv run` を使用する:**
+
+```bash
+cd backend
+uv run python -m app.db.seed    # シードデータ作成
+uv run pytest                    # テスト実行
+uv run alembic upgrade head      # マイグレーション適用
+uv run ruff check . --fix        # リント
+```
 
 ## デプロイ
 

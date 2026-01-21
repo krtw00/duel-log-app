@@ -3,13 +3,18 @@
 
 Supabase Admin APIを使用してユーザーを作成し、
 ローカルDBにも同期してダミーデータを投入します。
+
+デッキ名はygo-grimoireから取得した遊戯王テーマを使用し、
+備考は実際のプレイヤーが書くような自然な文章を生成します。
 """
 
+import json
 import logging
 import os
 import random
 import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -32,6 +37,143 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 fake = Faker("ja_JP")
+
+# プロジェクトルートパス
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+
+# テーマデータのパス
+THEMES_JSON_PATH = PROJECT_ROOT / "scripts" / "data" / "ygo-themes.json"
+
+
+def load_ygo_themes() -> list[str]:
+    """
+    ygo-themes.jsonからテーマ名を読み込む
+
+    Returns:
+        テーマ名のリスト
+    """
+    try:
+        with open(THEMES_JSON_PATH, "r", encoding="utf-8") as f:
+            themes = json.load(f)
+            return [theme["name"] for theme in themes]
+    except FileNotFoundError:
+        logger.warning(f"Themes file not found: {THEMES_JSON_PATH}")
+        logger.warning("Using fallback theme names")
+        return [
+            "スネークアイ",
+            "炎王",
+            "ユベル",
+            "粛声",
+            "天盃龍",
+            "ラビュリンス",
+            "神碑",
+            "烙印",
+            "ティアラメンツ",
+            "クシャトリラ",
+        ]
+    except Exception as e:
+        logger.error(f"Failed to load themes: {e}")
+        return ["テーマA", "テーマB", "テーマC", "テーマD", "テーマE"]
+
+
+# 人間らしい備考テンプレート（勝ち用）
+WIN_NOTES = [
+    "相手事故って助かった",
+    "完封勝ち！気持ちいい",
+    "先攻展開で制圧できた",
+    "後手捲り成功",
+    "ニビル刺さった",
+    "うらら通ってよかった",
+    "相手の妨害全部踏み抜いた",
+    "接戦だったけどなんとか勝ち",
+    "手札良すぎて楽勝だった",
+    "相手投了",
+    "最後のドローで引いた！",
+    "相手のミスに助けられた",
+    "サイチェン上手くいった",
+    "読み合い勝ち",
+    "展開通って気持ちよかった",
+    "Gツッパして勝った",
+    "誘発全部握ってた",
+    "トップ解決",
+    "相手泡吹いてた",
+    "危なかったけど勝ち",
+    "ワンキル決まった",
+    "リソース勝ち",
+    "相手デッキ切れ",
+    "長期戦になったけど勝った",
+    "妨害足りてた",
+    None,  # 空欄
+    None,
+    None,
+]
+
+# 人間らしい備考テンプレート（負け用）
+LOSE_NOTES = [
+    "手札誘発全部通されて何もできなかった",
+    "先攻取られて無理だった",
+    "事故った...",
+    "妨害足りなかった",
+    "タイムアップ負け",
+    "後手捲れなかった",
+    "相手の展開止められず",
+    "読み負け",
+    "サイチェン失敗した",
+    "Gで止まれなかった",
+    "誘発引けなかった",
+    "プレミした...",
+    "相手上手すぎ",
+    "デッキ相性最悪",
+    "何しても無理だった",
+    "ニビル打たれて終わり",
+    "うらら食らって動けず",
+    "ドロバ刺さった",
+    "相手完璧だった",
+    "手札終わってた",
+    "リソース切れ",
+    "長考しすぎた",
+    "最後まで粘ったけどダメだった",
+    "接戦だったのに...",
+    "ワンキルされた",
+    None,  # 空欄
+    None,
+    None,
+]
+
+# イベント用の備考
+EVENT_NOTES = [
+    "イベント周回中",
+    "イベント消化",
+    "ポイント稼ぎ",
+    "イベント報酬目当て",
+    "称号狙い",
+    None,
+]
+
+
+def generate_note(is_win: bool, game_mode: str) -> str | None:
+    """
+    勝敗とゲームモードに応じた自然な備考を生成
+
+    Args:
+        is_win: 勝ったかどうか
+        game_mode: ゲームモード
+
+    Returns:
+        備考文字列またはNone
+    """
+    # イベントモードは専用の備考
+    if game_mode == "EVENT":
+        return random.choice(EVENT_NOTES)
+
+    # 50%の確率で備考なし
+    if random.random() < 0.5:
+        return None
+
+    # 勝敗に応じた備考を選択
+    notes = WIN_NOTES if is_win else LOSE_NOTES
+    return random.choice(notes)
+
 
 # ローカルSupabase設定
 SUPABASE_URL = os.getenv("SUPABASE_URL", "http://127.0.0.1:55321")
@@ -242,29 +384,39 @@ def seed_data(db: Session):
         )
 
         # --- 2. ダミーデッキの作成 (自分用と相手用) ---
-        logger.info("Creating dummy decks...")
+        logger.info("Creating dummy decks from YGO themes...")
+
+        # テーマ名を読み込み
+        all_themes = load_ygo_themes()
+        logger.info(f"Loaded {len(all_themes)} themes from ygo-grimoire")
+
+        # ランダムにシャッフルしてデッキ名を選択
+        random.shuffle(all_themes)
+
         my_decks = []
         opponent_decks = []
-        deck_names: set[str] = set()
 
-        while len(deck_names) < 10:
-            deck_names.add(fake.word().capitalize() + " " + fake.word().capitalize())
+        # 自分用デッキ: 5個（人気テーマを想定）
+        my_deck_names = all_themes[:5]
+        # 相手用デッキ: 20個（対戦相手の多様性を表現）
+        opponent_deck_names = all_themes[5:25]
 
-        deck_name_list = list(deck_names)
-
-        for i in range(5):
+        for name in my_deck_names:
             my_deck = deck_service.get_or_create(
-                db, user_id=user.id, name=deck_name_list[i], is_opponent=False
+                db, user_id=user.id, name=name, is_opponent=False
             )
             my_decks.append(my_deck)
+
+        for name in opponent_deck_names:
             opponent_deck = deck_service.get_or_create(
-                db, user_id=user.id, name=deck_name_list[i + 5], is_opponent=True
+                db, user_id=user.id, name=name, is_opponent=True
             )
             opponent_decks.append(opponent_deck)
 
         logger.info(
             f"{len(my_decks)} own decks and {len(opponent_decks)} opponent decks created."
         )
+        logger.info(f"  My decks: {[d.name for d in my_decks]}")
 
         # --- 3. ダミーデュエルの作成 (各モード300戦ずつ) ---
         logger.info("Creating dummy duels: 900 for each game mode (last 3 months)...")
@@ -345,7 +497,7 @@ def seed_data(db: Session):
                         "is_win": result,
                         "game_mode": mode,
                         "played_date": played_date_jst,
-                        "notes": fake.sentence() if random.random() > 0.5 else None,
+                        "notes": generate_note(result, mode),
                         "rank": None,
                         "rate_value": None,
                         "dc_value": None,
@@ -364,7 +516,8 @@ def seed_data(db: Session):
                         duel_data["rate_value"] = round(current_rate, 2)
 
                     elif mode == "EVENT":
-                        duel_data["notes"] = "イベント300"
+                        # EVENTモードの備考はgenerate_noteで生成済み
+                        pass
 
                     elif mode == "DC":
                         # DC: 0スタート、勝ちで+1000
