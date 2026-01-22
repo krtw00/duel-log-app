@@ -12,7 +12,7 @@ services:
       - SUPABASE_URL=${SUPABASE_URL:-http://localhost:55321}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
-      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-for-local-development-only}
       - FRONTEND_URL=http://duel-log.localhost
       - ENVIRONMENT=development
     depends_on:

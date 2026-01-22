@@ -11,7 +11,8 @@
 | @./sharing-feature-design.md | 統計情報共有 | ✅ 完全実装 |
 | @./archive-deck-merge-design.md | デッキアーカイブ・マージ | ✅ 完全実装 |
 | @./admin-panel-design.md | 管理者画面 | ⚠️ 部分実装 |
-| @./screen-recording-analysis.md | 画面録画分析 | ⚠️ 部分実装 |
+| @./screen-recording-analysis.md | 画面録画分析 | ✅ TensorFlow.js一本化 |
+| @./screen-analysis-fsm.md | 画面解析FSM設計 | ✅ 完全実装 |
 | @./obs-overlay-design.md | OBSオーバーレイ | ⛔ 廃止予定（配信者ポップアップに移行） |
 
 ---

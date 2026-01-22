@@ -33,6 +33,7 @@ class UserResponse(BaseModel):
     theme_preference: str
     is_admin: bool
     enable_screen_analysis: bool
+    is_debugger: bool
     createdat: Optional[datetime]
     updatedat: Optional[datetime]
 
