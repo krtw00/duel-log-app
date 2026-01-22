@@ -10,6 +10,16 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@duel-log/shared": "workspace:*"
+    "@duel-log/shared": "workspace:*",
+    "@hono/zod-openapi": "0.19.10",
+    "@supabase/supabase-js": "^2.91.0",
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.11.5",
+    "postgres": "^3.4.8",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "drizzle-kit": "^0.31.8"
   }
 }
