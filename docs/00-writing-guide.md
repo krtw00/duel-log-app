@@ -148,6 +148,7 @@ ai_summary: "文章品質・用語・表記に関する記載規範"
 ## 関連ドキュメント
 
 - [00-format-guide.md](./00-format-guide.md) - 構造・分量・メタ情報・図・命名のフォーマット規範
+- [00-naming-guide.md](./00-naming-guide.md) - コード・DB・APIの命名規約
 - [00-index.md](./00-index.md) - ドキュメント全体のナビゲーションハブ
 - [00-git-guide.md](./00-git-guide.md) - コミット・ブランチ命名・変更履歴管理のGit規範
 - [99-appendix/glossary.md](./99-appendix/glossary.md) - ドメイン・技術用語の定義集
