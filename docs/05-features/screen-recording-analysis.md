@@ -8,13 +8,13 @@
 
 | 機能 | 状態 |
 |------|------|
-| コイントス結果検出 | ✅ `turnChoice` 設定 |
-| 勝敗判定（VICTORY/LOSE） | ✅ テンプレートマッチング |
-| 複数解像度対応（720p〜2160p） | ✅ MIPMAPアプローチ |
+| コイントス結果検出 | ✅ TensorFlow.js ML |
+| 勝敗判定（VICTORY/LOSE） | ✅ TensorFlow.js ML |
+| 複数解像度対応（720p〜2160p） | ✅ 正規化処理 |
 | ユーザー設定ON/OFF | ✅ `enable_screen_analysis` |
 | 対戦入力UIへの統合 | ✅ DuelFormDialog.vue |
-| 自動対戦記録作成 | ❌ 未実装 |
-| FSM状態管理 | ⚠️ 部分実装 |
+| FSM状態管理（メインスレッド） | ✅ 実装完了 |
+| 自動対戦記録作成 | ✅ DuelFormDialog統合 |
 
 ---
 
@@ -29,20 +29,35 @@
 
 ## アーキテクチャ
 
-```
-フレーム取得 → 正規化 → ROI抽出 → 画像特徴化 → テンプレ一致 → FSM確定
-```
-
 ### パイプライン
+
+```
+フレーム取得 → ROI抽出 → ML分類（Worker） → FSM確定（メインスレッド）
+```
 
 | ステップ | 説明 |
 |---------|------|
-| フレーム取得 | `getDisplayMedia()` + `MediaStreamTrackProcessor` |
-| 正規化 | 幅1280pxにリサイズ（16:9基準） |
-| ROI抽出 | 固定領域切り出し |
-| 特徴化 | グレースケール + エッジ抽出 |
-| マッチング | テンプレートマッチ（NCC系） |
-| 確定 | FSMで時系列管理 |
+| フレーム取得 | `getDisplayMedia()` + Canvas |
+| ROI抽出 | 比率ベースの固定領域切り出し |
+| ML分類 | TensorFlow.js（Web Worker） |
+| FSM確定 | メインスレッドで時系列管理 |
+
+### ファイル構成
+
+```
+frontend/src/
+├── composables/
+│   └── useScreenAnalysis.ts      # 統合Composable + FSM
+├── workers/
+│   └── screenAnalysisML.worker.ts  # ML分類Worker
+└── utils/
+    └── screenAnalysis/
+        ├── config.ts             # 統合設定
+        ├── fsm.ts                # FSM状態機械
+        └── types.ts              # 型定義
+```
+
+詳細なFSM設計は @./screen-analysis-fsm.md を参照。
 
 ---
 
@@ -50,39 +65,33 @@
 
 | パラメータ | 値 |
 |-----------|-----|
-| 通常スキャン | 2〜5 fps |
-| 重要シーン | 10〜15 fps |
-| 確定条件 | 3フレーム連続一致 |
-| クールダウン | 8〜15秒 |
+| スキャンFPS | 5 fps |
+| コイン確定条件 | 5フレーム連続一致 |
+| 勝敗確定条件 | 3フレーム連続一致 |
+| コインクールダウン | 15秒 |
+| 勝敗クールダウン | 12秒 |
 
 ---
 
-## テンプレート管理
+## ML分類
 
-### MIPMAPアプローチ
+### TensorFlow.js
 
-| ステップ | 説明 |
-|---------|------|
-| マスター読込 | 4K高品質テンプレート1枚 |
-| 動的リサイズ | 全解像度版を生成 |
-| キャッシュ | 前処理済みデータをメモリ保持 |
-| 選択 | 入力解像度に最も近いテンプレート使用 |
-
-### 対応解像度
-
-720p, 768p, 810p, 900p, 1080p, 1152p, 1440p, 1800p, 2160p
-
----
-
-## FSM状態
-
-| 状態 | 説明 |
+| 項目 | 内容 |
 |------|------|
-| `Idle` | 待機中 |
-| `TurnChoiceAvailable` | 選択権あり |
-| `TurnChoiceLocked` | 確定・変更不可 |
-| `ResultDetected` | 勝敗確定 |
-| `Cooldown` | 二重計上防止 |
+| ランタイム | TensorFlow.js（ブラウザ） |
+| バックエンド | WebGL（GPU加速） |
+| モデル形式 | TensorFlow.js GraphModel |
+| 入力サイズ | 224x224 |
+
+### フォールバック
+
+MLモデルがない場合は色ヒストグラムベースのヒューリスティックを使用。
+
+| 状態 | 動作 |
+|------|------|
+| モデルあり | ML分類を使用 |
+| モデルなし | 色ベース判定 + 警告表示 |
 
 ---
 
@@ -92,7 +101,7 @@
 |------|------|
 | 処理場所 | クライアント（ブラウザ）内で完結 |
 | 送信データ | フレーム画像は送信しない |
-| 保存 | イベント・メタ情報のみ（画像はオプトイン） |
+| 保存 | イベント・メタ情報のみ（画像はデバッガー専用オプトイン） |
 
 ---
 
@@ -100,11 +109,12 @@
 
 | ファイル | 説明 |
 |---------|------|
-| `frontend/src/utils/screenAnalysis.ts` | 解析ロジック |
+| `frontend/src/composables/useScreenAnalysis.ts` | 統合Composable |
+| `frontend/src/utils/screenAnalysis/fsm.ts` | FSM状態機械 |
+| `frontend/src/workers/screenAnalysisML.worker.ts` | ML分類Worker |
 | `frontend/src/views/ProfileView.vue` | 設定UI |
 | `frontend/src/components/duel/DuelFormDialog.vue` | 対戦入力統合 |
-| `backend/app/models/user.py` | `enable_screen_analysis` |
-| `public/screen-analysis/` | テンプレート画像 |
+| `backend/app/models/user.py` | `enable_screen_analysis`, `is_debugger` |
 
 ---
 
@@ -112,5 +122,6 @@
 
 | ドキュメント | 内容 |
 |------------|------|
+| @./screen-analysis-fsm.md | FSM詳細設計 |
 | @../02-architecture/frontend-architecture.md | フロントエンド構造 |
 | @../04-data/data-model.md | データモデル |
