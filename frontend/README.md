@@ -22,55 +22,43 @@ Vue 3 + TypeScript + Vite を使用したデュエルログアプリケーショ
 
 ### 前提条件
 
-- Node.js 18以上
-- npm
-- Supabase CLI（ローカル開発用）
-- Docker（ローカルSupabase実行用）
+- Docker Desktop
 
-### 推奨: 開発スクリプトを使用
-
-プロジェクトルートから開発スクリプトを実行するのが最も簡単です：
+### Docker Composeで起動（推奨）
 
 ```bash
 # プロジェクトルートで実行
-./scripts/dev.sh
+docker compose up -d
+
+# ログ確認
+docker compose logs -f frontend
 ```
 
-このスクリプトは以下を自動的に実行します：
-1. ローカルSupabaseの起動
-2. バックエンドの起動
-3. フロントエンドの起動
+### アクセスURL
 
-### 手動セットアップ
+| サービス | URL |
+|---------|-----|
+| フロントエンド | http://localhost:5173 |
+| バックエンドAPI | http://localhost:8000 |
 
-#### 1. 依存関係のインストール
+### コンテナ内でコマンド実行
 
 ```bash
-cd frontend
-npm install
+# テスト実行
+docker compose exec frontend npm run test:unit
+
+# ビルド
+docker compose exec frontend npm run build
+
+# リント
+docker compose exec frontend npm run lint
 ```
 
-#### 2. 環境変数の設定
+### 環境変数
 
-`.env.development` ファイルがローカルSupabase用に設定されています：
+開発環境は`.env.development`で設定されています。
 
-```bash
-VITE_API_URL=http://localhost:8000
-
-# Supabase Configuration (Local)
-VITE_SUPABASE_URL=http://127.0.0.1:55321
-VITE_SUPABASE_ANON_KEY=sb_publishable_xxxxx
-```
-
-カスタム設定が必要な場合は、`.env.local` を作成してください:
-
-```bash
-cp .env.example .env.local
-```
-
-#### 3. 本番環境
-
-本番環境にデプロイする前に、`.env.production` ファイルを編集して、実際の本番APIのURLを設定してください:
+本番環境にデプロイする前に、`.env.production`を編集：
 
 ```env
 VITE_API_URL=https://duel-log-app.onrender.com
@@ -79,25 +67,6 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 詳細は [ENV_SETUP_GUIDE.md](./ENV_SETUP_GUIDE.md) を参照してください。
-
-## 開発
-
-### 開発サーバーを起動
-
-```bash
-npm run dev
-```
-
-ブラウザで http://localhost:5173 にアクセスできます。
-
-### 開発用URL一覧
-
-| サービス | URL | 説明 |
-|---------|-----|------|
-| Frontend | http://localhost:5173 | Vueアプリケーション |
-| Backend API | http://127.0.0.1:8000 | FastAPI |
-| API Docs | http://127.0.0.1:8000/docs | Swagger UI |
-| Supabase Studio | http://127.0.0.1:55323 | DB管理UI |
 
 ## ビルド
 
@@ -206,7 +175,6 @@ frontend/
 │   ├── types/           # TypeScript型定義
 │   │   └── index.ts
 │   ├── utils/           # ユーティリティ関数
-│   │   └── ranks.ts
 │   ├── views/           # ページコンポーネント
 │   │   ├── DashboardView.vue
 │   │   ├── DecksView.vue

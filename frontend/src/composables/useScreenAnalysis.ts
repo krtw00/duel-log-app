@@ -1,17 +1,18 @@
 /**
  * 画面解析Composable
  *
- * TensorFlow.jsによる画面解析を提供
+ * OCR（Tesseract.js）による画面解析を提供
+ * VICTORY/LOSEやコイントス結果をテキスト認識で検出
  * FSMはメインスレッドで管理し、Vue DevToolsでデバッグ可能
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { createLogger } from '@/utils/logger';
 import {
   createFSM,
+  createCanvas,
   FSM_CONFIG,
   WORKER_CONFIG,
   ANALYSIS_CONFIG,
-  ROI_CONFIG,
   type WorkerMessage,
   type WorkerResponse,
   type DetectionScores,
@@ -19,7 +20,6 @@ import {
   type CoinResult,
   type MatchResult,
 } from '@/utils/screenAnalysis/index';
-import { createCanvas } from '@/utils/screenAnalysis';
 
 const logger = createLogger('ScreenAnalysis');
 
@@ -65,6 +65,15 @@ export function useScreenAnalysis() {
   // Worker関連
   let worker: Worker | null = null;
   const currentFps = ref(ANALYSIS_CONFIG.scanFps);
+
+  // ログ蓄積用（デバッグ用ダウンロード機能）
+  interface LogEntry {
+    timestamp: number;
+    level: 'info' | 'warn' | 'error' | 'debug';
+    message: string;
+  }
+  const logs = ref<LogEntry[]>([]);
+  const maxLogEntries = 10000; // メモリ節約のため上限設定
 
   // キャプチャ関連
   let stream: MediaStream | null = null;
@@ -141,23 +150,7 @@ export function useScreenAnalysis() {
 
       switch (response.type) {
         case 'init':
-          if (response.success) {
-            logger.info('Worker initialized successfully');
-            if (response.modelStatus) {
-              modelStatus.value = { ...response.modelStatus };
-              // 互換性のためtemplate statusも更新
-              templateStatus.value = {
-                coinWin: true,
-                coinLose: true,
-                win: true,
-                lose: true,
-              };
-            }
-          } else {
-            logger.error('Worker initialization failed:', response.error);
-            errorMessage.value = response.error ?? 'Worker initialization failed';
-            fsm.setError(response.error ?? 'Worker initialization failed');
-          }
+          // initWorkerで処理済みなのでここでは何もしない
           break;
 
         case 'scores': {
@@ -165,16 +158,43 @@ export function useScreenAnalysis() {
           lastScores.value = { ...response.scores };
 
           // FSMでスコアを処理
-          const event = fsm.processScores(response.scores);
+          const fsmEvent = fsm.processScores(response.scores);
+
+          // FSM状態をログに追加（検出時または10フレームごと）
+          const hasDetection =
+            response.scores.coinLabel !== 'none' || response.scores.resultLabel !== 'none';
+          const frameNum = logs.value.length;
+          if (hasDetection || frameNum % 10 === 0) {
+            const fsmLog: LogEntry = {
+              timestamp: response.scores.timestamp,
+              level: 'debug',
+              message:
+                `[FSM] phase=${fsm.state.phase}, resultLocked=${fsm.state.resultLocked}, ` +
+                `coinStreak=${fsm.state.coinStreak.toFixed(1)}, resultStreak=${fsm.state.resultStreak.toFixed(1)}`,
+            };
+            logs.value.push(fsmLog);
+          }
 
           // 検出イベントを処理
-          if (event?.type === 'coinDetected') {
-            lastCoinResult.value = event.result;
-            logger.info(`Coin detected: ${event.result}`);
+          if (fsmEvent?.type === 'coinDetected') {
+            lastCoinResult.value = fsmEvent.result;
+            logger.info(`Coin detected: ${fsmEvent.result}`);
+            // ログにも追加
+            logs.value.push({
+              timestamp: fsmEvent.timestamp,
+              level: 'info',
+              message: `[FSM] ★ Coin detected: ${fsmEvent.result} (eventId: ${fsmEvent.eventId})`,
+            });
           }
-          if (event?.type === 'resultDetected') {
-            lastResult.value = event.result;
-            logger.info(`Result detected: ${event.result}`);
+          if (fsmEvent?.type === 'resultDetected') {
+            lastResult.value = fsmEvent.result;
+            logger.info(`Result detected: ${fsmEvent.result}`);
+            // ログにも追加
+            logs.value.push({
+              timestamp: fsmEvent.timestamp,
+              level: 'info',
+              message: `[FSM] ★ Result detected: ${fsmEvent.result} (eventId: ${fsmEvent.eventId})`,
+            });
           }
           break;
         }
@@ -184,6 +204,33 @@ export function useScreenAnalysis() {
           errorMessage.value = response.error;
           fsm.setError(response.error);
           break;
+
+        case 'log': {
+          // ログを蓄積
+          const entry: LogEntry = {
+            timestamp: response.timestamp,
+            level: response.level,
+            message: response.message,
+          };
+          logs.value.push(entry);
+          // 上限を超えたら古いログを削除
+          if (logs.value.length > maxLogEntries) {
+            logs.value.splice(0, logs.value.length - maxLogEntries);
+          }
+          break;
+        }
+
+        case 'debugImage': {
+          // デバッグ画像をサーバーに保存
+          void saveDebugImage(
+            response.imageType,
+            response.dataUrl,
+            response.frameCount,
+            response.timestamp,
+            response.metadata,
+          );
+          break;
+        }
 
         default:
           logger.warn('Unknown worker response type:', response);
@@ -201,28 +248,62 @@ export function useScreenAnalysis() {
   /**
    * Workerを初期化
    */
-  const initWorker = async (): Promise<void> => {
-    try {
-      // Workerを作成
-      worker = new Worker(new URL('../workers/screenAnalysisML.worker.ts', import.meta.url), {
-        type: 'module',
-      });
+  const initWorker = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Workerを作成（OCRベース）
+        worker = new Worker(new URL('../workers/screenAnalysisOCR.worker.ts', import.meta.url), {
+          type: 'module',
+        });
 
-      setupWorkerMessageHandler();
+        // 初期化完了を待つハンドラを設定
+        const initHandler = (event: MessageEvent<WorkerResponse>) => {
+          const response = event.data;
+          if (response.type === 'init') {
+            if (response.success) {
+              logger.info('Worker initialized successfully');
+              if (response.modelStatus) {
+                modelStatus.value = { ...response.modelStatus };
+                templateStatus.value = {
+                  coinWin: true,
+                  coinLose: true,
+                  win: true,
+                  lose: true,
+                };
+              }
+              // 通常のメッセージハンドラに切り替え
+              setupWorkerMessageHandler();
+              resolve();
+            } else {
+              logger.error('Worker initialization failed:', response.error);
+              errorMessage.value = response.error ?? 'Worker initialization failed';
+              fsm.setError(response.error ?? 'Worker initialization failed');
+              reject(new Error(response.error));
+            }
+          }
+        };
 
-      // Workerに初期化メッセージを送信
-      const message: WorkerMessage = {
-        type: 'init',
-        config: WORKER_CONFIG,
-      };
+        worker.onmessage = initHandler;
 
-      worker.postMessage(message);
+        worker.onerror = (error) => {
+          logger.error('Worker error during init:', error);
+          reject(error);
+        };
 
-      logger.info('Worker initialization message sent');
-    } catch (error) {
-      logger.error('Failed to initialize worker:', error);
-      throw error;
-    }
+        // Workerに初期化メッセージを送信
+        const message: WorkerMessage = {
+          type: 'init',
+          config: WORKER_CONFIG,
+        };
+
+        worker.postMessage(message);
+
+        logger.info('Worker initialization message sent, waiting for response...');
+      } catch (error) {
+        logger.error('Failed to initialize worker:', error);
+        reject(error);
+      }
+    });
   };
 
   /**
@@ -332,11 +413,12 @@ export function useScreenAnalysis() {
         }
       }
 
-      drawParams = { sx, sy, sWidth, sHeight };
+      // Canvas作成（メモリ節約のため1280幅に縮小）
+      const scale = ANALYSIS_CONFIG.normalizedWidth / sWidth;
+      const canvasWidth = ANALYSIS_CONFIG.normalizedWidth;
+      const canvasHeight = Math.round(sHeight * scale);
 
-      // Canvas作成
-      const canvasWidth = sWidth;
-      const canvasHeight = sHeight;
+      drawParams = { sx, sy, sWidth, sHeight };
       canvas = createCanvas(canvasWidth, canvasHeight);
       ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) {
@@ -394,6 +476,13 @@ export function useScreenAnalysis() {
     drawParams = null;
     isRunning.value = false;
 
+    // ログが蓄積されていれば自動保存
+    if (logs.value.length > 0) {
+      void saveLogs().then(() => {
+        logs.value = []; // 保存後にクリア
+      });
+    }
+
     logger.info('Capture stopped');
   };
 
@@ -406,75 +495,48 @@ export function useScreenAnalysis() {
   };
 
   /**
-   * CanvasをBlobに変換するヘルパー
+   * ログをサーバーに保存（開発環境のみ）
+   * キャプチャ終了時に自動で呼ばれる
    */
-  const canvasToBlob = async (
-    targetCanvas: HTMLCanvasElement | OffscreenCanvas,
-  ): Promise<Blob | null> => {
-    if (targetCanvas instanceof HTMLCanvasElement) {
-      return new Promise((resolve) => {
-        targetCanvas.toBlob((blob) => resolve(blob), 'image/png');
-      });
-    } else if (targetCanvas instanceof OffscreenCanvas) {
-      return await targetCanvas.convertToBlob({ type: 'image/png' });
+  const saveLogs = async () => {
+    if (logs.value.length === 0) {
+      logger.warn('No logs to download');
+      return;
     }
-    return null;
-  };
 
-  // File System Access API用のディレクトリハンドル
-  let trainingDataDirHandle: FileSystemDirectoryHandle | null = null;
+    // テキストとして整形
+    const logText = logs.value
+      .map((entry) => {
+        const date = new Date(entry.timestamp);
+        const timeStr = date.toLocaleTimeString('ja-JP', { hour12: false });
+        const msStr = String(date.getMilliseconds()).padStart(3, '0');
+        return `[${timeStr}.${msStr}] [${entry.level.toUpperCase()}] ${entry.message}`;
+      })
+      .join('\n');
 
-  /**
-   * 学習データ保存先フォルダを選択
-   */
-  const selectTrainingDataFolder = async (): Promise<boolean> => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `screen-analysis-log_${timestamp}.txt`;
+
+    // サーバーに保存を試みる（開発環境のみ有効）
     try {
-      // @ts-expect-error - File System Access API
-      trainingDataDirHandle = await window.showDirectoryPicker({
-        mode: 'readwrite',
+      const response = await fetch('/api/debug/logs/screen-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: logText, filename }),
       });
-      logger.info(`Training data folder selected: ${trainingDataDirHandle?.name}`);
-      return true;
-    } catch (error) {
-      logger.error('Failed to select training data folder:', error);
-      return false;
+
+      if (response.ok) {
+        const result = await response.json();
+        logger.info(`Logs saved to server: ${result.filepath}`);
+        return;
+      }
+    } catch {
+      // サーバー保存に失敗した場合はフォールバック
+      logger.debug('Server save failed, falling back to browser download');
     }
-  };
 
-  /**
-   * サブディレクトリを取得または作成
-   */
-  const getOrCreateSubDir = async (
-    parentHandle: FileSystemDirectoryHandle,
-    name: string,
-  ): Promise<FileSystemDirectoryHandle> => {
-    return await parentHandle.getDirectoryHandle(name, { create: true });
-  };
-
-  /**
-   * ファイルを保存
-   */
-  const saveFileToDir = async (
-    dirHandle: FileSystemDirectoryHandle,
-    filename: string,
-    blob: Blob,
-  ): Promise<boolean> => {
-    try {
-      const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return true;
-    } catch (error) {
-      logger.error(`Failed to save file ${filename}:`, error);
-      return false;
-    }
-  };
-
-  /**
-   * Blobをダウンロード（フォールバック用）
-   */
-  const downloadBlob = (blob: Blob, filename: string) => {
+    // フォールバック: ブラウザダウンロード
+    const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -483,81 +545,47 @@ export function useScreenAnalysis() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    logger.info(`Downloaded ${logs.value.length} log entries (fallback)`);
   };
 
   /**
-   * 学習データ保存先が設定済みか
+   * デバッグ画像をサーバーに保存（開発環境のみ）
    */
-  const hasTrainingDataFolder = () => trainingDataDirHandle !== null;
-
-  /**
-   * デバッグ用: 現在のフレームとROI領域を保存
-   */
-  const saveDebugImages = async (
-    label: 'coin-win' | 'coin-lose' | 'coin-none' | 'result-win' | 'result-lose' | 'result-none',
+  const saveDebugImage = async (
+    imageType: string,
+    dataUrl: string,
+    frameCount: number,
+    timestamp: number,
+    metadata?: {
+      label?: string;
+      confidence?: number;
+      leftGold?: number;
+      rightGold?: number;
+    },
   ) => {
-    if (!canvas || !ctx) {
-      logger.warn('Cannot save debug images: canvas not ready');
-      return null;
-    }
-
-    const timestamp = Date.now();
-    let savedCount = 0;
-
     try {
-      // ROIを抽出
-      const roiConfig = label.startsWith('coin') ? ROI_CONFIG.coin : ROI_CONFIG.result;
-      const rect = {
-        x: Math.round(roiConfig.x * canvas.width),
-        y: Math.round(roiConfig.y * canvas.height),
-        width: Math.round(roiConfig.width * canvas.width),
-        height: Math.round(roiConfig.height * canvas.height),
-      };
-      const roiImageData = ctx.getImageData(rect.x, rect.y, rect.width, rect.height);
+      const response = await fetch('/api/debug/images/screen-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageType,
+          dataUrl,
+          frameCount,
+          timestamp,
+          metadata,
+        }),
+      });
 
-      // ROIをHTMLCanvasに描画
-      const roiHtmlCanvas = document.createElement('canvas');
-      roiHtmlCanvas.width = roiImageData.width;
-      roiHtmlCanvas.height = roiImageData.height;
-      const roiCtx = roiHtmlCanvas.getContext('2d');
-      if (!roiCtx) {
-        logger.error('Failed to create ROI canvas context');
-        return 0;
-      }
-      roiCtx.putImageData(roiImageData, 0, 0);
-      const roiBlob = await canvasToBlob(roiHtmlCanvas);
-
-      if (!roiBlob) {
-        logger.error('Failed to create ROI blob');
-        return 0;
-      }
-
-      // File System Access APIが使える場合は直接保存
-      if (trainingDataDirHandle) {
-        const [category, className] = label.split('-') as [string, string];
-        const categoryDir = await getOrCreateSubDir(trainingDataDirHandle, category);
-        const classDir = await getOrCreateSubDir(
-          categoryDir,
-          className === 'win' && category === 'result' ? 'victory' : className,
-        );
-
-        const roiFilename = `${className}_${timestamp}.png`;
-        if (await saveFileToDir(classDir, roiFilename, roiBlob)) {
-          savedCount++;
-          logger.info(`Saved to ${category}/${className}/${roiFilename}`);
-        }
+      if (response.ok) {
+        const result = await response.json();
+        logger.debug(`Debug image saved: ${result.filepath}`);
       } else {
-        // フォールバック: ダウンロード
-        downloadBlob(roiBlob, `${label}_${timestamp}_roi.png`);
-        savedCount++;
+        logger.debug(`Failed to save debug image: ${response.status}`);
       }
-
-      logger.info(`Debug images captured: ${label} (${savedCount} images)`);
-    } catch (error) {
-      logger.error('Failed to save debug images:', error);
+    } catch {
+      // サーバー保存に失敗しても無視（開発環境以外では正常）
+      logger.debug('Debug image save skipped (server not available)');
     }
-
-    return savedCount;
   };
 
   // ライフサイクル
@@ -596,9 +624,6 @@ export function useScreenAnalysis() {
     stopCapture,
     resetState,
     ensureTemplatesLoaded,
-    saveDebugImages,
-    selectTrainingDataFolder,
-    hasTrainingDataFolder,
     setAnalysisFps,
     currentFps: computed(() => currentFps.value),
   };
