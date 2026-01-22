@@ -301,7 +301,12 @@ def delete_supabase_user(supabase_uuid: str) -> bool:
 
 
 def get_or_create_local_user(
-    db: Session, supabase_uuid: str, email: str, username: str
+    db: Session,
+    supabase_uuid: str,
+    email: str,
+    username: str,
+    is_admin: bool = False,
+    is_debugger: bool = False,
 ) -> User:
     """
     ローカルDBでユーザーを取得または作成
@@ -311,6 +316,8 @@ def get_or_create_local_user(
         supabase_uuid: SupabaseのユーザーUUID
         email: メールアドレス
         username: ユーザー名
+        is_admin: 管理者権限
+        is_debugger: デバッガー権限
 
     Returns:
         ユーザーオブジェクト
@@ -318,29 +325,36 @@ def get_or_create_local_user(
     # まずsupabase_uuidで検索
     user = db.query(User).filter(User.supabase_uuid == supabase_uuid).first()
     if user:
-        # 既存ユーザーに管理者権限を付与
-        if not user.is_admin:
+        # 既存ユーザーの権限を更新
+        updated = False
+        if is_admin and not user.is_admin:
             user.is_admin = True
+            updated = True
+        if is_debugger and not user.is_debugger:
+            user.is_debugger = True
+            updated = True
+        if updated:
             db.commit()
             db.refresh(user)
-            logger.info(f"Granted admin privileges to: {user.username}")
+            logger.info(f"Updated privileges for: {user.username}")
         logger.info(f"Found existing user by supabase_uuid: {user.username}")
         return user
 
     # 次にメールアドレスで検索
     user = db.query(User).filter(User.email == email).first()
     if user:
-        # 既存ユーザーにsupabase_uuidを紐付け + 管理者権限付与
+        # 既存ユーザーにsupabase_uuidを紐付け + 権限更新
         user.supabase_uuid = supabase_uuid
-        user.is_admin = True
+        if is_admin:
+            user.is_admin = True
+        if is_debugger:
+            user.is_debugger = True
         db.commit()
         db.refresh(user)
-        logger.info(
-            f"Linked existing user to Supabase and granted admin: {user.username}"
-        )
+        logger.info(f"Linked existing user to Supabase: {user.username}")
         return user
 
-    # 新規作成（テストユーザーは管理者権限付き）
+    # 新規作成
     user = User(
         supabase_uuid=supabase_uuid,
         username=username,
@@ -348,7 +362,8 @@ def get_or_create_local_user(
         passwordhash="supabase_auth_user",  # Supabase認証ユーザーを示すマーカー
         streamer_mode=False,
         theme_preference="dark",
-        is_admin=True,  # シードユーザーは管理者権限付き
+        is_admin=is_admin,
+        is_debugger=is_debugger,
         enable_screen_analysis=False,
     )
     db.add(user)
@@ -358,30 +373,105 @@ def get_or_create_local_user(
     return user
 
 
-def seed_data(db: Session):
-    """ダミーデータをデータベースに投入する"""
+# シードユーザー定義
+SEED_USERS = [
+    {
+        "email": "test@example.com",
+        "username": "testuser",
+        "is_admin": True,
+        "is_debugger": True,
+        "create_duels": True,  # このユーザーのみダミー対戦データを作成
+    },
+    {
+        "email": "admin@example.com",
+        "username": "admin",
+        "is_admin": True,
+        "is_debugger": False,
+        "create_duels": False,
+    },
+    {
+        "email": "debugger@example.com",
+        "username": "debugger",
+        "is_admin": False,
+        "is_debugger": True,
+        "create_duels": False,
+    },
+]
+
+
+def seed_data(db: Session, skip_supabase: bool = False):
+    """ダミーデータをデータベースに投入する
+
+    Args:
+        db: データベースセッション
+        skip_supabase: Trueの場合、Supabase AuthをスキップしてローカルDBのみ使用
+    """
     # JSTタイムゾーン設定
     jst = ZoneInfo("Asia/Tokyo")
+    password = "password123"
 
     try:
-        # --- 1. Supabase Authでユーザーを作成 ---
-        logger.info("Creating user via Supabase Auth...")
-        password = "password123"
-        fixed_email = "test@example.com"
-        fixed_username = "testuser"
+        # --- 1. ユーザーを作成 ---
+        if skip_supabase:
+            logger.info("Creating users (local DB only, skipping Supabase Auth)...")
+        else:
+            logger.info("Creating users via Supabase Auth...")
 
-        # Supabaseにユーザーを作成
-        supabase_uuid = create_supabase_user(fixed_email, password, fixed_username)
+        created_users = []
+        main_user = None  # ダミーデータを作成するメインユーザー
 
-        if not supabase_uuid:
-            logger.error("❌ Failed to create/get Supabase user. Aborting seed.")
+        for user_config in SEED_USERS:
+            email = user_config["email"]
+            username = user_config["username"]
+
+            supabase_uuid = None
+
+            if not skip_supabase:
+                # Supabaseにユーザーを作成
+                supabase_uuid = create_supabase_user(email, password, username)
+
+                if not supabase_uuid:
+                    logger.warning(
+                        f"⚠️ Failed to create Supabase user: {email}, falling back to local only"
+                    )
+
+            # supabase_uuidがない場合はダミーUUIDを生成
+            if not supabase_uuid:
+                import uuid
+
+                supabase_uuid = str(uuid.uuid4())
+                logger.info(f"Using generated UUID for {email}: {supabase_uuid}")
+
+            # ローカルDBにユーザーを同期
+            user = get_or_create_local_user(
+                db,
+                supabase_uuid,
+                email,
+                username,
+                is_admin=user_config["is_admin"],
+                is_debugger=user_config["is_debugger"],
+            )
+            created_users.append(
+                {
+                    "user": user,
+                    "email": email,
+                    "supabase_uuid": supabase_uuid,
+                    "config": user_config,
+                }
+            )
+            logger.info(
+                f"User ready: {user.username} (ID: {user.id}, admin={user.is_admin}, debugger={user.is_debugger})"
+            )
+
+            # メインユーザーを特定
+            if user_config.get("create_duels"):
+                main_user = user
+
+        if not main_user:
+            logger.error("❌ No main user found for creating duels. Aborting seed.")
             return
 
-        # ローカルDBにユーザーを同期
-        user = get_or_create_local_user(db, supabase_uuid, fixed_email, fixed_username)
-        logger.info(
-            f"User ready: {user.username} (ID: {user.id}, UUID: {supabase_uuid})"
-        )
+        user = main_user  # 後続処理用
 
         # --- 2. ダミーデッキの作成 (自分用と相手用) ---
         logger.info("Creating dummy decks from YGO themes...")
@@ -540,12 +630,19 @@ def seed_data(db: Session):
 
         logger.info(f"{total_created_count} duels created in total.")
         # 開発用シードの認証情報は標準出力に表示（ログには記録しない）
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 60)
         print("✅ Dummy data seeding complete!")
-        print(f"  Email: {fixed_email}")
-        print(f"  Password: {password}")
-        print(f"  Supabase UUID: {supabase_uuid}")
-        print("=" * 50)
+        print("=" * 60)
+        print(f"\nPassword (all users): {password}\n")
+        print("Created users:")
+        print("-" * 60)
+        for u in created_users:
+            admin_flag = "👑" if u["config"]["is_admin"] else "  "
+            debug_flag = "🔧" if u["config"]["is_debugger"] else "  "
+            print(f"  {admin_flag}{debug_flag} {u['email']:<30} ({u['user'].username})")
+        print("-" * 60)
+        print("  👑 = admin, 🔧 = debugger")
+        print("=" * 60)
 
     except Exception as e:
         logger.error(f"An error occurred during data seeding: {e}", exc_info=True)
@@ -558,25 +655,25 @@ def clean_seed_data(db: Session):
     """
     シードデータを削除（Supabase Authからも削除）
     """
-    fixed_email = "test@example.com"
-
     try:
-        # ローカルDBからユーザーを検索
-        user = db.query(User).filter(User.email == fixed_email).first()
+        for user_config in SEED_USERS:
+            email = user_config["email"]
+            # ローカルDBからユーザーを検索
+            user = db.query(User).filter(User.email == email).first()
 
-        if user:
-            supabase_uuid = user.supabase_uuid
+            if user:
+                supabase_uuid = user.supabase_uuid
 
-            # Supabaseからユーザーを削除
-            if supabase_uuid:
-                delete_supabase_user(supabase_uuid)
+                # Supabaseからユーザーを削除
+                if supabase_uuid:
+                    delete_supabase_user(supabase_uuid)
 
-            # ローカルDBからユーザーを削除（カスケードでデッキとデュエルも削除）
-            db.delete(user)
-            db.commit()
-            logger.info(f"✅ Cleaned up seed data for {fixed_email}")
-        else:
-            logger.info(f"No seed data found for {fixed_email}")
+                # ローカルDBからユーザーを削除（カスケードでデッキとデュエルも削除）
+                db.delete(user)
+                db.commit()
+                logger.info(f"✅ Cleaned up seed data for {email}")
+            else:
+                logger.info(f"No seed data found for {email}")
 
     except Exception as e:
         logger.error(f"Error cleaning seed data: {e}", exc_info=True)
@@ -588,9 +685,14 @@ def clean_seed_data(db: Session):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Seed dummy data with Supabase Auth")
+    parser = argparse.ArgumentParser(description="Seed dummy data")
     parser.add_argument(
         "--clean", action="store_true", help="Clean up seed data instead of creating"
+    )
+    parser.add_argument(
+        "--skip-supabase",
+        action="store_true",
+        help="Skip Supabase Auth and use local DB only (for Docker dev environment)",
     )
     args = parser.parse_args()
 
@@ -608,6 +710,6 @@ if __name__ == "__main__":
         clean_seed_data(db_session)
     else:
         logger.info("Starting data seeding process...")
-        seed_data(db_session)
+        seed_data(db_session, skip_supabase=args.skip_supabase)
 
     logger.info("Process finished.")
