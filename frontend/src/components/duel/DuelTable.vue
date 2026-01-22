@@ -57,7 +57,7 @@
             </span>
             <!-- ランク/レート/DC表示 -->
             <span v-if="duel.game_mode === 'RANK' && duel.rank" class="detail-item metric">
-              {{ getRankNameShort(duel.rank) }}
+              {{ getRankName(duel.rank) }}
             </span>
             <span
               v-else-if="duel.game_mode === 'RATE' && duel.rate_value !== undefined"
@@ -185,7 +185,7 @@
     <template v-if="!hiddenColumnsSet.has('rank_or_rate')" #[`item.rank_or_rate`]="{ item }">
       <v-chip v-if="item.game_mode === 'RANK' && item.rank" color="warning" variant="outlined">
         <v-icon start size="small">mdi-crown</v-icon>
-        {{ getRankNameShort(item.rank) }}
+        {{ getRankName(item.rank) }}
       </v-chip>
       <v-chip
         v-else-if="item.game_mode === 'RATE' && item.rate_value !== undefined"
@@ -356,27 +356,6 @@ const formatDateShort = (dateString: string) => {
   const [, month, day] = datePart.split('-');
   const [hour, minute] = timePart.split(':');
   return `${month}/${day} ${hour}:${minute}`;
-};
-
-// ランク名の短縮版を取得
-const getRankNameShort = (rank: number) => {
-  const name = getRankName(rank);
-  // "ダイヤモンド1" -> "D1", "プラチナ5" -> "P5" など
-  const shortNames: Record<string, string> = {
-    ルーキー: 'R',
-    ブロンズ: 'B',
-    シルバー: 'S',
-    ゴールド: 'G',
-    プラチナ: 'P',
-    ダイヤモンド: 'D',
-    マスター: 'M',
-  };
-  for (const [full, short] of Object.entries(shortNames)) {
-    if (name.startsWith(full)) {
-      return short + name.replace(full, '');
-    }
-  }
-  return name;
 };
 
 const showActionButtons = computed(() => props.showActions !== false);

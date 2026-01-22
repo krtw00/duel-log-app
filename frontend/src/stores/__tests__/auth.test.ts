@@ -58,6 +58,7 @@ describe('authStore', () => {
       streamer_mode: false,
       theme_preference: 'dark',
       is_admin: false,
+      is_debugger: false,
       enable_screen_analysis: false,
     };
 
@@ -124,6 +125,7 @@ describe('authStore', () => {
       streamer_mode: false,
       theme_preference: 'dark',
       is_admin: false,
+      is_debugger: false,
       enable_screen_analysis: false,
     };
 

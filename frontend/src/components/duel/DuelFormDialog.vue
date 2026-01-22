@@ -256,14 +256,6 @@
                 <div v-else-if="templateErrorLabel" class="analysis-error">
                   {{ templateErrorLabel }}
                 </div>
-
-                <!-- デバッガーのみ: ML学習データ収集用ボタン -->
-                <MLTrainingDataButtons
-                  v-if="authStore.isDebugger && analysisRunning"
-                  :folder-selected="trainingFolderSelected"
-                  @select-folder="selectTrainingFolder"
-                  @save-image="saveDebugImage"
-                />
               </div>
             </v-col>
 
@@ -377,10 +369,6 @@ import { useScreenAnalysis } from '@/composables/useScreenAnalysis';
 import { useAuthStore } from '@/stores/auth';
 import { useLocale } from '@/composables/useLocale';
 import { useRanks } from '@/composables/useRanks';
-import MLTrainingDataButtons, {
-  type DebugLabel,
-} from '@/components/duel/MLTrainingDataButtons.vue';
-
 const logger = createLogger('DuelForm');
 
 interface Props {
@@ -496,32 +484,6 @@ const toggleScreenAnalysis = async () => {
     return;
   }
   await startCapture();
-};
-
-// 学習データ保存先フォルダが選択済みか
-const trainingFolderSelected = computed(() => screenAnalysis.hasTrainingDataFolder());
-
-// 学習データ保存先フォルダを選択
-const selectTrainingFolder = async () => {
-  const success = await screenAnalysis.selectTrainingDataFolder();
-  if (success) {
-    notificationStore.success(
-      LL.value?.duels.screenAnalysis.trainingFolderSet() ??
-        '学習データ保存先フォルダを設定しました',
-    );
-  } else {
-    notificationStore.warning(
-      LL.value?.duels.screenAnalysis.trainingFolderCancelled() ??
-        'フォルダの選択がキャンセルされました',
-    );
-  }
-};
-
-const saveDebugImage = async (label: DebugLabel) => {
-  await screenAnalysis.saveDebugImages(label);
-  notificationStore.success(
-    `${LL.value?.duels.screenAnalysis.trainingDataSaved() ?? '学習データを保存しました'}: ${label}`,
-  );
 };
 
 const setSecondTurn = () => {
