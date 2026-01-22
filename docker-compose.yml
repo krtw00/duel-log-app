@@ -5,27 +5,25 @@ services:
       dockerfile: Dockerfile
     container_name: duel-log-backend
     restart: unless-stopped
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./backend:/app:cached
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/duel_log
-      - SUPABASE_URL=${SUPABASE_URL:-http://localhost:55321}
-      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      # Docker container -> host Supabase: use host.docker.internal
+      - SUPABASE_URL=${SUPABASE_URL:-http://host.docker.internal:55321}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET:-}
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-for-local-development-only}
-      - FRONTEND_URL=http://duel-log.localhost
+      - FRONTEND_URL=http://localhost:5173
       - ENVIRONMENT=development
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - traefik
-      - default
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.duel-log-api.rule=Host(`duel-log.localhost`) && PathPrefix(`/api`)"
-      - "traefik.http.services.duel-log-api.loadbalancer.server.port=8000"
-      - "traefik.docker.network=traefik"
 
   frontend:
     build:
@@ -33,21 +31,16 @@ services:
       dockerfile: Dockerfile
     container_name: duel-log-frontend
     restart: unless-stopped
+    ports:
+      - "5173:5173"
     volumes:
       - ./frontend:/app:cached
       - frontend_node_modules:/app/node_modules
     environment:
-      - VITE_API_URL=http://duel-log.localhost/api
-      - VITE_SUPABASE_URL=${SUPABASE_URL:-http://localhost:55321}
-      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-    networks:
-      - traefik
-      - default
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.duel-log-frontend.rule=Host(`duel-log.localhost`)"
-      - "traefik.http.services.duel-log-frontend.loadbalancer.server.port=5173"
-      - "traefik.docker.network=traefik"
+      - VITE_API_URL=http://localhost:8000
+      # Browser -> host Supabase: use 127.0.0.1 (not host.docker.internal)
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-http://127.0.0.1:55321}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
 
   db:
     image: postgres:16-alpine
@@ -67,7 +60,3 @@ services:
 volumes:
   frontend_node_modules:
   pgdata:
-
-networks:
-  traefik:
-    external: true
