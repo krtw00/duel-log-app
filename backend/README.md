@@ -26,95 +26,48 @@ FastAPI + SQLAlchemy + PostgreSQL を使用したデュエルログアプリケ�
 
 ### 前提条件
 
-- Python 3.11以上
-- Supabase CLI（ローカル開発用）
-- Docker（ローカルSupabase実行用）
+- Docker Desktop
 
-### 推奨: 開発スクリプトを使用
-
-プロジェクトルートから開発スクリプトを実行するのが最も簡単です：
+### Docker Composeで起動（推奨）
 
 ```bash
 # プロジェクトルートで実行
-./scripts/dev.sh
+docker compose up -d
+
+# ログ確認
+docker compose logs -f backend
 ```
 
-このスクリプトは以下を自動的に実行します：
-1. ローカルSupabaseの起動
-2. Python仮想環境の作成
-3. 依存関係のインストール
-4. データベースマイグレーション
-5. 開発サーバーの起動
+### アクセスURL
 
-### 手動セットアップ
+| サービス | URL |
+|---------|-----|
+| バックエンドAPI | http://localhost:8000 |
+| Swagger UI | http://localhost:8000/docs |
 
-#### 1. uvのインストール（未インストールの場合）
+### コンテナ内でコマンド実行
 
 ```bash
-# macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# テスト実行
+docker compose exec backend python -m pytest
 
-# または pip で
-pip install uv
+# マイグレーション
+docker compose exec backend alembic upgrade head
+
+# リント
+docker compose exec backend ruff check . --fix
 ```
 
-#### 2. 依存関係のインストール
+### 環境変数
 
-```bash
-cd backend
-uv sync
-```
-
-#### 3. ローカルSupabaseの起動
-
-```bash
-# プロジェクトルートで実行
-supabase start
-```
-
-#### 4. 環境変数の設定
-
-`backend/.env` ファイルを作成：
-
-```env
-# データベース接続URL（ローカルSupabase）
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
-
-# Supabase設定
-SUPABASE_URL=http://127.0.0.1:55321
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
-
-# JWT設定
-SECRET_KEY=your-secret-key-here-at-least-32-characters-long
-
-# アプリケーション設定
-ENVIRONMENT=development
-FRONTEND_URL=http://localhost:5173
-```
+Docker Compose環境では`docker-compose.yml`で設定されます。
+本番環境用の環境変数は`backend/.env`で管理します。
 
 **SECRET_KEYの生成**:
 
 ```bash
 openssl rand -hex 32
 ```
-
-#### 5. 開発サーバーの起動
-
-```bash
-# start.pyを使用（推奨）
-uv run python start.py
-
-# または直接uvicornを実行
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-サーバーが起動したら、以下のURLにアクセスできます：
-
-- **API**: http://localhost:8000
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **Supabase Studio**: http://127.0.0.1:55323
 
 ## 📁 プロジェクト構造
 
