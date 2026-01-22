@@ -101,17 +101,9 @@ export interface RoiRatio {
 // Worker設定
 export interface WorkerConfig {
   coin: {
-    modelUrl: string;
-    inputSize: number;
-    labels: string[];
-    threshold: number;
     roi: RoiRatio;
   };
   result: {
-    modelUrl: string;
-    inputSize: number;
-    labels: string[];
-    threshold: number;
     roi: RoiRatio;
   };
 }
@@ -167,7 +159,34 @@ export interface WorkerErrorResponse {
   timestamp: number;
 }
 
-export type WorkerResponse = WorkerInitResponse | WorkerScoresResponse | WorkerErrorResponse;
+export interface WorkerLogResponse {
+  type: 'log';
+  level: 'info' | 'warn' | 'error' | 'debug';
+  message: string;
+  timestamp: number;
+}
+
+// デバッグ画像レスポンス
+export interface WorkerDebugImageResponse {
+  type: 'debugImage';
+  imageType: 'full' | 'coinRoi' | 'leftCrownRoi' | 'rightCrownRoi';
+  dataUrl: string; // base64 JPEG
+  frameCount: number;
+  timestamp: number;
+  metadata?: {
+    label?: string;
+    confidence?: number;
+    leftGold?: number;
+    rightGold?: number;
+  };
+}
+
+export type WorkerResponse =
+  | WorkerInitResponse
+  | WorkerScoresResponse
+  | WorkerErrorResponse
+  | WorkerLogResponse
+  | WorkerDebugImageResponse;
 
 // モデルステータス
 export interface ModelStatus {

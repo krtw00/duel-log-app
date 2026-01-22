@@ -26,19 +26,30 @@ export type {
   WorkerInitResponse,
   WorkerScoresResponse,
   WorkerErrorResponse,
+  WorkerLogResponse,
+  WorkerDebugImageResponse,
   ModelStatus,
 } from './types';
 
 // 設定
 export {
-  MODEL_INPUT_SIZE,
   ROI_CONFIG,
   FSM_CONFIG,
   WORKER_CONFIG,
   ANALYSIS_CONFIG,
-  COLOR_HEURISTICS,
 } from './config';
 
 // FSM
 export { createFSM } from './fsm';
 export type { FSM } from './fsm';
+
+// ユーティリティ
+export const createCanvas = (width: number, height: number) => {
+  if (typeof OffscreenCanvas !== 'undefined') {
+    return new OffscreenCanvas(width, height);
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+};

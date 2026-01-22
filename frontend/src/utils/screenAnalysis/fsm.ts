@@ -118,6 +118,12 @@ function processCoinScores(
 
   state.coinStreak = newStreak;
 
+  // デバッグログ
+  logger.debug(
+    `Coin streak: ${newStreak.toFixed(1)}/${config.coin.requiredStreak} ` +
+      `(candidate: ${newCandidate}, score: ${(coinScore * 100).toFixed(0)}%)`,
+  );
+
   // スコアが閾値未満の場合
   if (coinScore < config.coin.threshold) {
     if (state.coinStreak === 0) {
@@ -146,6 +152,9 @@ function processCoinScores(
     state.coinCooldownUntil = now + config.coin.cooldownMs;
     state.coinEventId += 1;
     state.resultLocked = false; // 勝敗検出をアンロック
+    // 勝敗検出状態をリセット（通信切断等でコイン→コインの場合に備える）
+    state.resultStreak = 0;
+    state.resultCandidate = null;
     state.phase = 'coinDetected';
 
     logger.info(`Coin detected: ${newCandidate} (eventId: ${state.coinEventId})`);
@@ -177,6 +186,10 @@ function processResultScores(
 
   // ロック状態（コイントス未検出）はスキップ
   if (state.resultLocked) {
+    // resultラベルがnone以外で、ロックでスキップされた場合のみログ
+    if (scores.resultLabel !== 'none') {
+      logger.debug('Result detection skipped: locked (waiting for coin detection)');
+    }
     return null;
   }
 
@@ -215,6 +228,12 @@ function processResultScores(
   );
 
   state.resultStreak = newStreak;
+
+  // デバッグログ
+  logger.debug(
+    `Result streak: ${newStreak.toFixed(1)}/${config.result.requiredStreak} ` +
+      `(candidate: ${newCandidate}, score: ${(resultScore * 100).toFixed(0)}%)`,
+  );
 
   // スコアが閾値未満の場合
   if (resultScore < config.result.threshold) {
