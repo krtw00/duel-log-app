@@ -1,6 +1,6 @@
 # Duel Log App
 
-**TCG対戦履歴を記録・分析するWebアプリケーション**
+**遊戯王マスターデュエルの対戦履歴を記録・分析するWebアプリケーション**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
@@ -10,7 +10,7 @@
 
 ## 概要
 
-トレーディングカードゲーム（TCG）の対戦履歴を記録・管理し、統計情報を分析するためのWebアプリケーション。
+遊戯王マスターデュエルの対戦履歴を記録・管理し、統計情報を分析するためのWebアプリケーション。
 
 ### Core Value
 
@@ -18,7 +18,7 @@
 |------|------|
 | 対戦履歴の可視化 | 勝敗、デッキ、対戦相手を統計情報として可視化 |
 | デッキ分析 | デッキごとの勝率、相性表、トレンド分析 |
-| 配信者サポート | OBSオーバーレイ、配信者モード（プライバシー保護） |
+| 配信者サポート | 配信者ポップアップ、配信者モード（プライバシー保護） |
 | データポータビリティ | CSVインポート/エクスポート、統計情報共有URL |
 
 ---
@@ -28,9 +28,9 @@
 ```mermaid
 flowchart TB
     User[ユーザー] --> Frontend[Vue.js Frontend]
-    Streamer[配信者] --> OBS[OBS Overlay]
+    Streamer[配信者] --> Popup[配信者ポップアップ]
     Frontend --> Backend[FastAPI Backend]
-    OBS --> Backend
+    Popup --> Backend
     Backend --> DB[(PostgreSQL)]
     Backend --> Auth[Supabase Auth]
 ```
@@ -42,7 +42,7 @@ flowchart TB
 | データベース | PostgreSQL (Supabase) |
 | 認証 | Supabase Auth (OAuth対応) |
 
-詳細: [アーキテクチャ](./docs/02-architecture/architecture.md)
+詳細: [アーキテクチャ](./docs/02-architecture/)
 
 ---
 
@@ -51,17 +51,10 @@ flowchart TB
 ### 必要条件
 
 - Docker Desktop
-- Traefik起動済み（`~/work/infra/traefik`）
 
 ### 起動
 
 ```bash
-# Traefikネットワーク作成（初回のみ）
-docker network create traefik
-
-# Traefik起動
-cd ~/work/infra/traefik && docker compose up -d
-
 # プロジェクト起動
 cd ~/work/projects/duel-log-app
 docker compose up -d
@@ -69,8 +62,8 @@ docker compose up -d
 
 ### アクセス
 
-- フロントエンド: http://duel-log.localhost
-- バックエンドAPI: http://duel-log.localhost/api
+- フロントエンド: http://localhost:5173
+- バックエンドAPI: http://localhost:8000
 
 ### コマンド
 
@@ -88,64 +81,23 @@ docker compose down
 
 ---
 
-## ローカル開発（従来方式）
+## 配信者サポート
 
-```bash
-git clone https://github.com/krtw00/duel-log-app.git
-cd duel-log-app
-./scripts/dev.sh
-```
+**配信者ポップアップ** - OBS連携なしで、ウィンドウキャプチャで統計表示。
 
-| 環境 | 要件 |
-|------|------|
-| Docker Desktop | Supabase CLI用 |
-| Node.js | v18以上 |
-| Python | 3.11以上 |
-
----
-
-## 使用方法
-
-### 開発サーバー（ローカル）
-
-```bash
-./scripts/dev.sh       # 全サービス起動
-./scripts/dev-stop.sh  # 停止
-```
-
-| サービス | URL |
-|---------|-----|
-| フロントエンド | http://localhost:5173 |
-| バックエンドAPI | http://127.0.0.1:8000 |
-| Supabase Studio | http://127.0.0.1:55323 |
-
-### OBSオーバーレイ
-
-```
-https://your-domain.com/obs-overlay?token=[トークン]
-```
-
-プロファイルページからトークンを取得し、OBSのブラウザソースに設定。
-
-詳細: [OBSオーバーレイ](./docs/05-features/obs-overlay.md)
+詳細: [配信者ポップアップ](./docs/05-features/streamer-popup-design.md)
 
 ---
 
 ## 開発
 
 ```bash
-# バックエンド
-cd backend && uv run pytest
-
-# フロントエンド
-cd frontend && npm run test:unit
+# テスト（Docker環境）
+docker compose exec backend python -m pytest
+docker compose exec frontend npm run test:unit
 ```
 
-| コマンド | 説明 |
-|---------|------|
-| `uv run pytest` | バックエンドテスト |
-| `npm run test:unit` | フロントエンドテスト |
-| `uv run ruff check .` | リント |
+詳細: [開発環境セットアップ](./docs/08-development/environment-setup.md)
 
 ---
 
@@ -168,8 +120,8 @@ cd frontend && npm run test:unit
 
 | 対象 | ドキュメント |
 |------|------------|
-| 初めての方 | [概要](./docs/01-introduction/overview.md), [アーキテクチャ](./docs/02-architecture/architecture.md) |
-| 利用者 | [機能一覧](./docs/05-features/), [OBSオーバーレイ](./docs/05-features/obs-overlay.md) |
+| 初めての方 | [概要](./docs/01-introduction/overview.md), [アーキテクチャ](./docs/02-architecture/) |
+| 利用者 | [機能一覧](./docs/05-features/), [配信者ポップアップ](./docs/05-features/streamer-popup-design.md) |
 | 開発者 | [開発ガイド](./docs/08-development/), [データモデル](./docs/04-data/) |
 | 運用者 | [デプロイ](./docs/07-deployment/), [引き継ぎガイド](./docs/operations/handover-guide.md) |
 
