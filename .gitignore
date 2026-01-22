@@ -71,3 +71,8 @@ docs/reviews/
 
 # DevHive
 .devhive/
+
+# Docker
+docker-compose.override.yml
+.mcp.json
+.grepai/

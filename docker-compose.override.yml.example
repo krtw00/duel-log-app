@@ -1,0 +1,39 @@
+# Traefik連携用オーバーライド設定
+# このファイルをdocker-compose.override.ymlにコピーして使用してください
+# docker-compose.override.ymlは.gitignoreに追加されています
+#
+# 使用方法:
+#   cp docker-compose.override.yml.example docker-compose.override.yml
+#   # 必要に応じてドメイン名を変更
+#   docker compose up -d
+
+services:
+  backend:
+    ports: []  # ポートマッピングを無効化
+    environment:
+      - FRONTEND_URL=http://duel-log.localhost
+    networks:
+      - traefik
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.duel-log-api.rule=Host(`duel-log.localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.services.duel-log-api.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik"
+
+  frontend:
+    ports: []  # ポートマッピングを無効化
+    environment:
+      - VITE_API_URL=http://duel-log.localhost/api
+    networks:
+      - traefik
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.duel-log-frontend.rule=Host(`duel-log.localhost`)"
+      - "traefik.http.services.duel-log-frontend.loadbalancer.server.port=5173"
+      - "traefik.docker.network=traefik"
+
+networks:
+  traefik:
+    external: true
