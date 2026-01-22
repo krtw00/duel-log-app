@@ -37,6 +37,9 @@ class User(Base):
     enable_screen_analysis: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="false"
     )
+    is_debugger: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
     # アカウント状態管理
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, server_default="active"
