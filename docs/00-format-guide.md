@@ -191,5 +191,6 @@ docs/
 ## 関連ドキュメント
 
 - [00-writing-guide.md](./00-writing-guide.md) - 文章品質・用語に関する記載規範
+- [00-naming-guide.md](./00-naming-guide.md) - コード・DB・APIの命名規約
 - [00-index.md](./00-index.md) - ドキュメント全体のナビゲーションハブ
 - [00-git-guide.md](./00-git-guide.md) - コミット・ブランチ命名・変更履歴管理のGit規範

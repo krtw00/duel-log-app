@@ -19,6 +19,7 @@ ai_summary: "全ドキュメントへのナビゲーションハブ"
 flowchart TD
     INDEX[00-index.md] --> GUIDE[00-writing-guide.md]
     INDEX --> FORMAT[00-format-guide.md]
+    INDEX --> NAMING[00-naming-guide.md]
     INDEX --> GIT[00-git-guide.md]
     INDEX --> OV[01-overview/]
     INDEX --> ARCH[02-architecture/]
@@ -46,6 +47,7 @@ flowchart TD
 | [00-index.md](./00-index.md) | Active | ドキュメント マップ（本ファイル） |
 | [00-writing-guide.md](./00-writing-guide.md) | Active | 記載規範（文章品質・用語） |
 | [00-format-guide.md](./00-format-guide.md) | Active | フォーマット規範（構造・分量・メタ情報・図・命名） |
+| [00-naming-guide.md](./00-naming-guide.md) | Active | 命名規範（コード・DB・API） |
 | [00-git-guide.md](./00-git-guide.md) | Active | Git規範（コミット・ブランチ・CHANGELOG） |
 
 ---
@@ -77,6 +79,11 @@ flowchart TD
 | [data-model.md](./03-details/data-model.md) | Active | データモデル・ER図 |
 | [api.md](./03-details/api.md) | Active | API設計・エラーコード |
 | [flows.md](./03-details/flows.md) | Active | 主要フロー（認証・データ取得） |
+| [duel-recording.md](./03-details/duel-recording.md) | Active | 対戦記録機能 |
+| [statistics.md](./03-details/statistics.md) | Active | 統計機能 |
+| [sharing.md](./03-details/sharing.md) | Active | 共有機能 |
+| [streamer-popup.md](./03-details/streamer-popup.md) | Active | 配信者ポップアップ |
+| [screen-analysis.md](./03-details/screen-analysis.md) | Active | 画面解析機能 |
 
 ---
 
@@ -88,6 +95,7 @@ flowchart TD
 | [0002-hono-backend.md](./04-decisions/0002-hono-backend.md) | Active | Hono採用 |
 | [0003-react-frontend.md](./04-decisions/0003-react-frontend.md) | Active | React + shadcn/ui採用 |
 | [0004-vercel-fullstack.md](./04-decisions/0004-vercel-fullstack.md) | Active | Vercelフルスタック構成 |
+| [0005-fullstack-typescript.md](./04-decisions/0005-fullstack-typescript.md) | Active | Full-Stack TypeScript統一 |
 
 ---
 
@@ -126,11 +134,6 @@ flowchart TD
 | ファイル | Status | 概要 |
 |---------|--------|------|
 | [glossary.md](./99-appendix/glossary.md) | Active | 用語集 |
-| [features/duel-recording.md](./99-appendix/features/duel-recording.md) | Active | 対戦記録機能 |
-| [features/statistics.md](./99-appendix/features/statistics.md) | Active | 統計機能 |
-| [features/sharing.md](./99-appendix/features/sharing.md) | Active | 共有機能 |
-| [features/streamer-popup.md](./99-appendix/features/streamer-popup.md) | Active | 配信者ポップアップ |
-| [features/screen-analysis.md](./99-appendix/features/screen-analysis.md) | Active | 画面解析機能 |
 
 ---
 
@@ -143,7 +146,7 @@ flowchart TD
 | APIを実装・利用したい | api → data-model → flows |
 | デプロイしたい | deployment → vercel / supabase |
 | 設計判断の背景を知りたい | 04-decisions/ の各ADR |
-| 個別機能の詳細を知りたい | 99-appendix/features/ |
+| 個別機能の詳細を知りたい | 03-details/ の各機能ドキュメント |
 
 ---
 
@@ -151,5 +154,6 @@ flowchart TD
 
 - [00-writing-guide.md](./00-writing-guide.md) - 文章品質・用語に関する記載規範
 - [00-format-guide.md](./00-format-guide.md) - 構造・分量・メタ情報・図・命名のフォーマット規範
+- [00-naming-guide.md](./00-naming-guide.md) - コード・DB・APIの命名規約
 - [00-git-guide.md](./00-git-guide.md) - コミット・ブランチ命名・変更履歴管理のGit規範
 - [CLAUDE.md](../CLAUDE.md) - AI向けプロジェクト概要

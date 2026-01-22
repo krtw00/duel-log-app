@@ -1,6 +1,6 @@
 # Duel Log App
 
-TCG対戦履歴を記録・分析するWebアプリケーション。
+遊戯王マスターデュエルの対戦履歴を記録・分析するWebアプリケーション。
 
 ## Core Value
 
@@ -97,6 +97,7 @@ seedスクリプトで作成（パスワード: `password123`）:
 |------|---------|---------------|
 | 記載規範 | `docs/00-writing-guide.md` | docs/配下を作成・編集する前に必読 |
 | フォーマット規範 | `docs/00-format-guide.md` | docs/配下を作成・編集する前に必読 |
+| 命名規範 | `docs/00-naming-guide.md` | コード・DB・API設計時に参照 |
 | Git規範 | `docs/00-git-guide.md` | コミット・ブランチ作成時に参照 |
 
 **IMPORTANT:** docs/配下のファイルを変更する際は、必ず事前に `docs/00-writing-guide.md` と `docs/00-format-guide.md` を読み、規範に従うこと。
