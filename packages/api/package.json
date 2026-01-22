@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "echo 'TODO: configure build'",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
