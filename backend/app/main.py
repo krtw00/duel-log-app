@@ -17,6 +17,7 @@ from starlette.responses import Response
 from app.api.routers import (
     admin,
     auth,
+    debug,
     decks,
     duels,
     feedback,
@@ -152,15 +153,21 @@ app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)  # type
 app.add_exception_handler(Exception, general_exception_handler)
 
 # --- ルーターの登録 ---
-app.include_router(auth.router)
-app.include_router(me.router)
-app.include_router(users.router)
-app.include_router(decks.router)
-app.include_router(duels.router)
-app.include_router(statistics.router)
-app.include_router(shared_statistics.router)
-app.include_router(feedback.router)
-app.include_router(admin.router)
+API_PREFIX = "/api"
+app.include_router(auth.router, prefix=API_PREFIX)
+app.include_router(me.router, prefix=API_PREFIX)
+app.include_router(users.router, prefix=API_PREFIX)
+app.include_router(decks.router, prefix=API_PREFIX)
+app.include_router(duels.router, prefix=API_PREFIX)
+app.include_router(statistics.router, prefix=API_PREFIX)
+app.include_router(shared_statistics.router, prefix=API_PREFIX)
+app.include_router(feedback.router, prefix=API_PREFIX)
+app.include_router(admin.router, prefix=API_PREFIX)
+
+# 開発環境のみ: デバッグルーターを登録
+if settings.ENVIRONMENT != "production":
+    app.include_router(debug.router, prefix=API_PREFIX)
+    logger.info("Debug router enabled (development mode)")
 
 
 @app.get("/", tags=["root"])
