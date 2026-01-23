@@ -1,6 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/shared-stats/:share_id", "destination": "/index.html" },
-    { "source": "/:path((?!api/).*)", "destination": "/index.html" }
-  ]
-}
