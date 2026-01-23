@@ -5,6 +5,7 @@ import {
   appLayoutRoute,
   dashboardRoute,
   decksRoute,
+  feedbackRoute,
   profileRoute,
   statisticsRoute,
 } from './app.js';
@@ -32,6 +33,7 @@ const routeTree = rootRoute.addChildren([
     statisticsRoute,
     profileRoute,
     adminRoute,
+    feedbackRoute,
   ]),
   sharedStatsRoute,
 ]);
