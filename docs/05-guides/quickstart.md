@@ -18,8 +18,8 @@ ai_summary: "最短での開発環境セットアップ手順"
 | 要件 | バージョン | 確認コマンド |
 |------|-----------|-------------|
 | Node.js | 20+ | `node -v` |
-| pnpm | 8+ | `pnpm -v` |
-| Docker Desktop | 最新版 | `docker -v` |
+| pnpm | 10+ | `pnpm -v` |
+| Docker Desktop | 最新版 | `docker -v`（Supabase CLI用） |
 
 ---
 
@@ -81,10 +81,9 @@ pnpm dev
 | `pnpm dev` | 開発サーバー起動 |
 | `pnpm build` | 本番ビルド |
 | `pnpm test` | ユニットテスト |
-| `pnpm test:e2e` | E2Eテスト |
 | `pnpm typecheck` | 型チェック |
 | `pnpm lint` | リント |
-| `pnpm db:seed` | シードデータ投入 |
+| `npx supabase db reset` | DBリセット（マイグレーション再適用+シード） |
 
 ---
 
