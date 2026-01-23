@@ -1,5 +1,6 @@
 import { createRoute, redirect } from '@tanstack/react-router';
 import { DashboardView } from '../components/dashboard/DashboardView.js';
+import { DecksView } from '../components/decks/DecksView.js';
 import { AppLayout } from '../components/layout/AppLayout.js';
 import { supabase } from '../lib/supabase.js';
 import { rootRoute } from './__root.js';
@@ -28,7 +29,7 @@ export const dashboardRoute = createRoute({
 export const decksRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/decks',
-  component: () => <div>Decks (実装中)</div>,
+  component: DecksView,
 });
 
 export const statisticsRoute = createRoute({
