@@ -1,7 +1,10 @@
 import { createRoute, redirect } from '@tanstack/react-router';
+import { AdminView } from '../components/admin/AdminView.js';
 import { DashboardView } from '../components/dashboard/DashboardView.js';
 import { DecksView } from '../components/decks/DecksView.js';
+import { FeedbackView } from '../components/feedback/FeedbackView.js';
 import { AppLayout } from '../components/layout/AppLayout.js';
+import { ProfileView } from '../components/profile/ProfileView.js';
 import { StatisticsView } from '../components/statistics/StatisticsView.js';
 import { supabase } from '../lib/supabase.js';
 import { rootRoute } from './__root.js';
@@ -42,11 +45,17 @@ export const statisticsRoute = createRoute({
 export const profileRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/profile',
-  component: () => <div>Profile (実装中)</div>,
+  component: ProfileView,
 });
 
 export const adminRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/admin',
-  component: () => <div>Admin (実装中)</div>,
+  component: AdminView,
+});
+
+export const feedbackRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/feedback',
+  component: FeedbackView,
 });
