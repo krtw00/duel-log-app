@@ -17,7 +17,7 @@ import {
   registerRoute,
   resetPasswordRoute,
 } from './auth.js';
-import { sharedStatsRoute } from './public.js';
+import { sharedStatsRoute, streamerPopupRoute } from './public.js';
 
 const routeTree = rootRoute.addChildren([
   authLayoutRoute.addChildren([
@@ -36,6 +36,7 @@ const routeTree = rootRoute.addChildren([
     feedbackRoute,
   ]),
   sharedStatsRoute,
+  streamerPopupRoute,
 ]);
 
 export const router = createRouter({ routeTree });
