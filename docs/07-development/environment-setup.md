@@ -28,8 +28,8 @@ ai_summary: "開発環境の詳細な構築手順"
 | 要件 | バージョン | インストール |
 |------|-----------|-------------|
 | Node.js | 20+ | `nvm install 20` |
-| pnpm | 8+ | `npm install -g pnpm` |
-| Docker Desktop | 最新版 | [公式サイト](https://www.docker.com/products/docker-desktop/) |
+| pnpm | 10+ | `npm install -g pnpm` |
+| Docker Desktop | 最新版 | [公式サイト](https://www.docker.com/products/docker-desktop/)（Supabase CLI用） |
 
 ---
 
@@ -77,18 +77,17 @@ cp .env.example .env
 # Supabase（ローカル）
 VITE_SUPABASE_URL=http://127.0.0.1:54321
 VITE_SUPABASE_ANON_KEY=<起動時に表示されたanon key>
-SUPABASE_SERVICE_ROLE_KEY=<起動時に表示されたservice_role key>
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 ```
 
 ### 5. データベースセットアップ
 
-```bash
-# マイグレーション実行
-pnpm db:migrate
+Supabase起動時に`supabase/migrations/`のマイグレーションと`supabase/seed.sql`が自動適用される。
 
-# シードデータ投入
-pnpm db:seed
+手動リセットする場合：
+
+```bash
+npx supabase db reset
 ```
 
 ### 6. 開発サーバー起動
@@ -105,38 +104,16 @@ pnpm dev
 
 ---
 
-## Docker環境
-
-Docker Composeを使用する場合（旧構成との互換性）：
-
-```bash
-# Supabase起動
-npx supabase start
-
-# Docker Compose起動
-docker compose up -d
-```
-
-| サービス | URL |
-|---------|-----|
-| フロントエンド | http://localhost:5173 |
-| バックエンドAPI | http://localhost:8000 |
-
----
-
 ## IDEセットアップ
 
 ### VSCode推奨拡張機能
 
 ```json
-// .vscode/extensions.json
 {
   "recommendations": [
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
+    "biomejs.biome",
     "bradlc.vscode-tailwindcss",
-    "ms-azuretools.vscode-docker",
-    "prisma.prisma"
+    "ms-azuretools.vscode-docker"
   ]
 }
 ```
@@ -144,12 +121,12 @@ docker compose up -d
 ### VSCode設定
 
 ```json
-// .vscode/settings.json
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "quickfix.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }
@@ -174,13 +151,13 @@ duel-log-app/
 
 ```bash
 # 特定のパッケージでコマンド実行
-pnpm --filter web <command>
-pnpm --filter api <command>
-pnpm --filter shared <command>
+pnpm --filter @duel-log/web <command>
+pnpm --filter @duel-log/api <command>
+pnpm --filter @duel-log/shared <command>
 
 # 例
-pnpm --filter web dev
-pnpm --filter api test
+pnpm --filter @duel-log/web dev
+pnpm --filter @duel-log/api test
 ```
 
 ---
@@ -199,28 +176,6 @@ pnpm --filter api test
 | 変数 | 説明 | 必須 |
 |------|------|:----:|
 | `DATABASE_URL` | PostgreSQL接続文字列 | ✅ |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | ✅ |
-
----
-
-## Git Hooks
-
-Huskyによるpre-commitフック：
-
-```bash
-# 自動設定
-pnpm prepare
-
-# 手動設定
-npx husky install
-```
-
-実行されるチェック：
-
-1. ESLint
-2. Prettier
-3. 型チェック
-4. テスト（該当ファイルのみ）
 
 ---
 
@@ -229,29 +184,19 @@ npx husky install
 ### マイグレーション
 
 ```bash
-# マイグレーション生成
-pnpm db:generate
+# 新規マイグレーション作成
+npx supabase migration new <migration_name>
 
-# マイグレーション適用
-pnpm db:migrate
+# マイグレーション適用（DBリセット）
+npx supabase db reset
 
-# マイグレーションリセット
-pnpm db:reset
+# マイグレーション差分確認
+npx supabase db diff
 ```
 
-### シードデータ
+### Supabase Studio
 
-```bash
-# シードデータ投入
-pnpm db:seed
-```
-
-### Drizzle Studio
-
-```bash
-# GUIでDBを操作
-pnpm db:studio
-```
+ブラウザで http://127.0.0.1:54323 にアクセスし、GUIでテーブルやデータを操作できる。
 
 ---
 
@@ -262,9 +207,10 @@ pnpm db:studio
 | `pnpm dev` | 開発サーバー起動 |
 | `pnpm build` | ビルド |
 | `pnpm test` | テスト実行 |
-| `pnpm lint` | リント |
+| `pnpm lint` | リント (Biome) |
+| `pnpm lint:fix` | リント自動修正 |
 | `pnpm typecheck` | 型チェック |
-| `pnpm format` | フォーマット |
+| `pnpm format` | フォーマット (Biome) |
 
 ---
 
