@@ -63,13 +63,15 @@ pnpm dev                  # 開発サーバー
 pnpm dev           # 開発サーバー起動
 pnpm build         # ビルド
 pnpm test          # テスト実行
-pnpm lint          # リント
+pnpm lint          # リント (Biome)
+pnpm lint:fix      # リント自動修正
 pnpm typecheck     # 型チェック
 
-# データベース
-pnpm db:migrate    # マイグレーション適用
-pnpm db:seed       # シードデータ投入
-pnpm db:studio     # Drizzle Studio起動
+# データベース (Supabase CLI)
+npx supabase start       # ローカルSupabase起動
+npx supabase stop        # 停止
+npx supabase db reset    # DBリセット（マイグレーション再適用+シード）
+npx supabase migration new <name>  # 新規マイグレーション作成
 ```
 
 ## テストユーザー
