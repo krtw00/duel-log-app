@@ -1,0 +1,43 @@
+import { createRouter } from '@tanstack/react-router';
+import { rootRoute } from './__root.js';
+import {
+  adminRoute,
+  appLayoutRoute,
+  dashboardRoute,
+  decksRoute,
+  profileRoute,
+  statisticsRoute,
+} from './app.js';
+import {
+  authLayoutRoute,
+  callbackRoute,
+  forgotPasswordRoute,
+  loginRoute,
+  registerRoute,
+  resetPasswordRoute,
+} from './auth.js';
+
+const routeTree = rootRoute.addChildren([
+  authLayoutRoute.addChildren([
+    loginRoute,
+    registerRoute,
+    callbackRoute,
+    forgotPasswordRoute,
+    resetPasswordRoute,
+  ]),
+  appLayoutRoute.addChildren([
+    dashboardRoute,
+    decksRoute,
+    statisticsRoute,
+    profileRoute,
+    adminRoute,
+  ]),
+]);
+
+export const router = createRouter({ routeTree });
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
