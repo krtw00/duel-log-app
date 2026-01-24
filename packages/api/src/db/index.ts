@@ -7,4 +7,5 @@ if (!connectionString) {
 
 export const sql = postgres(connectionString, {
   transform: postgres.camel,
+  ssl: { rejectUnauthorized: false },
 });
