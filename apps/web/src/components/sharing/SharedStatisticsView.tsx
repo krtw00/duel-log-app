@@ -8,6 +8,7 @@ import { DuelTable } from '../dashboard/DuelTable.js';
 import { StatsDisplayCards } from '../dashboard/StatsDisplayCards.js';
 import { DeckDistributionChart } from '../statistics/DeckDistributionChart.js';
 import { MatchupMatrix } from '../statistics/MatchupMatrix.js';
+import { StatisticsFilter } from '../statistics/StatisticsFilter.js';
 import { WinRateTable } from '../statistics/WinRateTable.js';
 
 type SharedDuel = {
@@ -151,6 +152,10 @@ export function SharedStatisticsView() {
   const { token } = useParams({ strict: false }) as { token: string };
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode | null>(null);
+  const [deckId, setDeckId] = useState<string | undefined>(undefined);
+  const [periodType, setPeriodType] = useState<'all' | 'range'>('all');
+  const [rangeStart, setRangeStart] = useState(1);
+  const [rangeEnd, setRangeEnd] = useState(30);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['shared-statistics', token],
@@ -179,14 +184,32 @@ export function SharedStatisticsView() {
     return availableModes[0] ?? 'RANK';
   }, [data, selectedGameMode, availableModes]);
 
+  // モード内の総対戦数（スライダー用）
+  const totalDuelsInMode = useMemo(() => {
+    if (!data?.data.duels) return 30;
+    if (data.data.filters.gameMode) return data.data.duels.length;
+    return data.data.duels.filter((d) => d.gameMode === activeMode).length;
+  }, [data, activeMode]);
+
   // フィルタ済みの対戦データ
   const filteredDuels = useMemo(() => {
     if (!data?.data.duels) return [];
-    // フィルターにgameModeが指定されている場合はそのまま（APIで既にフィルタ済み）
-    if (data.data.filters.gameMode) return data.data.duels;
-    // それ以外はクライアント側でフィルタ
-    return data.data.duels.filter((d) => d.gameMode === activeMode);
-  }, [data, activeMode]);
+    let duels = data.data.duels;
+    // フィルターにgameModeが指定されていない場合はクライアント側でフィルタ
+    if (!data.data.filters.gameMode) {
+      duels = duels.filter((d) => d.gameMode === activeMode);
+    }
+    // レンジフィルター（対戦番号で絞り込み、古い順で1始まり）
+    if (periodType === 'range') {
+      const sorted = [...duels].sort((a, b) => new Date(a.dueledAt).getTime() - new Date(b.dueledAt).getTime());
+      duels = sorted.slice(rangeStart - 1, rangeEnd);
+    }
+    // デッキフィルター
+    if (deckId) {
+      duels = duels.filter((d) => d.deckId === deckId);
+    }
+    return duels;
+  }, [data, activeMode, deckId, periodType, rangeStart, rangeEnd]);
 
   // フィルタ済みデータから統計計算
   const filteredStats = useMemo(() => {
@@ -202,6 +225,26 @@ export function SharedStatisticsView() {
   const filteredMatchups = useMemo(() => {
     return calculateMatchups(filteredDuels);
   }, [filteredDuels]);
+
+  // フィルター用のデッキリスト（使用デッキのみ）
+  const decksForFilter = useMemo<Deck[]>(() => {
+    if (!data?.data.duels) return [];
+    const deckMap = new Map<string, string>();
+    for (const d of data.data.duels) {
+      if (!deckMap.has(d.deckId)) deckMap.set(d.deckId, d.deckName);
+    }
+    const now = new Date().toISOString();
+    return Array.from(deckMap.entries()).map(([id, name]) => ({
+      id,
+      userId: '',
+      name,
+      isOpponentDeck: false,
+      isGeneric: false,
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    }));
+  }, [data]);
 
   // DuelTable用にDeck[]を構築
   const decksForTable = useMemo<Deck[]>(() => {
@@ -327,7 +370,7 @@ export function SharedStatisticsView() {
                   <span className="text-sm font-medium">{t(`gameMode.${mode}`)}</span>
                   {(modeCounts[mode] ?? 0) > 0 && (
                     <span
-                      className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs font-semibold"
+                      className="ml-1.5 px-1.5 py-0.5 rounded-full text-sm font-semibold"
                       style={{
                         background: activeMode === mode ? 'rgba(10, 14, 39, 0.2)' : 'var(--color-surface-variant)',
                         color: activeMode === mode ? '#0a0e27' : 'var(--color-on-surface-muted)',
@@ -381,6 +424,24 @@ export function SharedStatisticsView() {
           </button>
         </div>
 
+        {/* Filter */}
+        <StatisticsFilter
+          decks={decksForFilter}
+          deckId={deckId}
+          onDeckIdChange={setDeckId}
+          periodType={periodType}
+          onPeriodTypeChange={(type) => {
+            setPeriodType(type);
+            if (type === 'range') setRangeEnd(totalDuelsInMode);
+          }}
+          rangeStart={rangeStart}
+          onRangeStartChange={setRangeStart}
+          rangeEnd={rangeEnd}
+          onRangeEndChange={setRangeEnd}
+          onReset={() => { setDeckId(undefined); setPeriodType('all'); setRangeStart(1); setRangeEnd(totalDuelsInMode); }}
+          totalDuels={totalDuelsInMode}
+        />
+
         {/* Stats Cards */}
         <StatsDisplayCards stats={filteredStats} loading={false} />
 
@@ -402,6 +463,7 @@ export function SharedStatisticsView() {
             decks={decksForTable}
             loading={false}
             readOnly
+            duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
           />
         </div>
         )}
@@ -445,6 +507,7 @@ export function SharedStatisticsView() {
                   loading={false}
                   readOnly
                   maxHeight="480px"
+                  duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
                 />
               </div>
             </div>

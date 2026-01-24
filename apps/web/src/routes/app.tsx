@@ -6,6 +6,8 @@ import { FeedbackView } from '../components/feedback/FeedbackView.js';
 import { AppLayout } from '../components/layout/AppLayout.js';
 import { ProfileView } from '../components/profile/ProfileView.js';
 import { StatisticsView } from '../components/statistics/StatisticsView.js';
+import { OBSOverlayView } from '../components/streamer/OBSOverlayView.js';
+import { StreamerPopupView } from '../components/streamer/StreamerPopupView.js';
 import { supabase } from '../lib/supabase.js';
 import { rootRoute } from './__root.js';
 
@@ -57,5 +59,20 @@ export const adminRoute = createRoute({
 export const feedbackRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/feedback',
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: (search.tab as string) || undefined,
+  }),
   component: FeedbackView,
+});
+
+export const streamerPopupRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/streamer-popup',
+  component: StreamerPopupView,
+});
+
+export const obsOverlayRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/obs-overlay',
+  component: OBSOverlayView,
 });

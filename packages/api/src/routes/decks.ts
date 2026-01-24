@@ -18,6 +18,11 @@ export const deckRoutes = new Hono<Env>()
     const created = await deckService.createDeck(id, data);
     return c.json({ data: created }, 201);
   })
+  .post('/archive-all', async (c) => {
+    const { id } = c.get('user');
+    const count = await deckService.archiveAllDecks(id);
+    return c.json({ data: { archivedCount: count } });
+  })
   .get('/:id', async (c) => {
     const { id } = c.get('user');
     const deckId = c.req.param('id');
@@ -27,7 +32,7 @@ export const deckRoutes = new Hono<Env>()
     }
     return c.json({ data: deck });
   })
-  .put('/:id', async (c) => {
+  .patch('/:id', async (c) => {
     const { id } = c.get('user');
     const deckId = c.req.param('id');
     const body = await c.req.json();
@@ -47,7 +52,7 @@ export const deckRoutes = new Hono<Env>()
     }
     return c.json({ data: { message: 'Deck deleted' } });
   })
-  .patch('/:id/archive', async (c) => {
+  .post('/:id/archive', async (c) => {
     const { id } = c.get('user');
     const deckId = c.req.param('id');
     const updated = await deckService.archiveDeck(id, deckId);
@@ -56,7 +61,7 @@ export const deckRoutes = new Hono<Env>()
     }
     return c.json({ data: updated });
   })
-  .patch('/:id/unarchive', async (c) => {
+  .post('/:id/unarchive', async (c) => {
     const { id } = c.get('user');
     const deckId = c.req.param('id');
     const updated = await deckService.unarchiveDeck(id, deckId);

@@ -15,16 +15,25 @@ export async function getDeck(userId: string, deckId: string) {
   return deck;
 }
 
-async function matchesGenericPattern(name: string): Promise<boolean> {
-  const patterns = await sql<{ pattern: string }[]>`
-    SELECT pattern FROM generic_deck_patterns
-  `;
+/** Generic deck name patterns (case-insensitive substring match) */
+const GENERIC_DECK_PATTERNS = [
+  '不明',
+  'その他',
+  'わからない',
+  '未確認',
+  'unknown',
+  'other',
+  '汎用',
+  'generic',
+] as const;
+
+function matchesGenericPattern(name: string): boolean {
   const lower = name.toLowerCase();
-  return patterns.some((p) => lower.includes(p.pattern.toLowerCase()));
+  return GENERIC_DECK_PATTERNS.some((p) => lower.includes(p.toLowerCase()));
 }
 
 export async function createDeck(userId: string, data: CreateDeck) {
-  const isGeneric = await matchesGenericPattern(data.name);
+  const isGeneric = matchesGenericPattern(data.name);
   const [created] = await sql<DeckRow[]>`
     INSERT INTO decks (user_id, name, is_opponent_deck, is_generic)
     VALUES (${userId}, ${data.name}, ${data.isOpponentDeck ?? false}, ${isGeneric})
@@ -37,8 +46,16 @@ export async function updateDeck(userId: string, deckId: string, data: UpdateDec
   const values: Record<string, unknown> = {};
   if (data.name !== undefined) {
     values.name = data.name;
-    values.is_generic = await matchesGenericPattern(data.name);
+    // Auto-detect generic pattern on name change (unless explicitly overridden)
+    if (data.isGeneric === undefined) {
+      values.is_generic = matchesGenericPattern(data.name);
+    }
   }
+  if (data.isGeneric !== undefined) {
+    values.is_generic = data.isGeneric;
+  }
+
+  if (Object.keys(values).length === 0) return null;
 
   const [updated] = await sql<DeckRow[]>`
     UPDATE decks
@@ -72,6 +89,15 @@ export async function unarchiveDeck(userId: string, deckId: string) {
     RETURNING *
   `;
   return updated;
+}
+
+export async function archiveAllDecks(userId: string) {
+  const result = await sql<DeckRow[]>`
+    UPDATE decks SET active = false, updated_at = now()
+    WHERE user_id = ${userId} AND active = true
+    RETURNING *
+  `;
+  return result.length;
 }
 
 export async function getAvailableDecks(userId: string) {

@@ -9,6 +9,7 @@ import { DuelTable } from '../dashboard/DuelTable.js';
 import { GameModeTabBar } from '../dashboard/GameModeTabBar.js';
 import { DeckDistributionChart } from './DeckDistributionChart.js';
 import { MatchupMatrix } from './MatchupMatrix.js';
+import { StatisticsFilter } from './StatisticsFilter.js';
 import { ValueSequenceChart } from './ValueSequenceChart.js';
 import { WinRateTable } from './WinRateTable.js';
 
@@ -18,23 +19,30 @@ export function StatisticsView() {
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+  const [deckId, setDeckId] = useState<string | undefined>(undefined);
+  const [periodType, setPeriodType] = useState<'all' | 'range'>('all');
+  const [rangeStart, setRangeStart] = useState(1);
+  const [rangeEnd, setRangeEnd] = useState(30);
 
   const from = new Date(year, month - 1, 1).toISOString();
   const to = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-  const filter = { gameMode, from, to };
-  const valueFilter = gameMode !== 'EVENT' ? { gameMode, from, to } : undefined;
+  const rangeFilter = periodType === 'range' ? { rangeStart, rangeEnd } : {};
+  const filter = { gameMode, from, to, deckId, ...rangeFilter };
+  const valueFilter = (gameMode === 'RATE' || gameMode === 'DC') ? { gameMode, from, to, deckId, ...rangeFilter } : undefined;
 
   const { data: winRatesData, isLoading: winRatesLoading } = useWinRates(filter);
   const { data: matchupsData, isLoading: matchupsLoading } = useMatchups(filter);
   const { data: valueData, isLoading: valueLoading } = useValueSequence(
-    valueFilter as { gameMode: 'RANK' | 'RATE' | 'DC'; from?: string; to?: string } | undefined,
+    valueFilter as { gameMode: 'RATE' | 'DC'; from?: string; to?: string } | undefined,
   );
   const { data: decksData } = useDecks();
-  const { data: duelsData, isLoading: duelsLoading } = useDuels({ gameMode, from, to, limit: 50, offset: 0 });
+  const { data: duelsData, isLoading: duelsLoading } = useDuels({ gameMode, from, to, deckId, ...rangeFilter, limit: 500, offset: 0 });
+  const { data: totalData } = useDuels({ gameMode, from, to, limit: 1, offset: 0 });
 
   const decks = decksData?.data ?? [];
   const duels = duelsData?.data ?? [];
+  const totalDuelsForMode = totalData?.pagination?.total ?? 30;
 
   return (
     <div className="space-y-6">
@@ -49,6 +57,24 @@ export function StatisticsView() {
         month={month}
         onYearChange={setYear}
         onMonthChange={setMonth}
+      />
+
+      {/* Statistics Filter */}
+      <StatisticsFilter
+        decks={decks}
+        deckId={deckId}
+        onDeckIdChange={setDeckId}
+        periodType={periodType}
+        onPeriodTypeChange={(type) => {
+          setPeriodType(type);
+          if (type === 'range') setRangeEnd(totalDuelsForMode);
+        }}
+        rangeStart={rangeStart}
+        onRangeStartChange={setRangeStart}
+        rangeEnd={rangeEnd}
+        onRangeEndChange={setRangeEnd}
+        onReset={() => { setDeckId(undefined); setPeriodType('all'); setRangeStart(1); setRangeEnd(totalDuelsForMode); }}
+        totalDuels={totalDuelsForMode}
       />
 
       {/* Game Mode Tabs */}
@@ -92,6 +118,7 @@ export function StatisticsView() {
             loading={duelsLoading}
             readOnly
             maxHeight="480px"
+            duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
           />
         </div>
       </div>
@@ -123,7 +150,7 @@ export function StatisticsView() {
         <MatchupMatrix matchups={matchupsData?.data ?? []} loading={matchupsLoading} />
       </div>
 
-      {/* Value Sequence Chart (RANK/RATE/DC only) */}
+      {/* Value Sequence Chart (RATE/DC only) */}
       {valueFilter && (
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-3">

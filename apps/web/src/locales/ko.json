@@ -124,7 +124,11 @@
     "unarchive": "보관 해제",
     "showArchived": "보관된 항목 표시",
     "confirmDelete": "이 덱을 삭제하시겠습니까?",
-    "noDecks": "덱이 없습니다"
+    "noDecks": "덱이 없습니다",
+    "archiveAll": "전체 보관",
+    "archiveAllConfirm": "모든 활성 덱을 보관하시겠습니까?",
+    "generic": "범용 덱",
+    "genericDesc": "통계에서 '기타'로 그룹됩니다"
   },
   "statistics": {
     "title": "통계",
@@ -141,7 +145,16 @@
     "total": "합계",
     "noData": "데이터 없음",
     "monthly": "월간",
-    "refreshInterval": "새로고침 간격(초)"
+    "refreshInterval": "새로고침 간격(초)",
+    "filter": "필터",
+    "myDeck": "사용 덱",
+    "allDecks": "전체 덱",
+    "period": "기간",
+    "periodAll": "전체 듀얼",
+    "periodRange": "범위 지정",
+    "rangeStart": "시작",
+    "rangeEnd": "끝",
+    "reset": "초기화"
   },
   "streak": {
     "winStreak": "{{count}}연승 중",
@@ -188,8 +201,12 @@
     "obsBrowserSource": "OBS 브라우저 소스",
     "deprecated": "비권장",
     "deprecationWarning": "OBS 브라우저 소스는 비권장입니다. 팝업 윈도우 사용을 권장합니다.",
-    "obsDescription": "OBS 브라우저 소스로 사용할 수 있습니다",
+    "obsDescription": "OBS 브라우저 소스로 설정하면 플레이하면서 화면에 통계를 오버레이할 수 있습니다.",
     "getObsUrl": "OBS URL 가져오기",
+    "obsSetupTitle": "OBS 설정 방법",
+    "obsSetupStep1": "OBS에서 브라우저 소스 추가",
+    "obsSetupStep2": "아래 URL을 URL 필드에 붙여넣기",
+    "obsSetupStep3": "너비: {{width}}px, 높이: {{height}}px (권장)",
     "items": {
       "currentDeck": "사용 중 덱",
       "gameModeValue": "게임 모드 값",
