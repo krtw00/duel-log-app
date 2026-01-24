@@ -1,7 +1,8 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { api } from '../../lib/api.js';
 import { useAuthStore } from '../../stores/auth.js';
 
 export function UserMenu() {
@@ -11,8 +12,20 @@ export function UserMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  const { data: profile } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<{ data: { displayName: string; streamerMode: boolean } }>('/me'),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const isStreamerMode = localStorage.getItem('streamerMode') === 'true';
-  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User';
+  const displayName = profile?.data?.displayName
+    || user?.user_metadata?.display_name
+    || user?.user_metadata?.username
+    || user?.user_metadata?.name
+    || user?.email?.split('@')[0]
+    || 'User';
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

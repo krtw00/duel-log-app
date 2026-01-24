@@ -1,4 +1,5 @@
 import type { UpdateUser } from '@duel-log/shared';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
@@ -9,6 +10,7 @@ import { CsvImportDialog } from '../csv/CsvImportDialog.js';
 export function ProfileView() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,6 +55,7 @@ export function ProfileView() {
     try {
       const data: UpdateUser = { displayName, streamerMode };
       await api('/me', { method: 'PUT', body: data });
+      queryClient.invalidateQueries({ queryKey: ['me'] });
       localStorage.setItem('streamerMode', String(streamerMode));
       setMessage(t('profile.saved'));
       setMessageType('success');
