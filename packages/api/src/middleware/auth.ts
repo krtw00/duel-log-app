@@ -16,14 +16,19 @@ type Env = {
   };
 };
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let supabase: ReturnType<typeof createClient> | undefined;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
+function getSupabaseAdmin() {
+  if (!supabase) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
+    }
+    supabase = createClient(url, key);
+  }
+  return supabase;
 }
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /** JWT検証 + JITプロビジョニング */
 export const authMiddleware = createMiddleware<Env>(async (c, next) => {
@@ -36,7 +41,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const {
     data: { user: supabaseUser },
     error,
-  } = await supabase.auth.getUser(token);
+  } = await getSupabaseAdmin().auth.getUser(token);
 
   if (error || !supabaseUser) {
     return c.json(
