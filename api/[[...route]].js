@@ -17090,9 +17090,13 @@ var connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is required");
 }
-var sql = src_default(connectionString, {
+var fixedConnectionString = connectionString.includes("pooler.supabase.com:5432") ? connectionString.replace(":5432/", ":6543/") : connectionString;
+var sql = src_default(fixedConnectionString, {
   transform: src_default.camel,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  prepare: false,
+  idle_timeout: 20,
+  max: 3
 });
 
 // src/middleware/auth.ts
@@ -22927,41 +22931,46 @@ var obsRoutes = new Hono2().post("/token", async (c) => {
     filter.from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     filter.to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
   }
-  const [overview, streaks, duelsResult, recentDuels] = await Promise.all([
-    getOverview(userId, filter),
-    getStreaks(userId, filter),
-    listDuels(userId, { ...filter, limit: 1, offset: 0 }),
-    listDuels(userId, { ...filter, limit: recentCount, offset: 0 })
-  ]);
-  const latestDuel = duelsResult.data[0];
-  let currentDeck;
-  if (latestDuel) {
-    const [deck] = await sql`
-        SELECT * FROM decks WHERE id = ${latestDuel.deckId}
-      `;
-    if (deck) currentDeck = deck.name;
-  }
-  const recentResults = recentDuels.data.map((d) => ({
-    result: d.result,
-    dueledAt: d.dueledAt
-  })).reverse();
-  return c.json({
-    data: {
-      totalDuels: overview.totalDuels,
-      wins: overview.wins,
-      losses: overview.losses,
-      winRate: overview.winRate,
-      firstRate: overview.firstRate,
-      firstWinRate: overview.firstWinRate,
-      secondWinRate: overview.secondWinRate,
-      coinTossWinRate: overview.coinTossWinRate,
-      currentStreak: streaks.currentStreak,
-      currentStreakType: streaks.currentStreakType,
-      currentDeck,
-      recentResults,
-      sessionWins: overview.wins
+  try {
+    const [overview, streaks, duelsResult, recentDuels] = await Promise.all([
+      getOverview(userId, filter),
+      getStreaks(userId, filter),
+      listDuels(userId, { ...filter, limit: 1, offset: 0 }),
+      listDuels(userId, { ...filter, limit: recentCount, offset: 0 })
+    ]);
+    const latestDuel = duelsResult.data[0];
+    let currentDeck;
+    if (latestDuel) {
+      const [deck] = await sql`
+          SELECT * FROM decks WHERE id = ${latestDuel.deckId}
+        `;
+      if (deck) currentDeck = deck.name;
     }
-  });
+    const recentResults = recentDuels.data.map((d) => ({
+      result: d.result,
+      dueledAt: d.dueledAt
+    })).reverse();
+    return c.json({
+      data: {
+        totalDuels: overview.totalDuels,
+        wins: overview.wins,
+        losses: overview.losses,
+        winRate: overview.winRate,
+        firstRate: overview.firstRate,
+        firstWinRate: overview.firstWinRate,
+        secondWinRate: overview.secondWinRate,
+        coinTossWinRate: overview.coinTossWinRate,
+        currentStreak: streaks.currentStreak,
+        currentStreakType: streaks.currentStreakType,
+        currentDeck,
+        recentResults,
+        sessionWins: overview.wins
+      }
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return c.json({ error: { code: "INTERNAL_ERROR", message } }, 500);
+  }
 });
 
 // src/routes/sharedStatistics.ts
