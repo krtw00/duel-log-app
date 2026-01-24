@@ -16,6 +16,9 @@ import { statisticsRoutes } from './routes/statistics.js';
 
 const app = new Hono().basePath('/api');
 
+// ヘルスチェック（ミドルウェア前）
+app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
 // グローバルミドルウェア
 app.use('*', logger());
 app.use('*', cors());
@@ -52,3 +55,6 @@ app.use('/admin/*', adminMiddleware);
 app.route('/admin', adminRoutes);
 
 export default app;
+
+// Vercel serverless handler
+export { handle } from 'hono/vercel';
