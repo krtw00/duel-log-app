@@ -210,7 +210,7 @@
     "obsSetupStep3": "너비: {{width}}px, 높이: {{height}}px (권장)",
     "items": {
       "currentDeck": "사용 중 덱",
-      "gameModeValue": "게임 모드 값",
+      "gameModeValue": "랭크/레이트/DP 값",
       "totalDuels": "총 대전 수",
       "winRate": "승률",
       "firstTurnWinRate": "선공 승률",

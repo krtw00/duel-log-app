@@ -210,7 +210,7 @@
     "obsSetupStep3": "幅: {{width}}px、高さ: {{height}}px（推奨）",
     "items": {
       "currentDeck": "使用中デッキ",
-      "gameModeValue": "ゲームモード値",
+      "gameModeValue": "ランク/レート/DP値",
       "totalDuels": "総対戦数",
       "winRate": "勝率",
       "firstTurnWinRate": "先攻勝率",
