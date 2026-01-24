@@ -1,34 +1,29 @@
 import type { UpdateUserStatus } from '@duel-log/shared';
-import { count, eq, sql } from 'drizzle-orm';
-import { db } from '../db/index.js';
-import { duels, users } from '../db/schema.js';
+import { sql } from '../db/index.js';
+import type { UserRow } from '../db/types.js';
 
 export async function listUsers() {
-  return db.query.users.findMany({
-    orderBy: (users, { desc }) => [desc(users.createdAt)],
-  });
+  return sql<UserRow[]>`
+    SELECT * FROM users ORDER BY created_at DESC
+  `;
 }
 
 export async function updateUserStatus(userId: string, data: UpdateUserStatus) {
-  const [updated] = await db
-    .update(users)
-    .set({
-      status: data.status,
-      statusReason: data.statusReason ?? null,
-      updatedAt: new Date(),
-    })
-    .where(eq(users.id, userId))
-    .returning();
+  const [updated] = await sql<UserRow[]>`
+    UPDATE users
+    SET status = ${data.status}, status_reason = ${data.statusReason ?? null}, updated_at = now()
+    WHERE id = ${userId}
+    RETURNING *
+  `;
   return updated;
 }
 
 export async function getAdminStatistics() {
-  const [userCount] = await db.select({ count: count() }).from(users);
-  const [duelCount] = await db.select({ count: count() }).from(duels);
-  const [todayDuels] = await db
-    .select({ count: count() })
-    .from(duels)
-    .where(sql`${duels.createdAt} >= current_date`);
+  const [userCount] = await sql<{ count: number }[]>`SELECT count(*)::int AS count FROM users`;
+  const [duelCount] = await sql<{ count: number }[]>`SELECT count(*)::int AS count FROM duels`;
+  const [todayDuels] = await sql<{ count: number }[]>`
+    SELECT count(*)::int AS count FROM duels WHERE created_at >= current_date
+  `;
 
   return {
     totalUsers: userCount?.count ?? 0,

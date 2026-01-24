@@ -12,8 +12,8 @@ function formatPercent(value: number): string {
 export function StatsDisplayCards({ stats, loading }: Props) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {['s1', 's2', 's3', 's4'].map((id) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {['s1', 's2', 's3', 's4', 's5', 's6'].map((id) => (
           <div key={id} className="bg-white rounded-lg shadow p-4 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-16 mb-2" />
             <div className="h-8 bg-gray-200 rounded w-24" />
@@ -32,6 +32,16 @@ export function StatsDisplayCards({ stats, loading }: Props) {
       value: formatPercent(stats.winRate),
       color: stats.winRate >= 0.5 ? 'text-green-600' : 'text-red-600',
     },
+    {
+      label: '先攻勝率',
+      value: formatPercent(stats.firstWinRate),
+      color: stats.firstWinRate >= 0.5 ? 'text-green-600' : 'text-red-600',
+    },
+    {
+      label: '後攻勝率',
+      value: formatPercent(stats.secondWinRate),
+      color: stats.secondWinRate >= 0.5 ? 'text-green-600' : 'text-red-600',
+    },
     { label: '先攻率', value: formatPercent(stats.firstRate), color: 'text-blue-600' },
     {
       label: 'じゃんけん勝率',
@@ -41,7 +51,7 @@ export function StatsDisplayCards({ stats, loading }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {cards.map((card) => (
         <div key={card.label} className="bg-white rounded-lg shadow p-4">
           <p className="text-sm text-gray-500">{card.label}</p>

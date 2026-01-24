@@ -16,6 +16,8 @@ export const overviewStatsSchema = z.object({
   losses: z.number().int(),
   winRate: z.number(),
   firstRate: z.number(),
+  firstWinRate: z.number(),
+  secondWinRate: z.number(),
   coinTossWinRate: z.number(),
 });
 
