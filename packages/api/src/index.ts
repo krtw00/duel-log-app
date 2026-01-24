@@ -10,6 +10,7 @@ import { deckRoutes } from './routes/decks.js';
 import { duelRoutes } from './routes/duels.js';
 import { feedbackRoutes } from './routes/feedback.js';
 import { meRoutes } from './routes/me.js';
+import { obsRoutes } from './routes/obs.js';
 import { sharedStatisticsRoutes } from './routes/sharedStatistics.js';
 import { statisticsRoutes } from './routes/statistics.js';
 
@@ -22,6 +23,10 @@ app.use('*', errorMiddleware);
 
 // 認証不要ルート（sharedStatisticsRoutesが内部でauth制御）
 app.route('/shared-statistics', sharedStatisticsRoutes);
+
+// OBSルート（/obs/stats はトークン認証、/obs/token は Supabase Auth 認証）
+app.use('/obs/token', authMiddleware);
+app.route('/obs', obsRoutes);
 
 // 認証必要ルート
 app.use('/auth/*', authMiddleware);

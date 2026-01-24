@@ -27,6 +27,8 @@ type Props = {
   defaultIsFirst?: boolean;
   defaultRank?: number;
   inline?: boolean;
+  deckUsage?: Map<string, number>;
+  opponentDeckUsage?: Map<string, number>;
 };
 
 export function DuelFormDialog({
@@ -40,10 +42,20 @@ export function DuelFormDialog({
   defaultIsFirst = true,
   defaultRank,
   inline,
+  deckUsage,
+  opponentDeckUsage,
 }: Props) {
   const { t } = useTranslation();
-  const myDecks = decks.filter((d) => !d.isOpponentDeck && d.active);
-  const opponentDecks = decks.filter((d) => d.isOpponentDeck && d.active);
+  const myDecks = decks.filter((d) => !d.isOpponentDeck && d.active).sort((a, b) => {
+    const usageA = deckUsage?.get(a.id) ?? 0;
+    const usageB = deckUsage?.get(b.id) ?? 0;
+    return usageB - usageA;
+  });
+  const opponentDecks = decks.filter((d) => d.isOpponentDeck && d.active).sort((a, b) => {
+    const usageA = opponentDeckUsage?.get(a.id) ?? 0;
+    const usageB = opponentDeckUsage?.get(b.id) ?? 0;
+    return usageB - usageA;
+  });
   const createDeck = useCreateDeck();
 
   // Deck combobox state: track both ID (for existing) and name (for new)
@@ -167,7 +179,7 @@ export function DuelFormDialog({
       {/* Row 1: Decks */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label htmlFor="deckId" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label htmlFor="deckId" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('duel.deck')}
           </label>
           <DeckCombobox
@@ -183,7 +195,7 @@ export function DuelFormDialog({
           />
         </div>
         <div>
-          <label htmlFor="opponentDeckId" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label htmlFor="opponentDeckId" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('duel.opponentDeck')}
           </label>
           <DeckCombobox
@@ -210,11 +222,11 @@ export function DuelFormDialog({
           <div className="flex gap-2">
             <label className="radio-option cursor-pointer">
               <input type="radio" value="true" {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-warning)]" />
-              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossWin')}</span>
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossWin')}</span>
             </label>
             <label className="radio-option cursor-pointer">
               <input type="radio" value="false" {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-on-surface-muted)]" />
-              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossLoss')}</span>
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossLoss')}</span>
             </label>
           </div>
         </div>
@@ -227,11 +239,11 @@ export function DuelFormDialog({
           <div className="flex gap-2">
             <label className="radio-option cursor-pointer">
               <input type="radio" value="true" {...register('isFirst', { setValueAs: (v: string) => v === 'true' })} className="accent-[#00d9ff]" />
-              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.first')}</span>
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.first')}</span>
             </label>
             <label className="radio-option cursor-pointer">
               <input type="radio" value="false" {...register('isFirst', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-secondary)]" />
-              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.second')}</span>
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.second')}</span>
             </label>
           </div>
         </div>
@@ -245,7 +257,7 @@ export function DuelFormDialog({
             {RESULTS.map((r) => (
               <label key={r} className="radio-option cursor-pointer">
                 <input type="radio" value={r} {...register('result')} className={r === 'win' ? 'accent-[var(--color-success)]' : 'accent-[var(--color-error)]'} />
-                <span className="text-xs" style={{ color: r === 'win' ? 'var(--color-success)' : 'var(--color-error)' }}>
+                <span className="text-sm" style={{ color: r === 'win' ? 'var(--color-success)' : 'var(--color-error)' }}>
                   {r === 'win' ? t('duel.win') : t('duel.loss')}
                 </span>
               </label>
@@ -257,7 +269,7 @@ export function DuelFormDialog({
       {/* Row 3: Conditional value fields */}
       {gameMode === 'RANK' && (
         <div>
-          <label htmlFor="rank" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label htmlFor="rank" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('duel.rank')}
           </label>
           <select id="rank" {...register('rank', { valueAsNumber: true })} className="themed-select">
@@ -270,7 +282,7 @@ export function DuelFormDialog({
       )}
       {gameMode === 'RATE' && (
         <div>
-          <label htmlFor="rateValue" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label htmlFor="rateValue" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('duel.rateValue')}
           </label>
           <input id="rateValue" type="number" step="0.1" {...register('rateValue', { valueAsNumber: true })} className="themed-input" />
@@ -278,7 +290,7 @@ export function DuelFormDialog({
       )}
       {gameMode === 'DC' && (
         <div>
-          <label htmlFor="dcValue" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label htmlFor="dcValue" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('duel.dcValue')}
           </label>
           <input id="dcValue" type="number" {...register('dcValue', { valueAsNumber: true })} className="themed-input" />
@@ -287,7 +299,7 @@ export function DuelFormDialog({
 
       {/* Row 5: Memo */}
       <div>
-        <label htmlFor="memo" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+        <label htmlFor="memo" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
           {t('duel.memo')}
         </label>
         <textarea id="memo" {...register('memo')} rows={2} className="themed-input" style={{ resize: 'vertical' }} />

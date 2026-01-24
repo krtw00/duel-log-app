@@ -21,4 +21,5 @@ export const createDeckSchema = z.object({
 /** デッキ更新 */
 export const updateDeckSchema = z.object({
   name: z.string().min(1).max(100).optional(),
+  isGeneric: z.boolean().optional(),
 });

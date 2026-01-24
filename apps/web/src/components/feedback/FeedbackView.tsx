@@ -4,9 +4,17 @@ import { api } from '../../lib/api.js';
 
 type FeedbackTab = 'bug' | 'feature' | 'contact';
 
+const VALID_TABS: FeedbackTab[] = ['bug', 'feature', 'contact'];
+
+function getInitialTab(): FeedbackTab {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  return VALID_TABS.includes(tab as FeedbackTab) ? (tab as FeedbackTab) : 'bug';
+}
+
 export function FeedbackView() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<FeedbackTab>('bug');
+  const [activeTab, setActiveTab] = useState<FeedbackTab>(getInitialTab);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [steps, setSteps] = useState('');
@@ -171,7 +179,7 @@ export function FeedbackView() {
               {/* Title (bug + feature) */}
               {(activeTab === 'bug' || activeTab === 'feature') && (
                 <div>
-                  <label htmlFor="fbTitle" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  <label htmlFor="fbTitle" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                     {t('feedback.feedbackTitle')}
                   </label>
                   <input
@@ -188,7 +196,7 @@ export function FeedbackView() {
               {/* Subject (contact) */}
               {activeTab === 'contact' && (
                 <div>
-                  <label htmlFor="fbSubject" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  <label htmlFor="fbSubject" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                     {t('feedback.subject')}
                   </label>
                   <input
@@ -204,7 +212,7 @@ export function FeedbackView() {
 
               {/* Description / Message */}
               <div>
-                <label htmlFor="fbBody" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                <label htmlFor="fbBody" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                   {activeTab === 'contact' ? t('feedback.message') : t('feedback.body')}
                 </label>
                 <textarea
@@ -222,7 +230,7 @@ export function FeedbackView() {
               {activeTab === 'bug' && (
                 <>
                   <div>
-                    <label htmlFor="fbSteps" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    <label htmlFor="fbSteps" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                       {t('feedback.reproSteps')}
                     </label>
                     <textarea
@@ -236,7 +244,7 @@ export function FeedbackView() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="fbExpected" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      <label htmlFor="fbExpected" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                         {t('feedback.expected')}
                       </label>
                       <textarea
@@ -249,7 +257,7 @@ export function FeedbackView() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="fbActual" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      <label htmlFor="fbActual" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                         {t('feedback.actual')}
                       </label>
                       <textarea
@@ -268,7 +276,7 @@ export function FeedbackView() {
               {/* Feature-specific fields */}
               {activeTab === 'feature' && (
                 <div>
-                  <label htmlFor="fbUseCase" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  <label htmlFor="fbUseCase" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                     {t('feedback.useCase')}
                   </label>
                   <textarea
@@ -319,7 +327,7 @@ export function FeedbackView() {
             @XrIGT
           </a>
           <a
-            href="https://github.com/IGT-DEVELOPER/duel-log"
+            href="https://github.com/krtw00/duel-log-app"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 hover:opacity-80"

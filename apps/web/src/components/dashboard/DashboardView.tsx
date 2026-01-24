@@ -1,4 +1,4 @@
-import type { Duel, GameMode } from '@duel-log/shared';
+import type { GameMode } from '@duel-log/shared';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { demoteRank } from '../../utils/ranks.js';
@@ -12,19 +12,22 @@ import { DashboardHeader } from './DashboardHeader.js';
 import { DuelFormDialog } from './DuelFormDialog.js';
 import { DuelTable } from './DuelTable.js';
 import { StatsDisplayCards } from './StatsDisplayCards.js';
+import { StatisticsFilter } from '../statistics/StatisticsFilter.js';
 import { StreakBadge } from './StreakBadge.js';
 import { StreamerSection } from './StreamerSection.js';
 
 export function DashboardView() {
   const { t } = useTranslation();
   const now = new Date();
-  const isStreamerMode = localStorage.getItem('streamerMode') === 'true';
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
+  const [deckId, setDeckId] = useState<string | undefined>(undefined);
+  const [periodType, setPeriodType] = useState<'all' | 'range'>('all');
+  const [rangeStart, setRangeStart] = useState(1);
+  const [rangeEnd, setRangeEnd] = useState(30);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [editingDuel, setEditingDuel] = useState<Duel | null>(null);
   const [defaultIsFirst, setDefaultIsFirst] = useState(() => {
     const stored = localStorage.getItem('duellog.defaultIsFirst');
     return stored !== null ? stored === 'true' : true;
@@ -34,12 +37,18 @@ export function DashboardView() {
   const from = new Date(year, month - 1, 1).toISOString();
   const to = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-  const filter = { gameMode, from, to, limit: 100, offset: 0 };
+  // 2-month window for opponent deck usage sorting (last month + current month)
+  const usageFrom = new Date(year, month - 2, 1).toISOString();
+
+  const rangeFilter = periodType === 'range' ? { rangeStart, rangeEnd } : {};
+  const filter = { gameMode, from, to, deckId, ...rangeFilter, limit: 100, offset: 0 };
   const allFilter = { from, to, limit: 500, offset: 0 };
-  const statsFilter = { gameMode, from, to };
+  const usageFilter = { from: usageFrom, to, limit: 1000, offset: 0 };
+  const statsFilter = { gameMode, from, to, deckId, ...rangeFilter };
 
   const { data: duelsData, isLoading: duelsLoading } = useDuels(filter);
   const { data: allDuelsData } = useDuels(allFilter);
+  const { data: usageDuelsData } = useDuels(usageFilter);
   const { data: decksData, isLoading: decksLoading } = useDecks();
   const { data: overviewData, isLoading: statsLoading } = useOverviewStats(statsFilter);
   const { data: streaksData } = useStreaks(statsFilter);
@@ -50,7 +59,23 @@ export function DashboardView() {
 
   const duels = duelsData?.data ?? [];
   const allDuels = allDuelsData?.data ?? [];
+  const usageDuels = usageDuelsData?.data ?? [];
   const decks = decksData?.data ?? [];
+
+  // Deck usage counts (last month + current month)
+  const { deckUsage, opponentDeckUsage } = useMemo(() => {
+    const deckCounts = new Map<string, number>();
+    const oppCounts = new Map<string, number>();
+    for (const duel of usageDuels) {
+      if (duel.deckId) {
+        deckCounts.set(duel.deckId, (deckCounts.get(duel.deckId) ?? 0) + 1);
+      }
+      if (duel.opponentDeckId) {
+        oppCounts.set(duel.opponentDeckId, (oppCounts.get(duel.opponentDeckId) ?? 0) + 1);
+      }
+    }
+    return { deckUsage: deckCounts, opponentDeckUsage: oppCounts };
+  }, [usageDuels]);
 
   // Latest rank: use this month's data, or demote last saved rank for month start
   const DEFAULT_RANK = 18; // Platinum 5
@@ -75,10 +100,6 @@ export function DashboardView() {
     return acc;
   }, {});
 
-  const handleEdit = (duel: Duel) => {
-    setEditingDuel(duel);
-  };
-
   const handleDelete = (id: string) => {
     deleteDuel.mutate(id);
   };
@@ -97,11 +118,29 @@ export function DashboardView() {
         modeCounts={modeCounts}
       />
 
+      {/* Filter */}
+      <StatisticsFilter
+        decks={decks}
+        deckId={deckId}
+        onDeckIdChange={setDeckId}
+        periodType={periodType}
+        onPeriodTypeChange={(type) => {
+          setPeriodType(type);
+          if (type === 'range') setRangeEnd(modeCounts[gameMode] ?? 30);
+        }}
+        rangeStart={rangeStart}
+        onRangeStartChange={setRangeStart}
+        rangeEnd={rangeEnd}
+        onRangeEndChange={setRangeEnd}
+        onReset={() => { setDeckId(undefined); setPeriodType('all'); setRangeStart(1); setRangeEnd(modeCounts[gameMode] ?? 30); }}
+        totalDuels={modeCounts[gameMode] ?? 30}
+      />
+
       {/* Stats Cards */}
       <StatsDisplayCards stats={overviewData?.data} loading={statsLoading} />
 
-      {/* Streamer Section (visible only when streamer mode is enabled) */}
-      {isStreamerMode && <StreamerSection />}
+      {/* Stats Popup / OBS Overlay */}
+      <StreamerSection />
 
       {/* Default Settings */}
       <div className="glass-card p-4">
@@ -111,7 +150,7 @@ export function DashboardView() {
               <path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707" />
               <circle cx="12" cy="12" r="4" />
             </svg>
-            <span className="text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+            <span className="text-base font-medium" style={{ color: 'var(--color-on-surface)' }}>
               {t('dashboard.defaultSettings')}
             </span>
           </div>
@@ -124,7 +163,7 @@ export function DashboardView() {
             <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
               <button
                 type="button"
-                className="px-3 py-1 text-xs font-medium transition-colors"
+                className="px-3 py-1 text-sm font-medium transition-colors"
                 style={{
                   background: !defaultIsFirst ? 'var(--color-primary)' : 'transparent',
                   color: !defaultIsFirst ? '#0a0e27' : 'var(--color-on-surface-muted)',
@@ -135,7 +174,7 @@ export function DashboardView() {
               </button>
               <button
                 type="button"
-                className="px-3 py-1 text-xs font-medium transition-colors"
+                className="px-3 py-1 text-sm font-medium transition-colors"
                 style={{
                   background: defaultIsFirst ? 'var(--color-primary)' : 'transparent',
                   color: defaultIsFirst ? '#0a0e27' : 'var(--color-on-surface-muted)',
@@ -160,23 +199,8 @@ export function DashboardView() {
         defaultIsFirst={defaultIsFirst}
         defaultRank={latestRank}
         inline={true}
-      />
-
-      {/* Edit Dialog */}
-      <DuelFormDialog
-        open={!!editingDuel}
-        onClose={() => setEditingDuel(null)}
-        onSubmit={(data) => {
-          if (editingDuel) {
-            updateDuel.mutate({ id: editingDuel.id, data }, { onSuccess: () => setEditingDuel(null) });
-          }
-        }}
-        editingDuel={editingDuel}
-        decks={decks}
-        loading={updateDuel.isPending}
-        defaultGameMode={gameMode}
-        defaultIsFirst={defaultIsFirst}
-        defaultRank={latestRank}
+        deckUsage={deckUsage}
+        opponentDeckUsage={opponentDeckUsage}
       />
 
       {/* Duel History */}
@@ -189,7 +213,7 @@ export function DashboardView() {
                 <path d="M3 9h18" />
                 <path d="M9 3v18" />
               </svg>
-              <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+              <h2 className="text-base font-semibold" style={{ color: 'var(--color-on-surface)' }}>
                 {t('dashboard.title')}
               </h2>
             </div>
@@ -200,7 +224,7 @@ export function DashboardView() {
             <button
               type="button"
               onClick={() => setImportDialogOpen(true)}
-              className="themed-btn themed-btn-outlined-warning text-xs"
+              className="themed-btn themed-btn-outlined-warning text-sm"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -212,7 +236,7 @@ export function DashboardView() {
             <button
               type="button"
               onClick={() => setShareDialogOpen(true)}
-              className="themed-btn themed-btn-outlined-success text-xs"
+              className="themed-btn themed-btn-outlined-success text-sm"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="18" cy="5" r="3" />
@@ -229,8 +253,15 @@ export function DashboardView() {
           duels={duels}
           decks={decks}
           loading={duelsLoading || decksLoading}
-          onEdit={handleEdit}
+          onEdit={(duel, data) => updateDuel.mutate({ id: duel.id, data })}
           onDelete={handleDelete}
+          gameMode={gameMode}
+          defaultIsFirst={defaultIsFirst}
+          defaultRank={latestRank}
+          editLoading={updateDuel.isPending}
+          deckUsage={deckUsage}
+          opponentDeckUsage={opponentDeckUsage}
+          duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
         />
       </div>
 

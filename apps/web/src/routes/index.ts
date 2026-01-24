@@ -6,8 +6,10 @@ import {
   dashboardRoute,
   decksRoute,
   feedbackRoute,
+  obsOverlayRoute,
   profileRoute,
   statisticsRoute,
+  streamerPopupRoute,
 } from './app.js';
 import {
   authLayoutRoute,
@@ -17,7 +19,7 @@ import {
   registerRoute,
   resetPasswordRoute,
 } from './auth.js';
-import { obsOverlayRoute, sharedStatsRoute, streamerPopupRoute } from './public.js';
+import { sharedStatsRoute } from './public.js';
 
 const routeTree = rootRoute.addChildren([
   authLayoutRoute.addChildren([
@@ -34,10 +36,10 @@ const routeTree = rootRoute.addChildren([
     profileRoute,
     adminRoute,
     feedbackRoute,
+    streamerPopupRoute,
   ]),
-  sharedStatsRoute,
-  streamerPopupRoute,
   obsOverlayRoute,
+  sharedStatsRoute,
 ]);
 
 export const router = createRouter({ routeTree });

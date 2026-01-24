@@ -1,6 +1,7 @@
 import type { CreateDuel, Duel, DuelFilter, Pagination, UpdateDuel } from '@duel-log/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api.js';
+import { broadcastStreamerStats } from '../lib/broadcast.js';
 
 type DuelListResponse = { data: Duel[]; pagination: Pagination };
 
@@ -15,6 +16,8 @@ export function useDuels(filter?: Partial<DuelFilter>) {
           from: filter?.from,
           to: filter?.to,
           fromTimestamp: filter?.fromTimestamp,
+          rangeStart: filter?.rangeStart?.toString(),
+          rangeEnd: filter?.rangeEnd?.toString(),
           limit: filter?.limit?.toString(),
           offset: filter?.offset?.toString(),
         },
@@ -29,6 +32,7 @@ export function useCreateDuel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['duels'] });
       queryClient.invalidateQueries({ queryKey: ['statistics'] });
+      broadcastStreamerStats();
     },
   });
 }
@@ -41,6 +45,7 @@ export function useUpdateDuel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['duels'] });
       queryClient.invalidateQueries({ queryKey: ['statistics'] });
+      broadcastStreamerStats();
     },
   });
 }
@@ -52,6 +57,7 @@ export function useDeleteDuel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['duels'] });
       queryClient.invalidateQueries({ queryKey: ['statistics'] });
+      broadcastStreamerStats();
     },
   });
 }

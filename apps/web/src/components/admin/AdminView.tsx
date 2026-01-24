@@ -88,7 +88,7 @@ export function AdminView() {
             ))
           : statCards.map((card) => (
               <div key={card.label} className="glass-card p-4">
-                <p className="text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                   {card.label}
                 </p>
                 <p className="text-2xl font-bold" style={{ color: card.color }}>
@@ -130,7 +130,7 @@ export function AdminView() {
                       <span style={{ color: 'var(--color-on-surface)' }}>{u.displayName}</span>
                       {u.isAdmin && (
                         <span
-                          className="ml-2 text-xs px-1.5 py-0.5 rounded"
+                          className="ml-2 text-sm px-1.5 py-0.5 rounded"
                           style={{ background: 'rgba(181,54,255,0.15)', color: 'var(--color-secondary)' }}
                         >
                           Admin
@@ -140,7 +140,7 @@ export function AdminView() {
                     <td style={{ color: 'var(--color-on-surface-muted)' }}>{u.email}</td>
                     <td>
                       <span
-                        className="text-xs px-2 py-0.5 rounded"
+                        className="text-sm px-2 py-0.5 rounded"
                         style={
                           u.status === 'active'
                             ? { background: 'rgba(0,230,118,0.15)', color: 'var(--color-success)' }
@@ -189,7 +189,7 @@ export function AdminView() {
               type="button"
               onClick={() => deleteExpiredMutation.mutate()}
               disabled={deleteExpiredMutation.isPending}
-              className="themed-btn themed-btn-outlined text-xs"
+              className="themed-btn themed-btn-outlined text-sm"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="3 6 5 6 21 6" />
@@ -208,13 +208,13 @@ export function AdminView() {
               type="button"
               onClick={() => scanOrphanedDecksMutation.mutate()}
               disabled={scanOrphanedDecksMutation.isPending}
-              className="themed-btn themed-btn-outlined text-xs"
+              className="themed-btn themed-btn-outlined text-sm"
             >
               {t('admin.scan')}
             </button>
             {scanOrphanedDecksMutation.data && (
               <>
-                <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+                <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
                   ({scanOrphanedDecksMutation.data.data.count} found)
                 </span>
                 {scanOrphanedDecksMutation.data.data.count > 0 && (
@@ -222,7 +222,7 @@ export function AdminView() {
                     type="button"
                     onClick={() => cleanupOrphanedDecksMutation.mutate()}
                     disabled={cleanupOrphanedDecksMutation.isPending}
-                    className="themed-btn themed-btn-outlined text-xs"
+                    className="themed-btn themed-btn-outlined text-sm"
                     style={{ color: 'var(--color-error)' }}
                   >
                     {t('admin.cleanup')}
@@ -241,13 +241,13 @@ export function AdminView() {
               type="button"
               onClick={() => scanOrphanedUrlsMutation.mutate()}
               disabled={scanOrphanedUrlsMutation.isPending}
-              className="themed-btn themed-btn-outlined text-xs"
+              className="themed-btn themed-btn-outlined text-sm"
             >
               {t('admin.scan')}
             </button>
             {scanOrphanedUrlsMutation.data && (
               <>
-                <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+                <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
                   ({scanOrphanedUrlsMutation.data.data.count} found)
                 </span>
                 {scanOrphanedUrlsMutation.data.data.count > 0 && (
@@ -255,7 +255,7 @@ export function AdminView() {
                     type="button"
                     onClick={() => cleanupOrphanedUrlsMutation.mutate()}
                     disabled={cleanupOrphanedUrlsMutation.isPending}
-                    className="themed-btn themed-btn-outlined text-xs"
+                    className="themed-btn themed-btn-outlined text-sm"
                     style={{ color: 'var(--color-error)' }}
                   >
                     {t('admin.cleanup')}

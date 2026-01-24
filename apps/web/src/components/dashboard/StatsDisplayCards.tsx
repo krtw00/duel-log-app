@@ -40,8 +40,7 @@ export function StatsDisplayCards({ stats, loading }: Props) {
   const cards: StatCardData[] = [
     {
       label: t('dashboard.totalDuels'),
-      value: String(s.totalDuels),
-      subtitle: `${s.wins}W / ${s.losses}L`,
+      value: `${s.totalDuels}${t('statistics.matches')}`,
       color: '#00d9ff',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -91,6 +90,7 @@ export function StatsDisplayCards({ stats, loading }: Props) {
     {
       label: t('dashboard.coinTossRate'),
       value: `${Math.round(s.coinTossWinRate * 100)}%`,
+      subtitle: `${Math.round(s.totalDuels * s.coinTossWinRate)}/${s.totalDuels}`,
       color: '#ffd600',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -102,6 +102,7 @@ export function StatsDisplayCards({ stats, loading }: Props) {
     {
       label: t('dashboard.firstRate'),
       value: `${Math.round(s.firstRate * 100)}%`,
+      subtitle: `${firstCount}/${s.totalDuels}`,
       color: '#26a69a',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -118,7 +119,7 @@ export function StatsDisplayCards({ stats, loading }: Props) {
         <div key={card.label} className="stat-card">
           <div className="flex items-center gap-2 mb-2">
             <span style={{ color: card.color }}>{card.icon}</span>
-            <span className="text-xs font-medium" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <span className="text-sm font-medium" style={{ color: 'var(--color-on-surface-muted)' }}>
               {card.label}
             </span>
           </div>
@@ -126,7 +127,7 @@ export function StatsDisplayCards({ stats, loading }: Props) {
             {card.value}
           </div>
           {card.subtitle && (
-            <div className="text-xs mt-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <div className="text-sm mt-1" style={{ color: 'var(--color-on-surface-muted)' }}>
               {card.subtitle}
             </div>
           )}

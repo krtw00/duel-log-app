@@ -124,7 +124,11 @@
     "unarchive": "Unarchive",
     "showArchived": "Show Archived",
     "confirmDelete": "Delete this deck?",
-    "noDecks": "No decks"
+    "noDecks": "No decks",
+    "archiveAll": "Archive All",
+    "archiveAllConfirm": "Archive all active decks?",
+    "generic": "Generic Deck",
+    "genericDesc": "Grouped as 'Other' in statistics"
   },
   "statistics": {
     "title": "Statistics",
@@ -141,7 +145,16 @@
     "total": "Total",
     "noData": "No data available",
     "monthly": "Monthly",
-    "refreshInterval": "Refresh Interval (sec)"
+    "refreshInterval": "Refresh Interval (sec)",
+    "filter": "Filter",
+    "myDeck": "My Deck",
+    "allDecks": "All Decks",
+    "period": "Period",
+    "periodAll": "All Duels",
+    "periodRange": "Range",
+    "rangeStart": "Start",
+    "rangeEnd": "End",
+    "reset": "Reset"
   },
   "streak": {
     "winStreak": "{{count}} Win Streak",
@@ -188,8 +201,12 @@
     "obsBrowserSource": "OBS Browser Source",
     "deprecated": "Deprecated",
     "deprecationWarning": "OBS Browser Source is deprecated. Please use the Popup Window instead.",
-    "obsDescription": "Can be used as an OBS browser source",
+    "obsDescription": "Set up as an OBS browser source to overlay statistics on your stream.",
     "getObsUrl": "Get OBS URL",
+    "obsSetupTitle": "OBS Setup",
+    "obsSetupStep1": "Add a Browser Source in OBS",
+    "obsSetupStep2": "Paste the URL below into the URL field",
+    "obsSetupStep3": "Width: {{width}}px, Height: {{height}}px (recommended)",
     "items": {
       "currentDeck": "Current Deck",
       "gameModeValue": "Game Mode Value",

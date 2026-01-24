@@ -1,17 +1,25 @@
-import type { Deck, Duel } from '@duel-log/shared';
+import type { CreateDuel, Deck, Duel, GameMode } from '@duel-log/shared';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRankLabel } from '../../utils/ranks.js';
+import { DuelFormDialog } from './DuelFormDialog.js';
 
 type Props = {
   duels: Duel[];
   decks: Deck[];
   loading: boolean;
-  onEdit?: (duel: Duel) => void;
+  onEdit?: (duel: Duel, data: CreateDuel) => void;
   onDelete?: (id: string) => void;
   maxHeight?: string;
   readOnly?: boolean;
+  gameMode?: GameMode;
+  defaultIsFirst?: boolean;
+  defaultRank?: number;
+  editLoading?: boolean;
+  deckUsage?: Map<string, number>;
+  opponentDeckUsage?: Map<string, number>;
+  duelNoOffset?: number;
 };
 
 function getDeckName(decks: Deck[], deckId: string): string {
@@ -20,12 +28,11 @@ function getDeckName(decks: Deck[], deckId: string): string {
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
-  const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   const hours = String(d.getHours()).padStart(2, '0');
   const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${year}/${month}/${day} ${hours}:${minutes}`;
+  return `${month}/${day} ${hours}:${minutes}`;
 }
 
 function getRankDisplay(duel: Duel, t: TFunction): string | null {
@@ -38,89 +45,105 @@ function getRankDisplay(duel: Duel, t: TFunction): string | null {
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50] as const;
 const DEFAULT_ITEMS_PER_PAGE = 10;
 
-function MobileCardView({ duels, decks, onEdit, onDelete, readOnly }: Omit<Props, 'loading' | 'maxHeight'>) {
+function MobileCardView({ duels, decks, onStartEdit, onDelete, readOnly, editingId, editForm }: {
+  duels: Duel[];
+  decks: Deck[];
+  onStartEdit?: (duel: Duel) => void;
+  onDelete?: (id: string) => void;
+  readOnly?: boolean;
+  editingId: string | null;
+  editForm: React.ReactNode;
+}) {
   const { t } = useTranslation();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   return (
     <div className="sm:hidden">
       {duels.map((duel) => (
-        <div key={duel.id} className="duel-card-compact">
-          {/* Result indicator bar */}
-          <div className={`duel-card-indicator ${duel.result === 'win' ? 'duel-card-indicator-win' : 'duel-card-indicator-loss'}`} />
+        <div key={duel.id}>
+          {editingId === duel.id ? (
+            <div className="p-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+              {editForm}
+            </div>
+          ) : (
+            <div className="duel-card-compact">
+              {/* Result indicator bar */}
+              <div className={`duel-card-indicator ${duel.result === 'win' ? 'duel-card-indicator-win' : 'duel-card-indicator-loss'}`} />
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1 min-w-0 flex-1">
-                <span className="chip chip-outlined-primary text-xs truncate">{getDeckName(decks, duel.deckId)}</span>
-                <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>vs</span>
-                <span className="chip chip-outlined-warning text-xs truncate">{getDeckName(decks, duel.opponentDeckId)}</span>
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1 min-w-0 flex-1">
+                    <span className="chip chip-outlined-primary text-sm truncate">{getDeckName(decks, duel.deckId)}</span>
+                    <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>vs</span>
+                    <span className="chip chip-outlined-warning text-sm truncate">{getDeckName(decks, duel.opponentDeckId)}</span>
+                  </div>
+                  <span className="text-sm whitespace-nowrap" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    {formatDate(duel.dueledAt)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 mt-1 flex-wrap">
+                  <span className={`chip text-sm ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}>
+                    {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
+                  </span>
+                  <span className={`chip text-sm ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}>
+                    {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
+                  </span>
+                  <span className={`chip text-sm ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}>
+                    {duel.isFirst ? t('duel.first') : t('duel.second')}
+                  </span>
+                  {getRankDisplay(duel, t) && (
+                    <span className="chip text-sm chip-rank">{getRankDisplay(duel, t)}</span>
+                  )}
+                  {duel.memo && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-on-surface-muted)" strokeWidth="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  )}
+                </div>
               </div>
-              <span className="text-xs whitespace-nowrap" style={{ color: 'var(--color-on-surface-muted)' }}>
-                {formatDate(duel.dueledAt)}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 mt-1 flex-wrap">
-              <span className={`chip text-xs ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}>
-                {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
-              </span>
-              <span className={`chip text-xs ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}>
-                {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
-              </span>
-              <span className={`chip text-xs ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}>
-                {duel.isFirst ? t('duel.first') : t('duel.second')}
-              </span>
-              {getRankDisplay(duel, t) && (
-                <span className="chip text-xs chip-rank">{getRankDisplay(duel, t)}</span>
-              )}
-              {duel.memo && (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-on-surface-muted)" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-              )}
-            </div>
-          </div>
 
-          {/* Actions */}
-          {!readOnly && onEdit && onDelete && (
-          <div className="flex flex-col justify-center gap-1">
-            <button
-              type="button"
-              className="themed-btn themed-btn-ghost p-1"
-              onClick={() => onEdit(duel)}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
-            {confirmDeleteId === duel.id ? (
-              <button
-                type="button"
-                className="themed-btn themed-btn-ghost p-1"
-                style={{ color: 'var(--color-error)' }}
-                onClick={() => { onDelete(duel.id); setConfirmDeleteId(null); }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="themed-btn themed-btn-ghost p-1"
-                style={{ color: 'var(--color-error)' }}
-                onClick={() => setConfirmDeleteId(duel.id)}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-              </button>
-            )}
-          </div>
+              {/* Actions */}
+              {!readOnly && onStartEdit && onDelete && (
+              <div className="flex flex-col justify-center gap-1">
+                <button
+                  type="button"
+                  className="themed-btn themed-btn-ghost p-1"
+                  onClick={() => onStartEdit(duel)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                </button>
+                {confirmDeleteId === duel.id ? (
+                  <button
+                    type="button"
+                    className="themed-btn themed-btn-ghost p-1"
+                    style={{ color: 'var(--color-error)' }}
+                    onClick={() => { onDelete(duel.id); setConfirmDeleteId(null); }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="themed-btn themed-btn-ghost p-1"
+                    style={{ color: 'var(--color-error)' }}
+                    onClick={() => setConfirmDeleteId(duel.id)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              )}
+            </div>
           )}
         </div>
       ))}
@@ -128,11 +151,12 @@ function MobileCardView({ duels, decks, onEdit, onDelete, readOnly }: Omit<Props
   );
 }
 
-export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, readOnly }: Props) {
+export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, readOnly, gameMode, defaultIsFirst, defaultRank, editLoading, deckUsage, opponentDeckUsage, duelNoOffset = 0 }: Props) {
   const { t } = useTranslation();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
   const [currentPage, setCurrentPage] = useState(0);
+  const [editingDuel, setEditingDuel] = useState<Duel | null>(null);
 
   if (loading) {
     return (
@@ -156,10 +180,50 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
   const paginatedDuels = duels.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
   const startIndex = currentPage * itemsPerPage;
 
+  const handleStartEdit = (duel: Duel) => {
+    setEditingDuel(duel);
+  };
+
+  const handleInlineSubmit = (data: CreateDuel) => {
+    if (editingDuel && onEdit) {
+      onEdit(editingDuel, data);
+      setEditingDuel(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingDuel(null);
+  };
+
+  const editForm = editingDuel ? (
+    <DuelFormDialog
+      open={true}
+      onClose={handleCancelEdit}
+      onSubmit={handleInlineSubmit}
+      editingDuel={editingDuel}
+      decks={decks}
+      loading={editLoading}
+      defaultGameMode={gameMode}
+      defaultIsFirst={defaultIsFirst}
+      defaultRank={defaultRank}
+      inline={true}
+      deckUsage={deckUsage}
+      opponentDeckUsage={opponentDeckUsage}
+    />
+  ) : null;
+
   return (
     <div style={maxHeight ? { maxHeight, overflowY: 'auto' } : undefined}>
       {/* Mobile Card View */}
-      <MobileCardView duels={paginatedDuels} decks={decks} onEdit={onEdit} onDelete={onDelete} readOnly={readOnly} />
+      <MobileCardView
+        duels={paginatedDuels}
+        decks={decks}
+        onStartEdit={!readOnly ? handleStartEdit : undefined}
+        onDelete={onDelete}
+        readOnly={readOnly}
+        editingId={editingDuel?.id ?? null}
+        editForm={editForm}
+      />
 
       {/* Desktop Table View */}
       <div className="hidden sm:block overflow-x-auto">
@@ -180,97 +244,107 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
           </thead>
           <tbody>
             {paginatedDuels.map((duel, index) => (
-              <tr key={duel.id}>
-                <td className="text-center" style={{ color: 'var(--color-on-surface-muted)' }}>
-                  {startIndex + index + 1}
-                </td>
-                <td>
-                  <span className="chip chip-outlined-primary">{getDeckName(decks, duel.deckId)}</span>
-                </td>
-                <td>
-                  <span className="chip chip-outlined-warning">{getDeckName(decks, duel.opponentDeckId)}</span>
-                </td>
-                <td>
-                  <span className={`chip ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}>
-                    {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
-                  </span>
-                </td>
-                <td>
-                  <span className={`chip ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}>
-                    {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
-                  </span>
-                </td>
-                <td>
-                  <span className={`chip ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}>
-                    {duel.isFirst ? t('duel.first') : t('duel.second')}
-                  </span>
-                </td>
-                <td>
-                  {getRankDisplay(duel, t) ? (
-                    <span className="chip chip-rank">{getRankDisplay(duel, t)}</span>
-                  ) : (
-                    <span style={{ color: 'var(--color-on-surface-muted)' }}>-</span>
-                  )}
-                </td>
-                <td className="max-w-[120px] truncate" title={duel.memo ?? ''}>
-                  {duel.memo ? (
-                    <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>{duel.memo}</span>
-                  ) : null}
-                </td>
-                <td className="whitespace-nowrap">{formatDate(duel.dueledAt)}</td>
-                {!readOnly && (
-                <td className="text-center whitespace-nowrap">
-                  <button
-                    type="button"
-                    className="themed-btn themed-btn-ghost p-1"
-                    onClick={() => onEdit?.(duel)}
-                    title={t('common.edit')}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                  </button>
-                  {confirmDeleteId === duel.id ? (
-                    <>
+              editingDuel?.id === duel.id ? (
+                <tr key={duel.id}>
+                  <td colSpan={readOnly ? 9 : 10} className="p-0">
+                    <div className="p-3" style={{ background: 'var(--color-surface-variant)', borderRadius: 0 }}>
+                      {editForm}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={duel.id}>
+                  <td className="text-center" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    {duelNoOffset + duels.length - startIndex - index}
+                  </td>
+                  <td>
+                    <span className="chip chip-outlined-primary">{getDeckName(decks, duel.deckId)}</span>
+                  </td>
+                  <td>
+                    <span className="chip chip-outlined-warning">{getDeckName(decks, duel.opponentDeckId)}</span>
+                  </td>
+                  <td>
+                    <span className={`chip ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}>
+                      {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`chip ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}>
+                      {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`chip ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}>
+                      {duel.isFirst ? t('duel.first') : t('duel.second')}
+                    </span>
+                  </td>
+                  <td>
+                    {getRankDisplay(duel, t) ? (
+                      <span className="chip chip-rank">{getRankDisplay(duel, t)}</span>
+                    ) : (
+                      <span style={{ color: 'var(--color-on-surface-muted)' }}>-</span>
+                    )}
+                  </td>
+                  <td className="max-w-[120px] truncate" title={duel.memo ?? ''}>
+                    {duel.memo ? (
+                      <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{duel.memo}</span>
+                    ) : null}
+                  </td>
+                  <td className="whitespace-nowrap">{formatDate(duel.dueledAt)}</td>
+                  {!readOnly && (
+                  <td className="text-center whitespace-nowrap">
+                    <button
+                      type="button"
+                      className="themed-btn themed-btn-ghost p-1"
+                      onClick={() => handleStartEdit(duel)}
+                      title={t('common.edit')}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
+                    {confirmDeleteId === duel.id ? (
+                      <>
+                        <button
+                          type="button"
+                          className="themed-btn themed-btn-ghost p-1"
+                          style={{ color: 'var(--color-error)' }}
+                          onClick={() => { onDelete?.(duel.id); setConfirmDeleteId(null); }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          className="themed-btn themed-btn-ghost p-1"
+                          onClick={() => setConfirmDeleteId(null)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      </>
+                    ) : (
                       <button
                         type="button"
                         className="themed-btn themed-btn-ghost p-1"
                         style={{ color: 'var(--color-error)' }}
-                        onClick={() => { onDelete?.(duel.id); setConfirmDeleteId(null); }}
+                        onClick={() => setConfirmDeleteId(duel.id)}
+                        title={t('common.delete')}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="20 6 9 17 4 12" />
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                         </svg>
                       </button>
-                      <button
-                        type="button"
-                        className="themed-btn themed-btn-ghost p-1"
-                        onClick={() => setConfirmDeleteId(null)}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      className="themed-btn themed-btn-ghost p-1"
-                      style={{ color: 'var(--color-error)' }}
-                      onClick={() => setConfirmDeleteId(duel.id)}
-                      title={t('common.delete')}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                    </button>
+                    )}
+                  </td>
                   )}
-                </td>
-                )}
-              </tr>
+                </tr>
+              )
             ))}
           </tbody>
         </table>
@@ -279,7 +353,7 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
       {/* Pagination */}
       {duels.length > DEFAULT_ITEMS_PER_PAGE && (
         <div className="flex items-center justify-end gap-4 p-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
             <span>Items per page:</span>
             <select
               value={itemsPerPage}
@@ -292,7 +366,7 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
               ))}
             </select>
           </div>
-          <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
             {startIndex + 1}-{Math.min(startIndex + itemsPerPage, duels.length)} of {duels.length}
           </span>
           <div className="flex gap-1">

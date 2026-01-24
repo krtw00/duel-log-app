@@ -116,7 +116,7 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
               {/* 対象月 */}
               <div>
                 <label
-                  className="block text-xs font-medium mb-1"
+                  className="block text-base font-medium mb-1"
                   style={{ color: 'var(--color-on-surface-muted)' }}
                 >
                   {t('sharing.targetMonth')}
@@ -147,7 +147,7 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
               <div>
                 <label
                   htmlFor="shareGameMode"
-                  className="block text-xs font-medium mb-1"
+                  className="block text-base font-medium mb-1"
                   style={{ color: 'var(--color-on-surface-muted)' }}
                 >
                   {t('duel.gameMode')}
@@ -169,7 +169,7 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
               <div>
                 <label
                   htmlFor="expiresInDays"
-                  className="block text-xs font-medium mb-1"
+                  className="block text-base font-medium mb-1"
                   style={{ color: 'var(--color-on-surface-muted)' }}
                 >
                   {t('sharing.expiry')}

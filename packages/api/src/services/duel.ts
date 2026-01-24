@@ -3,7 +3,7 @@ import { sql } from '../db/index.js';
 import { type SqlFragment, andWhere } from '../db/helpers.js';
 import type { DuelRow } from '../db/types.js';
 
-function buildConditions(userId: string, filter: Pick<DuelFilter, 'gameMode' | 'deckId' | 'from' | 'to' | 'fromTimestamp'>) {
+function buildConditions(userId: string, filter: Pick<DuelFilter, 'gameMode' | 'deckId' | 'from' | 'to' | 'fromTimestamp' | 'rangeStart' | 'rangeEnd'>) {
   const conditions: SqlFragment[] = [sql`user_id = ${userId}`];
 
   if (filter.gameMode) conditions.push(sql`game_mode = ${filter.gameMode}`);
@@ -11,6 +11,23 @@ function buildConditions(userId: string, filter: Pick<DuelFilter, 'gameMode' | '
   if (filter.from) conditions.push(sql`dueled_at >= ${new Date(filter.from)}`);
   if (filter.to) conditions.push(sql`dueled_at <= ${new Date(filter.to)}`);
   if (filter.fromTimestamp) conditions.push(sql`dueled_at >= ${new Date(filter.fromTimestamp)}`);
+
+  // Range filter: select duels by their sequential number within the period
+  if (filter.rangeStart || filter.rangeEnd) {
+    const baseConditions: SqlFragment[] = [sql`user_id = ${userId}`];
+    if (filter.gameMode) baseConditions.push(sql`game_mode = ${filter.gameMode}`);
+    if (filter.from) baseConditions.push(sql`dueled_at >= ${new Date(filter.from)}`);
+    if (filter.to) baseConditions.push(sql`dueled_at <= ${new Date(filter.to)}`);
+    const baseWhere = andWhere(baseConditions);
+    const rangeStart = filter.rangeStart ?? 1;
+    const rangeEnd = filter.rangeEnd ?? 999999;
+    conditions.push(sql`id IN (
+      SELECT id FROM (
+        SELECT id, ROW_NUMBER() OVER (ORDER BY dueled_at) AS rn
+        FROM duels WHERE ${baseWhere}
+      ) sub WHERE sub.rn >= ${rangeStart} AND sub.rn <= ${rangeEnd}
+    )`);
+  }
 
   return andWhere(conditions);
 }

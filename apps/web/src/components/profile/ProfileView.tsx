@@ -28,6 +28,7 @@ export function ProfileView() {
         }>('/me');
         setDisplayName(result.data.displayName);
         setStreamerMode(result.data.streamerMode);
+        localStorage.setItem('streamerMode', String(result.data.streamerMode));
       } catch {
         // ignore
       }
@@ -46,7 +47,8 @@ export function ProfileView() {
     setMessage('');
     try {
       const data: UpdateUser = { displayName, streamerMode };
-      await api('/me', { method: 'PATCH', body: data });
+      await api('/me', { method: 'PUT', body: data });
+      localStorage.setItem('streamerMode', String(streamerMode));
       setMessage(t('profile.saved'));
       setMessageType('success');
       setNewPassword('');
@@ -75,7 +77,7 @@ export function ProfileView() {
   };
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-[600px] mx-auto space-y-6">
       <h1 className="text-2xl font-bold" style={{ color: 'var(--color-on-bg)' }}>
         {t('profile.title')}
       </h1>
@@ -86,7 +88,7 @@ export function ProfileView() {
         <div className="p-6 space-y-4">
           {/* Email (readonly) */}
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <label className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
               <span className="flex items-center gap-1">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -102,7 +104,7 @@ export function ProfileView() {
 
           {/* Display Name */}
           <div>
-            <label htmlFor="displayName" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <label htmlFor="displayName" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
               <span className="flex items-center gap-1">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -122,7 +124,7 @@ export function ProfileView() {
 
           {/* New Password */}
           <div>
-            <label htmlFor="newPassword" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <label htmlFor="newPassword" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
               <span className="flex items-center gap-1">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" />
@@ -144,7 +146,7 @@ export function ProfileView() {
           {/* Confirm Password */}
           {newPassword && (
             <div>
-              <label htmlFor="confirmPassword" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+              <label htmlFor="confirmPassword" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                 <span className="flex items-center gap-1">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" />
@@ -179,7 +181,7 @@ export function ProfileView() {
                 <p className="text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
                   {t('profile.streamerMode')}
                 </p>
-                <p className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+                <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
                   {t('profile.streamerModeDesc')}
                 </p>
               </div>
@@ -231,7 +233,7 @@ export function ProfileView() {
               {t('profile.deleteAccount')}
             </h2>
           </div>
-          <p className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('profile.deleteWarning')}
           </p>
           <button
