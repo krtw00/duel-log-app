@@ -23103,12 +23103,6 @@ var index_default = app;
 
 // src/vercel-handler.ts
 function handler(req, res) {
-  if (req.url === "/api/ping" || req.url === "/ping") {
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ ping: "pong", url: req.url, method: req.method }));
-    return;
-  }
   const proto = req.headers["x-forwarded-proto"] || "https";
   const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost";
   const url = new URL(req.url || "/", `${proto}://${host}`);
@@ -23116,20 +23110,31 @@ function handler(req, res) {
   for (const [key, value] of Object.entries(req.headers)) {
     if (value) headers.set(key, Array.isArray(value) ? value.join(", ") : value);
   }
-  const request = new Request(url.toString(), {
-    method: req.method || "GET",
-    headers
-  });
-  index_default.fetch(request).then((response) => {
+  const method = req.method || "GET";
+  const hasBody = method !== "GET" && method !== "HEAD";
+  const bodyPromise = hasBody ? new Promise((resolve) => {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+  }) : Promise.resolve(null);
+  bodyPromise.then((body) => {
+    const request = new Request(url.toString(), {
+      method,
+      headers,
+      body
+    });
+    return index_default.fetch(request);
+  }).then((response) => {
     res.statusCode = response.status;
     response.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });
     return response.arrayBuffer();
-  }).then((body) => {
-    res.end(Buffer.from(body));
+  }).then((responseBody) => {
+    res.end(Buffer.from(responseBody));
   }).catch((err) => {
     res.statusCode = 500;
+    res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({ error: err.message }));
   });
 }
