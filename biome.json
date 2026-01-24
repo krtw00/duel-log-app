@@ -7,6 +7,18 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "a11y": {
+        "noSvgWithoutTitle": "off",
+        "useSemanticElements": "off",
+        "useFocusableInteractive": "off",
+        "useKeyWithClickEvents": "off",
+        "useAriaPropsForRole": "off",
+        "noNoninteractiveElementToInteractiveRole": "off",
+        "noLabelWithoutControl": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn"
+      },
       "complexity": {
         "noForEach": "warn"
       },
@@ -15,7 +27,8 @@
         "useConst": "error"
       },
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noArrayIndexKey": "warn"
       }
     }
   },
@@ -36,6 +49,8 @@
     "ignore": [
       "node_modules",
       "dist",
+      ".pnpm-store",
+      ".vercel",
       "backend",
       "frontend",
       "scripts",

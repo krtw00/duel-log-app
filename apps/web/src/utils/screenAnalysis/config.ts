@@ -10,9 +10,9 @@ export const COIN_ROI: ROI = {
 
 export const RESULT_ROI: ROI = {
   left: 0.05,
-  top: 0.20,
-  width: 0.90,
-  height: 0.40,
+  top: 0.2,
+  width: 0.9,
+  height: 0.4,
 };
 
 // Color targets for detection

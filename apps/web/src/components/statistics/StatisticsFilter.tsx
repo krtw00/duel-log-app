@@ -34,15 +34,21 @@ export function StatisticsFilter({
   const myDecks = decks.filter((d) => !d.isOpponentDeck);
   const sliderMax = Math.max(totalDuels, rangeEnd, 10);
 
-  const handleSliderStartChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    onRangeStartChange(Math.min(val, rangeEnd));
-  }, [rangeEnd, onRangeStartChange]);
+  const handleSliderStartChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = Number(e.target.value);
+      onRangeStartChange(Math.min(val, rangeEnd));
+    },
+    [rangeEnd, onRangeStartChange],
+  );
 
-  const handleSliderEndChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    onRangeEndChange(Math.max(val, rangeStart));
-  }, [rangeStart, onRangeEndChange]);
+  const handleSliderEndChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = Number(e.target.value);
+      onRangeEndChange(Math.max(val, rangeStart));
+    },
+    [rangeStart, onRangeEndChange],
+  );
 
   // Calculate slider track fill percentage
   const startPercent = ((rangeStart - 1) / (sliderMax - 1)) * 100;
@@ -51,7 +57,14 @@ export function StatisticsFilter({
   return (
     <div className="glass-card p-4">
       <div className="flex items-center gap-2 mb-3">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--color-primary)"
+          strokeWidth="2"
+        >
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
         </svg>
         <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
@@ -61,7 +74,10 @@ export function StatisticsFilter({
       <div className="flex flex-wrap items-end gap-3">
         {/* Period Type */}
         <div className="min-w-[120px]">
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label
+            className="block text-xs font-medium mb-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('statistics.period')}
           </label>
           <select
@@ -77,7 +93,10 @@ export function StatisticsFilter({
         {/* Range Slider + Inputs */}
         {periodType === 'range' && (
           <div className="flex-1 min-w-[200px] max-w-[360px]">
-            <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <label
+              className="block text-xs font-medium mb-1"
+              style={{ color: 'var(--color-on-surface-muted)' }}
+            >
               {t('statistics.rangeStart')} - {t('statistics.rangeEnd')}
             </label>
             {/* Dual Range Slider */}
@@ -119,7 +138,9 @@ export function StatisticsFilter({
                 className="themed-input text-xs text-center"
                 style={{ width: '60px', padding: '2px 4px' }}
               />
-              <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>-</span>
+              <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+                -
+              </span>
               <input
                 type="number"
                 min={rangeStart}
@@ -137,7 +158,10 @@ export function StatisticsFilter({
 
         {/* Deck Filter */}
         <div className="flex-1 min-w-[150px] max-w-[240px]">
-          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label
+            className="block text-xs font-medium mb-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('statistics.myDeck')}
           </label>
           <select
@@ -147,18 +171,23 @@ export function StatisticsFilter({
           >
             <option value="">{t('statistics.allDecks')}</option>
             {myDecks.map((deck) => (
-              <option key={deck.id} value={deck.id}>{deck.name}</option>
+              <option key={deck.id} value={deck.id}>
+                {deck.name}
+              </option>
             ))}
           </select>
         </div>
 
         {/* Reset */}
-        <button
-          type="button"
-          onClick={onReset}
-          className="themed-btn themed-btn-ghost text-sm"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <button type="button" onClick={onReset} className="themed-btn themed-btn-ghost text-sm">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <polyline points="1 4 1 10 7 10" />
             <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
           </svg>

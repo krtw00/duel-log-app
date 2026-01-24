@@ -43,9 +43,7 @@ export function DeckCombobox({ decks, value, onChange, placeholder, id, error }:
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredDecks = decks.filter((d) =>
-    d.name.toLowerCase().includes(inputText.toLowerCase()),
-  );
+  const filteredDecks = decks.filter((d) => d.name.toLowerCase().includes(inputText.toLowerCase()));
 
   const exactMatch = decks.find((d) => d.name.toLowerCase() === inputText.trim().toLowerCase());
   const showCreateOption = inputText.trim().length > 0 && !exactMatch;
@@ -145,14 +143,14 @@ export function DeckCombobox({ decks, value, onChange, placeholder, id, error }:
         aria-expanded={isOpen}
         aria-autocomplete="list"
       />
-      {error && <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>{error}</p>}
+      {error && (
+        <p className="text-sm mt-1" style={{ color: 'var(--color-error)' }}>
+          {error}
+        </p>
+      )}
 
       {isOpen && totalItems > 0 && (
-        <ul
-          ref={listRef}
-          className="combobox-dropdown"
-          role="listbox"
-        >
+        <ul ref={listRef} className="combobox-dropdown" role="listbox">
           {filteredDecks.map((deck, index) => (
             <li
               key={deck.id}
@@ -173,7 +171,14 @@ export function DeckCombobox({ decks, value, onChange, placeholder, id, error }:
               onClick={handleCreateNew}
               onMouseEnter={() => setHighlightIndex(filteredDecks.length)}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>

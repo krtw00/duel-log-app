@@ -1,10 +1,10 @@
+import type { CreateDuel } from '@duel-log/shared';
 import { Outlet, useLocation } from '@tanstack/react-router';
 import { useState } from 'react';
-import { DuelFormDialog } from '../dashboard/DuelFormDialog.js';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useCreateDuel } from '../../hooks/useDuels.js';
-import type { CreateDuel } from '@duel-log/shared';
 import { ToastContainer } from '../common/ToastContainer.js';
+import { DuelFormDialog } from '../dashboard/DuelFormDialog.js';
 import { AppBar } from './AppBar.js';
 import { BottomNav } from './BottomNav.js';
 

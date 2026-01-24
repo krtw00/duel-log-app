@@ -93,9 +93,19 @@ export function ProfileView() {
         <div className="p-6 space-y-4">
           {/* Email (readonly) */}
           <div>
-            <label className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <label
+              className="block text-base font-medium mb-1"
+              style={{ color: 'var(--color-on-surface-muted)' }}
+            >
               <span className="flex items-center gap-1">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
@@ -109,9 +119,20 @@ export function ProfileView() {
 
           {/* Display Name */}
           <div>
-            <label htmlFor="displayName" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <label
+              htmlFor="displayName"
+              className="block text-base font-medium mb-1"
+              style={{ color: 'var(--color-on-surface-muted)' }}
+            >
               <span className="flex items-center gap-1">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
@@ -129,9 +150,20 @@ export function ProfileView() {
 
           {/* New Password */}
           <div>
-            <label htmlFor="newPassword" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            <label
+              htmlFor="newPassword"
+              className="block text-base font-medium mb-1"
+              style={{ color: 'var(--color-on-surface-muted)' }}
+            >
               <span className="flex items-center gap-1">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <rect x="3" y="11" width="18" height="11" rx="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
@@ -151,9 +183,20 @@ export function ProfileView() {
           {/* Confirm Password */}
           {newPassword && (
             <div>
-              <label htmlFor="confirmPassword" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-base font-medium mb-1"
+                style={{ color: 'var(--color-on-surface-muted)' }}
+              >
                 <span className="flex items-center gap-1">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <rect x="3" y="11" width="18" height="11" rx="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     <polyline points="9 16 11 18 15 14" />
@@ -178,7 +221,14 @@ export function ProfileView() {
           {/* Streamer Mode */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-secondary)"
+                strokeWidth="2"
+              >
                 <polygon points="23 7 16 12 23 17 23 7" />
                 <rect x="1" y="5" width="15" height="14" rx="2" />
               </svg>
@@ -203,7 +253,12 @@ export function ProfileView() {
 
           {/* Message */}
           {message && (
-            <p className="text-sm" style={{ color: messageType === 'error' ? 'var(--color-error)' : 'var(--color-success)' }}>
+            <p
+              className="text-sm"
+              style={{
+                color: messageType === 'error' ? 'var(--color-error)' : 'var(--color-success)',
+              }}
+            >
               {message}
             </p>
           )}
@@ -215,7 +270,14 @@ export function ProfileView() {
             disabled={saving}
             className="themed-btn themed-btn-primary w-full"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
               <polyline points="17 21 17 13 7 13 7 21" />
               <polyline points="7 3 7 8 15 8" />
@@ -230,7 +292,14 @@ export function ProfileView() {
         <div className="glow-line-top" />
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+            >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
@@ -249,7 +318,14 @@ export function ProfileView() {
               onClick={() => setImportDialogOpen(true)}
               className="themed-btn themed-btn-outlined-warning text-sm"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
@@ -264,10 +340,20 @@ export function ProfileView() {
       <CsvImportDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} />
 
       {/* Delete Account Card */}
-      <div className="glass-card overflow-hidden" style={{ border: '1px solid rgba(255,72,72,0.5)' }}>
+      <div
+        className="glass-card overflow-hidden"
+        style={{ border: '1px solid rgba(255,72,72,0.5)' }}
+      >
         <div className="p-6 space-y-3">
           <div className="flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-error)" strokeWidth="2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-error)"
+              strokeWidth="2"
+            >
               <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -292,8 +378,21 @@ export function ProfileView() {
 
       {/* Delete Confirmation Dialog */}
       {showDeleteDialog && (
-        <div className="dialog-overlay" onClick={() => setShowDeleteDialog(false)} onKeyDown={(e) => e.key === 'Escape' && setShowDeleteDialog(false)} role="button" tabIndex={0} aria-label="Close">
-          <div className="dialog-content" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+        <div
+          className="dialog-overlay"
+          onClick={() => setShowDeleteDialog(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setShowDeleteDialog(false)}
+          role="button"
+          tabIndex={0}
+          aria-label="Close"
+        >
+          <div
+            className="dialog-content"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={() => {}}
+            role="dialog"
+            tabIndex={-1}
+          >
             <div className="dialog-header">
               <h2 className="text-lg font-bold" style={{ color: 'var(--color-error)' }}>
                 {t('profile.deleteAccount')}
@@ -311,7 +410,11 @@ export function ProfileView() {
                 placeholder="DELETE"
               />
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setShowDeleteDialog(false)} className="themed-btn themed-btn-ghost">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteDialog(false)}
+                  className="themed-btn themed-btn-ghost"
+                >
                   {t('common.cancel')}
                 </button>
                 <button
@@ -319,7 +422,11 @@ export function ProfileView() {
                   onClick={handleDeleteAccount}
                   disabled={deleteConfirm !== 'DELETE' || deleting}
                   className="themed-btn"
-                  style={{ background: 'var(--color-error)', color: '#fff', opacity: deleteConfirm !== 'DELETE' ? 0.5 : 1 }}
+                  style={{
+                    background: 'var(--color-error)',
+                    color: '#fff',
+                    opacity: deleteConfirm !== 'DELETE' ? 0.5 : 1,
+                  }}
                 >
                   {deleting ? t('common.loading') : t('profile.deleteAccount')}
                 </button>
