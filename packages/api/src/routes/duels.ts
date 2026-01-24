@@ -1,5 +1,6 @@
 import { createDuelSchema, duelFilterSchema, updateDuelSchema } from '@duel-log/shared';
 import { Hono } from 'hono';
+import type { DuelRow } from '../db/types.js';
 import type { AuthUser } from '../middleware/auth.js';
 import * as duelService from '../services/duel.js';
 
@@ -78,7 +79,7 @@ export const duelRoutes = new Hono<Env>()
     return c.json({ data: { message: 'Duel deleted' } });
   });
 
-function duelsToCSV(data: Array<Record<string, unknown>>) {
+function duelsToCSV(data: DuelRow[]) {
   if (data.length === 0) return '';
   const headers = [
     'id',
@@ -93,7 +94,7 @@ function duelsToCSV(data: Array<Record<string, unknown>>) {
     'dcValue',
     'memo',
     'dueledAt',
-  ];
+  ] as const;
   const rows = data.map((row) =>
     headers
       .map((h) => {
