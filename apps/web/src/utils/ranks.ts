@@ -60,13 +60,13 @@ export function demoteRank(value: number): number {
 
   // Demotion map: current tier → Tier 5 of one rank below
   const demotionMap: Record<RankTier, number> = {
-    rookie: 1,    // Rookie → Rookie Tier 2 (can't go lower)
-    bronze: 1,    // Bronze → Rookie Tier 2
-    silver: 3,    // Silver → Bronze Tier 5
-    gold: 8,      // Gold → Silver Tier 5
-    platinum: 13,  // Platinum → Gold Tier 5
-    diamond: 18,   // Diamond → Platinum Tier 5
-    master: 23,    // Master → Diamond Tier 5
+    rookie: 1, // Rookie → Rookie Tier 2 (can't go lower)
+    bronze: 1, // Bronze → Rookie Tier 2
+    silver: 3, // Silver → Bronze Tier 5
+    gold: 8, // Gold → Silver Tier 5
+    platinum: 13, // Platinum → Gold Tier 5
+    diamond: 18, // Diamond → Platinum Tier 5
+    master: 23, // Master → Diamond Tier 5
   };
 
   return demotionMap[rank.tier];

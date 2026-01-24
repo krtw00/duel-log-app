@@ -32,15 +32,26 @@ function MobileAccordion({ winRates }: { winRates: DeckWinRate[] }) {
             className="expansion-header w-full"
             onClick={() => setExpandedId(expandedId === rate.deckId ? null : rate.deckId)}
           >
-            <span className="flex-1 text-left text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+            <span
+              className="flex-1 text-left text-sm font-medium"
+              style={{ color: 'var(--color-on-surface)' }}
+            >
               {rate.deckName}
             </span>
             <span className={getWinRateChipClass(rate.winRate)}>
               {formatWinRate(rate.wins, rate.totalDuels, rate.winRate)}
             </span>
             <svg
-              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              style={{ transform: expandedId === rate.deckId ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              style={{
+                transform: expandedId === rate.deckId ? 'rotate(180deg)' : 'none',
+                transition: 'transform 0.2s',
+              }}
             >
               <polyline points="6 9 12 15 18 9" />
             </svg>
@@ -49,15 +60,21 @@ function MobileAccordion({ winRates }: { winRates: DeckWinRate[] }) {
             <div className="expansion-content">
               <div className="grid grid-cols-3 gap-2 text-center text-sm">
                 <div>
-                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.wins')}</div>
+                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    {t('statistics.wins')}
+                  </div>
                   <div style={{ color: 'var(--color-success)' }}>{rate.wins}</div>
                 </div>
                 <div>
-                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.losses')}</div>
+                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    {t('statistics.losses')}
+                  </div>
                   <div style={{ color: 'var(--color-error)' }}>{rate.losses}</div>
                 </div>
                 <div>
-                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.total')}</div>
+                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    {t('statistics.total')}
+                  </div>
                   <div>{rate.totalDuels}</div>
                 </div>
               </div>
@@ -78,7 +95,11 @@ export function WinRateTable({ winRates, loading }: Props) {
     return (
       <div className="animate-pulse space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-10 rounded" style={{ background: 'var(--color-surface-variant)' }} />
+          <div
+            key={i}
+            className="h-10 rounded"
+            style={{ background: 'var(--color-surface-variant)' }}
+          />
         ))}
       </div>
     );
@@ -93,7 +114,10 @@ export function WinRateTable({ winRates, loading }: Props) {
   }
 
   const totalPages = Math.ceil(winRates.length / itemsPerPage);
-  const paginatedRates = winRates.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+  const paginatedRates = winRates.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage,
+  );
   const startIndex = currentPage * itemsPerPage;
 
   return (
@@ -114,8 +138,12 @@ export function WinRateTable({ winRates, loading }: Props) {
           <tbody>
             {paginatedRates.map((rate) => (
               <tr key={rate.deckId}>
-                <td className="font-medium" style={{ color: 'var(--color-on-surface)' }}>{rate.deckName}</td>
-                <td className="text-center" style={{ color: 'var(--color-on-surface-muted)' }}>{rate.totalDuels}</td>
+                <td className="font-medium" style={{ color: 'var(--color-on-surface)' }}>
+                  {rate.deckName}
+                </td>
+                <td className="text-center" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  {rate.totalDuels}
+                </td>
                 <td className="text-center">
                   <span className={getWinRateChipClass(rate.winRate)}>
                     {formatWinRate(rate.wins, rate.totalDuels, rate.winRate)}
@@ -129,22 +157,39 @@ export function WinRateTable({ winRates, loading }: Props) {
 
       {/* Pagination */}
       {winRates.length > 10 && (
-        <div className="flex items-center justify-end gap-4 p-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+        <div
+          className="flex items-center justify-end gap-4 p-3"
+          style={{ borderTop: '1px solid var(--color-border)' }}
+        >
+          <div
+            className="flex items-center gap-2 text-sm"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             <span>Items per page:</span>
             <select
               value={itemsPerPage}
-              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(0); }}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(0);
+              }}
               className="themed-select"
-              style={{ width: 'auto', padding: '4px 28px 4px 8px', fontSize: '0.75rem', backgroundPosition: 'right 6px center' }}
+              style={{
+                width: 'auto',
+                padding: '4px 28px 4px 8px',
+                fontSize: '0.75rem',
+                backgroundPosition: 'right 6px center',
+              }}
             >
               {ITEMS_PER_PAGE_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </select>
           </div>
           <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
-            {startIndex + 1}-{Math.min(startIndex + itemsPerPage, winRates.length)} of {winRates.length}
+            {startIndex + 1}-{Math.min(startIndex + itemsPerPage, winRates.length)} of{' '}
+            {winRates.length}
           </span>
           <div className="flex gap-1">
             <button
@@ -153,7 +198,14 @@ export function WinRateTable({ winRates, loading }: Props) {
               disabled={currentPage === 0}
               onClick={() => setCurrentPage((p) => p - 1)}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
@@ -163,7 +215,14 @@ export function WinRateTable({ winRates, loading }: Props) {
               disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage((p) => p + 1)}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>

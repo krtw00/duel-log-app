@@ -89,7 +89,9 @@ export function ForgotPasswordPage() {
             <h1 className="text-4xl font-black tracking-wider uppercase bg-gradient-to-br from-brand-cyan to-brand-purple bg-clip-text text-transparent">
               FORGOT PASSWORD
             </h1>
-            <p className="text-white/60 text-sm tracking-[3px] uppercase mt-2">{t('auth.resetPassword')}</p>
+            <p className="text-white/60 text-sm tracking-[3px] uppercase mt-2">
+              {t('auth.resetPassword')}
+            </p>
           </div>
 
           {error && (

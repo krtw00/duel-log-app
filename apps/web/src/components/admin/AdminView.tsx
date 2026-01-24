@@ -65,10 +65,26 @@ export function AdminView() {
   });
 
   const statCards = [
-    { label: t('admin.totalUsers'), value: stats?.data.totalUsers ?? 0, color: 'var(--color-primary)' },
-    { label: t('admin.totalDuels'), value: stats?.data.totalDuels ?? 0, color: 'var(--color-success)' },
-    { label: t('admin.totalDecks'), value: stats?.data.totalDecks ?? 0, color: 'var(--color-secondary)' },
-    { label: t('admin.activeToday'), value: stats?.data.activeUsers30d ?? 0, color: 'var(--color-warning)' },
+    {
+      label: t('admin.totalUsers'),
+      value: stats?.data.totalUsers ?? 0,
+      color: 'var(--color-primary)',
+    },
+    {
+      label: t('admin.totalDuels'),
+      value: stats?.data.totalDuels ?? 0,
+      color: 'var(--color-success)',
+    },
+    {
+      label: t('admin.totalDecks'),
+      value: stats?.data.totalDecks ?? 0,
+      color: 'var(--color-secondary)',
+    },
+    {
+      label: t('admin.activeToday'),
+      value: stats?.data.activeUsers30d ?? 0,
+      color: 'var(--color-warning)',
+    },
   ];
 
   return (
@@ -82,13 +98,22 @@ export function AdminView() {
         {statsLoading
           ? ['s1', 's2', 's3', 's4'].map((id) => (
               <div key={id} className="glass-card p-4 animate-pulse">
-                <div className="h-4 rounded w-20 mb-2" style={{ background: 'var(--color-surface-variant)' }} />
-                <div className="h-6 rounded w-12" style={{ background: 'var(--color-surface-variant)' }} />
+                <div
+                  className="h-4 rounded w-20 mb-2"
+                  style={{ background: 'var(--color-surface-variant)' }}
+                />
+                <div
+                  className="h-6 rounded w-12"
+                  style={{ background: 'var(--color-surface-variant)' }}
+                />
               </div>
             ))
           : statCards.map((card) => (
               <div key={card.label} className="glass-card p-4">
-                <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                <p
+                  className="text-sm font-medium mb-1"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
                   {card.label}
                 </p>
                 <p className="text-2xl font-bold" style={{ color: card.color }}>
@@ -108,7 +133,11 @@ export function AdminView() {
         {usersLoading ? (
           <div className="p-4 space-y-2">
             {['s1', 's2', 's3'].map((id) => (
-              <div key={id} className="h-12 rounded animate-pulse" style={{ background: 'var(--color-surface-variant)' }} />
+              <div
+                key={id}
+                className="h-12 rounded animate-pulse"
+                style={{ background: 'var(--color-surface-variant)' }}
+              />
             ))}
           </div>
         ) : (
@@ -131,7 +160,10 @@ export function AdminView() {
                       {u.isAdmin && (
                         <span
                           className="ml-2 text-sm px-1.5 py-0.5 rounded"
-                          style={{ background: 'rgba(181,54,255,0.15)', color: 'var(--color-secondary)' }}
+                          style={{
+                            background: 'rgba(181,54,255,0.15)',
+                            color: 'var(--color-secondary)',
+                          }}
                         >
                           Admin
                         </span>
@@ -150,7 +182,10 @@ export function AdminView() {
                         {u.status}
                       </span>
                     </td>
-                    <td className="hidden sm:table-cell" style={{ color: 'var(--color-on-surface-muted)', fontSize: '0.75rem' }}>
+                    <td
+                      className="hidden sm:table-cell"
+                      style={{ color: 'var(--color-on-surface-muted)', fontSize: '0.75rem' }}
+                    >
                       {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : '-'}
                     </td>
                     <td className="text-right">
@@ -160,7 +195,14 @@ export function AdminView() {
                         className="themed-btn themed-btn-ghost p-1"
                         title={t('admin.userDetail')}
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                           <circle cx="12" cy="12" r="3" />
                         </svg>
@@ -191,7 +233,14 @@ export function AdminView() {
               disabled={deleteExpiredMutation.isPending}
               className="themed-btn themed-btn-outlined text-sm"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <polyline points="3 6 5 6 21 6" />
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>

@@ -46,31 +46,35 @@ export function DuelFormDialog({
   opponentDeckUsage,
 }: Props) {
   const { t } = useTranslation();
-  const myDecks = decks.filter((d) => !d.isOpponentDeck && d.active).sort((a, b) => {
-    const usageA = deckUsage?.get(a.id) ?? 0;
-    const usageB = deckUsage?.get(b.id) ?? 0;
-    return usageB - usageA;
-  });
-  const opponentDecks = decks.filter((d) => d.isOpponentDeck && d.active).sort((a, b) => {
-    const usageA = opponentDeckUsage?.get(a.id) ?? 0;
-    const usageB = opponentDeckUsage?.get(b.id) ?? 0;
-    return usageB - usageA;
-  });
+  const myDecks = decks
+    .filter((d) => !d.isOpponentDeck && d.active)
+    .sort((a, b) => {
+      const usageA = deckUsage?.get(a.id) ?? 0;
+      const usageB = deckUsage?.get(b.id) ?? 0;
+      return usageB - usageA;
+    });
+  const opponentDecks = decks
+    .filter((d) => d.isOpponentDeck && d.active)
+    .sort((a, b) => {
+      const usageA = opponentDeckUsage?.get(a.id) ?? 0;
+      const usageB = opponentDeckUsage?.get(b.id) ?? 0;
+      return usageB - usageA;
+    });
   const createDeck = useCreateDeck();
 
   // Deck combobox state: track both ID (for existing) and name (for new)
-  const [deckSelection, setDeckSelection] = useState<{ id: string; name: string }>({ id: '', name: '' });
-  const [opponentDeckSelection, setOpponentDeckSelection] = useState<{ id: string; name: string }>({ id: '', name: '' });
+  const [deckSelection, setDeckSelection] = useState<{ id: string; name: string }>({
+    id: '',
+    name: '',
+  });
+  const [opponentDeckSelection, setOpponentDeckSelection] = useState<{ id: string; name: string }>({
+    id: '',
+    name: '',
+  });
   const [deckError, setDeckError] = useState('');
   const [opponentDeckError, setOpponentDeckError] = useState('');
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-  } = useForm<CreateDuel>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<CreateDuel>({
     resolver: zodResolver(createDuelSchema),
     defaultValues: {
       result: 'win',
@@ -130,45 +134,58 @@ export function DuelFormDialog({
     }
   }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks]);
 
-  const screenAnalysisEnabled = inline && !editingDuel && localStorage.getItem('duellog.screenAnalysis.enabled') === 'true';
+  const screenAnalysisEnabled =
+    inline && !editingDuel && localStorage.getItem('duellog.screenAnalysis.enabled') === 'true';
 
-  const handleFormSubmit = useCallback(async (data: CreateDuel) => {
-    let finalDeckId = deckSelection.id;
-    let finalOpponentDeckId = opponentDeckSelection.id;
+  const handleFormSubmit = useCallback(
+    async (data: CreateDuel) => {
+      let finalDeckId = deckSelection.id;
+      let finalOpponentDeckId = opponentDeckSelection.id;
 
-    // Validate deck selections
-    if (!finalDeckId && !deckSelection.name) {
-      setDeckError(t('validation.required'));
-      return;
-    }
-    if (!finalOpponentDeckId && !opponentDeckSelection.name) {
-      setOpponentDeckError(t('validation.required'));
-      return;
-    }
-    setDeckError('');
-    setOpponentDeckError('');
+      // Validate deck selections
+      if (!finalDeckId && !deckSelection.name) {
+        setDeckError(t('validation.required'));
+        return;
+      }
+      if (!finalOpponentDeckId && !opponentDeckSelection.name) {
+        setOpponentDeckError(t('validation.required'));
+        return;
+      }
+      setDeckError('');
+      setOpponentDeckError('');
 
-    // Create new decks if needed
-    if (!finalDeckId && deckSelection.name) {
-      const result = await createDeck.mutateAsync({ name: deckSelection.name, isOpponentDeck: false });
-      finalDeckId = result.data.id;
-      setDeckSelection({ id: finalDeckId, name: deckSelection.name });
-    }
-    if (!finalOpponentDeckId && opponentDeckSelection.name) {
-      const result = await createDeck.mutateAsync({ name: opponentDeckSelection.name, isOpponentDeck: true });
-      finalOpponentDeckId = result.data.id;
-      setOpponentDeckSelection({ id: finalOpponentDeckId, name: opponentDeckSelection.name });
-    }
+      // Create new decks if needed
+      if (!finalDeckId && deckSelection.name) {
+        const result = await createDeck.mutateAsync({
+          name: deckSelection.name,
+          isOpponentDeck: false,
+        });
+        finalDeckId = result.data.id;
+        setDeckSelection({ id: finalDeckId, name: deckSelection.name });
+      }
+      if (!finalOpponentDeckId && opponentDeckSelection.name) {
+        const result = await createDeck.mutateAsync({
+          name: opponentDeckSelection.name,
+          isOpponentDeck: true,
+        });
+        finalOpponentDeckId = result.data.id;
+        setOpponentDeckSelection({ id: finalOpponentDeckId, name: opponentDeckSelection.name });
+      }
 
-    onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId });
-  }, [deckSelection, opponentDeckSelection, createDeck, onSubmit, t]);
+      onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId });
+    },
+    [deckSelection, opponentDeckSelection, createDeck, onSubmit, t],
+  );
 
-  const handleAutoRegister = useCallback((data: { coin: 'won' | 'lost' | null; isFirst: boolean; result: 'win' | 'loss' | null }) => {
-    if (data.coin !== null) setValue('wonCoinToss', data.coin === 'won');
-    if (data.result !== null) setValue('result', data.result);
-    setValue('isFirst', data.isFirst);
-    handleSubmit(handleFormSubmit)();
-  }, [setValue, handleSubmit, handleFormSubmit]);
+  const handleAutoRegister = useCallback(
+    (data: { coin: 'won' | 'lost' | null; isFirst: boolean; result: 'win' | 'loss' | null }) => {
+      if (data.coin !== null) setValue('wonCoinToss', data.coin === 'won');
+      if (data.result !== null) setValue('result', data.result);
+      setValue('isFirst', data.isFirst);
+      handleSubmit(handleFormSubmit)();
+    },
+    [setValue, handleSubmit, handleFormSubmit],
+  );
 
   const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined);
 
@@ -179,7 +196,11 @@ export function DuelFormDialog({
       {/* Row 1: Decks */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label htmlFor="deckId" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label
+            htmlFor="deckId"
+            className="block text-base font-medium mb-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('duel.deck')}
           </label>
           <DeckCombobox
@@ -195,7 +216,11 @@ export function DuelFormDialog({
           />
         </div>
         <div>
-          <label htmlFor="opponentDeckId" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label
+            htmlFor="opponentDeckId"
+            className="block text-base font-medium mb-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('duel.opponentDeck')}
           </label>
           <DeckCombobox
@@ -216,48 +241,80 @@ export function DuelFormDialog({
       <div className="grid grid-cols-3 gap-2">
         {/* Coin Toss */}
         <div className="radio-group-wrapper">
-          <div className="radio-label">
-            {t('duel.coinToss')}
-          </div>
+          <div className="radio-label">{t('duel.coinToss')}</div>
           <div className="flex gap-2">
             <label className="radio-option cursor-pointer">
-              <input type="radio" value="true" {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-warning)]" />
-              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossWin')}</span>
+              <input
+                type="radio"
+                value="true"
+                {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })}
+                className="accent-[var(--color-warning)]"
+              />
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
+                {t('duel.coinTossWin')}
+              </span>
             </label>
             <label className="radio-option cursor-pointer">
-              <input type="radio" value="false" {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-on-surface-muted)]" />
-              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossLoss')}</span>
+              <input
+                type="radio"
+                value="false"
+                {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })}
+                className="accent-[var(--color-on-surface-muted)]"
+              />
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
+                {t('duel.coinTossLoss')}
+              </span>
             </label>
           </div>
         </div>
 
         {/* First/Second */}
         <div className="radio-group-wrapper">
-          <div className="radio-label">
-            {t('duel.firstSecond')}
-          </div>
+          <div className="radio-label">{t('duel.firstSecond')}</div>
           <div className="flex gap-2">
             <label className="radio-option cursor-pointer">
-              <input type="radio" value="true" {...register('isFirst', { setValueAs: (v: string) => v === 'true' })} className="accent-[#00d9ff]" />
-              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.first')}</span>
+              <input
+                type="radio"
+                value="true"
+                {...register('isFirst', { setValueAs: (v: string) => v === 'true' })}
+                className="accent-[#00d9ff]"
+              />
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
+                {t('duel.first')}
+              </span>
             </label>
             <label className="radio-option cursor-pointer">
-              <input type="radio" value="false" {...register('isFirst', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-secondary)]" />
-              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>{t('duel.second')}</span>
+              <input
+                type="radio"
+                value="false"
+                {...register('isFirst', { setValueAs: (v: string) => v === 'true' })}
+                className="accent-[var(--color-secondary)]"
+              />
+              <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
+                {t('duel.second')}
+              </span>
             </label>
           </div>
         </div>
 
         {/* Result */}
         <div className="radio-group-wrapper">
-          <div className="radio-label">
-            {t('duel.result')}
-          </div>
+          <div className="radio-label">{t('duel.result')}</div>
           <div className="flex gap-2">
             {RESULTS.map((r) => (
               <label key={r} className="radio-option cursor-pointer">
-                <input type="radio" value={r} {...register('result')} className={r === 'win' ? 'accent-[var(--color-success)]' : 'accent-[var(--color-error)]'} />
-                <span className="text-sm" style={{ color: r === 'win' ? 'var(--color-success)' : 'var(--color-error)' }}>
+                <input
+                  type="radio"
+                  value={r}
+                  {...register('result')}
+                  className={
+                    r === 'win' ? 'accent-[var(--color-success)]' : 'accent-[var(--color-error)]'
+                  }
+                />
+                <span
+                  className="text-sm"
+                  style={{ color: r === 'win' ? 'var(--color-success)' : 'var(--color-error)' }}
+                >
                   {r === 'win' ? t('duel.win') : t('duel.loss')}
                 </span>
               </label>
@@ -269,40 +326,79 @@ export function DuelFormDialog({
       {/* Row 3: Conditional value fields */}
       {gameMode === 'RANK' && (
         <div>
-          <label htmlFor="rank" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label
+            htmlFor="rank"
+            className="block text-base font-medium mb-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('duel.rank')}
           </label>
-          <select id="rank" {...register('rank', { valueAsNumber: true })} className="themed-select">
+          <select
+            id="rank"
+            {...register('rank', { valueAsNumber: true })}
+            className="themed-select"
+          >
             <option value="">---</option>
             {RANK_DEFINITIONS.map((r) => (
-              <option key={r.value} value={r.value}>{getRankLabel(r.value, t)}</option>
+              <option key={r.value} value={r.value}>
+                {getRankLabel(r.value, t)}
+              </option>
             ))}
           </select>
         </div>
       )}
       {gameMode === 'RATE' && (
         <div>
-          <label htmlFor="rateValue" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label
+            htmlFor="rateValue"
+            className="block text-base font-medium mb-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('duel.rateValue')}
           </label>
-          <input id="rateValue" type="number" step="0.1" {...register('rateValue', { valueAsNumber: true })} className="themed-input" />
+          <input
+            id="rateValue"
+            type="number"
+            step="0.1"
+            {...register('rateValue', { valueAsNumber: true })}
+            className="themed-input"
+          />
         </div>
       )}
       {gameMode === 'DC' && (
         <div>
-          <label htmlFor="dcValue" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <label
+            htmlFor="dcValue"
+            className="block text-base font-medium mb-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('duel.dcValue')}
           </label>
-          <input id="dcValue" type="number" {...register('dcValue', { valueAsNumber: true })} className="themed-input" />
+          <input
+            id="dcValue"
+            type="number"
+            {...register('dcValue', { valueAsNumber: true })}
+            className="themed-input"
+          />
         </div>
       )}
 
       {/* Row 5: Memo */}
       <div>
-        <label htmlFor="memo" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+        <label
+          htmlFor="memo"
+          className="block text-base font-medium mb-1"
+          style={{ color: 'var(--color-on-surface-muted)' }}
+        >
           {t('duel.memo')}
         </label>
-        <textarea id="memo" {...register('memo')} rows={2} className="themed-input" style={{ resize: 'vertical' }} />
+        <textarea
+          id="memo"
+          {...register('memo')}
+          rows={2}
+          className="themed-input"
+          style={{ resize: 'vertical' }}
+        />
       </div>
 
       {/* Row 6: Buttons */}
@@ -329,22 +425,40 @@ export function DuelFormDialog({
   }
 
   return (
-    <div className="dialog-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()} role="button" tabIndex={0} aria-label="Close dialog">
-      <div className="dialog-content" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+    <div
+      className="dialog-overlay"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      role="button"
+      tabIndex={0}
+      aria-label="Close dialog"
+    >
+      <div
+        className="dialog-content"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={() => {}}
+        role="dialog"
+        tabIndex={-1}
+      >
         <div className="dialog-header">
           <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
             {editingDuel ? t('duel.editTitle') : t('duel.addTitle')}
           </h2>
           <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost p-1">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
-        <div className="dialog-body">
-          {formContent}
-        </div>
+        <div className="dialog-body">{formContent}</div>
       </div>
     </div>
   );

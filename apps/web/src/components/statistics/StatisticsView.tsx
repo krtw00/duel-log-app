@@ -29,7 +29,10 @@ export function StatisticsView() {
 
   const rangeFilter = periodType === 'range' ? { rangeStart, rangeEnd } : {};
   const filter = { gameMode, from, to, deckId, ...rangeFilter };
-  const valueFilter = (gameMode === 'RATE' || gameMode === 'DC') ? { gameMode, from, to, deckId, ...rangeFilter } : undefined;
+  const valueFilter =
+    gameMode === 'RATE' || gameMode === 'DC'
+      ? { gameMode, from, to, deckId, ...rangeFilter }
+      : undefined;
 
   const { data: winRatesData, isLoading: winRatesLoading } = useWinRates(filter);
   const { data: matchupsData, isLoading: matchupsLoading } = useMatchups(filter);
@@ -37,7 +40,15 @@ export function StatisticsView() {
     valueFilter as { gameMode: 'RATE' | 'DC'; from?: string; to?: string } | undefined,
   );
   const { data: decksData } = useDecks();
-  const { data: duelsData, isLoading: duelsLoading } = useDuels({ gameMode, from, to, deckId, ...rangeFilter, limit: 500, offset: 0 });
+  const { data: duelsData, isLoading: duelsLoading } = useDuels({
+    gameMode,
+    from,
+    to,
+    deckId,
+    ...rangeFilter,
+    limit: 500,
+    offset: 0,
+  });
   const { data: totalData } = useDuels({ gameMode, from, to, limit: 1, offset: 0 });
 
   const decks = decksData?.data ?? [];
@@ -52,12 +63,7 @@ export function StatisticsView() {
       </h1>
 
       {/* Year/Month Filter */}
-      <DateFilterBar
-        year={year}
-        month={month}
-        onYearChange={setYear}
-        onMonthChange={setMonth}
-      />
+      <DateFilterBar year={year} month={month} onYearChange={setYear} onMonthChange={setMonth} />
 
       {/* Statistics Filter */}
       <StatisticsFilter
@@ -73,7 +79,12 @@ export function StatisticsView() {
         onRangeStartChange={setRangeStart}
         rangeEnd={rangeEnd}
         onRangeEndChange={setRangeEnd}
-        onReset={() => { setDeckId(undefined); setPeriodType('all'); setRangeStart(1); setRangeEnd(totalDuelsForMode); }}
+        onReset={() => {
+          setDeckId(undefined);
+          setPeriodType('all');
+          setRangeStart(1);
+          setRangeEnd(totalDuelsForMode);
+        }}
         totalDuels={totalDuelsForMode}
       />
 
@@ -87,7 +98,14 @@ export function StatisticsView() {
         {/* Opponent Deck Distribution (Pie Chart) */}
         <div className="glass-card p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+            >
               <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
               <path d="M22 12A10 10 0 0 0 12 2v10z" />
             </svg>
@@ -103,7 +121,14 @@ export function StatisticsView() {
         {/* Monthly Duel List */}
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-3">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+            >
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <path d="M3 9h18" />
               <path d="M9 3v18" />
@@ -126,7 +151,14 @@ export function StatisticsView() {
       {/* Win Rate by Deck (Full Width) */}
       <div className="glass-card p-4">
         <div className="flex items-center gap-2 mb-3">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--color-success)"
+            strokeWidth="2"
+          >
             <path d="M6 9l6 6 6-6" />
           </svg>
           <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
@@ -139,7 +171,14 @@ export function StatisticsView() {
       {/* Matchup Table (Full Width) */}
       <div className="glass-card p-4">
         <div className="flex items-center gap-2 mb-3">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--color-secondary)"
+            strokeWidth="2"
+          >
             <path d="M18 6L6 18" />
             <path d="M6 6l12 12" />
           </svg>
@@ -154,7 +193,14 @@ export function StatisticsView() {
       {valueFilter && (
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-3">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+            >
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
             <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>

@@ -28,14 +28,34 @@ export function DeckFormDialog({ open, onClose, onSubmit, editingDeck, loading }
   };
 
   return (
-    <div className="dialog-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()} role="button" tabIndex={0} aria-label="Close dialog">
-      <div className="dialog-content" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+    <div
+      className="dialog-overlay"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      role="button"
+      tabIndex={0}
+      aria-label="Close dialog"
+    >
+      <div
+        className="dialog-content"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={() => {}}
+        role="dialog"
+        tabIndex={-1}
+      >
         <div className="dialog-header">
           <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
             {editingDeck ? t('deck.editDeck') : t('deck.addDeck')}
           </h2>
           <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost p-1">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -44,7 +64,11 @@ export function DeckFormDialog({ open, onClose, onSubmit, editingDeck, loading }
         <div className="dialog-body">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="deckName" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+              <label
+                htmlFor="deckName"
+                className="block text-base font-medium mb-1"
+                style={{ color: 'var(--color-on-surface-muted)' }}
+              >
                 {t('deck.deckName')}
               </label>
               <input
