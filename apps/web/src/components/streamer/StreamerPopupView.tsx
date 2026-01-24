@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { api } from '../../lib/api.js';
 import type { StreamerMessage } from '../../lib/broadcast.js';
 import { onStreamerUpdate } from '../../lib/broadcast.js';
 
@@ -23,26 +24,111 @@ function parseSettings() {
   const items = (params.get('items') || 'winRate,firstWinRate,secondWinRate,coinWinRate,firstRate')
     .split(',')
     .filter(Boolean) as DisplayItem[];
-  const gameMode = params.get('game_mode') || null;
+  const gameMode = params.get('game_mode') || 'RANK';
   const statsPeriod = params.get('stats_period') || 'monthly';
   const theme = (params.get('theme') || 'dark') as Theme;
   const layout = (params.get('layout') || 'grid') as Layout;
   const chromakey = (params.get('chromakey') || 'none') as ChromaKey;
   const fromTimestamp = params.get('from_timestamp') || null;
-  const refresh = Number(params.get('refresh')) || 30;
 
-  return { items, gameMode, statsPeriod, theme, layout, chromakey, fromTimestamp, refresh };
+  return { items, gameMode, statsPeriod, theme, layout, chromakey, fromTimestamp };
+}
+
+type OverviewData = {
+  totalDuels: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  firstRate: number;
+  firstWinRate: number;
+  secondWinRate: number;
+  coinTossWinRate: number;
+};
+
+type DuelItem = {
+  deckId: string;
+};
+
+type DeckItem = {
+  id: string;
+  name: string;
+};
+
+function buildFilterParams(settings: ReturnType<typeof parseSettings>): Record<string, string | undefined> {
+  const params: Record<string, string | undefined> = {
+    gameMode: settings.gameMode,
+  };
+
+  if (settings.statsPeriod === 'monthly') {
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
+    params.from = from;
+    params.to = to;
+  } else if (settings.fromTimestamp) {
+    params.fromTimestamp = settings.fromTimestamp;
+  }
+
+  return params;
 }
 
 function formatPercent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+const POLL_INTERVAL = 30_000;
+const CONTAINER_PADDING = 16;
+
 export function StreamerPopupView() {
   const { t } = useTranslation();
   const [data, setData] = useState<StreamerData | null>(null);
   const settings = useMemo(() => parseSettings(), []);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const statsCardRef = useRef<HTMLDivElement>(null);
+  const hasResized = useRef(false);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const filterParams = buildFilterParams(settings);
+
+      const [overview, duels, decks] = await Promise.all([
+        api<{ data: OverviewData }>('/statistics/overview', { params: filterParams }),
+        api<{ data: DuelItem[] }>('/duels', { params: { ...filterParams, limit: '1' } }),
+        api<{ data: DeckItem[] }>('/decks'),
+      ]);
+
+      const latestDuel = duels.data?.[0];
+      const deckName = latestDuel
+        ? decks.data.find((d) => d.id === latestDuel.deckId)?.name ?? null
+        : null;
+
+      setData({
+        totalDuels: overview.data.totalDuels,
+        wins: overview.data.wins,
+        losses: overview.data.losses,
+        winRate: overview.data.winRate,
+        firstRate: overview.data.firstRate,
+        firstWinRate: overview.data.firstWinRate,
+        secondWinRate: overview.data.secondWinRate,
+        coinTossWinRate: overview.data.coinTossWinRate,
+        deckName,
+        gameMode: settings.gameMode,
+      });
+    } catch {
+      // Auth may not be available yet, will retry on next poll
+    }
+  }, [settings]);
+
+  // Initial fetch + polling
+  useEffect(() => {
+    fetchStats();
+    pollRef.current = setInterval(fetchStats, POLL_INTERVAL);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [fetchStats]);
+
+  // BroadcastChannel: override polling data when received
   const handleMessage = useCallback((message: StreamerMessage) => {
     if (message.type === 'stats-update') {
       setData(message.payload);
@@ -54,163 +140,98 @@ export function StreamerPopupView() {
     return unsubscribe;
   }, [handleMessage]);
 
-  const bgStyle = useMemo(() => {
-    switch (settings.chromakey) {
-      case 'green':
-        return { backgroundColor: '#00FF00' };
-      case 'blue':
-        return { backgroundColor: '#0000FF' };
-      default:
-        return settings.theme === 'dark'
-          ? { backgroundColor: '#0a0e27' }
-          : { backgroundColor: '#f5f5f5' };
-    }
-  }, [settings.chromakey, settings.theme]);
+  // 初回データ表示後にウィンドウをコンテンツサイズにリサイズ（grid以外）
+  useEffect(() => {
+    if (!data || hasResized.current) return;
+    if (!window.opener) return;
+    if (settings.layout === 'grid') return;
 
-  const textColor = settings.theme === 'dark' ? '#e4e7ec' : '#1a1a1a';
-  const textSecondary = settings.theme === 'dark' ? 'rgba(228,231,236,0.6)' : 'rgba(26,26,26,0.6)';
-  const cardBg = settings.theme === 'dark' ? 'rgba(18,22,46,0.8)' : 'rgba(255,255,255,0.9)';
-  const cardBorder = settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+    // レンダリング完了を待つ
+    const timer = setTimeout(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!statsCardRef.current) return;
+          const rect = statsCardRef.current.getBoundingClientRect();
+          const targetInnerWidth = Math.ceil(rect.width) + CONTAINER_PADDING * 2;
+          const targetInnerHeight = Math.ceil(rect.height) + CONTAINER_PADDING * 2;
+          const chromeWidth = window.outerWidth - window.innerWidth;
+          const chromeHeight = window.outerHeight - window.innerHeight;
+          try {
+            window.resizeTo(
+              targetInnerWidth + chromeWidth,
+              targetInnerHeight + chromeHeight,
+            );
+          } catch {
+            // resize may not be allowed
+          }
+          hasResized.current = true;
+        });
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [data, settings.layout]);
 
   const getItemLabel = (item: DisplayItem): string => {
     switch (item) {
-      case 'currentDeck':
-        return t('streamer.currentDeck');
-      case 'totalDuels':
-        return t('streamer.totalDuels');
-      case 'winRate':
-        return t('streamer.winRate');
-      case 'firstWinRate':
-        return t('streamer.firstWinRate');
-      case 'secondWinRate':
-        return t('streamer.secondWinRate');
-      case 'coinWinRate':
-        return t('streamer.coinWinRate');
-      case 'firstRate':
-        return t('streamer.firstRate');
+      case 'currentDeck': return t('streamer.currentDeck');
+      case 'totalDuels': return t('streamer.totalDuels');
+      case 'winRate': return t('streamer.winRate');
+      case 'firstWinRate': return t('streamer.firstWinRate');
+      case 'secondWinRate': return t('streamer.secondWinRate');
+      case 'coinWinRate': return t('streamer.coinWinRate');
+      case 'firstRate': return t('streamer.firstRate');
     }
   };
 
   const getItemValue = (item: DisplayItem): string => {
     if (!data) return '-';
     switch (item) {
-      case 'currentDeck':
-        return data.deckName || '-';
-      case 'totalDuels':
-        return `${data.totalDuels}`;
-      case 'winRate':
-        return formatPercent(data.winRate);
-      case 'firstWinRate':
-        return formatPercent(data.firstWinRate);
-      case 'secondWinRate':
-        return formatPercent(data.secondWinRate);
-      case 'coinWinRate':
-        return formatPercent(data.coinTossWinRate);
-      case 'firstRate':
-        return formatPercent(data.firstRate);
+      case 'currentDeck': return data.deckName || '-';
+      case 'totalDuels': return `${data.totalDuels}`;
+      case 'winRate': return formatPercent(data.winRate);
+      case 'firstWinRate': return formatPercent(data.firstWinRate);
+      case 'secondWinRate': return formatPercent(data.secondWinRate);
+      case 'coinWinRate': return formatPercent(data.coinTossWinRate);
+      case 'firstRate': return formatPercent(data.firstRate);
     }
   };
 
-  const getItemColor = (item: DisplayItem): string => {
-    switch (item) {
-      case 'currentDeck':
-        return '#e4e7ec';
-      case 'totalDuels':
-        return '#00d9ff';
-      case 'winRate':
-        return '#00e676';
-      case 'firstWinRate':
-        return '#ffaa00';
-      case 'secondWinRate':
-        return '#b536ff';
-      case 'coinWinRate':
-        return '#ffd700';
-      case 'firstRate':
-        return '#26a69a';
-    }
-  };
+  const chromaClass = settings.chromakey !== 'none' ? `chroma-key-${settings.chromakey}` : '';
+  const rootClass = `popup-overlay theme-${settings.theme} ${chromaClass}`;
 
-  const layoutClass = useMemo(() => {
-    switch (settings.layout) {
-      case 'horizontal':
-        return 'flex flex-row flex-wrap gap-3';
-      case 'vertical':
-        return 'flex flex-col gap-3';
-      default:
-        return 'grid grid-cols-2 sm:grid-cols-3 gap-3';
-    }
-  }, [settings.layout]);
+  if (!data) {
+    return (
+      <div className={rootClass}>
+        <div className="popup-loading-container">
+          <div className="popup-loading-text">{t('common.loading')}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen p-4" style={bgStyle}>
-      {/* Game mode & streak badge */}
-      {data && (
-        <div className="mb-3 flex items-center gap-2">
-          {data.gameMode && (
-            <span
-              className="text-xs font-medium px-2 py-0.5 rounded"
-              style={{ color: textSecondary, border: `1px solid ${cardBorder}` }}
-            >
-              {data.gameMode}
-            </span>
-          )}
-          {data.currentStreak >= 2 && data.currentStreakType && (
-            <span
-              className="text-xs font-medium px-2 py-0.5 rounded"
-              style={{
-                backgroundColor:
-                  data.currentStreakType === 'win'
-                    ? 'rgba(0,230,118,0.2)'
-                    : 'rgba(255,61,113,0.2)',
-                color: data.currentStreakType === 'win' ? '#00e676' : '#ff3d71',
-              }}
-            >
-              {data.currentStreakType === 'win'
-                ? t('streak.winStreakShort', { count: data.currentStreak })
-                : t('streak.lossStreakShort', { count: data.currentStreak })}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Stats items */}
-      {data ? (
-        <div className={layoutClass}>
-          {settings.items.map((item) => (
-            <div
-              key={item}
-              className="rounded-xl p-3"
-              style={{
-                backgroundColor: cardBg,
-                border: `1px solid ${cardBorder}`,
-                backdropFilter: 'blur(10px)',
-              }}
-            >
-              <div className="text-xs mb-1" style={{ color: textSecondary }}>
+    <div className={rootClass}>
+      <div
+        ref={statsCardRef}
+        className={`popup-stats-card layout-${settings.layout}`}
+      >
+        {settings.items.map((item) => (
+          <div
+            key={item}
+            className={`popup-stat-item ${item === 'currentDeck' ? 'deck-item' : ''}`}
+          >
+            <div className="popup-stat-content">
+              <div className="popup-stat-label">
                 {getItemLabel(item)}
               </div>
-              <div
-                className="text-lg font-bold"
-                style={{ color: item === 'currentDeck' ? textColor : getItemColor(item) }}
-              >
+              <div className={`popup-stat-value ${item === 'currentDeck' ? 'deck-value' : ''}`}>
                 {getItemValue(item)}
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex items-center justify-center h-32">
-          <div className="text-center">
-            <div
-              className="w-6 h-6 border-2 rounded-full animate-spin mx-auto mb-2"
-              style={{ borderColor: `${textSecondary}`, borderTopColor: '#00d9ff' }}
-            />
-            <p className="text-sm" style={{ color: textSecondary }}>
-              {t('streamer.receivingStats')}
-            </p>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }
