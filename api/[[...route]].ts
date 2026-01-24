@@ -1,4 +1,5 @@
-import { handle } from 'hono/vercel';
-import app from '../packages/api/src/index.js';
-
-export default handle(app);
+export default function handler() {
+  return new Response(JSON.stringify({ status: 'ok', time: Date.now() }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
