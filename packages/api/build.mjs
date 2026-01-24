@@ -7,5 +7,4 @@ await build({
   format: 'esm',
   outdir: 'dist',
   target: 'node22',
-  external: ['postgres', '@supabase/supabase-js'],
 });
