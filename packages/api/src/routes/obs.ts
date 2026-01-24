@@ -59,7 +59,11 @@ export const obsRoutes = new Hono<Env>()
     const filter: StatisticsFilter = {};
     if (gameMode) filter.gameMode = gameMode;
 
-    if (statsPeriod === 'monthly') {
+    if (statsPeriod === 'session') {
+      const fromTimestamp = c.req.query('from_timestamp');
+      if (fromTimestamp) filter.fromTimestamp = fromTimestamp;
+    } else {
+      // monthly (default)
       const now = new Date();
       filter.from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       filter.to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();

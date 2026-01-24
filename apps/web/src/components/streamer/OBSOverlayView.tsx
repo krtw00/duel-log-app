@@ -73,6 +73,7 @@ export function OBSOverlayView() {
   const [data, setData] = useState<OBSStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const settings = useMemo(() => parseSettings(), []);
+  const sessionStartRef = useRef(new Date().toISOString());
   const dataRef = useRef<OBSStats | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const naturalSizeRef = useRef<{ width: number; height: number } | null>(null);
@@ -96,6 +97,9 @@ export function OBSOverlayView() {
         stats_period: settings.statsPeriod,
         recent_count: String(settings.recentCount),
       });
+      if (settings.statsPeriod === 'session') {
+        params.set('from_timestamp', sessionStartRef.current);
+      }
       const response = await fetch(`/api/obs/stats?${params.toString()}`);
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));

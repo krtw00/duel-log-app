@@ -22926,7 +22926,10 @@ var obsRoutes = new Hono2().post("/token", async (c) => {
   const gameMode = gameModeParam && GAME_MODES.includes(gameModeParam) ? gameModeParam : void 0;
   const filter = {};
   if (gameMode) filter.gameMode = gameMode;
-  if (statsPeriod === "monthly") {
+  if (statsPeriod === "session") {
+    const fromTimestamp = c.req.query("from_timestamp");
+    if (fromTimestamp) filter.fromTimestamp = fromTimestamp;
+  } else {
     const now = /* @__PURE__ */ new Date();
     filter.from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     filter.to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
