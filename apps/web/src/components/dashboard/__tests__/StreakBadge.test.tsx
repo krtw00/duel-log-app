@@ -1,6 +1,16 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { StreakBadge } from '../StreakBadge.js';
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, opts?: Record<string, unknown>) => {
+      if (key === 'streak.winStreak') return `${opts?.count} Win Streak`;
+      if (key === 'streak.lossStreak') return `${opts?.count} Loss Streak`;
+      return key;
+    },
+  }),
+}));
 
 describe('StreakBadge', () => {
   it('renders nothing when streaks is undefined', () => {
@@ -33,8 +43,7 @@ describe('StreakBadge', () => {
         }}
       />,
     );
-    expect(screen.getByText(/5/)).toBeInTheDocument();
-    expect(screen.getByText(/連勝中/)).toBeInTheDocument();
+    expect(screen.getByText('5 Win Streak')).toBeInTheDocument();
   });
 
   it('renders loss streak badge', () => {
@@ -48,11 +57,10 @@ describe('StreakBadge', () => {
         }}
       />,
     );
-    expect(screen.getByText(/3/)).toBeInTheDocument();
-    expect(screen.getByText(/連敗中/)).toBeInTheDocument();
+    expect(screen.getByText('3 Loss Streak')).toBeInTheDocument();
   });
 
-  it('applies green color for win streak', () => {
+  it('applies chip-success class for win streak', () => {
     render(
       <StreakBadge
         streaks={{
@@ -63,11 +71,11 @@ describe('StreakBadge', () => {
         }}
       />,
     );
-    const badge = screen.getByText(/連勝中/).closest('span');
-    expect(badge?.className).toContain('bg-green-100');
+    const badge = screen.getByText('5 Win Streak').closest('span');
+    expect(badge?.className).toContain('chip-success');
   });
 
-  it('applies red color for loss streak', () => {
+  it('applies chip-error class for loss streak', () => {
     render(
       <StreakBadge
         streaks={{
@@ -78,7 +86,7 @@ describe('StreakBadge', () => {
         }}
       />,
     );
-    const badge = screen.getByText(/連敗中/).closest('span');
-    expect(badge?.className).toContain('bg-red-100');
+    const badge = screen.getByText('3 Loss Streak').closest('span');
+    expect(badge?.className).toContain('chip-error');
   });
 });

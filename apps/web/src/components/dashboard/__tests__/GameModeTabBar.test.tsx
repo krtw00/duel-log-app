@@ -2,45 +2,44 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { GameModeTabBar } from '../GameModeTabBar.js';
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'gameMode.RANK': 'RANK',
+        'gameMode.RATE': 'RATE',
+        'gameMode.EVENT': 'EVENT',
+        'gameMode.DC': 'DC',
+      };
+      return map[key] ?? key;
+    },
+  }),
+}));
+
 describe('GameModeTabBar', () => {
-  it('renders all tabs', () => {
-    render(<GameModeTabBar value={undefined} onChange={() => {}} />);
-
-    expect(screen.getByText('全て')).toBeInTheDocument();
-    expect(screen.getByText('ランク')).toBeInTheDocument();
-    expect(screen.getByText('レート')).toBeInTheDocument();
-    expect(screen.getByText('イベント')).toBeInTheDocument();
-    expect(screen.getByText('DC')).toBeInTheDocument();
-  });
-
-  it('highlights "全て" tab when value is undefined', () => {
-    render(<GameModeTabBar value={undefined} onChange={() => {}} />);
-    const allTab = screen.getByText('全て');
-    expect(allTab.className).toContain('border-blue-600');
-  });
-
-  it('highlights selected game mode tab', () => {
+  it('renders all game mode tabs', () => {
     render(<GameModeTabBar value="RANK" onChange={() => {}} />);
-    const rankTab = screen.getByText('ランク');
-    expect(rankTab.className).toContain('border-blue-600');
+
+    expect(screen.getAllByText('RANK').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('RATE').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('EVENT').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('DC').length).toBeGreaterThan(0);
   });
 
-  it('calls onChange with undefined when "全て" is clicked', () => {
-    const onChange = vi.fn();
-    render(<GameModeTabBar value="RANK" onChange={onChange} />);
-
-    fireEvent.click(screen.getByText('全て'));
-    expect(onChange).toHaveBeenCalledWith(undefined);
+  it('highlights selected game mode tab with active class', () => {
+    render(<GameModeTabBar value="RANK" onChange={() => {}} />);
+    const rankTab = screen.getAllByText('RANK')[0]?.closest('button');
+    expect(rankTab?.className).toContain('active');
   });
 
   it('calls onChange with game mode when tab is clicked', () => {
     const onChange = vi.fn();
-    render(<GameModeTabBar value={undefined} onChange={onChange} />);
+    render(<GameModeTabBar value="RANK" onChange={onChange} />);
 
-    fireEvent.click(screen.getByText('ランク'));
-    expect(onChange).toHaveBeenCalledWith('RANK');
+    fireEvent.click(screen.getAllByText('RATE')[0]!);
+    expect(onChange).toHaveBeenCalledWith('RATE');
 
-    fireEvent.click(screen.getByText('DC'));
+    fireEvent.click(screen.getAllByText('DC')[0]!);
     expect(onChange).toHaveBeenCalledWith('DC');
   });
 });

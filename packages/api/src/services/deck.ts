@@ -15,10 +15,19 @@ export async function getDeck(userId: string, deckId: string) {
   return deck;
 }
 
+async function matchesGenericPattern(name: string): Promise<boolean> {
+  const patterns = await sql<{ pattern: string }[]>`
+    SELECT pattern FROM generic_deck_patterns
+  `;
+  const lower = name.toLowerCase();
+  return patterns.some((p) => lower.includes(p.pattern.toLowerCase()));
+}
+
 export async function createDeck(userId: string, data: CreateDeck) {
+  const isGeneric = await matchesGenericPattern(data.name);
   const [created] = await sql<DeckRow[]>`
-    INSERT INTO decks (user_id, name, is_opponent_deck)
-    VALUES (${userId}, ${data.name}, ${data.isOpponentDeck ?? false})
+    INSERT INTO decks (user_id, name, is_opponent_deck, is_generic)
+    VALUES (${userId}, ${data.name}, ${data.isOpponentDeck ?? false}, ${isGeneric})
     RETURNING *
   `;
   return created;
@@ -26,7 +35,10 @@ export async function createDeck(userId: string, data: CreateDeck) {
 
 export async function updateDeck(userId: string, deckId: string, data: UpdateDeck) {
   const values: Record<string, unknown> = {};
-  if (data.name !== undefined) values.name = data.name;
+  if (data.name !== undefined) {
+    values.name = data.name;
+    values.is_generic = await matchesGenericPattern(data.name);
+  }
 
   const [updated] = await sql<DeckRow[]>`
     UPDATE decks
@@ -60,4 +72,11 @@ export async function unarchiveDeck(userId: string, deckId: string) {
     RETURNING *
   `;
   return updated;
+}
+
+export async function getAvailableDecks(userId: string) {
+  return sql<{ id: string; name: string }[]>`
+    SELECT id, name FROM decks
+    WHERE user_id = ${userId} AND is_opponent_deck = false
+  `;
 }

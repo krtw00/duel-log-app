@@ -33,9 +33,17 @@ export const decks = pgTable('decks', {
     .references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   isOpponentDeck: boolean('is_opponent_deck').notNull().default(false),
+  isGeneric: boolean('is_generic').notNull().default(false),
   active: boolean('active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const genericDeckPatterns = pgTable('generic_deck_patterns', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  pattern: text('pattern').notNull().unique(),
+  description: text('description'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const duels = pgTable(

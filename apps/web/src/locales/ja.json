@@ -11,6 +11,7 @@
     "saving": "保存中...",
     "error": "エラー",
     "success": "成功",
+    "actions": "アクション",
     "confirm": "確認",
     "yes": "はい",
     "no": "いいえ",
@@ -28,7 +29,8 @@
     "statistics": "統計",
     "profile": "プロフィール",
     "admin": "管理",
-    "feedback": "フィードバック"
+    "feedback": "フィードバック",
+    "help": "ヘルプ"
   },
   "auth": {
     "login": "ログイン",
@@ -47,16 +49,31 @@
     "hasAccount": "アカウントをお持ちの方",
     "loggingIn": "ログイン中...",
     "registering": "登録中...",
-    "processing": "処理中..."
+    "processing": "処理中...",
+    "backToLogin": "ログインページへ戻る",
+    "goToLogin": "ログインページへ",
+    "authError": "認証エラー",
+    "emailConfirmationSent": "確認メールを送信しました",
+    "emailConfirmationMessage": "メールに記載されたリンクをクリックして、アカウントを有効化してください。",
+    "checkingSession": "セッション確認中...",
+    "updatingPassword": "更新中...",
+    "updatePassword": "パスワードを更新",
+    "or": "または",
+    "termsNotice": "ログインすることで、利用規約に同意したものとみなされます。",
+    "termsOfService": "利用規約",
+    "streamerModeHint": "配信中にメールアドレスを隠します"
   },
   "dashboard": {
-    "title": "ダッシュボード",
+    "title": "対戦履歴",
     "recordDuel": "対戦を記録",
     "totalDuels": "総対戦数",
     "winRate": "勝率",
+    "firstWinRate": "先攻勝率",
+    "secondWinRate": "後攻勝率",
     "firstRate": "先攻率",
-    "coinTossRate": "じゃんけん勝率",
+    "coinTossRate": "コイン勝率",
     "noData": "対戦データがありません",
+    "defaultSettings": "新規記録時の初期値",
     "receivingStats": "メインウィンドウから統計を受信中..."
   },
   "duel": {
@@ -69,19 +86,31 @@
     "firstSecond": "先攻/後攻",
     "first": "先攻",
     "second": "後攻",
-    "coinToss": "じゃんけん",
-    "coinTossWin": "勝ち",
-    "coinTossLoss": "負け",
+    "coinToss": "コイン",
+    "coinTossWin": "表",
+    "coinTossLoss": "裏",
     "rank": "ランク",
     "rateValue": "レート値",
     "dcValue": "DC値",
+    "rankRate": "ランク/レート",
     "memo": "メモ",
     "dueledAt": "対戦日時",
     "win": "勝ち",
     "loss": "負け",
     "confirmDelete": "この対戦記録を削除しますか？",
     "date": "日時",
-    "selectDeck": "デッキを選択"
+    "selectDeck": "デッキを選択",
+    "selectOrInputDeck": "デッキ名を選択または入力",
+    "createDeck": "「{{name}}」を作成"
+  },
+  "ranks": {
+    "rookie": "ルーキー",
+    "bronze": "ブロンズ",
+    "silver": "シルバー",
+    "gold": "ゴールド",
+    "platinum": "プラチナ",
+    "diamond": "ダイヤモンド",
+    "master": "マスター"
   },
   "deck": {
     "title": "デッキ管理",
@@ -100,13 +129,19 @@
   "statistics": {
     "title": "統計",
     "winRateByDeck": "デッキ別勝率",
-    "deckDistribution": "デッキ使用分布",
+    "deckDistribution": "相手デッキ分布",
     "matchupMatrix": "相性表",
     "valueSequence": "推移グラフ",
+    "monthlyDuels": "月間対戦一覧",
+    "firstWinRate": "先攻勝率",
+    "secondWinRate": "後攻勝率",
+    "matches": "戦",
     "wins": "勝ち",
     "losses": "負け",
     "total": "合計",
-    "noData": "データがありません"
+    "noData": "データがありません",
+    "monthly": "月間",
+    "refreshInterval": "更新間隔（秒）"
   },
   "streak": {
     "winStreak": "{{count}}連勝中",
@@ -121,10 +156,58 @@
     "days": "{{count}}日間",
     "shareUrl": "共有URL",
     "generating": "生成中...",
-    "sharedStatistics": "共有統計"
+    "sharedStatistics": "共有統計",
+    "invalidLink": "この共有リンクは無効か、期限切れです。",
+    "statsOf": "{{name}}の統計",
+    "sharedInfo": "共有された統計情報",
+    "targetMonth": "対象月",
+    "monthSuffix": "月",
+    "unlimited": "無期限",
+    "allModes": "すべて"
   },
   "streamer": {
-    "chromaKey": "クロマキー"
+    "chromaKey": "クロマキー",
+    "chromaKeyNone": "なし",
+    "chromaKeyGreen": "グリーン",
+    "chromaKeyBlue": "ブルー",
+    "receivingStats": "メインウィンドウから統計を受信中...",
+    "winRate": "勝率",
+    "firstWinRate": "先攻勝率",
+    "secondWinRate": "後攻勝率",
+    "coinWinRate": "コイン勝率",
+    "firstRate": "先攻率",
+    "totalDuels": "総対戦数",
+    "currentDeck": "使用デッキ",
+    "invalidToken": "無効なトークンです",
+    "tokenExpired": "このリンクは期限切れです",
+    "layoutGrid": "グリッド",
+    "layoutHorizontal": "横並び",
+    "layoutVertical": "縦並び",
+    "popupWindow": "ポップアップウィンドウ",
+    "recommended": "推奨",
+    "obsBrowserSource": "OBSブラウザソース",
+    "deprecated": "非推奨",
+    "deprecationWarning": "OBSブラウザソースは非推奨です。ポップアップウィンドウの使用を推奨します。",
+    "obsDescription": "OBSのブラウザソースとして使用できます",
+    "getObsUrl": "OBS URLを取得",
+    "items": {
+      "currentDeck": "使用中デッキ",
+      "gameModeValue": "ゲームモード値",
+      "totalDuels": "総対戦数",
+      "winRate": "勝率",
+      "firstTurnWinRate": "先攻勝率",
+      "secondTurnWinRate": "後攻勝率",
+      "coinWinRate": "コイン勝率",
+      "goFirstRate": "先攻率"
+    },
+    "settings": {
+      "displayItems": "表示項目",
+      "statsPeriod": "統計期間",
+      "resetDefaults": "デフォルトに戻す",
+      "openPopup": "ポップアップを開く",
+      "saveSettings": "設定を保存",
+      "unsavedChanges": "未保存の変更があります"
+    }
   },
   "profile": {
     "title": "プロフィール設定",
@@ -134,9 +217,15 @@
     "themeDark": "ダーク",
     "themeSystem": "システム",
     "streamerMode": "配信者モード",
+    "streamerModeDesc": "配信時にメールアドレスなどの個人情報を隠します",
     "saved": "保存しました",
     "saveFailed": "保存に失敗しました",
-    "language": "言語"
+    "language": "言語",
+    "deleteAccount": "アカウント削除",
+    "deleteWarning": "アカウントを削除すると、すべてのデータが完全に削除され、復元できません。",
+    "deleteConfirmText": "確認のため「DELETE」と入力してください",
+    "deleteFailed": "削除に失敗しました",
+    "passwordMismatch": "パスワードが一致しません"
   },
   "admin": {
     "title": "管理者パネル",
@@ -146,21 +235,47 @@
     "activeToday": "本日アクティブ",
     "userList": "ユーザー一覧",
     "maintenance": "メンテナンス",
-    "deleteExpiredLinks": "期限切れ共有リンクを削除"
+    "deleteExpiredLinks": "期限切れ共有リンクを削除",
+    "userDetail": "ユーザー詳細",
+    "changeStatus": "ステータス変更",
+    "resetPassword": "パスワードリセット",
+    "toggleAdmin": "管理者権限変更",
+    "orphanedDecks": "孤立デッキ",
+    "orphanedSharedUrls": "孤立共有URL",
+    "expiredSharedUrls": "期限切れ共有URL",
+    "scan": "スキャン",
+    "cleanup": "クリーンアップ",
+    "metaAnalysis": "メタ分析",
+    "popularDecks": "人気デッキ",
+    "deckTrends": "デッキトレンド",
+    "gameModeStats": "ゲームモード統計"
   },
   "feedback": {
     "title": "フィードバック",
+    "intro": "ご意見・ご要望をお聞かせください。バグ報告、機能リクエスト、その他のお問い合わせを受け付けています。",
     "category": "カテゴリ",
     "categoryBug": "バグ報告",
     "categoryFeature": "機能リクエスト",
+    "categoryContact": "お問い合わせ",
     "categoryQuestion": "質問",
     "categoryOther": "その他",
     "feedbackTitle": "タイトル",
+    "subject": "件名",
     "body": "内容",
+    "message": "メッセージ",
+    "reproSteps": "再現手順",
+    "expected": "期待される動作",
+    "actual": "実際の動作",
+    "useCase": "ユースケース",
     "submit": "送信",
     "submitting": "送信中...",
     "submitted": "フィードバックを送信しました",
-    "submitFailed": "送信に失敗しました"
+    "submitFailed": "送信に失敗しました",
+    "sendAnother": "新しいフィードバックを送る",
+    "contactInfo": "連絡先",
+    "viewIssue": "Issueを見る",
+    "githubDisabled": "GitHub連携が利用できません",
+    "success": "フィードバックを送信しました"
   },
   "csv": {
     "importTitle": "CSVインポート",
@@ -175,5 +290,33 @@
     "RATE": "レートマッチ",
     "EVENT": "イベント",
     "DC": "デュエリストカップ"
+  },
+  "help": {
+    "title": "ヘルプ",
+    "bugReport": "バグ報告",
+    "featureRequest": "機能リクエスト",
+    "contact": "お問い合わせ",
+    "twitter": "X (Twitter)",
+    "version": "バージョン"
+  },
+  "validation": {
+    "required": "必須項目です",
+    "minLength": "{{min}}文字以上で入力してください",
+    "maxLength": "{{max}}文字以下で入力してください",
+    "invalidEmail": "有効なメールアドレスを入力してください"
+  },
+  "screenAnalysis": {
+    "title": "スクリーン解析",
+    "start": "キャプチャ開始",
+    "stop": "キャプチャ停止",
+    "autoRegister": "自動登録",
+    "status": {
+      "idle": "待機中",
+      "detecting": "検出中",
+      "detected": "検出完了"
+    },
+    "coinDetected": "コイン検出",
+    "resultDetected": "結果検出",
+    "waiting": "待機中..."
   }
 }

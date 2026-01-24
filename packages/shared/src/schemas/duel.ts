@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { GAME_MODES, RESULTS } from '../constants/index.js';
 
+/** ランク値の有効範囲 (ルーキー2=1 〜 マスター1=32) */
+const RANK_MIN = 1;
+const RANK_MAX = 32;
+
 /** デュエル（全フィールド） */
 export const duelSchema = z.object({
   id: z.string().uuid(),
@@ -11,7 +15,7 @@ export const duelSchema = z.object({
   gameMode: z.enum(GAME_MODES),
   isFirst: z.boolean(),
   wonCoinToss: z.boolean(),
-  rank: z.number().int().nullable(),
+  rank: z.number().int().min(RANK_MIN).max(RANK_MAX).nullable(),
   rateValue: z.number().nullable(),
   dcValue: z.number().int().nullable(),
   memo: z.string().nullable(),
@@ -28,7 +32,7 @@ export const createDuelSchema = z.object({
   gameMode: z.enum(GAME_MODES),
   isFirst: z.boolean(),
   wonCoinToss: z.boolean(),
-  rank: z.number().int().nullable().optional(),
+  rank: z.number().int().min(RANK_MIN).max(RANK_MAX).nullable().optional(),
   rateValue: z.number().nullable().optional(),
   dcValue: z.number().int().nullable().optional(),
   memo: z.string().max(1000).nullable().optional(),
@@ -43,7 +47,7 @@ export const updateDuelSchema = z.object({
   gameMode: z.enum(GAME_MODES).optional(),
   isFirst: z.boolean().optional(),
   wonCoinToss: z.boolean().optional(),
-  rank: z.number().int().nullable().optional(),
+  rank: z.number().int().min(RANK_MIN).max(RANK_MAX).nullable().optional(),
   rateValue: z.number().nullable().optional(),
   dcValue: z.number().int().nullable().optional(),
   memo: z.string().max(1000).nullable().optional(),

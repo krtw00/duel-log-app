@@ -3,9 +3,14 @@ const CHANNEL_NAME = 'duel-log-streamer';
 export type StreamerMessage = {
   type: 'stats-update';
   payload: {
+    totalDuels: number;
     wins: number;
     losses: number;
     winRate: number;
+    firstRate: number;
+    firstWinRate: number;
+    secondWinRate: number;
+    coinTossWinRate: number;
     currentStreak: number;
     currentStreakType: 'win' | 'loss' | null;
     deckName: string | null;

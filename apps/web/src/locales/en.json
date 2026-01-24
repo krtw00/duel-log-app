@@ -11,6 +11,7 @@
     "saving": "Saving...",
     "error": "Error",
     "success": "Success",
+    "actions": "Actions",
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
@@ -28,7 +29,8 @@
     "statistics": "Statistics",
     "profile": "Profile",
     "admin": "Admin",
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "help": "Help"
   },
   "auth": {
     "login": "Login",
@@ -47,16 +49,31 @@
     "hasAccount": "Already have an account?",
     "loggingIn": "Logging in...",
     "registering": "Registering...",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "backToLogin": "Back to login",
+    "goToLogin": "Go to login",
+    "authError": "Authentication Error",
+    "emailConfirmationSent": "Confirmation email sent",
+    "emailConfirmationMessage": "Please click the link in the email to activate your account.",
+    "checkingSession": "Checking session...",
+    "updatingPassword": "Updating...",
+    "updatePassword": "Update Password",
+    "or": "or",
+    "termsNotice": "By logging in, you agree to the Terms of Service.",
+    "termsOfService": "Terms of Service",
+    "streamerModeHint": "Hide email during streaming"
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "Duel History",
     "recordDuel": "Record Duel",
     "totalDuels": "Total Duels",
     "winRate": "Win Rate",
+    "firstWinRate": "First Win Rate",
+    "secondWinRate": "Second Win Rate",
     "firstRate": "Going First Rate",
     "coinTossRate": "Coin Toss Win Rate",
     "noData": "No duel data",
+    "defaultSettings": "Default Settings",
     "receivingStats": "Receiving stats from main window..."
   },
   "duel": {
@@ -70,18 +87,30 @@
     "first": "First",
     "second": "Second",
     "coinToss": "Coin Toss",
-    "coinTossWin": "Won",
-    "coinTossLoss": "Lost",
+    "coinTossWin": "Heads",
+    "coinTossLoss": "Tails",
     "rank": "Rank",
     "rateValue": "Rate Value",
     "dcValue": "DC Value",
+    "rankRate": "Rank/Rate",
     "memo": "Memo",
     "dueledAt": "Duel Date",
     "win": "Win",
     "loss": "Loss",
     "confirmDelete": "Delete this duel record?",
     "date": "Date",
-    "selectDeck": "Select deck"
+    "selectDeck": "Select deck",
+    "selectOrInputDeck": "Select or type deck name",
+    "createDeck": "Create \"{{name}}\""
+  },
+  "ranks": {
+    "rookie": "Rookie",
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "gold": "Gold",
+    "platinum": "Platinum",
+    "diamond": "Diamond",
+    "master": "Master"
   },
   "deck": {
     "title": "Deck Management",
@@ -100,13 +129,19 @@
   "statistics": {
     "title": "Statistics",
     "winRateByDeck": "Win Rate by Deck",
-    "deckDistribution": "Deck Distribution",
-    "matchupMatrix": "Matchup Matrix",
+    "deckDistribution": "Opponent Deck Distribution",
+    "matchupMatrix": "Matchup Table",
     "valueSequence": "Value Progression",
+    "monthlyDuels": "Monthly Duels",
+    "firstWinRate": "First Win Rate",
+    "secondWinRate": "Second Win Rate",
+    "matches": " matches",
     "wins": "Wins",
     "losses": "Losses",
     "total": "Total",
-    "noData": "No data available"
+    "noData": "No data available",
+    "monthly": "Monthly",
+    "refreshInterval": "Refresh Interval (sec)"
   },
   "streak": {
     "winStreak": "{{count}} Win Streak",
@@ -121,10 +156,58 @@
     "days": "{{count}} days",
     "shareUrl": "Share URL",
     "generating": "Generating...",
-    "sharedStatistics": "Shared Statistics"
+    "sharedStatistics": "Shared Statistics",
+    "invalidLink": "This shared link is invalid or expired.",
+    "statsOf": "{{name}}'s Statistics",
+    "sharedInfo": "Shared statistics information",
+    "targetMonth": "Target Month",
+    "monthSuffix": "",
+    "unlimited": "Unlimited",
+    "allModes": "All Modes"
   },
   "streamer": {
-    "chromaKey": "Chroma Key"
+    "chromaKey": "Chroma Key",
+    "chromaKeyNone": "None",
+    "chromaKeyGreen": "Green",
+    "chromaKeyBlue": "Blue",
+    "receivingStats": "Receiving stats from main window...",
+    "winRate": "Win Rate",
+    "firstWinRate": "First Win Rate",
+    "secondWinRate": "Second Win Rate",
+    "coinWinRate": "Coin Win Rate",
+    "firstRate": "First Rate",
+    "totalDuels": "Total Duels",
+    "currentDeck": "Current Deck",
+    "invalidToken": "Invalid token",
+    "tokenExpired": "This link has expired",
+    "layoutGrid": "Grid",
+    "layoutHorizontal": "Horizontal",
+    "layoutVertical": "Vertical",
+    "popupWindow": "Popup Window",
+    "recommended": "Recommended",
+    "obsBrowserSource": "OBS Browser Source",
+    "deprecated": "Deprecated",
+    "deprecationWarning": "OBS Browser Source is deprecated. Please use the Popup Window instead.",
+    "obsDescription": "Can be used as an OBS browser source",
+    "getObsUrl": "Get OBS URL",
+    "items": {
+      "currentDeck": "Current Deck",
+      "gameModeValue": "Game Mode Value",
+      "totalDuels": "Total Duels",
+      "winRate": "Win Rate",
+      "firstTurnWinRate": "First Turn Win Rate",
+      "secondTurnWinRate": "Second Turn Win Rate",
+      "coinWinRate": "Coin Win Rate",
+      "goFirstRate": "Going First Rate"
+    },
+    "settings": {
+      "displayItems": "Display Items",
+      "statsPeriod": "Stats Period",
+      "resetDefaults": "Reset to Defaults",
+      "openPopup": "Open Popup",
+      "saveSettings": "Save Settings",
+      "unsavedChanges": "Unsaved changes"
+    }
   },
   "profile": {
     "title": "Profile Settings",
@@ -134,9 +217,15 @@
     "themeDark": "Dark",
     "themeSystem": "System",
     "streamerMode": "Streamer Mode",
+    "streamerModeDesc": "Hide personal info like email during streaming",
     "saved": "Saved successfully",
     "saveFailed": "Failed to save",
-    "language": "Language"
+    "language": "Language",
+    "deleteAccount": "Delete Account",
+    "deleteWarning": "Deleting your account will permanently remove all data and cannot be undone.",
+    "deleteConfirmText": "Type \"DELETE\" to confirm",
+    "deleteFailed": "Failed to delete account",
+    "passwordMismatch": "Passwords do not match"
   },
   "admin": {
     "title": "Admin Panel",
@@ -146,21 +235,47 @@
     "activeToday": "Active Today",
     "userList": "User List",
     "maintenance": "Maintenance",
-    "deleteExpiredLinks": "Delete expired share links"
+    "deleteExpiredLinks": "Delete expired share links",
+    "userDetail": "User Detail",
+    "changeStatus": "Change Status",
+    "resetPassword": "Reset Password",
+    "toggleAdmin": "Toggle Admin",
+    "orphanedDecks": "Orphaned Decks",
+    "orphanedSharedUrls": "Orphaned Shared URLs",
+    "expiredSharedUrls": "Expired Shared URLs",
+    "scan": "Scan",
+    "cleanup": "Cleanup",
+    "metaAnalysis": "Meta Analysis",
+    "popularDecks": "Popular Decks",
+    "deckTrends": "Deck Trends",
+    "gameModeStats": "Game Mode Stats"
   },
   "feedback": {
     "title": "Feedback",
+    "intro": "We'd love to hear from you. Submit bug reports, feature requests, or general inquiries.",
     "category": "Category",
     "categoryBug": "Bug Report",
     "categoryFeature": "Feature Request",
+    "categoryContact": "Contact",
     "categoryQuestion": "Question",
     "categoryOther": "Other",
     "feedbackTitle": "Title",
-    "body": "Body",
+    "subject": "Subject",
+    "body": "Description",
+    "message": "Message",
+    "reproSteps": "Steps to Reproduce",
+    "expected": "Expected Behavior",
+    "actual": "Actual Behavior",
+    "useCase": "Use Case",
     "submit": "Submit",
     "submitting": "Submitting...",
     "submitted": "Feedback submitted",
-    "submitFailed": "Failed to submit"
+    "submitFailed": "Failed to submit",
+    "sendAnother": "Send another feedback",
+    "contactInfo": "Contact",
+    "viewIssue": "View Issue",
+    "githubDisabled": "GitHub integration is not available",
+    "success": "Feedback submitted successfully"
   },
   "csv": {
     "importTitle": "Import CSV",
@@ -175,5 +290,33 @@
     "RATE": "Rated",
     "EVENT": "Event",
     "DC": "Duelist Cup"
+  },
+  "help": {
+    "title": "Help",
+    "bugReport": "Bug Report",
+    "featureRequest": "Feature Request",
+    "contact": "Contact",
+    "twitter": "X (Twitter)",
+    "version": "Version"
+  },
+  "validation": {
+    "required": "This field is required",
+    "minLength": "Must be at least {{min}} characters",
+    "maxLength": "Must be at most {{max}} characters",
+    "invalidEmail": "Please enter a valid email address"
+  },
+  "screenAnalysis": {
+    "title": "Screen Analysis",
+    "start": "Start Capture",
+    "stop": "Stop Capture",
+    "autoRegister": "Auto Register",
+    "status": {
+      "idle": "Idle",
+      "detecting": "Detecting",
+      "detected": "Detected"
+    },
+    "coinDetected": "Coin Detected",
+    "resultDetected": "Result Detected",
+    "waiting": "Waiting..."
   }
 }

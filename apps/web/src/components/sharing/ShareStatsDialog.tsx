@@ -1,35 +1,51 @@
 import { GAME_MODES, type GameMode } from '@duel-log/shared';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCreateSharedStatistics } from '../../hooks/useSharedStatistics.js';
-
-const GAME_MODE_LABELS: Record<GameMode, string> = {
-  RANK: 'ランク',
-  RATE: 'レート',
-  EVENT: 'イベント',
-  DC: 'DC',
-};
 
 type Props = {
   open: boolean;
   onClose: () => void;
+  defaultYear?: number;
+  defaultMonth?: number;
+  defaultGameMode?: GameMode;
 };
 
-export function ShareStatsDialog({ open, onClose }: Props) {
-  const [gameMode, setGameMode] = useState<GameMode | ''>('');
-  const [expiresInDays, setExpiresInDays] = useState(30);
+export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, defaultGameMode }: Props) {
+  const { t } = useTranslation();
+  const now = new Date();
+  const [year, setYear] = useState(defaultYear ?? now.getFullYear());
+  const [month, setMonth] = useState(defaultMonth ?? now.getMonth() + 1);
+  const [gameMode, setGameMode] = useState<GameMode | ''>(defaultGameMode ?? '');
+  const [expiresInDays, setExpiresInDays] = useState<number | null>(30);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const createShared = useCreateSharedStatistics();
 
+  // ダイアログを開き直したらリセット
+  useEffect(() => {
+    if (open) {
+      setYear(defaultYear ?? now.getFullYear());
+      setMonth(defaultMonth ?? now.getMonth() + 1);
+      setGameMode(defaultGameMode ?? '');
+      setGeneratedUrl(null);
+      setCopied(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, defaultYear, defaultMonth, defaultGameMode]);
+
   if (!open) return null;
 
   const handleGenerate = () => {
-    const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString();
-    const filters = gameMode ? { gameMode } : {};
+    const from = new Date(year, month - 1, 1).toISOString();
+    const to = new Date(year, month, 0, 23, 59, 59).toISOString();
+    const expiresAt = expiresInDays !== null
+      ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+      : null;
 
     createShared.mutate(
-      { filters, expiresAt },
+      { filters: { from, to, ...(gameMode ? { gameMode } : {}) }, expiresAt },
       {
         onSuccess: (result) => {
           const url = `${window.location.origin}/shared/${result.data.token}`;
@@ -47,112 +63,154 @@ export function ShareStatsDialog({ open, onClose }: Props) {
     }
   };
 
-  const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
+  // 年の選択肢: 現在年から2年前まで
+  const currentYear = now.getFullYear();
+  const years = Array.from({ length: 3 }, (_, i) => currentYear - i);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black/50"
-        onClick={onClose}
-        onKeyDown={handleBackdropKeyDown}
-        role="button"
-        tabIndex={0}
-        aria-label="Close dialog"
-      />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-        <h2 className="text-lg font-bold mb-4">統計を共有</h2>
+    <div className="dialog-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()} role="button" tabIndex={0} aria-label="Close dialog">
+      <div className="dialog-content max-w-sm" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+        <div className="dialog-header">
+          <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
+            {t('sharing.title')}
+          </h2>
+          <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost p-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
 
-        {generatedUrl ? (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">共有URLが生成されました：</p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={generatedUrl}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50"
-              />
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                {copied ? 'コピー済み' : 'コピー'}
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              閉じる
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="shareGameMode"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                ゲームモード（任意）
-              </label>
-              <select
-                id="shareGameMode"
-                value={gameMode}
-                onChange={(e) => setGameMode(e.target.value as GameMode | '')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                <option value="">全て</option>
-                {GAME_MODES.map((m) => (
-                  <option key={m} value={m}>
-                    {GAME_MODE_LABELS[m]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="expiresInDays"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                有効期限
-              </label>
-              <select
-                id="expiresInDays"
-                value={expiresInDays}
-                onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                <option value={7}>7日</option>
-                <option value={30}>30日</option>
-                <option value={90}>90日</option>
-                <option value={365}>1年</option>
-              </select>
-            </div>
-
-            <div className="flex justify-end gap-2">
+        <div className="dialog-body">
+          {generatedUrl ? (
+            <div className="space-y-4">
+              <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                {t('sharing.shareUrl')}
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={generatedUrl}
+                  className="themed-input flex-1 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="themed-btn themed-btn-primary px-3 py-2 text-sm whitespace-nowrap"
+                >
+                  {copied ? t('common.copied') : t('common.copy')}
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="themed-btn themed-btn-ghost w-full"
               >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={createShared.isPending}
-                className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              >
-                {createShared.isPending ? '生成中...' : 'URL生成'}
+                {t('common.close')}
               </button>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="space-y-4">
+              {/* 対象月 */}
+              <div>
+                <label
+                  className="block text-xs font-medium mb-1"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
+                  {t('sharing.targetMonth')}
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                    className="themed-select flex-1"
+                  >
+                    {years.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={month}
+                    onChange={(e) => setMonth(Number(e.target.value))}
+                    className="themed-select flex-1"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <option key={m} value={m}>{m}{t('sharing.monthSuffix')}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* ゲームモード */}
+              <div>
+                <label
+                  htmlFor="shareGameMode"
+                  className="block text-xs font-medium mb-1"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
+                  {t('duel.gameMode')}
+                </label>
+                <select
+                  id="shareGameMode"
+                  value={gameMode}
+                  onChange={(e) => setGameMode(e.target.value as GameMode | '')}
+                  className="themed-select w-full"
+                >
+                  <option value="">{t('sharing.allModes')}</option>
+                  {GAME_MODES.map((mode) => (
+                    <option key={mode} value={mode}>{t(`gameMode.${mode}`)}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 有効期限 */}
+              <div>
+                <label
+                  htmlFor="expiresInDays"
+                  className="block text-xs font-medium mb-1"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
+                  {t('sharing.expiry')}
+                </label>
+                <select
+                  id="expiresInDays"
+                  value={expiresInDays ?? 'unlimited'}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setExpiresInDays(v === 'unlimited' ? null : Number(v));
+                  }}
+                  className="themed-select w-full"
+                >
+                  <option value={7}>{t('sharing.days', { count: 7 })}</option>
+                  <option value={30}>{t('sharing.days', { count: 30 })}</option>
+                  <option value={90}>{t('sharing.days', { count: 90 })}</option>
+                  <option value={365}>{t('sharing.days', { count: 365 })}</option>
+                  <option value="unlimited">{t('sharing.unlimited')}</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="themed-btn themed-btn-ghost"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={createShared.isPending}
+                  className="themed-btn themed-btn-primary"
+                >
+                  {createShared.isPending ? t('sharing.generating') : t('sharing.generateLink')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
