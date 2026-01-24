@@ -84,6 +84,9 @@ flowchart TD
 | [sharing.md](./03-details/sharing.md) | Active | 共有機能 |
 | [streamer-popup.md](./03-details/streamer-popup.md) | Active | 配信者ポップアップ |
 | [screen-analysis.md](./03-details/screen-analysis.md) | Active | 画面解析機能 |
+| [ui.md](./03-details/ui.md) | Active | UI設計（画面一覧・遷移・共通パターン） |
+| [screens/](./03-details/screens/) | Active | 画面仕様（1画面1ファイル、ui.mdから参照） |
+| [ui-visual.md](./03-details/ui-visual.md) | Active | UIビジュアル設計（カラー・テーマ・レイアウト） |
 
 ---
 
