@@ -27,6 +27,10 @@
     "onlyBuiltDependencies": ["@biomejs/biome", "esbuild"]
   },
   "dependencies": {
-    "lucide-react": "^0.562.0"
+    "@supabase/supabase-js": "^2.91.0",
+    "hono": "^4.11.5",
+    "lucide-react": "^0.562.0",
+    "postgres": "^3.4.8",
+    "zod": "^3.25.76"
   }
 }
