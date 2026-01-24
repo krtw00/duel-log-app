@@ -28,6 +28,7 @@
     "decks": "Decks",
     "statistics": "Statistics",
     "profile": "Profile",
+    "streamer": "Streamer",
     "admin": "Admin",
     "feedback": "Feedback",
     "help": "Help"
@@ -215,8 +216,14 @@
       "firstTurnWinRate": "First Turn Win Rate",
       "secondTurnWinRate": "Second Turn Win Rate",
       "coinWinRate": "Coin Win Rate",
-      "goFirstRate": "Going First Rate"
+      "goFirstRate": "Going First Rate",
+      "currentStreak": "Current Streak",
+      "recentResults": "Recent Results",
+      "sessionGraph": "Win Rate Trend",
+      "milestone": "Goal Progress"
     },
+    "milestoneGoal": "Session Win Goal",
+    "recentResultsCount": "Recent Results Count",
     "settings": {
       "displayItems": "Display Items",
       "statsPeriod": "Stats Period",
@@ -238,6 +245,8 @@
     "saved": "Saved successfully",
     "saveFailed": "Failed to save",
     "language": "Language",
+    "dataManagement": "Data Management",
+    "dataManagementDescription": "Export/import all duel data in CSV format",
     "deleteAccount": "Delete Account",
     "deleteWarning": "Deleting your account will permanently remove all data and cannot be undone.",
     "deleteConfirmText": "Type \"DELETE\" to confirm",
@@ -298,6 +307,7 @@
     "importTitle": "Import CSV",
     "importDescription": "Select a CSV file to import.",
     "requiredColumns": "Required columns: deck_name, opponent_deck_name, result, game_mode, is_first, won_coin_toss, dueled_at",
+    "requiredColumnsFiltered": "Required columns: deck_name, opponent_deck_name, result, is_first, won_coin_toss, dueled_at",
     "importError": "Error: {{message}}",
     "importSuccess": "{{count}} records imported",
     "importing": "Importing..."

@@ -112,7 +112,7 @@ export function FeedbackView() {
               type="button"
               className={`tab-item ${activeTab === tab.key ? 'active' : ''}`}
               onClick={() => { setActiveTab(tab.key); resetForm(); }}
-              style={activeTab === tab.key ? { color: tab.color } : undefined}
+              style={activeTab !== tab.key ? { color: tab.color } : undefined}
             >
               {tab.icon}
               {t(`feedback.category${tab.key.charAt(0).toUpperCase()}${tab.key.slice(1)}`)}

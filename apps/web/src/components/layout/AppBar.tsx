@@ -1,5 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../LanguageSwitcher.js';
 import { ThemeToggle } from '../ThemeToggle.js';
@@ -21,10 +21,13 @@ export function AppBar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const isStreamerMode = localStorage.getItem('streamerMode') === 'true';
+
   const navItems = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/decks', label: t('nav.decks') },
     { to: '/statistics', label: t('nav.statistics') },
+    ...(isStreamerMode ? [{ to: '/streamer', label: t('nav.streamer') }] : []),
   ] as const;
 
   const isActive = (path: string) => {
@@ -66,14 +69,10 @@ export function AppBar() {
         }}
       >
         {/* Left: Logo */}
-        <div className="flex items-center">
-          {logo}
-        </div>
+        <div className="flex items-center">{logo}</div>
 
         {/* Center: Nav */}
-        <div className="flex justify-center">
-          {navLinks}
-        </div>
+        <div className="flex justify-center">{navLinks}</div>
 
         {/* Right: Actions */}
         <div className="flex items-center justify-end gap-1">
@@ -87,7 +86,14 @@ export function AppBar() {
               onClick={() => setFeedbackOpen(!feedbackOpen)}
               className="feedback-btn"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               <span className="hidden sm:inline">{t('nav.feedback')}</span>
@@ -100,7 +106,14 @@ export function AppBar() {
                   className="menu-item"
                   onClick={() => setFeedbackOpen(false)}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <circle cx="12" cy="12" r="10" />
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -113,7 +126,14 @@ export function AppBar() {
                   className="menu-item"
                   onClick={() => setFeedbackOpen(false)}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M12 2L2 7l10 5 10-5-10-5z" />
                     <path d="M2 17l10 5 10-5" />
                     <path d="M2 12l10 5 10-5" />

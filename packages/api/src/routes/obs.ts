@@ -49,6 +49,7 @@ export const obsRoutes = new Hono<Env>()
 
     const gameModeParam = c.req.query('game_mode') || undefined;
     const statsPeriod = c.req.query('stats_period') || 'monthly';
+    const recentCount = Math.min(Math.max(Number(c.req.query('recent_count')) || 10, 1), 30);
 
     const gameMode: GameMode | undefined =
       gameModeParam && (GAME_MODES as readonly string[]).includes(gameModeParam)
@@ -64,10 +65,11 @@ export const obsRoutes = new Hono<Env>()
       filter.to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
     }
 
-    const [overview, streaks, duelsResult] = await Promise.all([
+    const [overview, streaks, duelsResult, recentDuels] = await Promise.all([
       statsService.getOverview(userId, filter),
       statsService.getStreaks(userId, filter),
       duelService.listDuels(userId, { ...filter, limit: 1, offset: 0 }),
+      duelService.listDuels(userId, { ...filter, limit: recentCount, offset: 0 }),
     ]);
 
     const latestDuel = duelsResult.data[0];
@@ -78,6 +80,13 @@ export const obsRoutes = new Hono<Env>()
       `;
       if (deck) currentDeck = deck.name;
     }
+
+    const recentResults = recentDuels.data
+      .map((d) => ({
+        result: d.result as 'win' | 'loss',
+        dueledAt: d.dueledAt,
+      }))
+      .reverse();
 
     return c.json({
       data: {
@@ -92,6 +101,8 @@ export const obsRoutes = new Hono<Env>()
         currentStreak: streaks.currentStreak,
         currentStreakType: streaks.currentStreakType,
         currentDeck,
+        recentResults,
+        sessionWins: overview.wins,
       },
     });
   });
