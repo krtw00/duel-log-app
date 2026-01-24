@@ -65,44 +65,49 @@ export const obsRoutes = new Hono<Env>()
       filter.to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
     }
 
-    const [overview, streaks, duelsResult, recentDuels] = await Promise.all([
-      statsService.getOverview(userId, filter),
-      statsService.getStreaks(userId, filter),
-      duelService.listDuels(userId, { ...filter, limit: 1, offset: 0 }),
-      duelService.listDuels(userId, { ...filter, limit: recentCount, offset: 0 }),
-    ]);
+    try {
+      const [overview, streaks, duelsResult, recentDuels] = await Promise.all([
+        statsService.getOverview(userId, filter),
+        statsService.getStreaks(userId, filter),
+        duelService.listDuels(userId, { ...filter, limit: 1, offset: 0 }),
+        duelService.listDuels(userId, { ...filter, limit: recentCount, offset: 0 }),
+      ]);
 
-    const latestDuel = duelsResult.data[0];
-    let currentDeck: string | undefined;
-    if (latestDuel) {
-      const [deck] = await sql<DeckRow[]>`
-        SELECT * FROM decks WHERE id = ${latestDuel.deckId}
-      `;
-      if (deck) currentDeck = deck.name;
+      const latestDuel = duelsResult.data[0];
+      let currentDeck: string | undefined;
+      if (latestDuel) {
+        const [deck] = await sql<DeckRow[]>`
+          SELECT * FROM decks WHERE id = ${latestDuel.deckId}
+        `;
+        if (deck) currentDeck = deck.name;
+      }
+
+      const recentResults = recentDuels.data
+        .map((d) => ({
+          result: d.result as 'win' | 'loss',
+          dueledAt: d.dueledAt,
+        }))
+        .reverse();
+
+      return c.json({
+        data: {
+          totalDuels: overview.totalDuels,
+          wins: overview.wins,
+          losses: overview.losses,
+          winRate: overview.winRate,
+          firstRate: overview.firstRate,
+          firstWinRate: overview.firstWinRate,
+          secondWinRate: overview.secondWinRate,
+          coinTossWinRate: overview.coinTossWinRate,
+          currentStreak: streaks.currentStreak,
+          currentStreakType: streaks.currentStreakType,
+          currentDeck,
+          recentResults,
+          sessionWins: overview.wins,
+        },
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      return c.json({ error: { code: 'INTERNAL_ERROR', message } }, 500);
     }
-
-    const recentResults = recentDuels.data
-      .map((d) => ({
-        result: d.result as 'win' | 'loss',
-        dueledAt: d.dueledAt,
-      }))
-      .reverse();
-
-    return c.json({
-      data: {
-        totalDuels: overview.totalDuels,
-        wins: overview.wins,
-        losses: overview.losses,
-        winRate: overview.winRate,
-        firstRate: overview.firstRate,
-        firstWinRate: overview.firstWinRate,
-        secondWinRate: overview.secondWinRate,
-        coinTossWinRate: overview.coinTossWinRate,
-        currentStreak: streaks.currentStreak,
-        currentStreakType: streaks.currentStreakType,
-        currentDeck,
-        recentResults,
-        sessionWins: overview.wins,
-      },
-    });
   });
