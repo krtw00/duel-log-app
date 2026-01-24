@@ -6,7 +6,7 @@ node_modules
 dist
 dist-ssr
 *.local
-api/_handler.cjs
+api/*.js
 
 # Logs
 logs

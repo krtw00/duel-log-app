@@ -3,15 +3,13 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const apiDir = resolve(__dirname, '../../api');
 
 await build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/vercel-handler.ts'],
   bundle: true,
   platform: 'node',
   format: 'cjs',
-  outfile: resolve(__dirname, '../../api/_handler.cjs'),
+  outfile: resolve(apiDir, '[[...route]].js'),
   target: 'node22',
-  footer: {
-    js: 'module.exports = index_default;',
-  },
 });
