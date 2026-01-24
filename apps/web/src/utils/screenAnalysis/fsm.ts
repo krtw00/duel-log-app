@@ -34,7 +34,10 @@ function updateStreak(
   confidence: number,
 ): StreakState {
   if (!newCandidate || confidence < CONFIDENCE_THRESHOLD) {
-    return { streak: Math.max(0, current.streak - STREAK_DECREASE_RATE), candidate: current.candidate };
+    return {
+      streak: Math.max(0, current.streak - STREAK_DECREASE_RATE),
+      candidate: current.candidate,
+    };
   }
   if (newCandidate === current.candidate) {
     return { streak: current.streak + STREAK_INCREASE_RATE, candidate: current.candidate };

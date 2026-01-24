@@ -1,4 +1,12 @@
-import { GAME_MODES, type Deck, type DeckWinRate, type Duel, type GameMode, type MatchupEntry, type OverviewStats } from '@duel-log/shared';
+import {
+  type Deck,
+  type DeckWinRate,
+  type Duel,
+  GAME_MODES,
+  type GameMode,
+  type MatchupEntry,
+  type OverviewStats,
+} from '@duel-log/shared';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
@@ -49,7 +57,16 @@ function formatPeriodTitle(filters: { from?: string; to?: string }): string {
 function calculateStats(duels: SharedDuel[]): OverviewStats {
   const total = duels.length;
   if (total === 0) {
-    return { totalDuels: 0, wins: 0, losses: 0, winRate: 0, firstRate: 0, firstWinRate: 0, secondWinRate: 0, coinTossWinRate: 0 };
+    return {
+      totalDuels: 0,
+      wins: 0,
+      losses: 0,
+      winRate: 0,
+      firstRate: 0,
+      firstWinRate: 0,
+      secondWinRate: 0,
+      coinTossWinRate: 0,
+    };
   }
   const wins = duels.filter((d) => d.result === 'win').length;
   const losses = total - wins;
@@ -63,8 +80,18 @@ function calculateStats(duels: SharedDuel[]): OverviewStats {
     losses,
     winRate: total > 0 ? Math.round((wins / total) * 10000) / 10000 : 0,
     firstRate: total > 0 ? Math.round((firstDuels.length / total) * 10000) / 10000 : 0,
-    firstWinRate: firstDuels.length > 0 ? Math.round((firstDuels.filter((d) => d.result === 'win').length / firstDuels.length) * 10000) / 10000 : 0,
-    secondWinRate: secondDuels.length > 0 ? Math.round((secondDuels.filter((d) => d.result === 'win').length / secondDuels.length) * 10000) / 10000 : 0,
+    firstWinRate:
+      firstDuels.length > 0
+        ? Math.round(
+            (firstDuels.filter((d) => d.result === 'win').length / firstDuels.length) * 10000,
+          ) / 10000
+        : 0,
+    secondWinRate:
+      secondDuels.length > 0
+        ? Math.round(
+            (secondDuels.filter((d) => d.result === 'win').length / secondDuels.length) * 10000,
+          ) / 10000
+        : 0,
     coinTossWinRate: total > 0 ? Math.round((coinWins / total) * 10000) / 10000 : 0,
   };
 }
@@ -98,7 +125,22 @@ function calculateWinRates(duels: SharedDuel[]): DeckWinRate[] {
 
 /** クライアント側で相性表を計算 */
 function calculateMatchups(duels: SharedDuel[]): MatchupEntry[] {
-  const map = new Map<string, { deckId: string; deckName: string; opponentDeckId: string; opponentDeckName: string; opponentDeckIsGeneric: boolean; wins: number; losses: number; firstWins: number; firstTotal: number; secondWins: number; secondTotal: number }>();
+  const map = new Map<
+    string,
+    {
+      deckId: string;
+      deckName: string;
+      opponentDeckId: string;
+      opponentDeckName: string;
+      opponentDeckIsGeneric: boolean;
+      wins: number;
+      losses: number;
+      firstWins: number;
+      firstTotal: number;
+      secondWins: number;
+      secondTotal: number;
+    }
+  >();
   for (const d of duels) {
     const key = `${d.deckId}:${d.opponentDeckId}`;
     const existing = map.get(key);
@@ -139,8 +181,12 @@ function calculateMatchups(duels: SharedDuel[]): MatchupEntry[] {
       wins: entry.wins,
       losses: entry.losses,
       winRate: total > 0 ? Math.round((entry.wins / total) * 10000) / 10000 : 0,
-      firstWinRate: entry.firstTotal > 0 ? Math.round((entry.firstWins / entry.firstTotal) * 10000) / 10000 : 0,
-      secondWinRate: entry.secondTotal > 0 ? Math.round((entry.secondWins / entry.secondTotal) * 10000) / 10000 : 0,
+      firstWinRate:
+        entry.firstTotal > 0 ? Math.round((entry.firstWins / entry.firstTotal) * 10000) / 10000 : 0,
+      secondWinRate:
+        entry.secondTotal > 0
+          ? Math.round((entry.secondWins / entry.secondTotal) * 10000) / 10000
+          : 0,
     };
   });
 }
@@ -201,7 +247,9 @@ export function SharedStatisticsView() {
     }
     // レンジフィルター（対戦番号で絞り込み、古い順で1始まり）
     if (periodType === 'range') {
-      const sorted = [...duels].sort((a, b) => new Date(a.dueledAt).getTime() - new Date(b.dueledAt).getTime());
+      const sorted = [...duels].sort(
+        (a, b) => new Date(a.dueledAt).getTime() - new Date(b.dueledAt).getTime(),
+      );
       duels = sorted.slice(rangeStart - 1, rangeEnd);
     }
     // デッキフィルター
@@ -304,11 +352,23 @@ export function SharedStatisticsView() {
       <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center px-6">
         <div className="glass-card p-8 max-w-md w-full text-center">
           <div className="mb-4" style={{ color: 'var(--color-error)' }}>
-            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-16 h-16 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
-          <h1 className="text-xl font-bold mb-2" style={{ color: 'var(--color-error)' }}>{t('common.error')}</h1>
+          <h1 className="text-xl font-bold mb-2" style={{ color: 'var(--color-error)' }}>
+            {t('common.error')}
+          </h1>
           <p style={{ color: 'var(--color-on-surface-muted)' }}>{t('sharing.invalidLink')}</p>
         </div>
       </div>
@@ -330,8 +390,18 @@ export function SharedStatisticsView() {
         <div className="glass-card p-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(0, 217, 255, 0.15)' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="1.5">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(0, 217, 255, 0.15)' }}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-primary)"
+                  strokeWidth="1.5"
+                >
                   <circle cx="18" cy="5" r="3" />
                   <circle cx="6" cy="12" r="3" />
                   <circle cx="18" cy="19" r="3" />
@@ -363,7 +433,8 @@ export function SharedStatisticsView() {
                   style={{
                     background: activeMode === mode ? 'var(--color-primary)' : 'transparent',
                     color: activeMode === mode ? '#0a0e27' : 'var(--color-on-surface-muted)',
-                    borderColor: activeMode === mode ? 'var(--color-primary)' : 'var(--color-border)',
+                    borderColor:
+                      activeMode === mode ? 'var(--color-primary)' : 'var(--color-border)',
                   }}
                   onClick={() => handleModeChange(mode)}
                 >
@@ -372,7 +443,10 @@ export function SharedStatisticsView() {
                     <span
                       className="ml-1.5 px-1.5 py-0.5 rounded-full text-sm font-semibold"
                       style={{
-                        background: activeMode === mode ? 'rgba(10, 14, 39, 0.2)' : 'var(--color-surface-variant)',
+                        background:
+                          activeMode === mode
+                            ? 'rgba(10, 14, 39, 0.2)'
+                            : 'var(--color-surface-variant)',
                         color: activeMode === mode ? '#0a0e27' : 'var(--color-on-surface-muted)',
                       }}
                     >
@@ -393,11 +467,19 @@ export function SharedStatisticsView() {
             style={{
               background: viewMode === 'dashboard' ? 'var(--color-primary)' : 'transparent',
               color: viewMode === 'dashboard' ? '#0a0e27' : 'var(--color-on-surface-muted)',
-              borderColor: viewMode === 'dashboard' ? 'var(--color-primary)' : 'var(--color-border)',
+              borderColor:
+                viewMode === 'dashboard' ? 'var(--color-primary)' : 'var(--color-border)',
             }}
             onClick={() => setViewMode('dashboard')}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <rect x="3" y="3" width="7" height="7" />
               <rect x="14" y="3" width="7" height="7" />
               <rect x="14" y="14" width="7" height="7" />
@@ -411,11 +493,19 @@ export function SharedStatisticsView() {
             style={{
               background: viewMode === 'statistics' ? 'var(--color-primary)' : 'transparent',
               color: viewMode === 'statistics' ? '#0a0e27' : 'var(--color-on-surface-muted)',
-              borderColor: viewMode === 'statistics' ? 'var(--color-primary)' : 'var(--color-border)',
+              borderColor:
+                viewMode === 'statistics' ? 'var(--color-primary)' : 'var(--color-border)',
             }}
             onClick={() => setViewMode('statistics')}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <line x1="18" y1="20" x2="18" y2="10" />
               <line x1="12" y1="20" x2="12" y2="4" />
               <line x1="6" y1="20" x2="6" y2="14" />
@@ -438,7 +528,12 @@ export function SharedStatisticsView() {
           onRangeStartChange={setRangeStart}
           rangeEnd={rangeEnd}
           onRangeEndChange={setRangeEnd}
-          onReset={() => { setDeckId(undefined); setPeriodType('all'); setRangeStart(1); setRangeEnd(totalDuelsInMode); }}
+          onReset={() => {
+            setDeckId(undefined);
+            setPeriodType('all');
+            setRangeStart(1);
+            setRangeEnd(totalDuelsInMode);
+          }}
           totalDuels={totalDuelsInMode}
         />
 
@@ -447,25 +542,35 @@ export function SharedStatisticsView() {
 
         {/* Dashboard View */}
         {viewMode === 'dashboard' && (
-        <div className="glass-card overflow-hidden">
-          <div className="p-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M3 9h18" />
-              <path d="M9 3v18" />
-            </svg>
-            <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
-              {t('dashboard.title')}
-            </h2>
+          <div className="glass-card overflow-hidden">
+            <div
+              className="p-4 flex items-center gap-2"
+              style={{ borderBottom: '1px solid var(--color-border)' }}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-primary)"
+                strokeWidth="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M3 9h18" />
+                <path d="M9 3v18" />
+              </svg>
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+                {t('dashboard.title')}
+              </h2>
+            </div>
+            <DuelTable
+              duels={duelsForTable}
+              decks={decksForTable}
+              loading={false}
+              readOnly
+              duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
+            />
           </div>
-          <DuelTable
-            duels={duelsForTable}
-            decks={decksForTable}
-            loading={false}
-            readOnly
-            duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
-          />
-        </div>
         )}
 
         {/* Statistics View */}
@@ -476,11 +581,21 @@ export function SharedStatisticsView() {
               {/* Deck Distribution Chart */}
               <div className="glass-card p-4 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-primary)"
+                    strokeWidth="2"
+                  >
                     <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
                     <path d="M22 12A10 10 0 0 0 12 2v10z" />
                   </svg>
-                  <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+                  <h2
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--color-on-surface)' }}
+                  >
                     {t('statistics.deckDistribution')}
                   </h2>
                 </div>
@@ -492,12 +607,22 @@ export function SharedStatisticsView() {
               {/* Duel Table */}
               <div className="glass-card p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-primary)"
+                    strokeWidth="2"
+                  >
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                     <path d="M3 9h18" />
                     <path d="M9 3v18" />
                   </svg>
-                  <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+                  <h2
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--color-on-surface)' }}
+                  >
                     {t('statistics.monthlyDuels')}
                   </h2>
                 </div>
@@ -515,7 +640,14 @@ export function SharedStatisticsView() {
             {/* Win Rate by Deck */}
             <div className="glass-card p-4">
               <div className="flex items-center gap-2 mb-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-success)"
+                  strokeWidth="2"
+                >
                   <path d="M6 9l6 6 6-6" />
                 </svg>
                 <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
@@ -528,7 +660,14 @@ export function SharedStatisticsView() {
             {/* Matchup Matrix */}
             <div className="glass-card p-4">
               <div className="flex items-center gap-2 mb-3">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-secondary)"
+                  strokeWidth="2"
+                >
                   <path d="M18 6L6 18" />
                   <path d="M6 6l12 12" />
                 </svg>
