@@ -227,6 +227,7 @@
     "settings": {
       "displayItems": "표시 항목",
       "statsPeriod": "통계 기간",
+      "sessionStart": "세션 시작 시점부터",
       "resetDefaults": "기본값으로 되돌리기",
       "openPopup": "팝업 열기",
       "saveSettings": "설정 저장",

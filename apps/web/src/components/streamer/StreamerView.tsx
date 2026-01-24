@@ -7,7 +7,7 @@ import { type DisplayItem, type DisplayItemKey, DragDropItems } from '../common/
 
 type Layout = 'grid' | 'horizontal' | 'vertical';
 type Theme = 'dark' | 'light';
-type StatsPeriod = 'monthly' | 'all';
+type StatsPeriod = 'session' | 'monthly';
 
 type ObsSettings = {
   gameMode: GameMode;
@@ -52,7 +52,7 @@ function loadObsSettings(): ObsSettings {
   } catch {}
   return {
     gameMode: 'RANK',
-    statsPeriod: 'monthly',
+    statsPeriod: 'session',
     theme: 'dark',
     layout: 'grid',
     refreshInterval: 30,
@@ -241,8 +241,8 @@ export function StreamerView() {
                 }
                 className="themed-select"
               >
+                <option value="session">{t('streamer.settings.sessionStart')}</option>
                 <option value="monthly">{t('statistics.monthly')}</option>
-                <option value="all">{t('common.all')}</option>
               </select>
             </div>
             <div>

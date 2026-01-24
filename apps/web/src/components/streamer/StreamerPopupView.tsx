@@ -19,6 +19,8 @@ function parseSettings() {
   return { gameMode, statsPeriod, theme, chromakey };
 }
 
+const sessionStart = new Date().toISOString();
+
 function buildFilterParams(
   settings: ReturnType<typeof parseSettings>,
 ): Record<string, string | undefined> {
@@ -26,7 +28,10 @@ function buildFilterParams(
     gameMode: settings.gameMode,
   };
 
-  if (settings.statsPeriod === 'monthly') {
+  if (settings.statsPeriod === 'session') {
+    params.fromTimestamp = sessionStart;
+  } else {
+    // monthly (default)
     const now = new Date();
     const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
