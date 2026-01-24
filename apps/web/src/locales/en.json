@@ -210,7 +210,7 @@
     "obsSetupStep3": "Width: {{width}}px, Height: {{height}}px (recommended)",
     "items": {
       "currentDeck": "Current Deck",
-      "gameModeValue": "Game Mode Value",
+      "gameModeValue": "Rank / Rate / DP",
       "totalDuels": "Total Duels",
       "winRate": "Win Rate",
       "firstTurnWinRate": "First Turn Win Rate",
