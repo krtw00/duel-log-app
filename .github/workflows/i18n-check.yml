@@ -17,24 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
       - name: Check translation key consistency
         run: |
-          node -e "
-            const ja = require('./apps/web/src/locales/ja.json');
-            const en = require('./apps/web/src/locales/en.json');
-            const ko = require('./apps/web/src/locales/ko.json');
+          node --input-type=module -e "
+            import { readFileSync } from 'fs';
+
+            const ja = JSON.parse(readFileSync('./apps/web/src/locales/ja.json', 'utf-8'));
+            const en = JSON.parse(readFileSync('./apps/web/src/locales/en.json', 'utf-8'));
+            const ko = JSON.parse(readFileSync('./apps/web/src/locales/ko.json', 'utf-8'));
 
             function getKeys(obj, prefix = '') {
               return Object.entries(obj).flatMap(([k, v]) => {

@@ -51,7 +51,10 @@ export function DeckDistributionChart({ matchups, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="animate-pulse h-64 rounded" style={{ background: 'var(--color-surface-variant)' }} />
+      <div
+        className="animate-pulse h-64 rounded"
+        style={{ background: 'var(--color-surface-variant)' }}
+      />
     );
   }
 
@@ -97,7 +100,7 @@ export function DeckDistributionChart({ matchups, loading }: Props) {
             itemStyle={{ color: 'var(--color-on-surface)' }}
             labelStyle={{ color: 'var(--color-on-surface)', fontWeight: 600 }}
             formatter={(value, name) => {
-              const pct = total > 0 ? ((value as number) / total * 100).toFixed(1) : '0';
+              const pct = total > 0 ? (((value as number) / total) * 100).toFixed(1) : '0';
               return [`${pct}% (${value}${t('statistics.matches')})`, name];
             }}
           />
@@ -117,11 +120,13 @@ export function DeckDistributionChart({ matchups, loading }: Props) {
               const pct = entry && total > 0 ? ((entry.value / total) * 100).toFixed(0) : '0';
               return `${value} (${pct}%)`;
             }}
-            {...{ payload: data.map((d, i) => ({
-              value: d.name,
-              type: 'circle' as const,
-              color: COLORS[i % COLORS.length],
-            })) }}
+            {...{
+              payload: data.map((d, i) => ({
+                value: d.name,
+                type: 'circle' as const,
+                color: COLORS[i % COLORS.length],
+              })),
+            }}
           />
         </PieChart>
       </ResponsiveContainer>

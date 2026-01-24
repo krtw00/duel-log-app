@@ -35,7 +35,9 @@ export function AuthCallbackPage() {
         }
 
         // Listen for auth state change (OAuth redirect with hash)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((event, session) => {
           if (event === 'SIGNED_IN' && session) {
             subscription.unsubscribe();
             navigate({ to: '/' });

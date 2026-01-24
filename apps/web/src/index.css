@@ -71,7 +71,7 @@ body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-on-bg);
-  font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', 'IBM Plex Sans KR', sans-serif;
+  font-family: "IBM Plex Sans", "IBM Plex Sans JP", "IBM Plex Sans KR", sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -103,29 +103,53 @@ body {
    ========================================== */
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(20px, 20px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, 20px);
+  }
 }
 
 @keyframes float-alt {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 30px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(30px, 30px);
+  }
 }
 
 @keyframes grid-scroll {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
 }
 
 @keyframes shimmer {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Utilities */
@@ -340,8 +364,7 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image:
-    linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+  background-image: linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
 }
@@ -412,7 +435,7 @@ body {
 }
 
 .bottom-nav-item.active::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 25%;
@@ -460,7 +483,7 @@ body {
 }
 
 .stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -481,12 +504,24 @@ body {
   opacity: 1;
 }
 
-.stat-card-primary { --stat-glow: linear-gradient(90deg, #00d9ff, #0095ff); }
-.stat-card-success { --stat-glow: linear-gradient(90deg, #00e676, #00c853); }
-.stat-card-warning { --stat-glow: linear-gradient(90deg, #ffaa00, #ff6d00); }
-.stat-card-secondary { --stat-glow: linear-gradient(90deg, #b536ff, #8e24aa); }
-.stat-card-yellow { --stat-glow: linear-gradient(90deg, #ffee58, #fdd835); }
-.stat-card-teal { --stat-glow: linear-gradient(90deg, #4db6ac, #00897b); }
+.stat-card-primary {
+  --stat-glow: linear-gradient(90deg, #00d9ff, #0095ff);
+}
+.stat-card-success {
+  --stat-glow: linear-gradient(90deg, #00e676, #00c853);
+}
+.stat-card-warning {
+  --stat-glow: linear-gradient(90deg, #ffaa00, #ff6d00);
+}
+.stat-card-secondary {
+  --stat-glow: linear-gradient(90deg, #b536ff, #8e24aa);
+}
+.stat-card-yellow {
+  --stat-glow: linear-gradient(90deg, #ffee58, #fdd835);
+}
+.stat-card-teal {
+  --stat-glow: linear-gradient(90deg, #4db6ac, #00897b);
+}
 
 /* ==========================================
    Chip / Badge
@@ -667,13 +702,25 @@ body {
    ========================================== */
 
 @keyframes toast-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes toast-out {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 .toast-enter {
@@ -1150,7 +1197,7 @@ body {
 }
 
 .toggle-switch::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   left: 2px;
@@ -1257,7 +1304,7 @@ body {
   align-items: center;
   justify-content: center;
   background: transparent;
-  font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+  font-family: "Roboto", "Noto Sans JP", sans-serif;
   z-index: 9999;
 }
 
@@ -1400,26 +1447,73 @@ body {
 }
 
 /* Recent Results */
-.obs-recent-results { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-.obs-result-mark { font-size: 20px; font-weight: 700; line-height: 1; }
-.obs-result-mark.win { color: #00e676; }
-.obs-result-mark.loss { color: #ff3d71; }
+.obs-recent-results {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.obs-result-mark {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+.obs-result-mark.win {
+  color: #00e676;
+}
+.obs-result-mark.loss {
+  color: #ff3d71;
+}
 
 /* Session Graph */
-.obs-session-graph { display: block; margin: 0 auto; }
+.obs-session-graph {
+  display: block;
+  margin: 0 auto;
+}
 
 /* Milestone */
-.obs-milestone { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
-.obs-milestone-bar { width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.15); overflow: hidden; }
-.obs-milestone-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--obs-gradient-start), var(--obs-gradient-end)); transition: width 0.3s ease; }
-.obs-milestone-label { font-size: 18px; font-weight: 600; color: var(--obs-text-primary); }
+.obs-milestone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+.obs-milestone-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+.obs-milestone-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--obs-gradient-start), var(--obs-gradient-end));
+  transition: width 0.3s ease;
+}
+.obs-milestone-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--obs-text-primary);
+}
 
 /* Custom stat content */
-.obs-stat-custom { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 38px; }
+.obs-stat-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+}
 
 /* Wide items */
-.obs-stat-item.wide-item { min-width: 200px; }
-.obs-stats-card.layout-horizontal .obs-stat-item.wide-item { min-width: 220px; }
+.obs-stat-item.wide-item {
+  min-width: 200px;
+}
+.obs-stats-card.layout-horizontal .obs-stat-item.wide-item {
+  min-width: 220px;
+}
 
 /* ==========================================
    Streamer Popup
@@ -1436,7 +1530,7 @@ body {
   justify-content: center;
   padding: 16px;
   background: transparent;
-  font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+  font-family: "Roboto", "Noto Sans JP", sans-serif;
   z-index: 9999;
   box-sizing: border-box;
 }
@@ -1550,7 +1644,11 @@ body {
 .popup-stat-value {
   font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--popup-gradient-start) 0%, var(--popup-gradient-end) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--popup-gradient-start) 0%,
+    var(--popup-gradient-end) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

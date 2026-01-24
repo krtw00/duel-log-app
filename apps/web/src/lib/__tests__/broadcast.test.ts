@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StreamerMessage } from '../broadcast.js';
 
+vi.mock('../api.js', () => ({
+  api: vi.fn(),
+}));
+
 describe('broadcast', () => {
   let mockChannel: {
     postMessage: ReturnType<typeof vi.fn>;

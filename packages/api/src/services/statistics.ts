@@ -1,6 +1,6 @@
 import type { StatisticsFilter } from '@duel-log/shared';
-import { sql } from '../db/index.js';
 import { type SqlFragment, andWhere } from '../db/helpers.js';
+import { sql } from '../db/index.js';
 
 function buildConditions(userId: string, filter: StatisticsFilter) {
   const conditions: SqlFragment[] = [sql`d.user_id = ${userId}`];
@@ -68,7 +68,18 @@ export async function getOverview(userId: string, filter: StatisticsFilter) {
     WHERE ${where}
   `;
 
-  return result ?? { totalDuels: 0, wins: 0, losses: 0, winRate: 0, firstRate: 0, firstWinRate: 0, secondWinRate: 0, coinTossWinRate: 0 };
+  return (
+    result ?? {
+      totalDuels: 0,
+      wins: 0,
+      losses: 0,
+      winRate: 0,
+      firstRate: 0,
+      firstWinRate: 0,
+      secondWinRate: 0,
+      coinTossWinRate: 0,
+    }
+  );
 }
 
 interface WinRateResult {

@@ -105,7 +105,7 @@ export async function broadcastStreamerStats(): Promise<void> {
 
     const latestDuel = duels.data?.[0];
     const deckName = latestDuel
-      ? decks.data.find((d) => d.id === latestDuel.deckId)?.name ?? null
+      ? (decks.data.find((d) => d.id === latestDuel.deckId)?.name ?? null)
       : null;
 
     sendStreamerUpdate({
