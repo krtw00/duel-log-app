@@ -5,8 +5,7 @@
   "outputDirectory": "apps/web/dist",
   "functions": {
     "api/**": {
-      "maxDuration": 30,
-      "includeFiles": "api/_handler.cjs"
+      "maxDuration": 30
     }
   },
   "rewrites": [
