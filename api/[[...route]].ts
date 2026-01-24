@@ -1,3 +1,4 @@
-export default function handler(req: any, res: any) {
-  res.status(200).json({ status: 'ok', time: Date.now(), path: req.url });
-}
+import { handle } from 'hono/vercel';
+import app from '../packages/api/src/index.js';
+
+export default handle(app);
