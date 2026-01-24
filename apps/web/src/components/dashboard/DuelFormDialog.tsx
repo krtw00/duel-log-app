@@ -2,21 +2,19 @@ import {
   type CreateDuel,
   type Deck,
   type Duel,
-  GAME_MODES,
   type GameMode,
   RESULTS,
   createDuelSchema,
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-
-const GAME_MODE_LABELS: Record<GameMode, string> = {
-  RANK: 'ランク',
-  RATE: 'レート',
-  EVENT: 'イベント',
-  DC: 'DC',
-};
+import { useTranslation } from 'react-i18next';
+import { useCreateDeck } from '../../hooks/useDecks.js';
+import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
+import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
+import { DeckCombobox } from './DeckCombobox.js';
+import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
 
 type Props = {
   open: boolean;
@@ -26,6 +24,9 @@ type Props = {
   decks: Deck[];
   loading?: boolean;
   defaultGameMode?: GameMode;
+  defaultIsFirst?: boolean;
+  defaultRank?: number;
+  inline?: boolean;
 };
 
 export function DuelFormDialog({
@@ -36,28 +37,51 @@ export function DuelFormDialog({
   decks,
   loading,
   defaultGameMode,
+  defaultIsFirst = true,
+  defaultRank,
+  inline,
 }: Props) {
+  const { t } = useTranslation();
   const myDecks = decks.filter((d) => !d.isOpponentDeck && d.active);
   const opponentDecks = decks.filter((d) => d.isOpponentDeck && d.active);
+  const createDeck = useCreateDeck();
+
+  // Deck combobox state: track both ID (for existing) and name (for new)
+  const [deckSelection, setDeckSelection] = useState<{ id: string; name: string }>({ id: '', name: '' });
+  const [opponentDeckSelection, setOpponentDeckSelection] = useState<{ id: string; name: string }>({ id: '', name: '' });
+  const [deckError, setDeckError] = useState('');
+  const [opponentDeckError, setOpponentDeckError] = useState('');
 
   const {
     register,
     handleSubmit,
     reset,
     watch,
-    formState: { errors },
+    setValue,
   } = useForm<CreateDuel>({
     resolver: zodResolver(createDuelSchema),
     defaultValues: {
       result: 'win',
       gameMode: defaultGameMode ?? 'RANK',
-      isFirst: true,
-      wonCoinToss: true,
+      isFirst: defaultIsFirst,
+      wonCoinToss: defaultIsFirst,
+      rank: defaultRank,
       dueledAt: new Date().toISOString(),
+      deckId: '00000000-0000-0000-0000-000000000000',
+      opponentDeckId: '00000000-0000-0000-0000-000000000000',
     },
   });
 
   const gameMode = watch('gameMode');
+  const wonCoinToss = watch('wonCoinToss');
+
+  // Auto-set first/second based on coin toss result (new duels only)
+  // 後攻デフォルト時はコイン結果に関わらず後攻を維持
+  useEffect(() => {
+    if (!editingDuel && wonCoinToss !== undefined && defaultIsFirst) {
+      setValue('isFirst', wonCoinToss);
+    }
+  }, [wonCoinToss, editingDuel, defaultIsFirst, setValue]);
 
   useEffect(() => {
     if (editingDuel) {
@@ -74,211 +98,241 @@ export function DuelFormDialog({
         memo: editingDuel.memo,
         dueledAt: editingDuel.dueledAt,
       });
+      const myDeck = decks.find((d) => d.id === editingDuel.deckId);
+      const oppDeck = decks.find((d) => d.id === editingDuel.opponentDeckId);
+      setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
+      setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
     } else {
       reset({
         result: 'win',
         gameMode: defaultGameMode ?? 'RANK',
-        isFirst: true,
-        wonCoinToss: true,
+        isFirst: defaultIsFirst,
+        wonCoinToss: defaultIsFirst,
+        rank: defaultRank,
         dueledAt: new Date().toISOString(),
+        deckId: '00000000-0000-0000-0000-000000000000',
+        opponentDeckId: '00000000-0000-0000-0000-000000000000',
       });
+      setDeckSelection({ id: '', name: '' });
+      setOpponentDeckSelection({ id: '', name: '' });
     }
-  }, [editingDuel, defaultGameMode, reset]);
+  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks]);
 
-  if (!open) return null;
+  const screenAnalysisEnabled = inline && !editingDuel && localStorage.getItem('duellog.screenAnalysis.enabled') === 'true';
 
-  const handleFormSubmit = (data: CreateDuel) => {
-    onSubmit(data);
-  };
+  const handleFormSubmit = useCallback(async (data: CreateDuel) => {
+    let finalDeckId = deckSelection.id;
+    let finalOpponentDeckId = opponentDeckSelection.id;
 
-  const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
+    // Validate deck selections
+    if (!finalDeckId && !deckSelection.name) {
+      setDeckError(t('validation.required'));
+      return;
+    }
+    if (!finalOpponentDeckId && !opponentDeckSelection.name) {
+      setOpponentDeckError(t('validation.required'));
+      return;
+    }
+    setDeckError('');
+    setOpponentDeckError('');
+
+    // Create new decks if needed
+    if (!finalDeckId && deckSelection.name) {
+      const result = await createDeck.mutateAsync({ name: deckSelection.name, isOpponentDeck: false });
+      finalDeckId = result.data.id;
+      setDeckSelection({ id: finalDeckId, name: deckSelection.name });
+    }
+    if (!finalOpponentDeckId && opponentDeckSelection.name) {
+      const result = await createDeck.mutateAsync({ name: opponentDeckSelection.name, isOpponentDeck: true });
+      finalOpponentDeckId = result.data.id;
+      setOpponentDeckSelection({ id: finalOpponentDeckId, name: opponentDeckSelection.name });
+    }
+
+    onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId });
+  }, [deckSelection, opponentDeckSelection, createDeck, onSubmit, t]);
+
+  const handleAutoRegister = useCallback((data: { coin: 'won' | 'lost' | null; isFirst: boolean; result: 'win' | 'loss' | null }) => {
+    if (data.coin !== null) setValue('wonCoinToss', data.coin === 'won');
+    if (data.result !== null) setValue('result', data.result);
+    setValue('isFirst', data.isFirst);
+    handleSubmit(handleFormSubmit)();
+  }, [setValue, handleSubmit, handleFormSubmit]);
+
+  const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined);
+
+  if (!open && !inline) return null;
+
+  const formContent = (
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      {/* Row 1: Decks */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="deckId" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            {t('duel.deck')}
+          </label>
+          <DeckCombobox
+            id="deckId"
+            decks={myDecks}
+            value={deckSelection.id}
+            onChange={(id, name) => {
+              setDeckSelection({ id, name });
+              if (id) setValue('deckId', id);
+              setDeckError('');
+            }}
+            error={deckError}
+          />
+        </div>
+        <div>
+          <label htmlFor="opponentDeckId" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            {t('duel.opponentDeck')}
+          </label>
+          <DeckCombobox
+            id="opponentDeckId"
+            decks={opponentDecks}
+            value={opponentDeckSelection.id}
+            onChange={(id, name) => {
+              setOpponentDeckSelection({ id, name });
+              if (id) setValue('opponentDeckId', id);
+              setOpponentDeckError('');
+            }}
+            error={opponentDeckError}
+          />
+        </div>
+      </div>
+
+      {/* Row 2: Coin / First-Second / Result (radio groups) */}
+      <div className="grid grid-cols-3 gap-2">
+        {/* Coin Toss */}
+        <div className="radio-group-wrapper">
+          <div className="radio-label">
+            {t('duel.coinToss')}
+          </div>
+          <div className="flex gap-2">
+            <label className="radio-option cursor-pointer">
+              <input type="radio" value="true" {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-warning)]" />
+              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossWin')}</span>
+            </label>
+            <label className="radio-option cursor-pointer">
+              <input type="radio" value="false" {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-on-surface-muted)]" />
+              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.coinTossLoss')}</span>
+            </label>
+          </div>
+        </div>
+
+        {/* First/Second */}
+        <div className="radio-group-wrapper">
+          <div className="radio-label">
+            {t('duel.firstSecond')}
+          </div>
+          <div className="flex gap-2">
+            <label className="radio-option cursor-pointer">
+              <input type="radio" value="true" {...register('isFirst', { setValueAs: (v: string) => v === 'true' })} className="accent-[#00d9ff]" />
+              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.first')}</span>
+            </label>
+            <label className="radio-option cursor-pointer">
+              <input type="radio" value="false" {...register('isFirst', { setValueAs: (v: string) => v === 'true' })} className="accent-[var(--color-secondary)]" />
+              <span className="text-xs" style={{ color: 'var(--color-on-surface)' }}>{t('duel.second')}</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Result */}
+        <div className="radio-group-wrapper">
+          <div className="radio-label">
+            {t('duel.result')}
+          </div>
+          <div className="flex gap-2">
+            {RESULTS.map((r) => (
+              <label key={r} className="radio-option cursor-pointer">
+                <input type="radio" value={r} {...register('result')} className={r === 'win' ? 'accent-[var(--color-success)]' : 'accent-[var(--color-error)]'} />
+                <span className="text-xs" style={{ color: r === 'win' ? 'var(--color-success)' : 'var(--color-error)' }}>
+                  {r === 'win' ? t('duel.win') : t('duel.loss')}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Conditional value fields */}
+      {gameMode === 'RANK' && (
+        <div>
+          <label htmlFor="rank" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            {t('duel.rank')}
+          </label>
+          <select id="rank" {...register('rank', { valueAsNumber: true })} className="themed-select">
+            <option value="">---</option>
+            {RANK_DEFINITIONS.map((r) => (
+              <option key={r.value} value={r.value}>{getRankLabel(r.value, t)}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      {gameMode === 'RATE' && (
+        <div>
+          <label htmlFor="rateValue" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            {t('duel.rateValue')}
+          </label>
+          <input id="rateValue" type="number" step="0.1" {...register('rateValue', { valueAsNumber: true })} className="themed-input" />
+        </div>
+      )}
+      {gameMode === 'DC' && (
+        <div>
+          <label htmlFor="dcValue" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+            {t('duel.dcValue')}
+          </label>
+          <input id="dcValue" type="number" {...register('dcValue', { valueAsNumber: true })} className="themed-input" />
+        </div>
+      )}
+
+      {/* Row 5: Memo */}
+      <div>
+        <label htmlFor="memo" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+          {t('duel.memo')}
+        </label>
+        <textarea id="memo" {...register('memo')} rows={2} className="themed-input" style={{ resize: 'vertical' }} />
+      </div>
+
+      {/* Row 6: Buttons */}
+      <div className="flex justify-end gap-2 pt-2">
+        {(!inline || editingDuel) && (
+          <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost">
+            {t('common.cancel')}
+          </button>
+        )}
+        <button type="submit" disabled={loading} className="themed-btn themed-btn-primary">
+          {loading ? t('common.saving') : editingDuel ? t('common.save') : t('common.create')}
+        </button>
+      </div>
+    </form>
+  );
+
+  if (inline) {
+    return (
+      <div className="glass-card p-4 space-y-4">
+        {screenAnalysisEnabled && <ScreenAnalysisPanel analysis={screenAnalysis} />}
+        {formContent}
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black/50"
-        onClick={onClose}
-        onKeyDown={handleBackdropKeyDown}
-        role="button"
-        tabIndex={0}
-        aria-label="Close dialog"
-      />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
-        <h2 className="text-lg font-bold mb-4">
-          {editingDuel ? '対戦記録を編集' : '対戦記録を追加'}
-        </h2>
-
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          {/* 結果 */}
-          <fieldset>
-            <legend className="block text-sm font-medium text-gray-700 mb-1">結果</legend>
-            <div className="flex gap-2">
-              {RESULTS.map((r) => (
-                <label key={r} className="flex items-center gap-1">
-                  <input type="radio" value={r} {...register('result')} />
-                  <span className={r === 'win' ? 'text-green-600' : 'text-red-600'}>
-                    {r === 'win' ? '勝利' : '敗北'}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          {/* ゲームモード */}
-          <div>
-            <label htmlFor="gameMode" className="block text-sm font-medium text-gray-700 mb-1">
-              ゲームモード
-            </label>
-            <select
-              id="gameMode"
-              {...register('gameMode')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            >
-              {GAME_MODES.map((m) => (
-                <option key={m} value={m}>
-                  {GAME_MODE_LABELS[m]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* デッキ */}
-          <div>
-            <label htmlFor="deckId" className="block text-sm font-medium text-gray-700 mb-1">
-              自分のデッキ
-            </label>
-            <select
-              id="deckId"
-              {...register('deckId')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="">選択してください</option>
-              {myDecks.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-            {errors.deckId && <p className="text-red-500 text-xs mt-1">{errors.deckId.message}</p>}
-          </div>
-
-          {/* 相手デッキ */}
-          <div>
-            <label
-              htmlFor="opponentDeckId"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              相手のデッキ
-            </label>
-            <select
-              id="opponentDeckId"
-              {...register('opponentDeckId')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="">選択してください</option>
-              {opponentDecks.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-            {errors.opponentDeckId && (
-              <p className="text-red-500 text-xs mt-1">{errors.opponentDeckId.message}</p>
-            )}
-          </div>
-
-          {/* 先攻/後攻 */}
-          <div className="flex gap-4">
-            <label className="flex items-center gap-1">
-              <input type="checkbox" {...register('isFirst')} />
-              <span className="text-sm">先攻</span>
-            </label>
-            <label className="flex items-center gap-1">
-              <input type="checkbox" {...register('wonCoinToss')} />
-              <span className="text-sm">じゃんけん勝ち</span>
-            </label>
-          </div>
-
-          {/* ランク値 (RANK モードのみ) */}
-          {gameMode === 'RANK' && (
-            <div>
-              <label htmlFor="rank" className="block text-sm font-medium text-gray-700 mb-1">
-                ランク
-              </label>
-              <input
-                id="rank"
-                type="number"
-                {...register('rank', { valueAsNumber: true })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-          )}
-
-          {/* レート値 (RATE モードのみ) */}
-          {gameMode === 'RATE' && (
-            <div>
-              <label htmlFor="rateValue" className="block text-sm font-medium text-gray-700 mb-1">
-                レート
-              </label>
-              <input
-                id="rateValue"
-                type="number"
-                step="0.1"
-                {...register('rateValue', { valueAsNumber: true })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-          )}
-
-          {/* DC値 (DC モードのみ) */}
-          {gameMode === 'DC' && (
-            <div>
-              <label htmlFor="dcValue" className="block text-sm font-medium text-gray-700 mb-1">
-                DC値
-              </label>
-              <input
-                id="dcValue"
-                type="number"
-                {...register('dcValue', { valueAsNumber: true })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-          )}
-
-          {/* メモ */}
-          <div>
-            <label htmlFor="memo" className="block text-sm font-medium text-gray-700 mb-1">
-              メモ
-            </label>
-            <textarea
-              id="memo"
-              {...register('memo')}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              placeholder="任意のメモ"
-            />
-          </div>
-
-          {/* ボタン */}
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? '保存中...' : editingDuel ? '更新' : '追加'}
-            </button>
-          </div>
-        </form>
+    <div className="dialog-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()} role="button" tabIndex={0} aria-label="Close dialog">
+      <div className="dialog-content" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+        <div className="dialog-header">
+          <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
+            {editingDuel ? t('duel.editTitle') : t('duel.addTitle')}
+          </h2>
+          <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost p-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div className="dialog-body">
+          {formContent}
+        </div>
       </div>
     </div>
   );

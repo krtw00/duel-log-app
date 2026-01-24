@@ -37,9 +37,12 @@ export const matchupEntrySchema = z.object({
   deckName: z.string(),
   opponentDeckId: z.string().uuid(),
   opponentDeckName: z.string(),
+  opponentDeckIsGeneric: z.boolean(),
   wins: z.number().int(),
   losses: z.number().int(),
   winRate: z.number(),
+  firstWinRate: z.number(),
+  secondWinRate: z.number(),
 });
 
 /** 連勝/連敗レスポンス */

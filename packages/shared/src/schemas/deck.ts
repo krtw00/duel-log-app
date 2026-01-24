@@ -6,6 +6,7 @@ export const deckSchema = z.object({
   userId: z.string().uuid(),
   name: z.string(),
   isOpponentDeck: z.boolean(),
+  isGeneric: z.boolean(),
   active: z.boolean(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

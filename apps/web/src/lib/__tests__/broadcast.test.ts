@@ -32,9 +32,14 @@ describe('broadcast', () => {
     const message: StreamerMessage = {
       type: 'stats-update',
       payload: {
+        totalDuels: 15,
         wins: 10,
         losses: 5,
         winRate: 0.667,
+        firstRate: 0.6,
+        firstWinRate: 0.7,
+        secondWinRate: 0.5,
+        coinTossWinRate: 0.55,
         currentStreak: 3,
         currentStreakType: 'win',
         deckName: 'Sky Striker',
@@ -69,9 +74,14 @@ describe('broadcast', () => {
     const message: StreamerMessage = {
       type: 'stats-update',
       payload: {
+        totalDuels: 8,
         wins: 5,
         losses: 3,
         winRate: 0.625,
+        firstRate: 0.5,
+        firstWinRate: 0.6,
+        secondWinRate: 0.5,
+        coinTossWinRate: 0.5,
         currentStreak: 2,
         currentStreakType: 'win',
         deckName: null,

@@ -4,6 +4,17 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App.js';
 import './index.css';
 import './lib/i18n.js';
+import { useThemeStore } from './stores/themeStore.js';
+
+// Initialize theme before render
+useThemeStore.getState().initialize();
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+  });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

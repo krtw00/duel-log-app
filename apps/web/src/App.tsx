@@ -12,8 +12,11 @@ export function App() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="flex h-screen items-center justify-center bg-brand-dark-1">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-brand-cyan/30 border-t-brand-cyan rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-white/60 text-sm">Loading...</p>
+        </div>
       </div>
     );
   }

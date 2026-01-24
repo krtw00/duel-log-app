@@ -37,12 +37,16 @@ export const sharedStatisticsRoutes = new Hono<Env>()
     }
 
     const filter = statisticsFilterSchema.parse(stats.filters ?? {});
-    const overview = await statsService.getOverview(stats.userId, filter);
-    const winRates = await statsService.getWinRates(stats.userId, filter);
-    const matchups = await statsService.getMatchups(stats.userId, filter);
+    const [overview, winRates, matchups, duels, displayName] = await Promise.all([
+      statsService.getOverview(stats.userId, filter),
+      statsService.getWinRates(stats.userId, filter),
+      statsService.getMatchups(stats.userId, filter),
+      statsService.getDuelHistory(stats.userId, filter),
+      statsService.getUserDisplayName(stats.userId),
+    ]);
 
     return c.json({
-      data: { overview, winRates, matchups, filters: stats.filters, expiresAt: stats.expiresAt },
+      data: { overview, winRates, matchups, duels, displayName, filters: stats.filters, expiresAt: stats.expiresAt },
     });
   })
   .get('/:token/export/csv', async (c) => {
