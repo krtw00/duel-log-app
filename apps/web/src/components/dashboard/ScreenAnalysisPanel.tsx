@@ -28,7 +28,10 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
   const isResultActive = status.state === 'resultDetecting' || status.state === 'resultDetected';
 
   return (
-    <div className="p-3 rounded-lg space-y-3" style={{ border: '1px solid var(--color-border)', background: 'rgba(128,128,128,0.03)' }}>
+    <div
+      className="p-3 rounded-lg space-y-3"
+      style={{ border: '1px solid var(--color-border)', background: 'rgba(128,128,128,0.03)' }}
+    >
       <div className="flex items-center gap-2 flex-wrap">
         {/* Start/Stop Button */}
         <button
@@ -45,7 +48,14 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
             </>
           ) : (
             <>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <circle cx="12" cy="12" r="10" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
@@ -68,10 +78,13 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
         </label>
 
         {/* Status Badge */}
-        <span className="text-sm px-2 py-0.5 rounded" style={{
-          backgroundColor: status.isCapturing ? 'rgba(0,230,118,0.15)' : 'rgba(128,128,128,0.1)',
-          color: status.isCapturing ? 'var(--color-success)' : 'var(--color-on-surface-muted)',
-        }}>
+        <span
+          className="text-sm px-2 py-0.5 rounded"
+          style={{
+            backgroundColor: status.isCapturing ? 'rgba(0,230,118,0.15)' : 'rgba(128,128,128,0.1)',
+            color: status.isCapturing ? 'var(--color-success)' : 'var(--color-on-surface-muted)',
+          }}
+        >
           {status.isCapturing
             ? status.state === 'idle'
               ? t('screenAnalysis.status.idle')
@@ -88,12 +101,20 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
           <StateChip
             label={`${t('screenAnalysis.coinDetected')}: ${status.coinResult === 'won' ? '✓' : status.coinResult === 'lost' ? '✗' : '-'}`}
             active={isCoinActive}
-            color={status.coinResult === 'won' ? 'var(--color-warning)' : 'var(--color-on-surface-muted)'}
+            color={
+              status.coinResult === 'won' ? 'var(--color-warning)' : 'var(--color-on-surface-muted)'
+            }
           />
           <StateChip
             label={`${t('screenAnalysis.resultDetected')}: ${status.detectionResult === 'win' ? '✓' : status.detectionResult === 'loss' ? '✗' : '-'}`}
             active={isResultActive}
-            color={status.detectionResult === 'win' ? 'var(--color-success)' : status.detectionResult === 'loss' ? 'var(--color-error)' : 'var(--color-on-surface-muted)'}
+            color={
+              status.detectionResult === 'win'
+                ? 'var(--color-success)'
+                : status.detectionResult === 'loss'
+                  ? 'var(--color-error)'
+                  : 'var(--color-on-surface-muted)'
+            }
           />
           {status.state === 'cooldown' && (
             <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>

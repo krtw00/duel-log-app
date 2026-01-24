@@ -359,8 +359,19 @@ export function LoginPage() {
                 />
               </button>
               <span className="flex items-center gap-1 text-white/60 text-sm group-hover:text-white/80 transition-colors">
-                <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <svg
+                  aria-hidden="true"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
                 </svg>
                 {t('profile.streamerMode')}
               </span>
@@ -383,9 +394,7 @@ export function LoginPage() {
       </div>
 
       {/* Terms Dialog */}
-      {showTermsDialog && (
-        <TermsDialog onClose={() => setShowTermsDialog(false)} />
-      )}
+      {showTermsDialog && <TermsDialog onClose={() => setShowTermsDialog(false)} />}
     </div>
   );
 }
@@ -401,8 +410,19 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <svg aria-hidden="true" className="w-5 h-5 text-brand-cyan" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              aria-hidden="true"
+              className="w-5 h-5 text-brand-cyan"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             <h2 className="text-lg font-bold text-white">利用規約</h2>
           </div>
@@ -412,8 +432,19 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
             className="text-white/60 hover:text-white transition-colors"
             aria-label="閉じる"
           >
-            <svg aria-hidden="true" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              aria-hidden="true"
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -422,12 +453,17 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
         <div className="flex-1 overflow-y-auto p-6 text-white/87 text-sm leading-relaxed space-y-6">
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第1条（適用）</h3>
-            <p>本利用規約（以下「本規約」といいます）は、DUEL LOG（以下「本サービス」といいます）の利用条件を定めるものです。ユーザーの皆さま（以下「ユーザー」といいます）には、本規約に従って、本サービスをご利用いただきます。本サービスは個人により運営されています。</p>
+            <p>
+              本利用規約（以下「本規約」といいます）は、DUEL
+              LOG（以下「本サービス」といいます）の利用条件を定めるものです。ユーザーの皆さま（以下「ユーザー」といいます）には、本規約に従って、本サービスをご利用いただきます。本サービスは個人により運営されています。
+            </p>
           </section>
 
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第2条（利用登録）</h3>
-            <p className="mb-3">本サービスにおいては、登録希望者が本規約に同意の上、所定の方法によって利用登録を申請し、運営者がこれを承認することによって、利用登録が完了するものとします。運営者は、利用登録の申請者に以下の事由があると判断した場合、利用登録の申請を承認しないことがあります。</p>
+            <p className="mb-3">
+              本サービスにおいては、登録希望者が本規約に同意の上、所定の方法によって利用登録を申請し、運営者がこれを承認することによって、利用登録が完了するものとします。運営者は、利用登録の申請者に以下の事由があると判断した場合、利用登録の申請を承認しないことがあります。
+            </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>利用登録の申請に際して虚偽の事項を届け出た場合</li>
               <li>本規約に違反したことがある者からの申請である場合</li>
@@ -437,25 +473,48 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
 
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第3条（アカウント情報の管理）</h3>
-            <p>ユーザーは、自己の責任において、本サービスのメールアドレスおよびパスワードを適切に管理するものとします。ユーザーは、いかなる場合にも、アカウント情報を第三者に譲渡または貸与し、もしくは第三者と共用することはできません。運営者は、メールアドレスとパスワードの組み合わせが登録情報と一致してログインされた場合には、そのアカウントを登録しているユーザー自身による利用とみなします。</p>
+            <p>
+              ユーザーは、自己の責任において、本サービスのメールアドレスおよびパスワードを適切に管理するものとします。ユーザーは、いかなる場合にも、アカウント情報を第三者に譲渡または貸与し、もしくは第三者と共用することはできません。運営者は、メールアドレスとパスワードの組み合わせが登録情報と一致してログインされた場合には、そのアカウントを登録しているユーザー自身による利用とみなします。
+            </p>
           </section>
 
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第4条（個人情報の取扱い）</h3>
-            <p className="mb-3">運営者は、ユーザーから提供された個人情報について、以下のとおり適切に取り扱います。</p>
+            <p className="mb-3">
+              運営者は、ユーザーから提供された個人情報について、以下のとおり適切に取り扱います。
+            </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>収集する情報：</strong>メールアドレス、ユーザー名、その他ユーザーが本サービスに登録・入力する情報</li>
-              <li><strong>利用目的：</strong>本サービスの提供、ユーザー認証、サービスに関する通知、問い合わせ対応</li>
-              <li><strong>保管方法：</strong>メールアドレスを含む個人情報は、暗号化された安全なデータベースに保管し、不正アクセスや情報漏洩を防ぐための適切なセキュリティ対策を講じます</li>
-              <li><strong>第三者提供：</strong>法令に基づく場合を除き、ユーザーの同意なく第三者に個人情報を提供することはありません</li>
-              <li><strong>データの削除：</strong>ユーザーがアカウントを削除した場合、登録された個人情報は速やかに削除されます</li>
+              <li>
+                <strong>収集する情報：</strong>
+                メールアドレス、ユーザー名、その他ユーザーが本サービスに登録・入力する情報
+              </li>
+              <li>
+                <strong>利用目的：</strong>
+                本サービスの提供、ユーザー認証、サービスに関する通知、問い合わせ対応
+              </li>
+              <li>
+                <strong>保管方法：</strong>
+                メールアドレスを含む個人情報は、暗号化された安全なデータベースに保管し、不正アクセスや情報漏洩を防ぐための適切なセキュリティ対策を講じます
+              </li>
+              <li>
+                <strong>第三者提供：</strong>
+                法令に基づく場合を除き、ユーザーの同意なく第三者に個人情報を提供することはありません
+              </li>
+              <li>
+                <strong>データの削除：</strong>
+                ユーザーがアカウントを削除した場合、登録された個人情報は速やかに削除されます
+              </li>
             </ul>
-            <p className="mt-3">運営者は、個人情報の保護に最大限の注意を払いますが、インターネットを通じた情報の送信には一定のリスクが伴うことをご理解ください。</p>
+            <p className="mt-3">
+              運営者は、個人情報の保護に最大限の注意を払いますが、インターネットを通じた情報の送信には一定のリスクが伴うことをご理解ください。
+            </p>
           </section>
 
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第5条（禁止事項）</h3>
-            <p className="mb-3">ユーザーは、本サービスの利用にあたり、以下の行為をしてはなりません。</p>
+            <p className="mb-3">
+              ユーザーは、本サービスの利用にあたり、以下の行為をしてはなりません。
+            </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>法令または公序良俗に違反する行為</li>
               <li>本サービスのサーバーまたはネットワークの機能を破壊したり、妨害したりする行為</li>
@@ -464,17 +523,25 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
               <li>不正アクセスをし、またはこれを試みる行為</li>
               <li>他のユーザーに成りすます行為</li>
               <li>虚偽の情報を登録する行為</li>
-              <li>本サービスの他のユーザーまたはその他の第三者に不利益、損害、不快感を与える行為</li>
+              <li>
+                本サービスの他のユーザーまたはその他の第三者に不利益、損害、不快感を与える行為
+              </li>
               <li>その他、運営者が不適切と判断する行為</li>
             </ul>
           </section>
 
           <section>
-            <h3 className="text-brand-cyan font-semibold mb-3">第6条（本サービスの提供の停止等）</h3>
-            <p className="mb-3">運営者は、以下のいずれかの事由があると判断した場合、ユーザーに事前に通知することなく本サービスの全部または一部の提供を停止または中断することができるものとします。</p>
+            <h3 className="text-brand-cyan font-semibold mb-3">
+              第6条（本サービスの提供の停止等）
+            </h3>
+            <p className="mb-3">
+              運営者は、以下のいずれかの事由があると判断した場合、ユーザーに事前に通知することなく本サービスの全部または一部の提供を停止または中断することができるものとします。
+            </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>本サービスにかかるシステムの保守点検または更新を行う場合</li>
-              <li>地震、落雷、火災、停電または天災などの不可抗力により、本サービスの提供が困難となった場合</li>
+              <li>
+                地震、落雷、火災、停電または天災などの不可抗力により、本サービスの提供が困難となった場合
+              </li>
               <li>コンピュータまたは通信回線等が事故により停止した場合</li>
               <li>その他、運営者が本サービスの提供が困難と判断した場合</li>
             </ul>
@@ -482,12 +549,18 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
 
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第7条（データの著作権）</h3>
-            <p>ユーザーが本サービスに登録・入力したデュエル記録等のデータの著作権は、当該ユーザー自身に帰属します。運営者は、本サービスの運営・改善の目的でのみ、これらのデータを使用することができるものとします。</p>
+            <p>
+              ユーザーが本サービスに登録・入力したデュエル記録等のデータの著作権は、当該ユーザー自身に帰属します。運営者は、本サービスの運営・改善の目的でのみ、これらのデータを使用することができるものとします。
+            </p>
           </section>
 
           <section>
-            <h3 className="text-brand-cyan font-semibold mb-3">第8条（利用制限およびアカウント削除）</h3>
-            <p className="mb-3">運営者は、ユーザーが以下のいずれかに該当する場合には、事前の通知なく、ユーザーに対して、本サービスの全部もしくは一部の利用を制限し、またはアカウントを削除することができるものとします。</p>
+            <h3 className="text-brand-cyan font-semibold mb-3">
+              第8条（利用制限およびアカウント削除）
+            </h3>
+            <p className="mb-3">
+              運営者は、ユーザーが以下のいずれかに該当する場合には、事前の通知なく、ユーザーに対して、本サービスの全部もしくは一部の利用を制限し、またはアカウントを削除することができるものとします。
+            </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>本規約のいずれかの条項に違反した場合</li>
               <li>登録事項に虚偽の事実があることが判明した場合</li>
@@ -498,17 +571,25 @@ function TermsDialog({ onClose }: { onClose: () => void }) {
 
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第9条（免責事項）</h3>
-            <p>本サービスは個人により運営されており、運営者は本サービスに関して、その安全性、信頼性、正確性、完全性、有効性などを保証するものではありません。本サービスの利用により生じたいかなる損害についても、運営者は一切の責任を負いません。ユーザーは自己の責任において本サービスを利用するものとします。</p>
+            <p>
+              本サービスは個人により運営されており、運営者は本サービスに関して、その安全性、信頼性、正確性、完全性、有効性などを保証するものではありません。本サービスの利用により生じたいかなる損害についても、運営者は一切の責任を負いません。ユーザーは自己の責任において本サービスを利用するものとします。
+            </p>
           </section>
 
           <section>
-            <h3 className="text-brand-cyan font-semibold mb-3">第10条（サービス内容の変更・終了）</h3>
-            <p>運営者は、ユーザーへの事前通知の有無を問わず、本サービスの内容を変更し、または本サービスの提供を終了することができるものとします。本サービスが終了する場合、可能な限り事前に通知するよう努めますが、これを保証するものではありません。</p>
+            <h3 className="text-brand-cyan font-semibold mb-3">
+              第10条（サービス内容の変更・終了）
+            </h3>
+            <p>
+              運営者は、ユーザーへの事前通知の有無を問わず、本サービスの内容を変更し、または本サービスの提供を終了することができるものとします。本サービスが終了する場合、可能な限り事前に通知するよう努めますが、これを保証するものではありません。
+            </p>
           </section>
 
           <section>
             <h3 className="text-brand-cyan font-semibold mb-3">第11条（利用規約の変更）</h3>
-            <p>運営者は、必要と判断した場合には、いつでも本規約を変更することができるものとします。変更後の本規約は、本サービス上に表示した時点より効力を生じるものとします。</p>
+            <p>
+              運営者は、必要と判断した場合には、いつでも本規約を変更することができるものとします。変更後の本規約は、本サービス上に表示した時点より効力を生じるものとします。
+            </p>
           </section>
 
           <section>

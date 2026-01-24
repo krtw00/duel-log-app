@@ -8,7 +8,14 @@ import {
   RESULT_ROI,
   RESULT_WIN_COLOR,
 } from '../utils/screenAnalysis/config.js';
-import type { AnalysisFrame, CoinResult, ColorTarget, DetectionResult, ROI, WorkerMessage } from '../utils/screenAnalysis/types.js';
+import type {
+  AnalysisFrame,
+  CoinResult,
+  ColorTarget,
+  DetectionResult,
+  ROI,
+  WorkerMessage,
+} from '../utils/screenAnalysis/types.js';
 
 function extractROI(imageData: ImageData, roi: ROI): Uint8ClampedArray {
   const x = Math.floor(roi.left * imageData.width);

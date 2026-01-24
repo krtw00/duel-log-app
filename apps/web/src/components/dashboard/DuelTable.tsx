@@ -45,7 +45,15 @@ function getRankDisplay(duel: Duel, t: TFunction): string | null {
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50] as const;
 const DEFAULT_ITEMS_PER_PAGE = 10;
 
-function MobileCardView({ duels, decks, onStartEdit, onDelete, readOnly, editingId, editForm }: {
+function MobileCardView({
+  duels,
+  decks,
+  onStartEdit,
+  onDelete,
+  readOnly,
+  editingId,
+  editForm,
+}: {
   duels: Duel[];
   decks: Deck[];
   onStartEdit?: (duel: Duel) => void;
@@ -68,35 +76,59 @@ function MobileCardView({ duels, decks, onStartEdit, onDelete, readOnly, editing
           ) : (
             <div className="duel-card-compact">
               {/* Result indicator bar */}
-              <div className={`duel-card-indicator ${duel.result === 'win' ? 'duel-card-indicator-win' : 'duel-card-indicator-loss'}`} />
+              <div
+                className={`duel-card-indicator ${duel.result === 'win' ? 'duel-card-indicator-win' : 'duel-card-indicator-loss'}`}
+              />
 
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1 min-w-0 flex-1">
-                    <span className="chip chip-outlined-primary text-sm truncate">{getDeckName(decks, duel.deckId)}</span>
-                    <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>vs</span>
-                    <span className="chip chip-outlined-warning text-sm truncate">{getDeckName(decks, duel.opponentDeckId)}</span>
+                    <span className="chip chip-outlined-primary text-sm truncate">
+                      {getDeckName(decks, duel.deckId)}
+                    </span>
+                    <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      vs
+                    </span>
+                    <span className="chip chip-outlined-warning text-sm truncate">
+                      {getDeckName(decks, duel.opponentDeckId)}
+                    </span>
                   </div>
-                  <span className="text-sm whitespace-nowrap" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  <span
+                    className="text-sm whitespace-nowrap"
+                    style={{ color: 'var(--color-on-surface-muted)' }}
+                  >
                     {formatDate(duel.dueledAt)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 mt-1 flex-wrap">
-                  <span className={`chip text-sm ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}>
+                  <span
+                    className={`chip text-sm ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}
+                  >
                     {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
                   </span>
-                  <span className={`chip text-sm ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}>
+                  <span
+                    className={`chip text-sm ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}
+                  >
                     {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
                   </span>
-                  <span className={`chip text-sm ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}>
+                  <span
+                    className={`chip text-sm ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}
+                  >
                     {duel.isFirst ? t('duel.first') : t('duel.second')}
                   </span>
                   {getRankDisplay(duel, t) && (
                     <span className="chip text-sm chip-rank">{getRankDisplay(duel, t)}</span>
                   )}
                   {duel.memo && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-on-surface-muted)" strokeWidth="2">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--color-on-surface-muted)"
+                      strokeWidth="2"
+                    >
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
@@ -106,42 +138,66 @@ function MobileCardView({ duels, decks, onStartEdit, onDelete, readOnly, editing
 
               {/* Actions */}
               {!readOnly && onStartEdit && onDelete && (
-              <div className="flex flex-col justify-center gap-1">
-                <button
-                  type="button"
-                  className="themed-btn themed-btn-ghost p-1"
-                  onClick={() => onStartEdit(duel)}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                </button>
-                {confirmDeleteId === duel.id ? (
+                <div className="flex flex-col justify-center gap-1">
                   <button
                     type="button"
                     className="themed-btn themed-btn-ghost p-1"
-                    style={{ color: 'var(--color-error)' }}
-                    onClick={() => { onDelete(duel.id); setConfirmDeleteId(null); }}
+                    onClick={() => onStartEdit(duel)}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="20 6 9 17 4 12" />
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                   </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="themed-btn themed-btn-ghost p-1"
-                    style={{ color: 'var(--color-error)' }}
-                    onClick={() => setConfirmDeleteId(duel.id)}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                  </button>
-                )}
-              </div>
+                  {confirmDeleteId === duel.id ? (
+                    <button
+                      type="button"
+                      className="themed-btn themed-btn-ghost p-1"
+                      style={{ color: 'var(--color-error)' }}
+                      onClick={() => {
+                        onDelete(duel.id);
+                        setConfirmDeleteId(null);
+                      }}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="themed-btn themed-btn-ghost p-1"
+                      style={{ color: 'var(--color-error)' }}
+                      onClick={() => setConfirmDeleteId(duel.id)}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -151,7 +207,22 @@ function MobileCardView({ duels, decks, onStartEdit, onDelete, readOnly, editing
   );
 }
 
-export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, readOnly, gameMode, defaultIsFirst, defaultRank, editLoading, deckUsage, opponentDeckUsage, duelNoOffset = 0 }: Props) {
+export function DuelTable({
+  duels,
+  decks,
+  loading,
+  onEdit,
+  onDelete,
+  maxHeight,
+  readOnly,
+  gameMode,
+  defaultIsFirst,
+  defaultRank,
+  editLoading,
+  deckUsage,
+  opponentDeckUsage,
+  duelNoOffset = 0,
+}: Props) {
   const { t } = useTranslation();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
@@ -162,7 +233,11 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
     return (
       <div className="animate-pulse p-4 space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-10 rounded" style={{ background: 'var(--color-surface-variant)' }} />
+          <div
+            key={i}
+            className="h-10 rounded"
+            style={{ background: 'var(--color-surface-variant)' }}
+          />
         ))}
       </div>
     );
@@ -243,11 +318,14 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
             </tr>
           </thead>
           <tbody>
-            {paginatedDuels.map((duel, index) => (
+            {paginatedDuels.map((duel, index) =>
               editingDuel?.id === duel.id ? (
                 <tr key={duel.id}>
                   <td colSpan={readOnly ? 9 : 10} className="p-0">
-                    <div className="p-3" style={{ background: 'var(--color-surface-variant)', borderRadius: 0 }}>
+                    <div
+                      className="p-3"
+                      style={{ background: 'var(--color-surface-variant)', borderRadius: 0 }}
+                    >
                       {editForm}
                     </div>
                   </td>
@@ -258,23 +336,33 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
                     {duelNoOffset + duels.length - startIndex - index}
                   </td>
                   <td>
-                    <span className="chip chip-outlined-primary">{getDeckName(decks, duel.deckId)}</span>
+                    <span className="chip chip-outlined-primary">
+                      {getDeckName(decks, duel.deckId)}
+                    </span>
                   </td>
                   <td>
-                    <span className="chip chip-outlined-warning">{getDeckName(decks, duel.opponentDeckId)}</span>
+                    <span className="chip chip-outlined-warning">
+                      {getDeckName(decks, duel.opponentDeckId)}
+                    </span>
                   </td>
                   <td>
-                    <span className={`chip ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}>
+                    <span
+                      className={`chip ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}
+                    >
                       {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
                     </span>
                   </td>
                   <td>
-                    <span className={`chip ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}>
+                    <span
+                      className={`chip ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}
+                    >
                       {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
                     </span>
                   </td>
                   <td>
-                    <span className={`chip ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}>
+                    <span
+                      className={`chip ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}
+                    >
                       {duel.isFirst ? t('duel.first') : t('duel.second')}
                     </span>
                   </td>
@@ -287,82 +375,131 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
                   </td>
                   <td className="max-w-[120px] truncate" title={duel.memo ?? ''}>
                     {duel.memo ? (
-                      <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{duel.memo}</span>
+                      <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                        {duel.memo}
+                      </span>
                     ) : null}
                   </td>
                   <td className="whitespace-nowrap">{formatDate(duel.dueledAt)}</td>
                   {!readOnly && (
-                  <td className="text-center whitespace-nowrap">
-                    <button
-                      type="button"
-                      className="themed-btn themed-btn-ghost p-1"
-                      onClick={() => handleStartEdit(duel)}
-                      title={t('common.edit')}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                    </button>
-                    {confirmDeleteId === duel.id ? (
-                      <>
+                    <td className="text-center whitespace-nowrap">
+                      <button
+                        type="button"
+                        className="themed-btn themed-btn-ghost p-1"
+                        onClick={() => handleStartEdit(duel)}
+                        title={t('common.edit')}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      {confirmDeleteId === duel.id ? (
+                        <>
+                          <button
+                            type="button"
+                            className="themed-btn themed-btn-ghost p-1"
+                            style={{ color: 'var(--color-error)' }}
+                            onClick={() => {
+                              onDelete?.(duel.id);
+                              setConfirmDeleteId(null);
+                            }}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            className="themed-btn themed-btn-ghost p-1"
+                            onClick={() => setConfirmDeleteId(null)}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <line x1="18" y1="6" x2="6" y2="18" />
+                              <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </button>
+                        </>
+                      ) : (
                         <button
                           type="button"
                           className="themed-btn themed-btn-ghost p-1"
                           style={{ color: 'var(--color-error)' }}
-                          onClick={() => { onDelete?.(duel.id); setConfirmDeleteId(null); }}
+                          onClick={() => setConfirmDeleteId(duel.id)}
+                          title={t('common.delete')}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="20 6 9 17 4 12" />
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                           </svg>
                         </button>
-                        <button
-                          type="button"
-                          className="themed-btn themed-btn-ghost p-1"
-                          onClick={() => setConfirmDeleteId(null)}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        className="themed-btn themed-btn-ghost p-1"
-                        style={{ color: 'var(--color-error)' }}
-                        onClick={() => setConfirmDeleteId(duel.id)}
-                        title={t('common.delete')}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
-                    )}
-                  </td>
+                      )}
+                    </td>
                   )}
                 </tr>
-              )
-            ))}
+              ),
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
       {duels.length > DEFAULT_ITEMS_PER_PAGE && (
-        <div className="flex items-center justify-end gap-4 p-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+        <div
+          className="flex items-center justify-end gap-4 p-3"
+          style={{ borderTop: '1px solid var(--color-border)' }}
+        >
+          <div
+            className="flex items-center gap-2 text-sm"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             <span>Items per page:</span>
             <select
               value={itemsPerPage}
-              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(0); }}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(0);
+              }}
               className="themed-select"
-              style={{ width: 'auto', padding: '4px 28px 4px 8px', fontSize: '0.75rem', backgroundPosition: 'right 6px center' }}
+              style={{
+                width: 'auto',
+                padding: '4px 28px 4px 8px',
+                fontSize: '0.75rem',
+                backgroundPosition: 'right 6px center',
+              }}
             >
               {ITEMS_PER_PAGE_OPTIONS.map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </select>
           </div>
@@ -376,7 +513,14 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
               disabled={currentPage === 0}
               onClick={() => setCurrentPage((p) => p - 1)}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
@@ -386,7 +530,14 @@ export function DuelTable({ duels, decks, loading, onEdit, onDelete, maxHeight, 
               disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage((p) => p + 1)}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>

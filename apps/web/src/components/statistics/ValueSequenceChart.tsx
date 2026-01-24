@@ -22,7 +22,10 @@ export function ValueSequenceChart({ data, gameMode, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="animate-pulse h-64 rounded" style={{ background: 'var(--color-surface-variant)' }} />
+      <div
+        className="animate-pulse h-64 rounded"
+        style={{ background: 'var(--color-surface-variant)' }}
+      />
     );
   }
 
