@@ -1,7 +1,15 @@
 import app from './index.js';
-import type { IncomingMessage, ServerResponse } from 'node:http';
 
-async function handler(req: IncomingMessage, res: ServerResponse) {
+function handler(req: any, res: any) {
+  // Diagnostic: return immediately to test if handler is called
+  if (req.url === '/api/ping' || req.url === '/ping') {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({ ping: 'pong', url: req.url, method: req.method }));
+    return;
+  }
+
+  // Full handler with Hono
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
   const url = new URL(req.url || '/', `${proto}://${host}`);
@@ -11,30 +19,23 @@ async function handler(req: IncomingMessage, res: ServerResponse) {
     if (value) headers.set(key, Array.isArray(value) ? value.join(', ') : value);
   }
 
-  const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
-  const body = hasBody
-    ? await new Promise<Buffer>((resolve) => {
-        const chunks: Buffer[] = [];
-        req.on('data', (chunk: Buffer) => chunks.push(chunk));
-        req.on('end', () => resolve(Buffer.concat(chunks)));
-      })
-    : null;
-
   const request = new Request(url.toString(), {
     method: req.method || 'GET',
     headers,
-    body,
   });
 
-  const response = await app.fetch(request);
-
-  res.statusCode = response.status;
-  response.headers.forEach((value, key) => {
-    res.setHeader(key, value);
+  app.fetch(request).then((response: any) => {
+    res.statusCode = response.status;
+    response.headers.forEach((value: string, key: string) => {
+      res.setHeader(key, value);
+    });
+    return response.arrayBuffer();
+  }).then((body: any) => {
+    res.end(Buffer.from(body));
+  }).catch((err: any) => {
+    res.statusCode = 500;
+    res.end(JSON.stringify({ error: err.message }));
   });
-
-  const responseBody = await response.arrayBuffer();
-  res.end(Buffer.from(responseBody));
 }
 
 // @ts-ignore
