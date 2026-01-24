@@ -140,6 +140,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(postgres@3.4.8)
+      esbuild:
+        specifier: ^0.27.0
+        version: 0.27.2
       vite:
         specifier: ^7.3.1
         version: 7.3.1(@types/node@25.0.10)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
