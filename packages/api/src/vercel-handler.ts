@@ -1,15 +1,6 @@
 import app from './index.js';
 
 function handler(req: any, res: any) {
-  // Diagnostic: return immediately to test if handler is called
-  if (req.url === '/api/ping' || req.url === '/ping') {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ ping: 'pong', url: req.url, method: req.method }));
-    return;
-  }
-
-  // Full handler with Hono
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
   const url = new URL(req.url || '/', `${proto}://${host}`);
@@ -19,21 +10,35 @@ function handler(req: any, res: any) {
     if (value) headers.set(key, Array.isArray(value) ? value.join(', ') : value);
   }
 
-  const request = new Request(url.toString(), {
-    method: req.method || 'GET',
-    headers,
-  });
+  const method = req.method || 'GET';
+  const hasBody = method !== 'GET' && method !== 'HEAD';
 
-  app.fetch(request).then((response: any) => {
+  const bodyPromise = hasBody
+    ? new Promise<Buffer>((resolve) => {
+        const chunks: Buffer[] = [];
+        req.on('data', (chunk: Buffer) => chunks.push(chunk));
+        req.on('end', () => resolve(Buffer.concat(chunks)));
+      })
+    : Promise.resolve(null);
+
+  bodyPromise.then((body: Buffer | null) => {
+    const request = new Request(url.toString(), {
+      method,
+      headers,
+      body,
+    });
+    return app.fetch(request);
+  }).then((response: any) => {
     res.statusCode = response.status;
     response.headers.forEach((value: string, key: string) => {
       res.setHeader(key, value);
     });
     return response.arrayBuffer();
-  }).then((body: any) => {
-    res.end(Buffer.from(body));
+  }).then((responseBody: any) => {
+    res.end(Buffer.from(responseBody));
   }).catch((err: any) => {
     res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: err.message }));
   });
 }
