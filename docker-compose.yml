@@ -1,73 +1,80 @@
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: duel-log-backend
-    restart: unless-stopped
+  install:
+    build: .
+    container_name: duel-log-install
+    command: pnpm install --frozen-lockfile
+    working_dir: /app
     volumes:
-      - ./backend:/app:cached
+      - .:/app:cached
+      - duel_log_node_modules:/app/node_modules
+      - duel_log_web_node_modules:/app/apps/web/node_modules
+      - duel_log_api_node_modules:/app/packages/api/node_modules
+      - duel_log_shared_node_modules:/app/packages/shared/node_modules
+
+  web:
+    build: .
+    container_name: duel-log-web
+    command: pnpm --filter @duel-log/web dev --host 0.0.0.0
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+      - duel_log_node_modules:/app/node_modules
+      - duel_log_web_node_modules:/app/apps/web/node_modules
+      - duel_log_api_node_modules:/app/packages/api/node_modules
+      - duel_log_shared_node_modules:/app/packages/shared/node_modules
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/duel_log
-      - SUPABASE_URL=${SUPABASE_URL:-http://localhost:55321}
-      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
-      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-for-local-development-only}
-      - FRONTEND_URL=http://duel-log.localhost
-      - ENVIRONMENT=development
+      - NODE_ENV=development
+      - API_URL=http://api:3000
+      - VITE_SUPABASE_URL=http://127.0.0.1:55321
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     depends_on:
-      db:
-        condition: service_healthy
+      install:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
     networks:
       - traefik
+      - supabase
       - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.duel-log-api.rule=Host(`duel-log.localhost`) && PathPrefix(`/api`)"
-      - "traefik.http.services.duel-log-api.loadbalancer.server.port=8000"
+      - "traefik.http.routers.duel-log.rule=Host(`duel-log.localhost`)"
+      - "traefik.http.services.duel-log.loadbalancer.server.port=5173"
       - "traefik.docker.network=traefik"
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: duel-log-frontend
-    restart: unless-stopped
+  api:
+    build: .
+    container_name: duel-log-api
+    command: pnpm --filter @duel-log/api dev --host 0.0.0.0
+    working_dir: /app
     volumes:
-      - ./frontend:/app:cached
-      - frontend_node_modules:/app/node_modules
+      - .:/app:cached
+      - duel_log_node_modules:/app/node_modules
+      - duel_log_web_node_modules:/app/apps/web/node_modules
+      - duel_log_api_node_modules:/app/packages/api/node_modules
+      - duel_log_shared_node_modules:/app/packages/shared/node_modules
+    env_file:
+      - .env
     environment:
-      - VITE_API_URL=http://duel-log.localhost/api
-      - VITE_SUPABASE_URL=${SUPABASE_URL:-http://localhost:55321}
-      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NODE_ENV=development
+      - SUPABASE_URL=http://supabase_kong_duel-log-app:8000
+      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_duel-log-app:5432/postgres
+    depends_on:
+      install:
+        condition: service_completed_successfully
     networks:
-      - traefik
+      - supabase
       - default
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.duel-log-frontend.rule=Host(`duel-log.localhost`)"
-      - "traefik.http.services.duel-log-frontend.loadbalancer.server.port=5173"
-      - "traefik.docker.network=traefik"
-
-  db:
-    image: postgres:16-alpine
-    container_name: duel-log-db
-    environment:
-      POSTGRES_DB: duel_log
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
 volumes:
-  frontend_node_modules:
-  pgdata:
+  duel_log_node_modules:
+  duel_log_web_node_modules:
+  duel_log_api_node_modules:
+  duel_log_shared_node_modules:
 
 networks:
   traefik:
     external: true
+  supabase:
+    external: true
+    name: supabase_network_duel-log-app

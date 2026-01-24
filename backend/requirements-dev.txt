@@ -1,4 +1,0 @@
-# 本番依存関係を含む
--r requirements.txt
-
-# 開発用追加ツール（テスト・リンターはrequirements.txtに含まれる）
