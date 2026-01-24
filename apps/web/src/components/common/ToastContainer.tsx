@@ -18,7 +18,9 @@ function ToastItem({ notification }: { notification: Notification }) {
       setExiting(true);
       setTimeout(() => dismiss(notification.id), 300);
     }, notification.duration);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [notification.id, notification.duration, dismiss]);
 
   const style = TYPE_STYLES[notification.type];

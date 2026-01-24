@@ -22,7 +22,9 @@ export function DateFilterBar({ year, month, onYearChange, onMonthChange }: Prop
         style={{ width: 'auto', paddingRight: '32px' }}
       >
         {years.map((y) => (
-          <option key={y} value={y}>{y}</option>
+          <option key={y} value={y}>
+            {y}
+          </option>
         ))}
       </select>
       <select
@@ -32,7 +34,10 @@ export function DateFilterBar({ year, month, onYearChange, onMonthChange }: Prop
         style={{ width: 'auto', paddingRight: '32px' }}
       >
         {months.map((m) => (
-          <option key={m} value={m}>{m}{t('common.month', '月')}</option>
+          <option key={m} value={m}>
+            {m}
+            {t('common.month', '月')}
+          </option>
         ))}
       </select>
     </div>

@@ -46,7 +46,15 @@ export const sharedStatisticsRoutes = new Hono<Env>()
     ]);
 
     return c.json({
-      data: { overview, winRates, matchups, duels, displayName, filters: stats.filters, expiresAt: stats.expiresAt },
+      data: {
+        overview,
+        winRates,
+        matchups,
+        duels,
+        displayName,
+        filters: stats.filters,
+        expiresAt: stats.expiresAt,
+      },
     });
   })
   .get('/:token/export/csv', async (c) => {

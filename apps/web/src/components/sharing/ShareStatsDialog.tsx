@@ -11,7 +11,13 @@ type Props = {
   defaultGameMode?: GameMode;
 };
 
-export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, defaultGameMode }: Props) {
+export function ShareStatsDialog({
+  open,
+  onClose,
+  defaultYear,
+  defaultMonth,
+  defaultGameMode,
+}: Props) {
   const { t } = useTranslation();
   const now = new Date();
   const [year, setYear] = useState(defaultYear ?? now.getFullYear());
@@ -32,7 +38,7 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
       setGeneratedUrl(null);
       setCopied(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultYear, defaultMonth, defaultGameMode]);
 
   if (!open) return null;
@@ -40,9 +46,10 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
   const handleGenerate = () => {
     const from = new Date(year, month - 1, 1).toISOString();
     const to = new Date(year, month, 0, 23, 59, 59).toISOString();
-    const expiresAt = expiresInDays !== null
-      ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
-      : null;
+    const expiresAt =
+      expiresInDays !== null
+        ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
 
     createShared.mutate(
       { filters: { from, to, ...(gameMode ? { gameMode } : {}) }, expiresAt },
@@ -68,14 +75,34 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
   const years = Array.from({ length: 3 }, (_, i) => currentYear - i);
 
   return (
-    <div className="dialog-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()} role="button" tabIndex={0} aria-label="Close dialog">
-      <div className="dialog-content max-w-sm" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+    <div
+      className="dialog-overlay"
+      onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      role="button"
+      tabIndex={0}
+      aria-label="Close dialog"
+    >
+      <div
+        className="dialog-content max-w-sm"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={() => {}}
+        role="dialog"
+        tabIndex={-1}
+      >
         <div className="dialog-header">
           <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
             {t('sharing.title')}
           </h2>
           <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost p-1">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -128,7 +155,9 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
                     className="themed-select flex-1"
                   >
                     {years.map((y) => (
-                      <option key={y} value={y}>{y}</option>
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
                     ))}
                   </select>
                   <select
@@ -137,7 +166,10 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
                     className="themed-select flex-1"
                   >
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                      <option key={m} value={m}>{m}{t('sharing.monthSuffix')}</option>
+                      <option key={m} value={m}>
+                        {m}
+                        {t('sharing.monthSuffix')}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -160,7 +192,9 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
                 >
                   <option value="">{t('sharing.allModes')}</option>
                   {GAME_MODES.map((mode) => (
-                    <option key={mode} value={mode}>{t(`gameMode.${mode}`)}</option>
+                    <option key={mode} value={mode}>
+                      {t(`gameMode.${mode}`)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -192,11 +226,7 @@ export function ShareStatsDialog({ open, onClose, defaultYear, defaultMonth, def
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="themed-btn themed-btn-ghost"
-                >
+                <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost">
                   {t('common.cancel')}
                 </button>
                 <button

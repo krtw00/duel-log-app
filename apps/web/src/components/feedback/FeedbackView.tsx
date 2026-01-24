@@ -61,7 +61,14 @@ export function FeedbackView() {
       key: 'bug',
       color: 'var(--color-error)',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3 3 0 0 1 6 0v1" />
           <path d="M12 20c-3.3 0-6-2.7-6-6v-3a6 6 0 0 1 12 0v3c0 3.3-2.7 6-6 6z" />
           <path d="M6 11H2M22 11h-4M6 15H2M22 15h-4M10 22v-2M14 22v-2" />
@@ -72,7 +79,14 @@ export function FeedbackView() {
       key: 'feature',
       color: 'var(--color-success)',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
         </svg>
       ),
@@ -81,7 +95,14 @@ export function FeedbackView() {
       key: 'contact',
       color: 'var(--color-primary)',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
           <polyline points="22,6 12,13 2,6" />
         </svg>
@@ -111,7 +132,10 @@ export function FeedbackView() {
               key={tab.key}
               type="button"
               className={`tab-item ${activeTab === tab.key ? 'active' : ''}`}
-              onClick={() => { setActiveTab(tab.key); resetForm(); }}
+              onClick={() => {
+                setActiveTab(tab.key);
+                resetForm();
+              }}
               style={activeTab !== tab.key ? { color: tab.color } : undefined}
             >
               {tab.icon}
@@ -122,21 +146,53 @@ export function FeedbackView() {
 
         <div className="p-4">
           {sent ? (
-            <div className="dialog-overlay" onClick={resetForm} onKeyDown={(e) => e.key === 'Escape' && resetForm()} role="button" tabIndex={0} aria-label="Close dialog">
-              <div className="dialog-content" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+            <div
+              className="dialog-overlay"
+              onClick={resetForm}
+              onKeyDown={(e) => e.key === 'Escape' && resetForm()}
+              role="button"
+              tabIndex={0}
+              aria-label="Close dialog"
+            >
+              <div
+                className="dialog-content"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={() => {}}
+                role="dialog"
+                tabIndex={-1}
+              >
                 <div className="dialog-header">
                   <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
                     {t('feedback.success')}
                   </h2>
-                  <button type="button" onClick={resetForm} className="themed-btn themed-btn-ghost p-1">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="themed-btn themed-btn-ghost p-1"
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <line x1="18" y1="6" x2="6" y2="18" />
                       <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 </div>
                 <div className="dialog-body text-center py-6 space-y-4">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2" className="mx-auto">
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-success)"
+                    strokeWidth="2"
+                    className="mx-auto"
+                  >
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
@@ -171,7 +227,10 @@ export function FeedbackView() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3 rounded-lg text-sm" style={{ background: 'rgba(255,61,113,0.1)', color: 'var(--color-error)' }}>
+                <div
+                  className="p-3 rounded-lg text-sm"
+                  style={{ background: 'rgba(255,61,113,0.1)', color: 'var(--color-error)' }}
+                >
                   {error}
                 </div>
               )}
@@ -179,7 +238,11 @@ export function FeedbackView() {
               {/* Title (bug + feature) */}
               {(activeTab === 'bug' || activeTab === 'feature') && (
                 <div>
-                  <label htmlFor="fbTitle" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  <label
+                    htmlFor="fbTitle"
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: 'var(--color-on-surface-muted)' }}
+                  >
                     {t('feedback.feedbackTitle')}
                   </label>
                   <input
@@ -196,7 +259,11 @@ export function FeedbackView() {
               {/* Subject (contact) */}
               {activeTab === 'contact' && (
                 <div>
-                  <label htmlFor="fbSubject" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  <label
+                    htmlFor="fbSubject"
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: 'var(--color-on-surface-muted)' }}
+                  >
                     {t('feedback.subject')}
                   </label>
                   <input
@@ -212,7 +279,11 @@ export function FeedbackView() {
 
               {/* Description / Message */}
               <div>
-                <label htmlFor="fbBody" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                <label
+                  htmlFor="fbBody"
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
                   {activeTab === 'contact' ? t('feedback.message') : t('feedback.body')}
                 </label>
                 <textarea
@@ -230,7 +301,11 @@ export function FeedbackView() {
               {activeTab === 'bug' && (
                 <>
                   <div>
-                    <label htmlFor="fbSteps" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    <label
+                      htmlFor="fbSteps"
+                      className="block text-sm font-medium mb-1"
+                      style={{ color: 'var(--color-on-surface-muted)' }}
+                    >
                       {t('feedback.reproSteps')}
                     </label>
                     <textarea
@@ -244,7 +319,11 @@ export function FeedbackView() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="fbExpected" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      <label
+                        htmlFor="fbExpected"
+                        className="block text-sm font-medium mb-1"
+                        style={{ color: 'var(--color-on-surface-muted)' }}
+                      >
                         {t('feedback.expected')}
                       </label>
                       <textarea
@@ -257,7 +336,11 @@ export function FeedbackView() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="fbActual" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      <label
+                        htmlFor="fbActual"
+                        className="block text-sm font-medium mb-1"
+                        style={{ color: 'var(--color-on-surface-muted)' }}
+                      >
                         {t('feedback.actual')}
                       </label>
                       <textarea
@@ -276,7 +359,11 @@ export function FeedbackView() {
               {/* Feature-specific fields */}
               {activeTab === 'feature' && (
                 <div>
-                  <label htmlFor="fbUseCase" className="block text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  <label
+                    htmlFor="fbUseCase"
+                    className="block text-sm font-medium mb-1"
+                    style={{ color: 'var(--color-on-surface-muted)' }}
+                  >
                     {t('feedback.useCase')}
                   </label>
                   <textarea
@@ -305,7 +392,14 @@ export function FeedbackView() {
       {/* Contact Card */}
       <div className="glass-card p-4">
         <div className="flex items-center gap-2 mb-3">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--color-primary)"
+            strokeWidth="2"
+          >
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>

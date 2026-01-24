@@ -57,9 +57,7 @@ export type ColorTarget = {
   tolerance: number;
 };
 
-export type WorkerMessage =
-  | { type: 'analyze'; imageData: ImageData }
-  | { type: 'stop' };
+export type WorkerMessage = { type: 'analyze'; imageData: ImageData } | { type: 'stop' };
 
 export type WorkerResponse = {
   type: 'result';

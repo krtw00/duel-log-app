@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SCAN_FPS } from '../utils/screenAnalysis/config.js';
 import { createInitialContext, transition } from '../utils/screenAnalysis/fsm.js';
-import type { AnalysisFrame, CoinResult, DetectionResult, FSMContext, ScreenAnalysisStatus } from '../utils/screenAnalysis/types.js';
+import type {
+  AnalysisFrame,
+  CoinResult,
+  DetectionResult,
+  FSMContext,
+  ScreenAnalysisStatus,
+} from '../utils/screenAnalysis/types.js';
 
-type AutoRegisterCallback = (data: { coin: CoinResult; isFirst: boolean; result: DetectionResult }) => void;
+type AutoRegisterCallback = (data: {
+  coin: CoinResult;
+  isFirst: boolean;
+  result: DetectionResult;
+}) => void;
 
 export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
   const [isCapturing, setIsCapturing] = useState(false);
@@ -60,10 +70,9 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
       videoRef.current = video;
 
       // Create worker
-      const worker = new Worker(
-        new URL('../workers/screenAnalysis.worker.ts', import.meta.url),
-        { type: 'module' },
-      );
+      const worker = new Worker(new URL('../workers/screenAnalysis.worker.ts', import.meta.url), {
+        type: 'module',
+      });
       worker.onmessage = handleWorkerMessage;
       workerRef.current = worker;
 

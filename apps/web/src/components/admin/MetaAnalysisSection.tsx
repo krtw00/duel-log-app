@@ -39,13 +39,20 @@ export function MetaAnalysisSection() {
       <div className="p-4 space-y-6">
         {/* Popular Decks */}
         <div>
-          <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <h3
+            className="text-sm font-medium mb-2"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('admin.popularDecks')}
           </h3>
           {decksLoading ? (
             <div className="animate-pulse space-y-2">
               {['s1', 's2', 's3'].map((id) => (
-                <div key={id} className="h-8 rounded" style={{ background: 'var(--color-surface-variant)' }} />
+                <div
+                  key={id}
+                  className="h-8 rounded"
+                  style={{ background: 'var(--color-surface-variant)' }}
+                />
               ))}
             </div>
           ) : (
@@ -65,14 +72,22 @@ export function MetaAnalysisSection() {
                       <td className="font-medium" style={{ color: 'var(--color-on-surface)' }}>
                         {deck.deckName}
                       </td>
-                      <td className="text-center" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      <td
+                        className="text-center"
+                        style={{ color: 'var(--color-on-surface-muted)' }}
+                      >
                         {deck.userCount}
                       </td>
-                      <td className="text-center" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      <td
+                        className="text-center"
+                        style={{ color: 'var(--color-on-surface-muted)' }}
+                      >
                         {deck.duelCount}
                       </td>
                       <td className="text-center">
-                        <span className={`chip ${deck.winRate >= 0.55 ? 'chip-outlined-info' : deck.winRate <= 0.45 ? 'chip-error' : ''}`}>
+                        <span
+                          className={`chip ${deck.winRate >= 0.55 ? 'chip-outlined-info' : deck.winRate <= 0.45 ? 'chip-error' : ''}`}
+                        >
                           {(deck.winRate * 100).toFixed(1)}%
                         </span>
                       </td>
@@ -86,19 +101,30 @@ export function MetaAnalysisSection() {
 
         {/* Game Mode Stats */}
         <div>
-          <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <h3
+            className="text-sm font-medium mb-2"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          >
             {t('admin.gameModeStats')}
           </h3>
           {statsLoading ? (
             <div className="animate-pulse space-y-2">
               {['s1', 's2'].map((id) => (
-                <div key={id} className="h-8 rounded" style={{ background: 'var(--color-surface-variant)' }} />
+                <div
+                  key={id}
+                  className="h-8 rounded"
+                  style={{ background: 'var(--color-surface-variant)' }}
+                />
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {(gameModeStats?.data ?? []).map((stat) => (
-                <div key={stat.gameMode} className="text-center p-3 rounded" style={{ background: 'var(--color-surface-variant)' }}>
+                <div
+                  key={stat.gameMode}
+                  className="text-center p-3 rounded"
+                  style={{ background: 'var(--color-surface-variant)' }}
+                >
                   <div className="text-sm mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                     {stat.gameMode}
                   </div>

@@ -81,8 +81,23 @@ export function CsvImportDialog({ open, onClose, gameMode }: Props) {
   if (!open) return null;
 
   return (
-    <div className="dialog-overlay" onClick={handleClose} onKeyDown={(e) => { if (e.key === 'Escape') handleClose(); }} role="button" tabIndex={0} aria-label="Close dialog">
-      <div className="dialog-content max-w-md" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="dialog" tabIndex={-1}>
+    <div
+      className="dialog-overlay"
+      onClick={handleClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') handleClose();
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Close dialog"
+    >
+      <div
+        className="dialog-content max-w-md"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        role="dialog"
+        tabIndex={-1}
+      >
         <div className="dialog-header">
           <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
             {t('csv.importTitle')}
@@ -120,7 +135,10 @@ export function CsvImportDialog({ open, onClose, gameMode }: Props) {
                 {t('csv.importSuccess', { count: result.imported })}
               </p>
               {result.errors.length > 0 && (
-                <div className="text-sm max-h-24 overflow-y-auto" style={{ color: 'var(--color-error)' }}>
+                <div
+                  className="text-sm max-h-24 overflow-y-auto"
+                  style={{ color: 'var(--color-error)' }}
+                >
                   {result.errors.map((err) => (
                     <p key={err}>{err}</p>
                   ))}
@@ -130,11 +148,7 @@ export function CsvImportDialog({ open, onClose, gameMode }: Props) {
           )}
 
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="themed-btn themed-btn-ghost"
-            >
+            <button type="button" onClick={handleClose} className="themed-btn themed-btn-ghost">
               {t('common.close')}
             </button>
             {!result && (

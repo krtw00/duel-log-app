@@ -60,7 +60,8 @@ export function useUnarchiveDeck() {
 export function useArchiveAllDecks() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api<{ data: { archivedCount: number } }>('/decks/archive-all', { method: 'POST' }),
+    mutationFn: () =>
+      api<{ data: { archivedCount: number } }>('/decks/archive-all', { method: 'POST' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['decks'] });
     },
