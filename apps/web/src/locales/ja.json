@@ -28,6 +28,7 @@
     "decks": "デッキ",
     "statistics": "統計",
     "profile": "プロフィール",
+    "streamer": "配信",
     "admin": "管理",
     "feedback": "フィードバック",
     "help": "ヘルプ"
@@ -215,8 +216,14 @@
       "firstTurnWinRate": "先攻勝率",
       "secondTurnWinRate": "後攻勝率",
       "coinWinRate": "コイン勝率",
-      "goFirstRate": "先攻率"
+      "goFirstRate": "先攻率",
+      "currentStreak": "連勝/連敗",
+      "recentResults": "直近戦績",
+      "sessionGraph": "勝率推移",
+      "milestone": "目標進捗"
     },
+    "milestoneGoal": "セッション目標勝利数",
+    "recentResultsCount": "直近戦績表示数",
     "settings": {
       "displayItems": "表示項目",
       "statsPeriod": "統計期間",
@@ -238,6 +245,8 @@
     "saved": "保存しました",
     "saveFailed": "保存に失敗しました",
     "language": "言語",
+    "dataManagement": "データ管理",
+    "dataManagementDescription": "全対戦データをCSV形式でエクスポート/インポートできます",
     "deleteAccount": "アカウント削除",
     "deleteWarning": "アカウントを削除すると、すべてのデータが完全に削除され、復元できません。",
     "deleteConfirmText": "確認のため「DELETE」と入力してください",
@@ -298,6 +307,7 @@
     "importTitle": "CSVインポート",
     "importDescription": "CSV形式のファイルを選択してインポートしてください。",
     "requiredColumns": "必須列: deck_name, opponent_deck_name, result, game_mode, is_first, won_coin_toss, dueled_at",
+    "requiredColumnsFiltered": "必須列: deck_name, opponent_deck_name, result, is_first, won_coin_toss, dueled_at",
     "importError": "エラー: {{message}}",
     "importSuccess": "{{count}}件をインポートしました",
     "importing": "インポート中..."

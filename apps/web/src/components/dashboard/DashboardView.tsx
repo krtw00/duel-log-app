@@ -140,7 +140,7 @@ export function DashboardView() {
       <StatsDisplayCards stats={overviewData?.data} loading={statsLoading} />
 
       {/* Stats Popup / OBS Overlay */}
-      <StreamerSection />
+      <StreamerSection gameMode={gameMode} />
 
       {/* Default Settings */}
       <div className="glass-card p-4">
@@ -267,7 +267,7 @@ export function DashboardView() {
 
 
       {/* CSV Import */}
-      <CsvImportDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} />
+      <CsvImportDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} gameMode={gameMode} />
 
       {/* Share Stats */}
       <ShareStatsDialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)} defaultYear={year} defaultMonth={month} defaultGameMode={gameMode} />

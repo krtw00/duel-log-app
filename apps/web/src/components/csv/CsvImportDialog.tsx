@@ -1,3 +1,4 @@
+import type { GameMode } from '@duel-log/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +7,7 @@ import { supabase } from '../../lib/supabase.js';
 type Props = {
   open: boolean;
   onClose: () => void;
+  gameMode?: GameMode;
 };
 
 type ImportResult = {
@@ -13,7 +15,7 @@ type ImportResult = {
   errors: string[];
 };
 
-export function CsvImportDialog({ open, onClose }: Props) {
+export function CsvImportDialog({ open, onClose, gameMode }: Props) {
   const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -28,7 +30,11 @@ export function CsvImportDialog({ open, onClose }: Props) {
       if (!session?.access_token) throw new Error('Not authenticated');
 
       const text = await csvFile.text();
-      const response = await fetch('/api/duels/import', {
+      const params = new URLSearchParams();
+      if (gameMode) params.set('gameMode', gameMode);
+      const qs = params.toString();
+      const url = `/api/duels/import${qs ? `?${qs}` : ''}`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -89,7 +95,7 @@ export function CsvImportDialog({ open, onClose }: Props) {
               {t('csv.importDescription')}
             </p>
             <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)', opacity: 0.7 }}>
-              {t('csv.requiredColumns')}
+              {t(gameMode ? 'csv.requiredColumnsFiltered' : 'csv.requiredColumns')}
             </p>
           </div>
 

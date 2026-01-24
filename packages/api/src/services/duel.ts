@@ -1,9 +1,15 @@
 import type { CreateDuel, DuelFilter, UpdateDuel } from '@duel-log/shared';
-import { sql } from '../db/index.js';
 import { type SqlFragment, andWhere } from '../db/helpers.js';
+import { sql } from '../db/index.js';
 import type { DuelRow } from '../db/types.js';
 
-function buildConditions(userId: string, filter: Pick<DuelFilter, 'gameMode' | 'deckId' | 'from' | 'to' | 'fromTimestamp' | 'rangeStart' | 'rangeEnd'>) {
+function buildConditions(
+  userId: string,
+  filter: Pick<
+    DuelFilter,
+    'gameMode' | 'deckId' | 'from' | 'to' | 'fromTimestamp' | 'rangeStart' | 'rangeEnd'
+  >,
+) {
   const conditions: SqlFragment[] = [sql`user_id = ${userId}`];
 
   if (filter.gameMode) conditions.push(sql`game_mode = ${filter.gameMode}`);
@@ -106,12 +112,25 @@ export async function deleteDuel(userId: string, duelId: string) {
   return deleted;
 }
 
-/** CSV用: 全デュエル取得（フィルタ対応） */
-export async function exportDuels(userId: string, filter: Omit<DuelFilter, 'limit' | 'offset'>): Promise<DuelRow[]> {
+export interface ExportDuelRow extends DuelRow {
+  deckName: string;
+  opponentDeckName: string;
+}
+
+/** CSV用: 全デュエル取得（フィルタ対応、デッキ名JOIN） */
+export async function exportDuels(
+  userId: string,
+  filter: Omit<DuelFilter, 'limit' | 'offset'>,
+): Promise<ExportDuelRow[]> {
   const where = buildConditions(userId, filter);
 
-  const result = await sql<DuelRow[]>`
-    SELECT * FROM duels WHERE ${where} ORDER BY dueled_at DESC
+  const result = await sql<ExportDuelRow[]>`
+    SELECT d.*, dk.name AS "deckName", odk.name AS "opponentDeckName"
+    FROM duels d
+    JOIN decks dk ON d.deck_id = dk.id
+    JOIN decks odk ON d.opponent_deck_id = odk.id
+    WHERE ${where}
+    ORDER BY d.dueled_at ASC
   `;
   return Array.from(result);
 }

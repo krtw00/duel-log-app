@@ -8,6 +8,7 @@ import { ProfileView } from '../components/profile/ProfileView.js';
 import { StatisticsView } from '../components/statistics/StatisticsView.js';
 import { OBSOverlayView } from '../components/streamer/OBSOverlayView.js';
 import { StreamerPopupView } from '../components/streamer/StreamerPopupView.js';
+import { StreamerView } from '../components/streamer/StreamerView.js';
 import { supabase } from '../lib/supabase.js';
 import { rootRoute } from './__root.js';
 
@@ -63,6 +64,12 @@ export const feedbackRoute = createRoute({
     tab: (search.tab as string) || undefined,
   }),
   component: FeedbackView,
+});
+
+export const streamerRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/streamer',
+  component: StreamerView,
 });
 
 export const streamerPopupRoute = createRoute({

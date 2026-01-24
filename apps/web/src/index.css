@@ -1399,6 +1399,28 @@ body {
   color: rgba(255, 69, 96, 0.8);
 }
 
+/* Recent Results */
+.obs-recent-results { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.obs-result-mark { font-size: 20px; font-weight: 700; line-height: 1; }
+.obs-result-mark.win { color: #00e676; }
+.obs-result-mark.loss { color: #ff3d71; }
+
+/* Session Graph */
+.obs-session-graph { display: block; margin: 0 auto; }
+
+/* Milestone */
+.obs-milestone { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
+.obs-milestone-bar { width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.15); overflow: hidden; }
+.obs-milestone-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--obs-gradient-start), var(--obs-gradient-end)); transition: width 0.3s ease; }
+.obs-milestone-label { font-size: 18px; font-weight: 600; color: var(--obs-text-primary); }
+
+/* Custom stat content */
+.obs-stat-custom { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 38px; }
+
+/* Wide items */
+.obs-stat-item.wide-item { min-width: 200px; }
+.obs-stats-card.layout-horizontal .obs-stat-item.wide-item { min-width: 220px; }
+
 /* ==========================================
    Streamer Popup
    ========================================== */

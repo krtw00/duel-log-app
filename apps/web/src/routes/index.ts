@@ -10,6 +10,7 @@ import {
   profileRoute,
   statisticsRoute,
   streamerPopupRoute,
+  streamerRoute,
 } from './app.js';
 import {
   authLayoutRoute,
@@ -34,6 +35,7 @@ const routeTree = rootRoute.addChildren([
     decksRoute,
     statisticsRoute,
     profileRoute,
+    streamerRoute,
     adminRoute,
     feedbackRoute,
     streamerPopupRoute,
