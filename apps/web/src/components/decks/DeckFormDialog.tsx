@@ -1,5 +1,6 @@
 import type { Deck } from '@duel-log/shared';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   open: boolean;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function DeckFormDialog({ open, onClose, onSubmit, editingDeck, loading }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
 
   useEffect(() => {
@@ -25,59 +27,51 @@ export function DeckFormDialog({ open, onClose, onSubmit, editingDeck, loading }
     }
   };
 
-  const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black/50"
-        onClick={onClose}
-        onKeyDown={handleBackdropKeyDown}
-        role="button"
-        tabIndex={0}
-        aria-label="Close dialog"
-      />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-        <h2 className="text-lg font-bold mb-4">
-          {editingDeck ? 'デッキ名を変更' : 'デッキを追加'}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="deckName" className="block text-sm font-medium text-gray-700 mb-1">
-              デッキ名
-            </label>
-            <input
-              id="deckName"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              maxLength={100}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="デッキ名を入力"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !name.trim()}
-              className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? '保存中...' : editingDeck ? '更新' : '追加'}
-            </button>
-          </div>
-        </form>
+    <div className="dialog-overlay" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()} role="button" tabIndex={0} aria-label="Close dialog">
+      <div className="dialog-content" onClick={(e) => e.stopPropagation()} onKeyDown={() => {}} role="dialog" tabIndex={-1}>
+        <div className="dialog-header">
+          <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
+            {editingDeck ? t('deck.editDeck') : t('deck.addDeck')}
+          </h2>
+          <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost p-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div className="dialog-body">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="deckName" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+                {t('deck.deckName')}
+              </label>
+              <input
+                id="deckName"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                maxLength={100}
+                className="themed-input"
+                placeholder={t('deck.deckName')}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={onClose} className="themed-btn themed-btn-ghost">
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={loading || !name.trim()}
+                className="themed-btn themed-btn-primary"
+              >
+                {loading ? t('common.saving') : editingDeck ? t('common.save') : t('common.create')}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

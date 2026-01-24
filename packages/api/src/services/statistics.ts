@@ -86,9 +86,12 @@ interface MatchupResult {
   deckName: string;
   opponentDeckId: string;
   opponentDeckName: string;
+  opponentDeckIsGeneric: boolean;
   wins: number;
   losses: number;
   winRate: number;
+  firstWinRate: number;
+  secondWinRate: number;
 }
 
 export async function getMatchups(userId: string, filter: StatisticsFilter) {
@@ -100,16 +103,23 @@ export async function getMatchups(userId: string, filter: StatisticsFilter) {
       dk.name AS deck_name,
       d.opponent_deck_id,
       od.name AS opponent_deck_name,
+      coalesce(od.is_generic, false) AS opponent_deck_is_generic,
       count(*) filter (WHERE d.result = 'win')::int AS wins,
       count(*) filter (WHERE d.result = 'loss')::int AS losses,
       CASE WHEN count(*) = 0 THEN 0
         ELSE round(count(*) filter (WHERE d.result = 'win')::numeric / count(*)::numeric, 4)
-      END::float AS win_rate
+      END::float AS win_rate,
+      CASE WHEN count(*) filter (WHERE d.is_first = true) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.is_first = true AND d.result = 'win')::numeric / count(*) filter (WHERE d.is_first = true)::numeric, 4)
+      END::float AS first_win_rate,
+      CASE WHEN count(*) filter (WHERE d.is_first = false) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.is_first = false AND d.result = 'win')::numeric / count(*) filter (WHERE d.is_first = false)::numeric, 4)
+      END::float AS second_win_rate
     FROM duels d
     INNER JOIN decks dk ON dk.id = d.deck_id
     INNER JOIN decks od ON od.id = d.opponent_deck_id
     WHERE ${where}
-    GROUP BY d.deck_id, dk.name, d.opponent_deck_id, od.name
+    GROUP BY d.deck_id, dk.name, d.opponent_deck_id, od.name, od.is_generic
   `;
 }
 
@@ -185,4 +195,57 @@ export async function getValueSequence(userId: string, filter: StatisticsFilter)
     WHERE ${where}
     ORDER BY d.dueled_at
   `;
+}
+
+interface DuelHistoryResult {
+  id: string;
+  deckId: string;
+  deckName: string;
+  opponentDeckId: string;
+  opponentDeckName: string;
+  opponentDeckIsGeneric: boolean;
+  result: string;
+  gameMode: string;
+  isFirst: boolean;
+  wonCoinToss: boolean;
+  rank: number | null;
+  rateValue: number | null;
+  dcValue: number | null;
+  memo: string | null;
+  dueledAt: Date;
+}
+
+export async function getDuelHistory(userId: string, filter: StatisticsFilter) {
+  const where = buildConditions(userId, filter);
+
+  return sql<DuelHistoryResult[]>`
+    SELECT
+      d.id,
+      d.deck_id,
+      dk.name AS deck_name,
+      d.opponent_deck_id,
+      od.name AS opponent_deck_name,
+      coalesce(od.is_generic, false) AS opponent_deck_is_generic,
+      d.result,
+      d.game_mode,
+      d.is_first,
+      d.won_coin_toss,
+      d.rank,
+      d.rate_value,
+      d.dc_value,
+      d.memo,
+      d.dueled_at
+    FROM duels d
+    INNER JOIN decks dk ON dk.id = d.deck_id
+    INNER JOIN decks od ON od.id = d.opponent_deck_id
+    WHERE ${where}
+    ORDER BY d.dueled_at DESC
+  `;
+}
+
+export async function getUserDisplayName(userId: string): Promise<string> {
+  const [user] = await sql<{ displayName: string }[]>`
+    SELECT display_name FROM users WHERE id = ${userId}
+  `;
+  return user?.displayName ?? 'Unknown';
 }

@@ -1,5 +1,6 @@
 import type { GameMode } from '@duel-log/shared';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase.js';
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
 };
 
 export function CsvExportButton({ gameMode }: Props) {
+  const { t } = useTranslation();
   const [exporting, setExporting] = useState(false);
 
   const handleExport = async () => {
@@ -49,9 +51,14 @@ export function CsvExportButton({ gameMode }: Props) {
       type="button"
       onClick={handleExport}
       disabled={exporting}
-      className="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+      className="themed-btn themed-btn-outlined text-xs"
     >
-      {exporting ? 'エクスポート中...' : 'CSV出力'}
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      <span className="hidden sm:inline">{exporting ? t('common.exporting') : t('common.export')}</span>
     </button>
   );
 }

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase.js';
 
 type Props = {
@@ -13,6 +14,7 @@ type ImportResult = {
 };
 
 export function CsvImportDialog({ open, onClose }: Props) {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,78 +72,76 @@ export function CsvImportDialog({ open, onClose }: Props) {
     onClose();
   };
 
-  const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') handleClose();
-  };
-
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black/50"
-        onClick={handleClose}
-        onKeyDown={handleBackdropKeyDown}
-        role="button"
-        tabIndex={0}
-        aria-label="Close dialog"
-      />
-      <div className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-md space-y-4">
-        <h2 className="text-lg font-bold">CSVインポート</h2>
-
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600">
-            CSV形式のファイルを選択してインポートしてください。
-          </p>
-          <p className="text-xs text-gray-400">
-            必須列: deck_name, opponent_deck_name, result, game_mode, is_first, won_coin_toss,
-            dueled_at
-          </p>
+    <div className="dialog-overlay" onClick={handleClose} onKeyDown={(e) => { if (e.key === 'Escape') handleClose(); }} role="button" tabIndex={0} aria-label="Close dialog">
+      <div className="dialog-content max-w-md" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="dialog" tabIndex={-1}>
+        <div className="dialog-header">
+          <h2 className="text-lg font-bold" style={{ color: 'var(--color-on-surface)' }}>
+            {t('csv.importTitle')}
+          </h2>
         </div>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv,text/csv"
-          onChange={handleFileChange}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
-
-        {importMutation.isError && (
-          <p className="text-sm text-red-600">エラー: {importMutation.error.message}</p>
-        )}
-
-        {result && (
-          <div className="space-y-1">
-            <p className="text-sm text-green-600">{result.imported}件をインポートしました</p>
-            {result.errors.length > 0 && (
-              <div className="text-xs text-red-600 max-h-24 overflow-y-auto">
-                {result.errors.map((err) => (
-                  <p key={err}>{err}</p>
-                ))}
-              </div>
-            )}
+        <div className="dialog-body space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+              {t('csv.importDescription')}
+            </p>
+            <p className="text-xs" style={{ color: 'var(--color-on-surface-muted)', opacity: 0.7 }}>
+              {t('csv.requiredColumns')}
+            </p>
           </div>
-        )}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            閉じる
-          </button>
-          {!result && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleFileChange}
+            className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:cursor-pointer"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+          />
+
+          {importMutation.isError && (
+            <p className="text-sm" style={{ color: 'var(--color-error)' }}>
+              {t('csv.importError', { message: importMutation.error.message })}
+            </p>
+          )}
+
+          {result && (
+            <div className="space-y-1">
+              <p className="text-sm" style={{ color: 'var(--color-success)' }}>
+                {t('csv.importSuccess', { count: result.imported })}
+              </p>
+              {result.errors.length > 0 && (
+                <div className="text-xs max-h-24 overflow-y-auto" style={{ color: 'var(--color-error)' }}>
+                  {result.errors.map((err) => (
+                    <p key={err}>{err}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
-              onClick={handleImport}
-              disabled={!file || importMutation.isPending}
-              className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              onClick={handleClose}
+              className="themed-btn themed-btn-ghost"
             >
-              {importMutation.isPending ? 'インポート中...' : 'インポート'}
+              {t('common.close')}
             </button>
-          )}
+            {!result && (
+              <button
+                type="button"
+                onClick={handleImport}
+                disabled={!file || importMutation.isPending}
+                className="themed-btn themed-btn-primary"
+              >
+                {importMutation.isPending ? t('csv.importing') : t('common.import')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
