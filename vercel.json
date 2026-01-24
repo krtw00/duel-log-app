@@ -4,14 +4,13 @@
   "installCommand": "pnpm install",
   "outputDirectory": "apps/web/dist",
   "functions": {
-    "api/[[...route]].ts": {
-      "runtime": "@vercel/node@3",
+    "api/**": {
       "maxDuration": 30
     }
   },
   "rewrites": [
     {
-      "source": "/api/:path*",
+      "source": "/api/(.*)",
       "destination": "/api/[[...route]]"
     },
     {
