@@ -227,6 +227,7 @@
     "settings": {
       "displayItems": "Display Items",
       "statsPeriod": "Stats Period",
+      "sessionStart": "From Session Start",
       "resetDefaults": "Reset to Defaults",
       "openPopup": "Open Popup",
       "saveSettings": "Save Settings",
