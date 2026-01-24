@@ -1,6 +1,6 @@
 # Duel Log App
 
-TCG対戦履歴を記録・分析するWebアプリケーション。
+遊戯王マスターデュエルの対戦履歴を記録・分析するWebアプリケーション。
 
 ## Core Value
 
@@ -43,34 +43,10 @@ Duel N→1 Deck (opponent_deck_id: 相手デッキ)
 
 ## 開発環境
 
-**詳細:** `docs/05-guides/quickstart.md`
+Docker不使用。`pnpm dev|build|test|lint|typecheck` + `npx supabase start`
 
-```bash
-# 起動
-pnpm install              # 依存関係インストール
-npx supabase start        # ローカルSupabase
-pnpm dev                  # 開発サーバー
-
-# アクセス
-# アプリ: http://localhost:5173
-# Supabase Studio: http://127.0.0.1:54323
-```
-
-## よく使うコマンド
-
-```bash
-# 全体
-pnpm dev           # 開発サーバー起動
-pnpm build         # ビルド
-pnpm test          # テスト実行
-pnpm lint          # リント
-pnpm typecheck     # 型チェック
-
-# データベース
-pnpm db:migrate    # マイグレーション適用
-pnpm db:seed       # シードデータ投入
-pnpm db:studio     # Drizzle Studio起動
-```
+- アプリ: `http://localhost:5173`
+- Supabase Studio: `http://127.0.0.1:54323`
 
 ## テストユーザー
 
@@ -91,16 +67,6 @@ seedスクリプトで作成（パスワード: `password123`）:
 | フロントエンド + API | Vercel (単一ドメイン) |
 | データベース + 認証 | Supabase Cloud |
 
-## ドキュメント規範
-
-| 規範 | ファイル | 読むタイミング |
-|------|---------|---------------|
-| 記載規範 | `docs/00-writing-guide.md` | docs/配下を作成・編集する前に必読 |
-| フォーマット規範 | `docs/00-format-guide.md` | docs/配下を作成・編集する前に必読 |
-| Git規範 | `docs/00-git-guide.md` | コミット・ブランチ作成時に参照 |
-
-**IMPORTANT:** docs/配下のファイルを変更する際は、必ず事前に `docs/00-writing-guide.md` と `docs/00-format-guide.md` を読み、規範に従うこと。
-
 ## 詳細ドキュメント
 
 `docs/`ディレクトリを参照:
@@ -112,3 +78,17 @@ seedスクリプトで作成（パスワード: `password123`）:
 | `docs/03-details/` | データモデル・API・主要フロー |
 | `docs/04-decisions/` | ADR（アーキテクチャ決定記録） |
 | `docs/05-guides/` | クイックスタート・テスト・デプロイ手順 |
+
+## ツール・MCP使用ガイド
+
+### 利用可能リソース
+- **Plugins**: Supabase（DB・認証）, Serena（コード構造）
+- **MCP**: Render（デプロイ状況・ログ）
+- **Commands**: `/code`, `/lint`, `/migrate`, `/test`
+
+### シナリオ別ルール
+- DBスキーマ変更 → Supabaseプラグイン or `/migrate`
+- テスト → `/test` or `pnpm test`
+- リント → `/lint`（Biome）
+- デプロイ確認 → Render MCP or `/deploy`スキル
+- モノレポ構造理解 → Serena
