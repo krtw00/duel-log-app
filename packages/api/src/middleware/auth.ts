@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { eq } from 'drizzle-orm';
 import { createMiddleware } from 'hono/factory';
-import { db } from '../db/index.js';
-import { users } from '../db/schema.js';
+import { sql } from '../db/index.js';
+import type { UserRow } from '../db/types.js';
 
 export type AuthUser = {
   id: string;
@@ -47,23 +46,24 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   }
 
   // JIT provisioning: ユーザーがDBに存在しなければ作成
-  let dbUser = await db.query.users.findFirst({
-    where: eq(users.id, supabaseUser.id),
-  });
+  const [dbUserExisting] = await sql<UserRow[]>`
+    SELECT * FROM users WHERE id = ${supabaseUser.id}
+  `;
+
+  let dbUser: UserRow | undefined = dbUserExisting;
 
   if (!dbUser) {
-    const [created] = await db
-      .insert(users)
-      .values({
-        id: supabaseUser.id,
-        email: supabaseUser.email ?? '',
-        displayName: supabaseUser.user_metadata?.display_name ?? supabaseUser.email ?? '',
-      })
-      .returning();
+    const [created] = await sql<UserRow[]>`
+      INSERT INTO users (id, email, display_name)
+      VALUES (${supabaseUser.id}, ${supabaseUser.email ?? ''}, ${supabaseUser.user_metadata?.display_name ?? supabaseUser.email ?? ''})
+      RETURNING *
+    `;
     dbUser = created;
   } else {
     // 最終ログイン日時を更新
-    await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, supabaseUser.id));
+    await sql`
+      UPDATE users SET last_login_at = now() WHERE id = ${supabaseUser.id}
+    `;
   }
 
   if (!dbUser) {

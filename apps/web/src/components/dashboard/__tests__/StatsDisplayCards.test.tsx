@@ -21,6 +21,8 @@ describe('StatsDisplayCards', () => {
       losses: 40,
       winRate: 0.6,
       firstRate: 0.55,
+      firstWinRate: 0.65,
+      secondWinRate: 0.52,
       coinTossWinRate: 0.48,
     };
 
@@ -40,6 +42,8 @@ describe('StatsDisplayCards', () => {
       losses: 4,
       winRate: 0.6,
       firstRate: 0.5,
+      firstWinRate: 0.6,
+      secondWinRate: 0.6,
       coinTossWinRate: 0.5,
     };
 
@@ -55,6 +59,8 @@ describe('StatsDisplayCards', () => {
       losses: 7,
       winRate: 0.3,
       firstRate: 0.5,
+      firstWinRate: 0.3,
+      secondWinRate: 0.3,
       coinTossWinRate: 0.5,
     };
 
