@@ -1,16 +1,17 @@
 # Duel Log App
 
-**TCG対戦履歴を記録・分析するWebアプリケーション**
+**遊戯王マスターデュエルの対戦履歴を記録・分析するWebアプリケーション**
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
+[![Hono](https://img.shields.io/badge/Hono-4-orange.svg)](https://hono.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![Vue.js](https://img.shields.io/badge/Vue.js-3-green.svg)](https://vuejs.org/)
 
 ---
 
 ## 概要
 
-トレーディングカードゲーム（TCG）の対戦履歴を記録・管理し、統計情報を分析するためのWebアプリケーション。
+遊戯王マスターデュエルの対戦履歴を記録・管理し、統計情報を分析するためのWebアプリケーション。
 
 ### Core Value
 
@@ -18,7 +19,7 @@
 |------|------|
 | 対戦履歴の可視化 | 勝敗、デッキ、対戦相手を統計情報として可視化 |
 | デッキ分析 | デッキごとの勝率、相性表、トレンド分析 |
-| 配信者サポート | OBSオーバーレイ、配信者モード（プライバシー保護） |
+| 配信者サポート | 配信者ポップアップ、配信者モード（プライバシー保護） |
 | データポータビリティ | CSVインポート/エクスポート、統計情報共有URL |
 
 ---
@@ -27,151 +28,124 @@
 
 ```mermaid
 flowchart TB
-    User[ユーザー] --> Frontend[Vue.js Frontend]
-    Streamer[配信者] --> OBS[OBS Overlay]
-    Frontend --> Backend[FastAPI Backend]
-    OBS --> Backend
-    Backend --> DB[(PostgreSQL)]
-    Backend --> Auth[Supabase Auth]
+    User[ユーザー] --> Web[React SPA]
+    Streamer[配信者] --> Popup[配信者ポップアップ]
+    Web --> API[Hono API]
+    Popup --> API
+    API --> DB[(PostgreSQL)]
+    API --> Auth[Supabase Auth]
 ```
 
-| レイヤー | 技術 |
-|----------|------|
-| フロントエンド | Vue 3 / TypeScript / Vuetify 3 / Pinia |
-| バックエンド | Python 3.11+ / FastAPI / SQLAlchemy 2.0 |
-| データベース | PostgreSQL (Supabase) |
-| 認証 | Supabase Auth (OAuth対応) |
+| カテゴリ | 技術 |
+|---------|------|
+| フロントエンド | React 19 / TypeScript / shadcn/ui / TanStack Router / TanStack Query / Zustand |
+| バックエンド | Hono / TypeScript / Drizzle ORM / Zod |
+| インフラ | Vercel Functions / Supabase (Auth + PostgreSQL) |
+| テスト | Vitest / Testing Library / Playwright |
+| モノレポ | pnpm workspaces |
 
-詳細: [アーキテクチャ](./docs/02-architecture/architecture.md)
+詳細: [アーキテクチャ](./docs/02-architecture/)
 
 ---
 
-## インストール（Docker）
+## プロジェクト構成
+
+```
+duel-log-app/
+├── apps/
+│   └── web/                    # React SPA (Vite)
+├── packages/
+│   ├── api/                    # Hono API (Vercel Functions)
+│   └── shared/                 # Zod schemas + 共通型
+├── supabase/                   # Supabase設定・マイグレーション
+├── docs/                       # ドキュメント
+├── scripts/                    # ユーティリティスクリプト
+├── pnpm-workspace.yaml
+├── biome.json                  # Linter/Formatter
+└── vercel.json                 # デプロイ設定
+```
+
+---
+
+## クイックスタート
 
 ### 必要条件
 
-- Docker Desktop
-- Traefik起動済み（`~/work/infra/traefik`）
+- Node.js >= 20
+- pnpm >= 10
+- Supabase CLI
 
-### 起動
+### セットアップ
 
 ```bash
-# Traefikネットワーク作成（初回のみ）
-docker network create traefik
+# 依存関係インストール
+pnpm install
 
-# Traefik起動
-cd ~/work/infra/traefik && docker compose up -d
+# ローカルSupabase起動
+npx supabase start
 
-# プロジェクト起動
-cd ~/work/projects/duel-log-app
-docker compose up -d
+# 開発サーバー起動
+pnpm dev
 ```
 
 ### アクセス
 
-- フロントエンド: http://duel-log.localhost
-- バックエンドAPI: http://duel-log.localhost/api
+- アプリ: http://localhost:5173
+- Supabase Studio: http://127.0.0.1:54323
 
-### コマンド
+---
+
+## コマンド
 
 ```bash
-# 起動
-docker compose up -d
+# 開発
+pnpm dev           # 開発サーバー起動
+pnpm build         # ビルド
+pnpm test          # テスト実行
+pnpm lint          # リント (Biome)
+pnpm typecheck     # 型チェック
 
-# ログ確認
-docker compose logs -f backend
-docker compose logs -f frontend
-
-# 停止
-docker compose down
+# データベース
+npx supabase start      # ローカルSupabase起動
+npx supabase stop       # 停止
+npx supabase db reset   # DBリセット（マイグレーション再適用）
 ```
 
 ---
 
-## ローカル開発（従来方式）
+## テストユーザー
 
-```bash
-git clone https://github.com/krtw00/duel-log-app.git
-cd duel-log-app
-./scripts/dev.sh
-```
+シードデータで作成（パスワード: `password123`）:
 
-| 環境 | 要件 |
-|------|------|
-| Docker Desktop | Supabase CLI用 |
-| Node.js | v18以上 |
-| Python | 3.11以上 |
-
----
-
-## 使用方法
-
-### 開発サーバー（ローカル）
-
-```bash
-./scripts/dev.sh       # 全サービス起動
-./scripts/dev-stop.sh  # 停止
-```
-
-| サービス | URL |
-|---------|-----|
-| フロントエンド | http://localhost:5173 |
-| バックエンドAPI | http://127.0.0.1:8000 |
-| Supabase Studio | http://127.0.0.1:55323 |
-
-### OBSオーバーレイ
-
-```
-https://your-domain.com/obs-overlay?token=[トークン]
-```
-
-プロファイルページからトークンを取得し、OBSのブラウザソースに設定。
-
-詳細: [OBSオーバーレイ](./docs/05-features/obs-overlay.md)
-
----
-
-## 開発
-
-```bash
-# バックエンド
-cd backend && uv run pytest
-
-# フロントエンド
-cd frontend && npm run test:unit
-```
-
-| コマンド | 説明 |
-|---------|------|
-| `uv run pytest` | バックエンドテスト |
-| `npm run test:unit` | フロントエンドテスト |
-| `uv run ruff check .` | リント |
+| ユーザー | メール | 管理者 | デバッガー |
+|---------|--------|:------:|:---------:|
+| testuser | test@example.com | ✅ | ✅ |
+| admin | admin@example.com | ✅ | - |
+| debugger | debugger@example.com | - | ✅ |
 
 ---
 
 ## デプロイ
 
 | 環境 | サービス |
-|------|----------|
-| フロントエンド | Vercel |
-| バックエンド | Render (Docker) |
-| データベース | Supabase Cloud |
+|------|---------|
+| フロントエンド + API | Vercel (単一ドメイン) |
+| データベース + 認証 | Supabase Cloud |
 | CI/CD | GitHub Actions |
 
-詳細: [デプロイ手順](./docs/07-deployment/deployment.md)
+詳細: [デプロイ手順](./docs/06-deployment/vercel.md)
 
 ---
 
 ## ドキュメント
 
-📚 **[ドキュメントトップページ](./docs/00-INDEX.md)**
+[ドキュメントトップページ](./docs/00-index.md)
 
 | 対象 | ドキュメント |
 |------|------------|
-| 初めての方 | [概要](./docs/01-introduction/overview.md), [アーキテクチャ](./docs/02-architecture/architecture.md) |
-| 利用者 | [機能一覧](./docs/05-features/), [OBSオーバーレイ](./docs/05-features/obs-overlay.md) |
-| 開発者 | [開発ガイド](./docs/08-development/), [データモデル](./docs/04-data/) |
-| 運用者 | [デプロイ](./docs/07-deployment/), [引き継ぎガイド](./docs/operations/handover-guide.md) |
+| 初めての方 | [概要](./docs/01-overview/summary.md), [アーキテクチャ](./docs/02-architecture/) |
+| 開発者 | [クイックスタート](./docs/05-guides/quickstart.md), [データモデル](./docs/03-details/data-model.md) |
+| 運用者 | [デプロイ](./docs/06-deployment/), [CI/CD](./docs/06-deployment/ci-cd.md) |
 
 ---
 

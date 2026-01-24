@@ -1,0 +1,55 @@
+services:
+  agentmine-web:
+    build: ../agentmine
+    container_name: agentmine-duellog-web
+    restart: unless-stopped
+    volumes:
+      - ../agentmine:/app:cached
+      - duellog_am_node_modules:/app/node_modules
+      - duellog_am_cli_node_modules:/app/packages/cli/node_modules
+      - duellog_am_core_node_modules:/app/packages/core/node_modules
+      - duellog_am_web_node_modules:/app/packages/web/node_modules
+      - duellog_am_next_cache:/app/packages/web/.next
+      - duellog_am_turbo_cache:/app/.turbo
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@agentmine-duellog-db:5432/agentmine
+    depends_on:
+      agentmine-duellog-db:
+        condition: service_healthy
+    networks:
+      - traefik
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.agentmine-duellog.rule=Host(`agentmine-duellog.localhost`)"
+      - "traefik.http.services.agentmine-duellog.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik"
+
+  agentmine-duellog-db:
+    image: postgres:16-alpine
+    container_name: agentmine-duellog-db
+    environment:
+      POSTGRES_DB: agentmine
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - duellog_am_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  duellog_am_node_modules:
+  duellog_am_cli_node_modules:
+  duellog_am_core_node_modules:
+  duellog_am_web_node_modules:
+  duellog_am_next_cache:
+  duellog_am_turbo_cache:
+  duellog_am_pgdata:
+
+networks:
+  traefik:
+    external: true
