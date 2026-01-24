@@ -1,0 +1,80 @@
+services:
+  install:
+    build: .
+    container_name: duel-log-install
+    command: pnpm install --frozen-lockfile
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+      - duel_log_node_modules:/app/node_modules
+      - duel_log_web_node_modules:/app/apps/web/node_modules
+      - duel_log_api_node_modules:/app/packages/api/node_modules
+      - duel_log_shared_node_modules:/app/packages/shared/node_modules
+
+  web:
+    build: .
+    container_name: duel-log-web
+    command: pnpm --filter @duel-log/web dev --host 0.0.0.0
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+      - duel_log_node_modules:/app/node_modules
+      - duel_log_web_node_modules:/app/apps/web/node_modules
+      - duel_log_api_node_modules:/app/packages/api/node_modules
+      - duel_log_shared_node_modules:/app/packages/shared/node_modules
+    environment:
+      - NODE_ENV=development
+      - API_URL=http://api:3000
+      - VITE_SUPABASE_URL=http://127.0.0.1:55321
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    depends_on:
+      install:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    networks:
+      - traefik
+      - supabase
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.duel-log.rule=Host(`duel-log.localhost`)"
+      - "traefik.http.services.duel-log.loadbalancer.server.port=5173"
+      - "traefik.docker.network=traefik"
+
+  api:
+    build: .
+    container_name: duel-log-api
+    command: pnpm --filter @duel-log/api dev --host 0.0.0.0
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+      - duel_log_node_modules:/app/node_modules
+      - duel_log_web_node_modules:/app/apps/web/node_modules
+      - duel_log_api_node_modules:/app/packages/api/node_modules
+      - duel_log_shared_node_modules:/app/packages/shared/node_modules
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - SUPABASE_URL=http://supabase_kong_duel-log-app:8000
+      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_duel-log-app:5432/postgres
+    depends_on:
+      install:
+        condition: service_completed_successfully
+    networks:
+      - supabase
+      - default
+
+volumes:
+  duel_log_node_modules:
+  duel_log_web_node_modules:
+  duel_log_api_node_modules:
+  duel_log_shared_node_modules:
+
+networks:
+  traefik:
+    external: true
+  supabase:
+    external: true
+    name: supabase_network_duel-log-app
