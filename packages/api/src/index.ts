@@ -55,6 +55,3 @@ app.use('/admin/*', adminMiddleware);
 app.route('/admin', adminRoutes);
 
 export default app;
-
-// Vercel serverless handler
-export { handle } from 'hono/vercel';
