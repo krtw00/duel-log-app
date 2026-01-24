@@ -107,21 +107,21 @@ export function DeckDistributionChart({ matchups, loading }: Props) {
             verticalAlign="middle"
             wrapperStyle={{
               color: 'var(--color-on-surface-muted)',
-              fontSize: '12px',
+              fontSize: '18px',
               paddingLeft: '16px',
               maxHeight: '90%',
               overflowY: 'auto',
             }}
-            payload={data.map((d, i) => ({
-              value: d.name,
-              type: 'circle' as const,
-              color: COLORS[i % COLORS.length],
-            }))}
             formatter={(value) => {
               const entry = data.find((d) => d.name === value);
               const pct = entry && total > 0 ? ((entry.value / total) * 100).toFixed(0) : '0';
               return `${value} (${pct}%)`;
             }}
+            {...{ payload: data.map((d, i) => ({
+              value: d.name,
+              type: 'circle' as const,
+              color: COLORS[i % COLORS.length],
+            })) }}
           />
         </PieChart>
       </ResponsiveContainer>

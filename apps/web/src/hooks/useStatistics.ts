@@ -15,6 +15,9 @@ function filterParams(filter?: StatisticsFilter): Record<string, string | undefi
     from: filter?.from,
     to: filter?.to,
     fromTimestamp: filter?.fromTimestamp,
+    deckId: filter?.deckId,
+    rangeStart: filter?.rangeStart?.toString(),
+    rangeEnd: filter?.rangeEnd?.toString(),
   };
 }
 

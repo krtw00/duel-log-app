@@ -42,7 +42,7 @@ function MobileAccordion({ matchups }: { matchups: MatchupEntry[] }) {
                 <span className="text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
                   {m.deckName}
                 </span>
-                <span className="text-xs mx-1" style={{ color: 'var(--color-on-surface-muted)' }}>vs</span>
+                <span className="text-sm mx-1" style={{ color: 'var(--color-on-surface-muted)' }}>vs</span>
                 <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
                   {m.opponentDeckName}
                 </span>
@@ -61,11 +61,11 @@ function MobileAccordion({ matchups }: { matchups: MatchupEntry[] }) {
               <div className="expansion-content">
                 <div className="grid grid-cols-2 gap-2 text-center text-sm">
                   <div>
-                    <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.firstWinRate')}</div>
+                    <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.firstWinRate')}</div>
                     <div className={getWinRateChipClass(m.firstWinRate)}>{formatPercent(m.firstWinRate)}</div>
                   </div>
                   <div>
-                    <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.secondWinRate')}</div>
+                    <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.secondWinRate')}</div>
                     <div className={getWinRateChipClass(m.secondWinRate)}>{formatPercent(m.secondWinRate)}</div>
                   </div>
                 </div>
@@ -155,7 +155,7 @@ export function MatchupMatrix({ matchups, loading }: Props) {
       {/* Pagination */}
       {matchups.length > 10 && (
         <div className="flex items-center justify-end gap-4 p-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
             <span>Items per page:</span>
             <select
               value={itemsPerPage}
@@ -168,7 +168,7 @@ export function MatchupMatrix({ matchups, loading }: Props) {
               ))}
             </select>
           </div>
-          <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
             {startIndex + 1}-{Math.min(startIndex + itemsPerPage, matchups.length)} of {matchups.length}
           </span>
           <div className="flex gap-1">

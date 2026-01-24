@@ -124,7 +124,11 @@
     "unarchive": "アーカイブ解除",
     "showArchived": "アーカイブ済みを表示",
     "confirmDelete": "このデッキを削除しますか？",
-    "noDecks": "デッキがありません"
+    "noDecks": "デッキがありません",
+    "archiveAll": "全てアーカイブ",
+    "archiveAllConfirm": "全てのアクティブなデッキをアーカイブしますか？",
+    "generic": "汎用デッキ",
+    "genericDesc": "統計で「その他」にまとめられます"
   },
   "statistics": {
     "title": "統計",
@@ -141,7 +145,16 @@
     "total": "合計",
     "noData": "データがありません",
     "monthly": "月間",
-    "refreshInterval": "更新間隔（秒）"
+    "refreshInterval": "更新間隔（秒）",
+    "filter": "フィルター",
+    "myDeck": "使用デッキ",
+    "allDecks": "全デッキ",
+    "period": "期間",
+    "periodAll": "全対戦",
+    "periodRange": "範囲指定",
+    "rangeStart": "開始",
+    "rangeEnd": "終了",
+    "reset": "リセット"
   },
   "streak": {
     "winStreak": "{{count}}連勝中",
@@ -188,8 +201,12 @@
     "obsBrowserSource": "OBSブラウザソース",
     "deprecated": "非推奨",
     "deprecationWarning": "OBSブラウザソースは非推奨です。ポップアップウィンドウの使用を推奨します。",
-    "obsDescription": "OBSのブラウザソースとして使用できます",
+    "obsDescription": "OBSのブラウザソースとして設定することで、プレイしながら画面に統計情報をオーバーレイ表示できます。",
     "getObsUrl": "OBS URLを取得",
+    "obsSetupTitle": "OBS設定方法",
+    "obsSetupStep1": "OBSでブラウザソースを追加",
+    "obsSetupStep2": "URLに下のURLをコピー",
+    "obsSetupStep3": "幅: {{width}}px、高さ: {{height}}px（推奨）",
     "items": {
       "currentDeck": "使用中デッキ",
       "gameModeValue": "ゲームモード値",

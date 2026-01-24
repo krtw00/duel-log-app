@@ -7,6 +7,9 @@ export const statisticsFilterSchema = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
   fromTimestamp: z.string().datetime().optional(),
+  deckId: z.string().uuid().optional(),
+  rangeStart: z.coerce.number().int().min(1).optional(),
+  rangeEnd: z.coerce.number().int().min(1).optional(),
 });
 
 /** 概要統計レスポンス */

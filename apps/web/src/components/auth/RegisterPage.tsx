@@ -283,7 +283,7 @@ export function RegisterPage() {
 
           {/* Login link */}
           <div className="mt-4 pt-3 border-t border-white/10 text-center">
-            <p className="text-white/50 text-xs">
+            <p className="text-white/50 text-sm">
               {t('auth.hasAccount')}{' '}
               <Link to="/login" className="text-brand-purple hover:underline">
                 {t('auth.login')}

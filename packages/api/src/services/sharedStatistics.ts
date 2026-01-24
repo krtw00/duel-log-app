@@ -8,7 +8,7 @@ export async function createSharedStats(userId: string, data: CreateSharedStatis
 
   const [created] = await sql<SharedStatisticsRow[]>`
     INSERT INTO shared_statistics (user_id, token, filters, expires_at)
-    VALUES (${userId}, ${token}, ${JSON.stringify(data.filters)}, ${data.expiresAt ? new Date(data.expiresAt) : null})
+    VALUES (${userId}, ${token}, ${sql.json(data.filters)}, ${data.expiresAt ? new Date(data.expiresAt) : null})
     RETURNING *
   `;
   return created;

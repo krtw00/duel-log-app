@@ -88,7 +88,7 @@ export function CsvImportDialog({ open, onClose }: Props) {
             <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
               {t('csv.importDescription')}
             </p>
-            <p className="text-xs" style={{ color: 'var(--color-on-surface-muted)', opacity: 0.7 }}>
+            <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)', opacity: 0.7 }}>
               {t('csv.requiredColumns')}
             </p>
           </div>
@@ -114,7 +114,7 @@ export function CsvImportDialog({ open, onClose }: Props) {
                 {t('csv.importSuccess', { count: result.imported })}
               </p>
               {result.errors.length > 0 && (
-                <div className="text-xs max-h-24 overflow-y-auto" style={{ color: 'var(--color-error)' }}>
+                <div className="text-sm max-h-24 overflow-y-auto" style={{ color: 'var(--color-error)' }}>
                   {result.errors.map((err) => (
                     <p key={err}>{err}</p>
                   ))}

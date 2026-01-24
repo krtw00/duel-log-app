@@ -44,7 +44,7 @@ export function DeckFormDialog({ open, onClose, onSubmit, editingDeck, loading }
         <div className="dialog-body">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="deckName" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+              <label htmlFor="deckName" className="block text-base font-medium mb-1" style={{ color: 'var(--color-on-surface-muted)' }}>
                 {t('deck.deckName')}
               </label>
               <input

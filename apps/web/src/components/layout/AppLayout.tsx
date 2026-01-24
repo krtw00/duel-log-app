@@ -1,4 +1,4 @@
-import { Outlet } from '@tanstack/react-router';
+import { Outlet, useLocation } from '@tanstack/react-router';
 import { useState } from 'react';
 import { DuelFormDialog } from '../dashboard/DuelFormDialog.js';
 import { useDecks } from '../../hooks/useDecks.js';
@@ -8,7 +8,12 @@ import { ToastContainer } from '../common/ToastContainer.js';
 import { AppBar } from './AppBar.js';
 import { BottomNav } from './BottomNav.js';
 
+const CHROMELESS_PATHS = ['/streamer-popup'];
+
 export function AppLayout() {
+  const location = useLocation();
+  const isChromeless = CHROMELESS_PATHS.includes(location.pathname);
+
   const [fabDialogOpen, setFabDialogOpen] = useState(false);
   const { data: decksData } = useDecks();
   const createDuel = useCreateDuel();
@@ -22,6 +27,10 @@ export function AppLayout() {
   const handleFabSubmit = (data: CreateDuel) => {
     createDuel.mutate(data, { onSuccess: () => setFabDialogOpen(false) });
   };
+
+  if (isChromeless) {
+    return <Outlet />;
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>

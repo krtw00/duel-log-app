@@ -60,7 +60,7 @@ export function GameModeTabBar({ value, onChange, counts }: Props) {
           <span className="sm:hidden">{mode}</span>
           {counts?.[mode] != null && (
             <span
-              className="chip text-xs"
+              className="chip text-sm"
               style={{
                 backgroundColor: `color-mix(in srgb, ${GAME_MODE_CHIP_COLORS[mode]} 20%, transparent)`,
                 color: GAME_MODE_CHIP_COLORS[mode],

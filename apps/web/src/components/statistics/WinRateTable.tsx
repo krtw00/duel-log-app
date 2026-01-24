@@ -49,15 +49,15 @@ function MobileAccordion({ winRates }: { winRates: DeckWinRate[] }) {
             <div className="expansion-content">
               <div className="grid grid-cols-3 gap-2 text-center text-sm">
                 <div>
-                  <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.wins')}</div>
+                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.wins')}</div>
                   <div style={{ color: 'var(--color-success)' }}>{rate.wins}</div>
                 </div>
                 <div>
-                  <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.losses')}</div>
+                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.losses')}</div>
                   <div style={{ color: 'var(--color-error)' }}>{rate.losses}</div>
                 </div>
                 <div>
-                  <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.total')}</div>
+                  <div className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>{t('statistics.total')}</div>
                   <div>{rate.totalDuels}</div>
                 </div>
               </div>
@@ -130,7 +130,7 @@ export function WinRateTable({ winRates, loading }: Props) {
       {/* Pagination */}
       {winRates.length > 10 && (
         <div className="flex items-center justify-end gap-4 p-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
             <span>Items per page:</span>
             <select
               value={itemsPerPage}
@@ -143,7 +143,7 @@ export function WinRateTable({ winRates, loading }: Props) {
               ))}
             </select>
           </div>
-          <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
             {startIndex + 1}-{Math.min(startIndex + itemsPerPage, winRates.length)} of {winRates.length}
           </span>
           <div className="flex gap-1">
