@@ -17090,7 +17090,8 @@ var connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is required");
 }
-var sql = src_default(connectionString, {
+var fixedConnectionString = connectionString.includes("pooler.supabase.com:5432") ? connectionString.replace(":5432/", ":6543/") : connectionString;
+var sql = src_default(fixedConnectionString, {
   transform: src_default.camel,
   ssl: { rejectUnauthorized: false },
   prepare: false,
