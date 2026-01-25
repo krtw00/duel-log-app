@@ -8,6 +8,11 @@ const feedbackSchema = z.object({
   type: z.enum(['bug', 'feature', 'improvement', 'other']),
   title: z.string().min(1).max(200),
   body: z.string().min(1).max(5000),
+  // クライアント環境情報（オプション）
+  userAgent: z.string().optional(),
+  platform: z.string().optional(),
+  screenSize: z.string().optional(),
+  language: z.string().optional(),
 });
 
 export const feedbackRoutes = new Hono<Env>().post('/', async (c) => {
@@ -27,7 +32,17 @@ export const feedbackRoutes = new Hono<Env>().post('/', async (c) => {
       );
     }
 
-    const issueBody = `**Type:** ${data.type}\n**User:** ${email} (${id})\n\n${data.body}`;
+    // 環境情報セクションを構築（メールは含めない）
+    const envInfo = [
+      data.userAgent && `**User Agent:** ${data.userAgent}`,
+      data.platform && `**Platform:** ${data.platform}`,
+      data.screenSize && `**Screen:** ${data.screenSize}`,
+      data.language && `**Language:** ${data.language}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const issueBody = `**Type:** ${data.type}\n**User ID:** ${id}\n\n${data.body}${envInfo ? `\n\n---\n### Environment\n${envInfo}` : ''}`;
 
     const response = await fetch(`https://api.github.com/repos/${githubRepo}/issues`, {
       method: 'POST',

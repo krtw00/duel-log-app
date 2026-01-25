@@ -22071,7 +22071,12 @@ function parseCSV(text) {
 var feedbackSchema = external_exports.object({
   type: external_exports.enum(["bug", "feature", "improvement", "other"]),
   title: external_exports.string().min(1).max(200),
-  body: external_exports.string().min(1).max(5e3)
+  body: external_exports.string().min(1).max(5e3),
+  // クライアント環境情報（オプション）
+  userAgent: external_exports.string().optional(),
+  platform: external_exports.string().optional(),
+  screenSize: external_exports.string().optional(),
+  language: external_exports.string().optional()
 });
 var feedbackRoutes = new Hono2().post("/", async (c) => {
   try {
@@ -22087,10 +22092,20 @@ var feedbackRoutes = new Hono2().post("/", async (c) => {
         500
       );
     }
+    const envInfo = [
+      data.userAgent && `**User Agent:** ${data.userAgent}`,
+      data.platform && `**Platform:** ${data.platform}`,
+      data.screenSize && `**Screen:** ${data.screenSize}`,
+      data.language && `**Language:** ${data.language}`
+    ].filter(Boolean).join("\n");
     const issueBody = `**Type:** ${data.type}
-**User:** ${email} (${id})
+**User ID:** ${id}
 
-${data.body}`;
+${data.body}${envInfo ? `
+
+---
+### Environment
+${envInfo}` : ""}`;
     const response = await fetch(`https://api.github.com/repos/${githubRepo}/issues`, {
       method: "POST",
       headers: {
