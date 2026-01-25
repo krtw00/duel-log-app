@@ -22074,37 +22074,48 @@ var feedbackSchema = external_exports.object({
   body: external_exports.string().min(1).max(5e3)
 });
 var feedbackRoutes = new Hono2().post("/", async (c) => {
-  const { id, email } = c.get("user");
-  const rawBody = await c.req.json();
-  const data = feedbackSchema.parse(rawBody);
-  const githubToken = process.env.GITHUB_TOKEN;
-  const githubRepo = process.env.GITHUB_FEEDBACK_REPO;
-  if (!githubToken || !githubRepo) {
-    return c.json(
-      { error: { code: "INTERNAL_ERROR", message: "Feedback system not configured" } },
-      500
-    );
-  }
-  const issueBody = `**Type:** ${data.type}
+  try {
+    const { id, email } = c.get("user");
+    const rawBody = await c.req.json();
+    const data = feedbackSchema.parse(rawBody);
+    const githubToken = process.env.GITHUB_TOKEN;
+    const githubRepo = process.env.GITHUB_FEEDBACK_REPO;
+    if (!githubToken || !githubRepo) {
+      console.error("Feedback config missing:", { hasToken: !!githubToken, hasRepo: !!githubRepo });
+      return c.json(
+        { error: { code: "INTERNAL_ERROR", message: "Feedback system not configured" } },
+        500
+      );
+    }
+    const issueBody = `**Type:** ${data.type}
 **User:** ${email} (${id})
 
 ${data.body}`;
-  const response = await fetch(`https://api.github.com/repos/${githubRepo}/issues`, {
-    method: "POST",
-    headers: {
-      Authorization: `token ${githubToken}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      title: `[${data.type}] ${data.title}`,
-      body: issueBody,
-      labels: ["user-feedback", data.type]
-    })
-  });
-  if (!response.ok) {
-    return c.json({ error: { code: "INTERNAL_ERROR", message: "Failed to submit feedback" } }, 500);
+    const response = await fetch(`https://api.github.com/repos/${githubRepo}/issues`, {
+      method: "POST",
+      headers: {
+        Authorization: `token ${githubToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title: `[${data.type}] ${data.title}`,
+        body: issueBody,
+        labels: ["user-feedback", data.type]
+      })
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("GitHub API error:", response.status, errorText);
+      return c.json({ error: { code: "INTERNAL_ERROR", message: "Failed to submit feedback" } }, 500);
+    }
+    return c.json({ data: { message: "Feedback submitted" } }, 201);
+  } catch (error) {
+    console.error("Feedback error:", error);
+    return c.json(
+      { error: { code: "INTERNAL_ERROR", message: error instanceof Error ? error.message : "Unknown error" } },
+      500
+    );
   }
-  return c.json({ data: { message: "Feedback submitted" } }, 201);
 });
 
 // src/services/user.ts
