@@ -49,9 +49,16 @@ export function FeedbackView() {
         feature: 'feature',
         contact: 'other',
       };
+      // 環境情報を収集
+      const envInfo = {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        screenSize: `${window.screen.width}x${window.screen.height}`,
+        language: navigator.language,
+      };
       const result = await api<{ data: { issueUrl?: string } }>('/feedback', {
         method: 'POST',
-        body: { type: typeMap[activeTab], title, body, steps, expected, actual, useCase },
+        body: { type: typeMap[activeTab], title, body, steps, expected, actual, useCase, ...envInfo },
       });
       setIssueUrl(result.data?.issueUrl ?? null);
       setSent(true);
