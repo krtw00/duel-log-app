@@ -90,6 +90,8 @@ export function DuelFormDialog({
 
   const gameMode = watch('gameMode');
   const wonCoinToss = watch('wonCoinToss');
+  const isFirst = watch('isFirst');
+  const result = watch('result');
 
   // Auto-set first/second based on coin toss result (new duels only)
   // 後攻デフォルト時はコイン結果に関わらず後攻を維持
@@ -247,6 +249,7 @@ export function DuelFormDialog({
               <input
                 type="radio"
                 value="true"
+                checked={wonCoinToss === true}
                 {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })}
                 className="accent-[var(--color-warning)]"
               />
@@ -258,6 +261,7 @@ export function DuelFormDialog({
               <input
                 type="radio"
                 value="false"
+                checked={wonCoinToss === false}
                 {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })}
                 className="accent-[var(--color-on-surface-muted)]"
               />
@@ -276,6 +280,7 @@ export function DuelFormDialog({
               <input
                 type="radio"
                 value="true"
+                checked={isFirst === true}
                 {...register('isFirst', { setValueAs: (v: string) => v === 'true' })}
                 className="accent-[#00d9ff]"
               />
@@ -287,6 +292,7 @@ export function DuelFormDialog({
               <input
                 type="radio"
                 value="false"
+                checked={isFirst === false}
                 {...register('isFirst', { setValueAs: (v: string) => v === 'true' })}
                 className="accent-[var(--color-secondary)]"
               />
@@ -306,6 +312,7 @@ export function DuelFormDialog({
                 <input
                   type="radio"
                   value={r}
+                  checked={result === r}
                   {...register('result')}
                   className={
                     r === 'win' ? 'accent-[var(--color-success)]' : 'accent-[var(--color-error)]'
