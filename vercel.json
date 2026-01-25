@@ -14,7 +14,7 @@
       "destination": "/api/[[...route]]"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|assets/|favicon\\.svg|manifest\\.json).*)",
       "destination": "/index.html"
     }
   ]
