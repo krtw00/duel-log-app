@@ -248,9 +248,9 @@ export function DuelFormDialog({
             <label className="radio-option cursor-pointer">
               <input
                 type="radio"
-                value="true"
+                name="wonCoinToss"
                 checked={wonCoinToss === true}
-                {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })}
+                onChange={() => setValue('wonCoinToss', true)}
                 className="accent-[var(--color-warning)]"
               />
               <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
@@ -260,9 +260,9 @@ export function DuelFormDialog({
             <label className="radio-option cursor-pointer">
               <input
                 type="radio"
-                value="false"
+                name="wonCoinToss"
                 checked={wonCoinToss === false}
-                {...register('wonCoinToss', { setValueAs: (v: string) => v === 'true' })}
+                onChange={() => setValue('wonCoinToss', false)}
                 className="accent-[var(--color-on-surface-muted)]"
               />
               <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
@@ -279,9 +279,9 @@ export function DuelFormDialog({
             <label className="radio-option cursor-pointer">
               <input
                 type="radio"
-                value="true"
+                name="isFirst"
                 checked={isFirst === true}
-                {...register('isFirst', { setValueAs: (v: string) => v === 'true' })}
+                onChange={() => setValue('isFirst', true)}
                 className="accent-[#00d9ff]"
               />
               <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
@@ -291,9 +291,9 @@ export function DuelFormDialog({
             <label className="radio-option cursor-pointer">
               <input
                 type="radio"
-                value="false"
+                name="isFirst"
                 checked={isFirst === false}
-                {...register('isFirst', { setValueAs: (v: string) => v === 'true' })}
+                onChange={() => setValue('isFirst', false)}
                 className="accent-[var(--color-secondary)]"
               />
               <span className="text-sm" style={{ color: 'var(--color-on-surface)' }}>
@@ -311,9 +311,9 @@ export function DuelFormDialog({
               <label key={r} className="radio-option cursor-pointer">
                 <input
                   type="radio"
-                  value={r}
+                  name="result"
                   checked={result === r}
-                  {...register('result')}
+                  onChange={() => setValue('result', r)}
                   className={
                     r === 'win' ? 'accent-[var(--color-success)]' : 'accent-[var(--color-error)]'
                   }
