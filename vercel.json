@@ -8,14 +8,15 @@
       "maxDuration": 30
     }
   },
-  "rewrites": [
+  "routes": [
+    { "handle": "filesystem" },
     {
-      "source": "/api/(.*)",
-      "destination": "/api/[[...route]]"
+      "src": "/api/(.*)",
+      "dest": "/api/[[...route]]"
     },
     {
-      "source": "/((?!api/|assets/|favicon\\.svg|manifest\\.json).*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
