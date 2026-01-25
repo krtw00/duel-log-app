@@ -43,9 +43,15 @@ export function FeedbackView() {
     setSending(true);
     setError('');
     try {
+      // バックエンドは type を期待、contact は other にマッピング
+      const typeMap: Record<FeedbackTab, string> = {
+        bug: 'bug',
+        feature: 'feature',
+        contact: 'other',
+      };
       const result = await api<{ data: { issueUrl?: string } }>('/feedback', {
         method: 'POST',
-        body: { category: activeTab, title, body, steps, expected, actual, useCase },
+        body: { type: typeMap[activeTab], title, body, steps, expected, actual, useCase },
       });
       setIssueUrl(result.data?.issueUrl ?? null);
       setSent(true);
