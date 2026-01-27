@@ -13,7 +13,7 @@
     "@duel-log/shared": "workspace:*",
     "@hono/zod-openapi": "0.19.10",
     "@supabase/supabase-js": "^2.91.0",
-    "hono": "^4.11.5",
+    "hono": "^4.11.7",
     "postgres": "^3.4.8",
     "zod": "^3.25.76"
   },
