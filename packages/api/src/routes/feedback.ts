@@ -17,7 +17,7 @@ const feedbackSchema = z.object({
 
 export const feedbackRoutes = new Hono<Env>().post('/', async (c) => {
   try {
-    const { id, email } = c.get('user');
+    const { id } = c.get('user');
     const rawBody = await c.req.json();
     const data = feedbackSchema.parse(rawBody);
 

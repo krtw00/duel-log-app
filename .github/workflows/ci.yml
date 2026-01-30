@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared package
+        run: pnpm --filter @duel-log/shared build
+
       - name: Lint
         run: pnpm lint
 
@@ -73,6 +76,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @duel-log/shared build
 
       - name: Build
         run: pnpm build
