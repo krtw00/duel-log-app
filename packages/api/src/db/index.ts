@@ -10,9 +10,15 @@ const fixedConnectionString = connectionString.includes('pooler.supabase.com:543
   ? connectionString.replace(':5432/', ':6543/')
   : connectionString;
 
+// Local Supabase doesn't use SSL
+const isLocalDb =
+  fixedConnectionString.includes('127.0.0.1') ||
+  fixedConnectionString.includes('localhost') ||
+  fixedConnectionString.includes('supabase_db_');
+
 export const sql = postgres(fixedConnectionString, {
   transform: postgres.camel,
-  ssl: { rejectUnauthorized: false },
+  ssl: isLocalDb ? false : { rejectUnauthorized: false },
   prepare: false,
   idle_timeout: 20,
   max: 3,
