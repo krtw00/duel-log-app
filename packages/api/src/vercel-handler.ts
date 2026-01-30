@@ -22,26 +22,30 @@ function handler(req: IncomingMessage, res: ServerResponse) {
       })
     : Promise.resolve(null);
 
-  bodyPromise.then((body: Buffer | null) => {
-    const request = new Request(url.toString(), {
-      method,
-      headers,
-      body,
+  bodyPromise
+    .then((body: Buffer | null) => {
+      const request = new Request(url.toString(), {
+        method,
+        headers,
+        body,
+      });
+      return app.fetch(request);
+    })
+    .then((response: Response) => {
+      res.statusCode = response.status;
+      response.headers.forEach((value: string, key: string) => {
+        res.setHeader(key, value);
+      });
+      return response.arrayBuffer();
+    })
+    .then((responseBody: ArrayBuffer) => {
+      res.end(Buffer.from(responseBody));
+    })
+    .catch((err: unknown) => {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }));
     });
-    return app.fetch(request);
-  }).then((response: Response) => {
-    res.statusCode = response.status;
-    response.headers.forEach((value: string, key: string) => {
-      res.setHeader(key, value);
-    });
-    return response.arrayBuffer();
-  }).then((responseBody: ArrayBuffer) => {
-    res.end(Buffer.from(responseBody));
-  }).catch((err: unknown) => {
-    res.statusCode = 500;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }));
-  });
 }
 
 // @ts-ignore

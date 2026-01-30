@@ -115,9 +115,10 @@ export function DecksView() {
     if (isLoading) {
       return (
         <div className="space-y-2">
+          {/* biome-ignore lint/suspicious/noArrayIndexKey: static skeleton items never reorder */}
           {Array.from({ length: 4 }).map((_, i) => (
             <div
-              key={`skeleton-${i}`}
+              key={i}
               className="h-10 rounded animate-pulse"
               style={{ background: 'var(--color-surface-variant)' }}
             />

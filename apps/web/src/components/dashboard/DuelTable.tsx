@@ -232,9 +232,10 @@ export function DuelTable({
   if (loading) {
     return (
       <div className="animate-pulse p-4 space-y-3">
+        {/* biome-ignore lint/suspicious/noArrayIndexKey: static skeleton items never reorder */}
         {Array.from({ length: 5 }).map((_, i) => (
           <div
-            key={`skeleton-${i}`}
+            key={i}
             className="h-10 rounded"
             style={{ background: 'var(--color-surface-variant)' }}
           />

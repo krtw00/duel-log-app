@@ -87,9 +87,10 @@ export function UserDetailDialog({ userId, onClose }: Props) {
         <div className="dialog-body">
           {isLoading ? (
             <div className="animate-pulse space-y-3">
+              {/* biome-ignore lint/suspicious/noArrayIndexKey: static skeleton items never reorder */}
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
-                  key={`skeleton-${i}`}
+                  key={i}
                   className="h-8 rounded"
                   style={{ background: 'var(--color-surface-variant)' }}
                 />
