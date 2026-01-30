@@ -188,7 +188,7 @@ export const duelRoutes = new Hono<Env>()
     }
     return c.json({ data: duel });
   })
-  .put('/:id', async (c) => {
+  .patch('/:id', async (c) => {
     const { id } = c.get('user');
     const duelId = c.req.param('id');
     const body = await c.req.json();
