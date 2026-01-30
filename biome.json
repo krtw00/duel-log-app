@@ -56,7 +56,9 @@
       "scripts",
       ".claude",
       "*.min.js",
-      "pnpm-lock.yaml"
+      "pnpm-lock.yaml",
+      "api",
+      "packages/api/build.mjs"
     ]
   }
 }

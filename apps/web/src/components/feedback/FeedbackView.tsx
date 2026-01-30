@@ -58,7 +58,16 @@ export function FeedbackView() {
       };
       const result = await api<{ data: { issueUrl?: string } }>('/feedback', {
         method: 'POST',
-        body: { type: typeMap[activeTab], title, body, steps, expected, actual, useCase, ...envInfo },
+        body: {
+          type: typeMap[activeTab],
+          title,
+          body,
+          steps,
+          expected,
+          actual,
+          useCase,
+          ...envInfo,
+        },
       });
       setIssueUrl(result.data?.issueUrl ?? null);
       setSent(true);

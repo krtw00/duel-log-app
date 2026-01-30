@@ -115,9 +115,9 @@ export function DecksView() {
     if (isLoading) {
       return (
         <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {['a', 'b', 'c', 'd'].map((key) => (
             <div
-              key={i}
+              key={key}
               className="h-10 rounded animate-pulse"
               style={{ background: 'var(--color-surface-variant)' }}
             />

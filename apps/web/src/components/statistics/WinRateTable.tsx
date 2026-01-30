@@ -94,9 +94,9 @@ export function WinRateTable({ winRates, loading }: Props) {
   if (loading) {
     return (
       <div className="animate-pulse space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
+        {['a', 'b', 'c', 'd'].map((key) => (
           <div
-            key={i}
+            key={key}
             className="h-10 rounded"
             style={{ background: 'var(--color-surface-variant)' }}
           />

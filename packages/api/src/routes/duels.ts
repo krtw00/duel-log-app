@@ -53,7 +53,10 @@ export const duelRoutes = new Hono<Env>()
       return c.json({ error: { code: 'BAD_REQUEST', message: 'Empty CSV' } }, 400);
     }
 
-    const headers = rows[0]!;
+    const headers = rows[0];
+    if (!headers) {
+      return c.json({ error: { code: 'BAD_REQUEST', message: 'Empty CSV' } }, 400);
+    }
     const dataRows = rows.slice(1);
 
     const hasGameModeCol = headers.includes('game_mode');
@@ -87,14 +90,15 @@ export const duelRoutes = new Hono<Env>()
     const errors: string[] = [];
 
     for (let i = 0; i < dataRows.length; i++) {
-      const row = dataRows[i]!;
+      const row = dataRows[i];
+      if (!row) continue;
       const lineNum = i + 2; // 1-indexed, skip header
       try {
         const getField = (name: string) => row[colIdx(name)] ?? '';
         const deckName = getField('deck_name');
         const oppDeckName = getField('opponent_deck_name');
         const result = getField('result');
-        const gameMode = hasGameModeCol ? getField('game_mode') : gameModeParam!;
+        const gameMode = hasGameModeCol ? getField('game_mode') : (gameModeParam ?? 'RANK');
         const isFirstStr = getField('is_first');
         const wonCoinTossStr = getField('won_coin_toss');
         const rankStr = getField('rank');

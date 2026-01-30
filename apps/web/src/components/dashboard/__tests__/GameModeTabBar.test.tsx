@@ -36,10 +36,12 @@ describe('GameModeTabBar', () => {
     const onChange = vi.fn();
     render(<GameModeTabBar value="RANK" onChange={onChange} />);
 
-    fireEvent.click(screen.getAllByText('RATE')[0]!);
+    const rateButton = screen.getAllByText('RATE')[0];
+    if (rateButton) fireEvent.click(rateButton);
     expect(onChange).toHaveBeenCalledWith('RATE');
 
-    fireEvent.click(screen.getAllByText('DC')[0]!);
+    const dcButton = screen.getAllByText('DC')[0];
+    if (dcButton) fireEvent.click(dcButton);
     expect(onChange).toHaveBeenCalledWith('DC');
   });
 });
