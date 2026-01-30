@@ -232,9 +232,9 @@ export function DuelTable({
   if (loading) {
     return (
       <div className="animate-pulse p-4 space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {['a', 'b', 'c', 'd', 'e'].map((key) => (
           <div
-            key={i}
+            key={key}
             className="h-10 rounded"
             style={{ background: 'var(--color-surface-variant)' }}
           />
