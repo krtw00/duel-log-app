@@ -242,6 +242,7 @@ export function OBSOverlayView() {
       return <span style={{ color: 'var(--obs-text-primary)' }}>-</span>;
     return (
       <div className="obs-recent-results">
+        {/* biome-ignore lint/suspicious/noArrayIndexKey: recent results don't have unique IDs */}
         {data.recentResults.map((r, i) => (
           <span key={i} className={`obs-result-mark ${r.result}`}>
             {r.result === 'win' ? '\u25CB' : '\u00D7'}

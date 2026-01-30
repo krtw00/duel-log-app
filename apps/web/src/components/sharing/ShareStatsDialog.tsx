@@ -38,8 +38,7 @@ export function ShareStatsDialog({
       setGeneratedUrl(null);
       setCopied(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, defaultYear, defaultMonth, defaultGameMode]);
+  }, [open, defaultYear, defaultMonth, defaultGameMode, now]);
 
   if (!open) return null;
 

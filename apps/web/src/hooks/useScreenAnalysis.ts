@@ -44,7 +44,7 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
         });
       }, 500);
     }
-  }, [fsmContext.state, fsmContext.coinResult, fsmContext.detectionResult, onAutoRegister]);
+  }, [fsmContext, onAutoRegister]);
 
   const handleWorkerMessage = useCallback((event: MessageEvent) => {
     if (event.data.type === 'result') {
@@ -116,7 +116,9 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
       workerRef.current = null;
     }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      for (const track of streamRef.current.getTracks()) {
+        track.stop();
+      }
       streamRef.current = null;
     }
     if (videoRef.current) {
