@@ -89,7 +89,7 @@ export function UserDetailDialog({ userId, onClose }: Props) {
             <div className="animate-pulse space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div
-                  key={i}
+                  key={`skeleton-${i}`}
                   className="h-8 rounded"
                   style={{ background: 'var(--color-surface-variant)' }}
                 />

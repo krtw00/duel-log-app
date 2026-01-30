@@ -117,7 +117,7 @@ export function DecksView() {
         <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
-              key={i}
+              key={`skeleton-${i}`}
               className="h-10 rounded animate-pulse"
               style={{ background: 'var(--color-surface-variant)' }}
             />

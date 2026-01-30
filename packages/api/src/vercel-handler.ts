@@ -1,6 +1,7 @@
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import app from './index.js';
 
-function handler(req: any, res: any) {
+function handler(req: IncomingMessage, res: ServerResponse) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
   const url = new URL(req.url || '/', `${proto}://${host}`);
@@ -28,18 +29,18 @@ function handler(req: any, res: any) {
       body,
     });
     return app.fetch(request);
-  }).then((response: any) => {
+  }).then((response: Response) => {
     res.statusCode = response.status;
     response.headers.forEach((value: string, key: string) => {
       res.setHeader(key, value);
     });
     return response.arrayBuffer();
-  }).then((responseBody: any) => {
+  }).then((responseBody: ArrayBuffer) => {
     res.end(Buffer.from(responseBody));
-  }).catch((err: any) => {
+  }).catch((err: unknown) => {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: err.message }));
+    res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }));
   });
 }
 

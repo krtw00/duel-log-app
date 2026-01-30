@@ -25,7 +25,7 @@ export function StatsDisplayCards({ stats, loading, gridClassName }: Props) {
     return (
       <div className={gridClass}>
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="stat-card animate-pulse">
+          <div key={`skeleton-${i}`} className="stat-card animate-pulse">
             <div
               className="h-4 w-16 rounded"
               style={{ background: 'var(--color-surface-variant)' }}

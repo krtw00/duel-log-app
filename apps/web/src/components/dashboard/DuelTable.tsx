@@ -234,7 +234,7 @@ export function DuelTable({
       <div className="animate-pulse p-4 space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <div
-            key={i}
+            key={`skeleton-${i}`}
             className="h-10 rounded"
             style={{ background: 'var(--color-surface-variant)' }}
           />
