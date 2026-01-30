@@ -24,9 +24,8 @@ export function StatsDisplayCards({ stats, loading, gridClassName }: Props) {
   if (loading) {
     return (
       <div className={gridClass}>
-        {/* biome-ignore lint/suspicious/noArrayIndexKey: static skeleton items never reorder */}
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="stat-card animate-pulse">
+        {['a', 'b', 'c', 'd', 'e', 'f'].map((key) => (
+          <div key={key} className="stat-card animate-pulse">
             <div
               className="h-4 w-16 rounded"
               style={{ background: 'var(--color-surface-variant)' }}

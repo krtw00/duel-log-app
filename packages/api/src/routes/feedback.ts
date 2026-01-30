@@ -60,14 +60,22 @@ export const feedbackRoutes = new Hono<Env>().post('/', async (c) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('GitHub API error:', response.status, errorText);
-      return c.json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to submit feedback' } }, 500);
+      return c.json(
+        { error: { code: 'INTERNAL_ERROR', message: 'Failed to submit feedback' } },
+        500,
+      );
     }
 
     return c.json({ data: { message: 'Feedback submitted' } }, 201);
   } catch (error) {
     console.error('Feedback error:', error);
     return c.json(
-      { error: { code: 'INTERNAL_ERROR', message: error instanceof Error ? error.message : 'Unknown error' } },
+      {
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
+      },
       500,
     );
   }

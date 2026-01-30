@@ -53,7 +53,7 @@ export const duelRoutes = new Hono<Env>()
       return c.json({ error: { code: 'BAD_REQUEST', message: 'Empty CSV' } }, 400);
     }
 
-    const headers = rows[0]!;
+    const headers = rows[0];
     const dataRows = rows.slice(1);
 
     const hasGameModeCol = headers.includes('game_mode');
