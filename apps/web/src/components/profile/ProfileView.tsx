@@ -1,9 +1,9 @@
 import type { UpdateUser } from '@duel-log/shared';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
+import { supabase } from '../../lib/supabase.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { CsvExportButton } from '../csv/CsvExportButton.js';
 import { CsvImportDialog } from '../csv/CsvImportDialog.js';
@@ -17,6 +17,14 @@ export function ProfileView() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+
+  // Password change
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordMessageType, setPasswordMessageType] = useState<'success' | 'error'>('success');
 
   // Data management
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -57,6 +65,36 @@ export function ProfileView() {
       setMessageType('error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage(t('profile.passwordMismatch'));
+      setPasswordMessageType('error');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordMessage(t('profile.passwordTooShort'));
+      setPasswordMessageType('error');
+      return;
+    }
+
+    setChangingPassword(true);
+    setPasswordMessage('');
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setPasswordMessage(t('profile.passwordChanged'));
+      setPasswordMessageType('success');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordSection(false);
+    } catch {
+      setPasswordMessage(t('profile.passwordChangeFailed'));
+      setPasswordMessageType('error');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -211,17 +249,115 @@ export function ProfileView() {
             </svg>
             {saving ? t('common.saving') : t('common.save')}
           </button>
+        </div>
+      </div>
 
-          {/* Change Password Link */}
-          <div className="text-center">
-            <Link
-              to="/forgot-password"
-              className="text-sm hover:underline"
-              style={{ color: 'var(--color-primary)' }}
+      {/* Password Change Card */}
+      <div className="glass-card overflow-hidden">
+        <div className="glow-line-top" />
+        <div className="p-6 space-y-4">
+          <button
+            type="button"
+            onClick={() => setShowPasswordSection(!showPasswordSection)}
+            className="flex items-center justify-between w-full"
+          >
+            <div className="flex items-center gap-2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-primary)"
+                strokeWidth="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <h2 className="text-base font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+                {t('profile.changePassword')}
+              </h2>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-on-surface-muted)"
+              strokeWidth="2"
+              style={{
+                transform: showPasswordSection ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s',
+              }}
             >
-              {t('profile.changePassword')}
-            </Link>
-          </div>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {showPasswordSection && (
+            <div className="space-y-4 pt-2">
+              <div>
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
+                  {t('auth.newPassword')}
+                </label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="themed-input"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
+                  {t('auth.passwordConfirm')}
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="themed-input"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              {passwordMessage && (
+                <p
+                  className="text-sm"
+                  style={{
+                    color:
+                      passwordMessageType === 'error'
+                        ? 'var(--color-error)'
+                        : 'var(--color-success)',
+                  }}
+                >
+                  {passwordMessage}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleChangePassword}
+                disabled={changingPassword || !newPassword || !confirmPassword}
+                className="themed-btn themed-btn-primary w-full"
+                style={{
+                  opacity: !newPassword || !confirmPassword ? 0.5 : 1,
+                }}
+              >
+                {changingPassword ? t('common.saving') : t('profile.changePassword')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
