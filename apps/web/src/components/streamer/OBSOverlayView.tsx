@@ -15,10 +15,15 @@ type OBSStats = {
   currentDeck?: string;
   recentResults: Array<{ result: 'win' | 'loss'; dueledAt: string }>;
   sessionWins: number;
+  gameMode?: string;
+  rank?: number;
+  rateValue?: number;
+  dcValue?: number;
 };
 
 type DisplayItem =
   | 'currentDeck'
+  | 'gameModeValue'
   | 'totalDuels'
   | 'winRate'
   | 'firstWinRate'
@@ -176,6 +181,8 @@ export function OBSOverlayView() {
     switch (item) {
       case 'currentDeck':
         return t('streamer.currentDeck');
+      case 'gameModeValue':
+        return t('streamer.items.gameModeValue');
       case 'totalDuels':
         return t('streamer.totalDuels');
       case 'winRate':
@@ -204,6 +211,23 @@ export function OBSOverlayView() {
     switch (item) {
       case 'currentDeck':
         return data.currentDeck || '-';
+      case 'gameModeValue': {
+        const mode = data.gameMode;
+        if (mode === 'RANK' && data.rank != null) {
+          const rankNames = ['rookie', 'bronze', 'silver', 'gold', 'platinum', 'diamond', 'master'];
+          const tierIndex = Math.floor((data.rank - 1) / 5);
+          const tierName = rankNames[tierIndex] ?? 'rookie';
+          const tierLevel = ((data.rank - 1) % 5) + 1;
+          return `${t(`ranks.${tierName}`)} ${tierLevel}`;
+        }
+        if (mode === 'RATE' && data.rateValue != null) {
+          return `${data.rateValue}`;
+        }
+        if (mode === 'DC' && data.dcValue != null) {
+          return `${data.dcValue} DP`;
+        }
+        return '-';
+      }
       case 'totalDuels':
         return `${data.totalDuels}`;
       case 'winRate':
@@ -242,9 +266,8 @@ export function OBSOverlayView() {
       return <span style={{ color: 'var(--obs-text-primary)' }}>-</span>;
     return (
       <div className="obs-recent-results">
-        {/* biome-ignore lint/suspicious/noArrayIndexKey: recent results don't have unique IDs */}
-        {data.recentResults.map((r, i) => (
-          <span key={i} className={`obs-result-mark ${r.result}`}>
+        {data.recentResults.map((r) => (
+          <span key={r.dueledAt} className={`obs-result-mark ${r.result}`}>
             {r.result === 'win' ? '\u25CB' : '\u00D7'}
           </span>
         ))}
