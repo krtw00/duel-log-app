@@ -129,7 +129,8 @@
     "archiveAll": "전체 보관",
     "archiveAllConfirm": "모든 활성 덱을 보관하시겠습니까?",
     "generic": "범용 덱",
-    "genericDesc": "통계에서 '기타'로 그룹됩니다"
+    "genericDesc": "통계에서 '기타'로 그룹됩니다",
+    "deleteError": "덱 삭제에 실패했습니다. 대전 기록에서 사용 중일 수 있습니다."
   },
   "statistics": {
     "title": "통계",

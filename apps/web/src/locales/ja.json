@@ -129,7 +129,8 @@
     "archiveAll": "全てアーカイブ",
     "archiveAllConfirm": "全てのアクティブなデッキをアーカイブしますか？",
     "generic": "汎用デッキ",
-    "genericDesc": "統計で「その他」にまとめられます"
+    "genericDesc": "統計で「その他」にまとめられます",
+    "deleteError": "デッキの削除に失敗しました。対戦記録で使用されている可能性があります。"
   },
   "statistics": {
     "title": "統計",
