@@ -37,7 +37,10 @@ export function AppLayout() {
       <AppBar />
 
       {/* Main Content - offset for fixed header */}
-      <main className="px-4 py-6 pt-20 pb-24 md:pb-6">
+      <main
+        className="px-4 py-6 pb-24 md:pb-6"
+        style={{ paddingTop: 'calc(var(--appbar-height, 56px) + 24px)' }}
+      >
         <Outlet />
       </main>
 
