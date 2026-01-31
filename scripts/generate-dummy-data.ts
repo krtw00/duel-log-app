@@ -524,4 +524,6 @@ function generateSQL(): string {
 }
 
 // === メイン ===
+// codeql[js/clear-text-logging]: This is a dummy data generator script for development/testing.
+// The password is intentionally a well-known test value (password123) and is expected to be logged.
 console.log(generateSQL());
