@@ -7967,7 +7967,7 @@ var require_main3 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/compose.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
   return (context, next) => {
     let index = -1;
@@ -8011,10 +8011,10 @@ var compose = (middleware, onError, onNotFound) => {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/request/constants.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/request/constants.js
 var GET_MATCH_RESULT = /* @__PURE__ */ Symbol();
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/body.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/body.js
 var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) => {
   const { all = false, dot = false } = options;
   const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
@@ -8083,7 +8083,7 @@ var handleParsingNestedValues = (form, key, value) => {
   });
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/url.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/url.js
 var splitPath = (path) => {
   const paths = path.split("/");
   if (paths[0] === "") {
@@ -8285,7 +8285,7 @@ var getQueryParams = (url, key) => {
 };
 var decodeURIComponent_ = decodeURIComponent;
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/request.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/request.js
 var tryDecodeURIComponent = (str) => tryDecode(str, decodeURIComponent_);
 var HonoRequest = class {
   /**
@@ -8553,7 +8553,7 @@ var HonoRequest = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/html.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/html.js
 var HtmlEscapedCallbackPhase = {
   Stringify: 1,
   BeforeStream: 2,
@@ -8595,7 +8595,7 @@ var resolveCallback = async (str, phase, preserveCallbacks, context, buffer2) =>
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/context.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/context.js
 var TEXT_PLAIN = "text/plain; charset=UTF-8";
 var setDefaultContentType = (contentType, headers) => {
   return {
@@ -9001,7 +9001,7 @@ var Context = class {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router.js
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
@@ -9009,10 +9009,10 @@ var MESSAGE_MATCHER_IS_ALREADY_BUILT = "Can not add a route since the matcher is
 var UnsupportedPathError = class extends Error {
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/constants.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/constants.js
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/hono-base.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/hono-base.js
 var notFoundHandler = (c) => {
   return c.text("404 Not Found", 404);
 };
@@ -9383,7 +9383,7 @@ var Hono = class _Hono {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router/reg-exp-router/matcher.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/matcher.js
 var emptyParam = [];
 function match(method, path) {
   const matchers = this.buildAllMatchers();
@@ -9404,7 +9404,7 @@ function match(method, path) {
   return match2(method, path);
 }
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router/reg-exp-router/node.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/node.js
 var LABEL_REG_EXP_STR = "[^/]+";
 var ONLY_WILDCARD_REG_EXP_STR = ".*";
 var TAIL_WILDCARD_REG_EXP_STR = "(?:|/.*)";
@@ -9512,7 +9512,7 @@ var Node = class _Node {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router/reg-exp-router/trie.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/trie.js
 var Trie = class {
   #context = { varIndex: 0 };
   #root = new Node();
@@ -9568,7 +9568,7 @@ var Trie = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router/reg-exp-router/router.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/router.js
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path) {
@@ -9747,7 +9747,7 @@ var RegExpRouter = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router/smart-router/router.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/smart-router/router.js
 var SmartRouter = class {
   name = "SmartRouter";
   #routers = [];
@@ -9802,7 +9802,7 @@ var SmartRouter = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router/trie-router/node.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/trie-router/node.js
 var emptyParams = /* @__PURE__ */ Object.create(null);
 var Node2 = class _Node2 {
   #methods;
@@ -9960,7 +9960,7 @@ var Node2 = class _Node2 {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/router/trie-router/router.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/trie-router/router.js
 var TrieRouter = class {
   name = "TrieRouter";
   #node;
@@ -9982,7 +9982,7 @@ var TrieRouter = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/hono.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/hono.js
 var Hono2 = class extends Hono {
   /**
    * Creates an instance of the Hono class.
@@ -9997,7 +9997,7 @@ var Hono2 = class extends Hono {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/middleware/cors/index.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/middleware/cors/index.js
 var cors = (options) => {
   const defaults = {
     origin: "*",
@@ -10082,7 +10082,7 @@ var cors = (options) => {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/color.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/color.js
 function getColorEnabled() {
   const { process: process2, Deno: Deno2 } = globalThis;
   const isNoColor = typeof Deno2?.noColor === "boolean" ? Deno2.noColor : process2 !== void 0 ? (
@@ -10104,7 +10104,7 @@ async function getColorEnabledAsync() {
   return !isNoColor;
 }
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/middleware/logger/index.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/middleware/logger/index.js
 var humanize = (times) => {
   const [delimiter, separator] = [",", "."];
   const orderTimes = times.map((v) => v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1" + delimiter));
@@ -10145,7 +10145,7 @@ var logger = (fn = console.log) => {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/helper/factory/index.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/helper/factory/index.js
 var createMiddleware = (middleware) => middleware;
 
 // src/middleware/admin.ts
@@ -17090,10 +17090,29 @@ var connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error("DATABASE_URL environment variable is required");
 }
-var fixedConnectionString = connectionString.includes("pooler.supabase.com:5432") ? connectionString.replace(":5432/", ":6543/") : connectionString;
+var parseDbUrl = (url) => {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname;
+    const port = parsed.port || (parsed.protocol === "postgres:" ? "5432" : "");
+    const supabasePoolerRegex = /^aws-0-[a-z]+-[a-z]+-\d+\.pooler\.supabase\.com$/;
+    const isSupabasePooler2 = supabasePoolerRegex.test(hostname) && port === "5432";
+    return {
+      hostname,
+      port,
+      isLocal: hostname === "127.0.0.1" || hostname === "localhost" || hostname.startsWith("supabase_db_"),
+      isSupabasePooler: isSupabasePooler2
+    };
+  } catch {
+    return { hostname: "", port: "", isLocal: false, isSupabasePooler: false };
+  }
+};
+var { isLocal, isSupabasePooler } = parseDbUrl(connectionString);
+var fixedConnectionString = isSupabasePooler ? connectionString.replace(":5432/", ":6543/") : connectionString;
+var isLocalDb = isLocal;
 var sql = src_default(fixedConnectionString, {
   transform: src_default.camel,
-  ssl: { rejectUnauthorized: false },
+  ssl: isLocalDb ? false : { rejectUnauthorized: false },
   prepare: false,
   idle_timeout: 20,
   max: 3
@@ -21828,6 +21847,9 @@ var duelRoutes = new Hono2().get("/", async (c) => {
     return c.json({ error: { code: "BAD_REQUEST", message: "Empty CSV" } }, 400);
   }
   const headers = rows[0];
+  if (!headers) {
+    return c.json({ error: { code: "BAD_REQUEST", message: "Empty CSV" } }, 400);
+  }
   const dataRows = rows.slice(1);
   const hasGameModeCol = headers.includes("game_mode");
   if (!hasGameModeCol && !gameModeParam) {
@@ -21856,13 +21878,14 @@ var duelRoutes = new Hono2().get("/", async (c) => {
   const errors = [];
   for (let i = 0; i < dataRows.length; i++) {
     const row = dataRows[i];
+    if (!row) continue;
     const lineNum = i + 2;
     try {
       const getField = (name) => row[colIdx(name)] ?? "";
       const deckName = getField("deck_name");
       const oppDeckName = getField("opponent_deck_name");
       const result = getField("result");
-      const gameMode = hasGameModeCol ? getField("game_mode") : gameModeParam;
+      const gameMode = hasGameModeCol ? getField("game_mode") : gameModeParam ?? "RANK";
       const isFirstStr = getField("is_first");
       const wonCoinTossStr = getField("won_coin_toss");
       const rankStr = getField("rank");
@@ -21946,7 +21969,7 @@ var duelRoutes = new Hono2().get("/", async (c) => {
     return c.json({ error: { code: "NOT_FOUND", message: "Duel not found" } }, 404);
   }
   return c.json({ data: duel });
-}).put("/:id", async (c) => {
+}).patch("/:id", async (c) => {
   const { id } = c.get("user");
   const duelId = c.req.param("id");
   const body = await c.req.json();
@@ -22080,7 +22103,7 @@ var feedbackSchema = external_exports.object({
 });
 var feedbackRoutes = new Hono2().post("/", async (c) => {
   try {
-    const { id, email } = c.get("user");
+    const { id } = c.get("user");
     const rawBody = await c.req.json();
     const data = feedbackSchema.parse(rawBody);
     const githubToken = process.env.GITHUB_TOKEN;
@@ -22121,13 +22144,21 @@ ${envInfo}` : ""}`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error("GitHub API error:", response.status, errorText);
-      return c.json({ error: { code: "INTERNAL_ERROR", message: "Failed to submit feedback" } }, 500);
+      return c.json(
+        { error: { code: "INTERNAL_ERROR", message: "Failed to submit feedback" } },
+        500
+      );
     }
     return c.json({ data: { message: "Feedback submitted" } }, 201);
   } catch (error) {
     console.error("Feedback error:", error);
     return c.json(
-      { error: { code: "INTERNAL_ERROR", message: error instanceof Error ? error.message : "Unknown error" } },
+      {
+        error: {
+          code: "INTERNAL_ERROR",
+          message: error instanceof Error ? error.message : "Unknown error"
+        }
+      },
       500
     );
   }
@@ -22173,7 +22204,7 @@ var meRoutes = new Hono2().get("/", async (c) => {
   return c.json({ data: { message: "Account deleted" } });
 });
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/encode.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/encode.js
 var decodeBase64Url = (str) => {
   return decodeBase64(str.replace(/_|-/g, (m) => ({ _: "/", "-": "+" })[m] ?? m));
 };
@@ -22197,7 +22228,7 @@ var decodeBase64 = (str) => {
   return bytes;
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/jwt/jwa.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/jwa.js
 var AlgorithmTypes = /* @__PURE__ */ ((AlgorithmTypes2) => {
   AlgorithmTypes2["HS256"] = "HS256";
   AlgorithmTypes2["HS384"] = "HS384";
@@ -22215,7 +22246,7 @@ var AlgorithmTypes = /* @__PURE__ */ ((AlgorithmTypes2) => {
   return AlgorithmTypes2;
 })(AlgorithmTypes || {});
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/helper/adapter/index.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/helper/adapter/index.js
 var knownUserAgents = {
   deno: "Deno",
   bun: "Bun",
@@ -22248,7 +22279,7 @@ var checkUserAgentEquals = (platform) => {
   return userAgent.startsWith(platform);
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/jwt/types.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/types.js
 var JwtAlgorithmNotImplemented = class extends Error {
   constructor(alg) {
     super(`${alg} is not an implemented algorithm`);
@@ -22355,11 +22386,11 @@ var CryptoKeyUsage = /* @__PURE__ */ ((CryptoKeyUsage2) => {
   return CryptoKeyUsage2;
 })(CryptoKeyUsage || {});
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/jwt/utf8.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/utf8.js
 var utf8Encoder = new TextEncoder();
 var utf8Decoder = new TextDecoder();
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/jwt/jws.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/jws.js
 async function signing(privateKey, alg, data) {
   const algorithm = getKeyAlgorithm(alg);
   const cryptoKey = await importPrivateKey(privateKey, algorithm);
@@ -22544,7 +22575,7 @@ function isCryptoKey(key) {
   return key instanceof CryptoKey;
 }
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/jwt/jwt.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/jwt.js
 var encodeJwtPart = (part) => encodeBase64Url(utf8Encoder.encode(JSON.stringify(part)).buffer).replace(/=/g, "");
 var encodeSignaturePart = (buf) => encodeBase64Url(buf).replace(/=/g, "");
 var decodeJwtPart = (part) => JSON.parse(utf8Decoder.decode(decodeBase64Url(part)));
@@ -22714,10 +22745,10 @@ var decodeHeader = (token) => {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/utils/jwt/index.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/index.js
 var Jwt = { sign, verify, decode, verifyWithJwks };
 
-// ../../node_modules/.pnpm/hono@4.11.5/node_modules/hono/dist/middleware/jwt/jwt.js
+// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/middleware/jwt/jwt.js
 var verifyWithJwks2 = Jwt.verifyWithJwks;
 var verify2 = Jwt.verify;
 var decode2 = Jwt.decode;
@@ -22969,11 +23000,17 @@ var obsRoutes = new Hono2().post("/token", async (c) => {
     ]);
     const latestDuel = duelsResult.data[0];
     let currentDeck;
+    let rank;
+    let rateValue;
+    let dcValue;
     if (latestDuel) {
       const [deck] = await sql`
           SELECT * FROM decks WHERE id = ${latestDuel.deckId}
         `;
       if (deck) currentDeck = deck.name;
+      rank = latestDuel.rank ?? void 0;
+      rateValue = latestDuel.rateValue ?? void 0;
+      dcValue = latestDuel.dcValue ?? void 0;
     }
     const recentResults = recentDuels.data.map((d) => ({
       result: d.result,
@@ -22993,7 +23030,11 @@ var obsRoutes = new Hono2().post("/token", async (c) => {
         currentStreakType: streaks.currentStreakType,
         currentDeck,
         recentResults,
-        sessionWins: overview.wins
+        sessionWins: overview.wins,
+        gameMode,
+        rank,
+        rateValue,
+        dcValue
       }
     });
   } catch (err) {
@@ -23173,7 +23214,7 @@ function handler(req, res) {
   }).catch((err) => {
     res.statusCode = 500;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ error: err.message }));
+    res.end(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }));
   });
 }
 module.exports = handler;
