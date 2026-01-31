@@ -14,6 +14,8 @@ type Props = {
   onRangeEndChange: (value: number) => void;
   onReset: () => void;
   totalDuels?: number;
+  /** Set of deck IDs used in the current period - if provided, filter dropdown to only show these */
+  usedDeckIds?: Set<string>;
 };
 
 export function StatisticsFilter({
@@ -28,10 +30,14 @@ export function StatisticsFilter({
   onRangeEndChange,
   onReset,
   totalDuels = 30,
+  usedDeckIds,
 }: Props) {
   const { t } = useTranslation();
 
-  const myDecks = decks.filter((d) => !d.isOpponentDeck);
+  // Filter to my decks, and if usedDeckIds is provided, only show decks that were used
+  const myDecks = decks
+    .filter((d) => !d.isOpponentDeck)
+    .filter((d) => !usedDeckIds || usedDeckIds.has(d.id));
   const sliderMax = Math.max(totalDuels, rangeEnd, 10);
 
   const handleSliderStartChange = useCallback(
