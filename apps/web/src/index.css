@@ -5,8 +5,8 @@
    ========================================== */
 
 :root {
-  /* Layout */
-  --appbar-height: 56px;
+  /* Layout - AppBar height (py-3=24px + content~32px + glow-line~4px = ~60px) */
+  --appbar-height: 64px;
 
   /* Dark theme (default) */
   --color-bg: #0a0e27;
