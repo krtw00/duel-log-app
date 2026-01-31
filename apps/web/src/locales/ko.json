@@ -102,7 +102,13 @@
     "date": "날짜",
     "selectDeck": "덱 선택",
     "selectOrInputDeck": "덱 이름 선택 또는 입력",
-    "createDeck": "\"{{name}}\" 생성"
+    "createDeck": "\"{{name}}\" 생성",
+    "registered": "등록되었습니다",
+    "registerFailed": "등록에 실패했습니다",
+    "updated": "업데이트되었습니다",
+    "updateFailed": "업데이트에 실패했습니다",
+    "deleted": "삭제되었습니다",
+    "deleteFailed": "삭제에 실패했습니다"
   },
   "ranks": {
     "rookie": "루키",
