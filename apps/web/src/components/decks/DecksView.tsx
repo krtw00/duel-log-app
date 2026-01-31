@@ -10,11 +10,13 @@ import {
   useUnarchiveDeck,
   useUpdateDeck,
 } from '../../hooks/useDecks.js';
+import { useNotificationStore } from '../../stores/notificationStore.js';
 
 type DeckTab = 'my' | 'opponent';
 
 export function DecksView() {
   const { t } = useTranslation();
+  const { error: showError } = useNotificationStore();
   const [tab, setTab] = useState<DeckTab>('my');
   const [showArchived, setShowArchived] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -33,6 +35,15 @@ export function DecksView() {
   const unarchiveDeck = useUnarchiveDeck();
   const deleteDeck = useDeleteDeck();
   const archiveAll = useArchiveAllDecks();
+
+  const handleDeleteDeck = (deckId: string) => {
+    deleteDeck.mutate(deckId, {
+      onError: () => {
+        showError(t('deck.deleteError'));
+      },
+    });
+    setConfirmDeleteId(null);
+  };
 
   const allDecks = decksData?.data ?? [];
   const filteredDecks = allDecks.filter((d) => {
@@ -372,10 +383,7 @@ export function DecksView() {
                             type="button"
                             className="themed-btn themed-btn-ghost p-1"
                             style={{ color: 'var(--color-error)' }}
-                            onClick={() => {
-                              deleteDeck.mutate(deck.id);
-                              setConfirmDeleteId(null);
-                            }}
+                            onClick={() => handleDeleteDeck(deck.id)}
                           >
                             <svg
                               width="14"
