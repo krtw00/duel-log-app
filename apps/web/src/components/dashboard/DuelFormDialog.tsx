@@ -366,7 +366,7 @@ export function DuelFormDialog({
           <input
             id="rateValue"
             type="number"
-            step="0.1"
+            step="any"
             {...register('rateValue', { valueAsNumber: true })}
             className="themed-input"
           />
