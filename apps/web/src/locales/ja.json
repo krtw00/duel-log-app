@@ -102,7 +102,13 @@
     "date": "日時",
     "selectDeck": "デッキを選択",
     "selectOrInputDeck": "デッキ名を選択または入力",
-    "createDeck": "「{{name}}」を作成"
+    "createDeck": "「{{name}}」を作成",
+    "registered": "登録しました",
+    "registerFailed": "登録に失敗しました",
+    "updated": "更新しました",
+    "updateFailed": "更新に失敗しました",
+    "deleted": "削除しました",
+    "deleteFailed": "削除に失敗しました"
   },
   "ranks": {
     "rookie": "ルーキー",
