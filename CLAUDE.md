@@ -48,6 +48,10 @@ Docker不使用。`pnpm dev|build|test|lint|typecheck` + `npx supabase start`
 - アプリ: `http://localhost:5173`
 - Supabase Studio: `http://127.0.0.1:54323`
 
+## Git運用ルール（必須）
+
+**mainへの直接push禁止。** 詳細は `docs/07-development/contributing.md` を参照。
+
 ## テストユーザー
 
 seedスクリプトで作成（パスワード: `password123`）:
