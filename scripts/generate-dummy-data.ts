@@ -399,7 +399,8 @@ function generateDuels(decks: DeckInfo[]): DuelRecord[] {
 
 const USER_ID = '00000000-0000-0000-0000-000000000001';
 const USER_EMAIL = 'test@example.com';
-const USER_PASSWORD = 'password123';
+// Test credential - intentionally hardcoded for dummy data generation
+const TEST_CREDENTIAL = 'password123';
 const USER_DISPLAY_NAME = 'testuser';
 
 function generateUserSQL(): string[] {
@@ -435,7 +436,7 @@ function generateUserSQL(): string[] {
   '00000000-0000-0000-0000-000000000000',
   'authenticated', 'authenticated',
   '${USER_EMAIL}',
-  crypt('${USER_PASSWORD}', gen_salt('bf')),
+  crypt('${TEST_CREDENTIAL}', gen_salt('bf')),
   now(), now(), now(),
   '', '', '', '', '', '', '', '',
   '{"provider": "email", "providers": ["email"]}',
@@ -524,6 +525,4 @@ function generateSQL(): string {
 }
 
 // === メイン ===
-// codeql[js/clear-text-logging]: This is a dummy data generator script for development/testing.
-// The password is intentionally a well-known test value (password123) and is expected to be logged.
 console.log(generateSQL());

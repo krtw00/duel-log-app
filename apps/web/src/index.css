@@ -5,6 +5,9 @@
    ========================================== */
 
 :root {
+  /* Layout */
+  --appbar-height: 56px;
+
   /* Dark theme (default) */
   --color-bg: #0a0e27;
   --color-surface: #12162e;

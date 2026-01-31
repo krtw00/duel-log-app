@@ -23,8 +23,11 @@ export function DashboardHeader({
 }: Props) {
   return (
     <div
-      className="sticky top-16 z-20 -mx-4 px-4 py-3 space-y-3"
-      style={{ background: 'var(--color-bg)' }}
+      className="sticky z-30 -mx-4 px-4 py-3 space-y-3"
+      style={{
+        top: 'var(--appbar-height, 60px)',
+        background: 'var(--color-bg)',
+      }}
     >
       <GameModeTabBar value={gameMode} onChange={onGameModeChange} counts={modeCounts} />
       <DateFilterBar
