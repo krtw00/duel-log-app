@@ -1,5 +1,5 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../LanguageSwitcher.js';
 import { ThemeToggle } from '../ThemeToggle.js';
@@ -10,6 +10,25 @@ export function AppBar() {
   const location = useLocation();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const feedbackRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Track AppBar height and update CSS variable
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const updateHeight = () => {
+      const height = header.offsetHeight;
+      document.documentElement.style.setProperty('--appbar-height', `${height}px`);
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -58,7 +77,7 @@ export function AppBar() {
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40">
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-40">
       <div
         className="px-4 py-3 grid grid-cols-3 items-center"
         style={{

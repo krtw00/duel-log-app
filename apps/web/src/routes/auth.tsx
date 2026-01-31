@@ -44,14 +44,24 @@ export const callbackRoute = createRoute({
   component: AuthCallbackPage,
 });
 
+/** パスワードリセット: 認証状態に関係なくアクセス可能 */
 export const forgotPasswordRoute = createRoute({
-  getParentRoute: () => authLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/forgot-password',
-  component: ForgotPasswordPage,
+  component: () => (
+    <div className="min-h-screen bg-brand-dark-1">
+      <ForgotPasswordPage />
+    </div>
+  ),
 });
 
+/** パスワード再設定: 認証状態に関係なくアクセス可能（メールリンクから） */
 export const resetPasswordRoute = createRoute({
-  getParentRoute: () => authLayoutRoute,
+  getParentRoute: () => rootRoute,
   path: '/reset-password',
-  component: ResetPasswordPage,
+  component: () => (
+    <div className="min-h-screen bg-brand-dark-1">
+      <ResetPasswordPage />
+    </div>
+  ),
 });
