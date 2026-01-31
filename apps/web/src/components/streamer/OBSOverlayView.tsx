@@ -15,10 +15,15 @@ type OBSStats = {
   currentDeck?: string;
   recentResults: Array<{ result: 'win' | 'loss'; dueledAt: string }>;
   sessionWins: number;
+  gameMode?: string;
+  rank?: number;
+  rateValue?: number;
+  dcValue?: number;
 };
 
 type DisplayItem =
   | 'currentDeck'
+  | 'gameModeValue'
   | 'totalDuels'
   | 'winRate'
   | 'firstWinRate'
@@ -176,6 +181,8 @@ export function OBSOverlayView() {
     switch (item) {
       case 'currentDeck':
         return t('streamer.currentDeck');
+      case 'gameModeValue':
+        return t('streamer.items.gameModeValue');
       case 'totalDuels':
         return t('streamer.totalDuels');
       case 'winRate':
@@ -204,6 +211,19 @@ export function OBSOverlayView() {
     switch (item) {
       case 'currentDeck':
         return data.currentDeck || '-';
+      case 'gameModeValue': {
+        const mode = data.gameMode;
+        if (mode === 'RANK' && data.rank != null) {
+          return t(`ranks.${['rookie', 'bronze', 'silver', 'gold', 'platinum', 'diamond', 'master'][Math.floor((data.rank - 1) / 5)] ?? 'rookie'}`) + ` ${((data.rank - 1) % 5) + 1}`;
+        }
+        if (mode === 'RATE' && data.rateValue != null) {
+          return `${data.rateValue}`;
+        }
+        if (mode === 'DC' && data.dcValue != null) {
+          return `${data.dcValue} DP`;
+        }
+        return '-';
+      }
       case 'totalDuels':
         return `${data.totalDuels}`;
       case 'winRate':

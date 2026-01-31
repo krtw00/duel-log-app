@@ -79,11 +79,17 @@ export const obsRoutes = new Hono<Env>()
 
       const latestDuel = duelsResult.data[0];
       let currentDeck: string | undefined;
+      let rank: number | undefined;
+      let rateValue: number | undefined;
+      let dcValue: number | undefined;
       if (latestDuel) {
         const [deck] = await sql<DeckRow[]>`
           SELECT * FROM decks WHERE id = ${latestDuel.deckId}
         `;
         if (deck) currentDeck = deck.name;
+        rank = latestDuel.rank ?? undefined;
+        rateValue = latestDuel.rateValue ?? undefined;
+        dcValue = latestDuel.dcValue ?? undefined;
       }
 
       const recentResults = recentDuels.data
@@ -108,6 +114,10 @@ export const obsRoutes = new Hono<Env>()
           currentDeck,
           recentResults,
           sessionWins: overview.wins,
+          gameMode,
+          rank,
+          rateValue,
+          dcValue,
         },
       });
     } catch (err: unknown) {
