@@ -6,29 +6,37 @@ if (!connectionString) {
 }
 
 // Parse URL to check host properly (avoid CodeQL js/incomplete-url-substring-sanitization)
-const parseDbUrl = (url: string): { host: string; isLocal: boolean } => {
+const parseDbUrl = (
+  url: string,
+): { hostname: string; port: string; isLocal: boolean; isSupabasePooler: boolean } => {
   try {
     const parsed = new URL(url);
+    const hostname = parsed.hostname;
+    const port = parsed.port || (parsed.protocol === 'postgres:' ? '5432' : '');
+
+    // Supabase pooler hosts follow pattern: aws-0-{region}.pooler.supabase.com
+    // Use strict regex to match only valid Supabase regions
+    const supabasePoolerRegex = /^aws-0-[a-z]+-[a-z]+-\d+\.pooler\.supabase\.com$/;
+    const isSupabasePooler = supabasePoolerRegex.test(hostname) && port === '5432';
+
     return {
-      host: parsed.host,
+      hostname,
+      port,
       isLocal:
-        parsed.hostname === '127.0.0.1' ||
-        parsed.hostname === 'localhost' ||
-        parsed.hostname.includes('supabase_db_'),
+        hostname === '127.0.0.1' || hostname === 'localhost' || hostname.startsWith('supabase_db_'),
+      isSupabasePooler,
     };
   } catch {
-    return { host: '', isLocal: false };
+    return { hostname: '', port: '', isLocal: false, isSupabasePooler: false };
   }
 };
 
-const { host, isLocal } = parseDbUrl(connectionString);
+const { isLocal, isSupabasePooler } = parseDbUrl(connectionString);
 
 // Supabase pooler: session mode (5432) → transaction mode (6543) for serverless
-const fixedConnectionString =
-  host === 'aws-0-ap-northeast-1.pooler.supabase.com:5432' ||
-  host.endsWith('.pooler.supabase.com:5432')
-    ? connectionString.replace(':5432/', ':6543/')
-    : connectionString;
+const fixedConnectionString = isSupabasePooler
+  ? connectionString.replace(':5432/', ':6543/')
+  : connectionString;
 
 // Local Supabase doesn't use SSL
 const isLocalDb = isLocal;
