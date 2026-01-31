@@ -1,5 +1,6 @@
 import type { UpdateUser } from '@duel-log/shared';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
@@ -12,8 +13,6 @@ export function ProfileView() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [streamerMode, setStreamerMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -44,12 +43,6 @@ export function ProfileView() {
   }, []);
 
   const handleSave = async () => {
-    if (newPassword && newPassword !== confirmPassword) {
-      setMessage(t('profile.passwordMismatch'));
-      setMessageType('error');
-      return;
-    }
-
     setSaving(true);
     setMessage('');
     try {
@@ -59,8 +52,6 @@ export function ProfileView() {
       localStorage.setItem('streamerMode', String(streamerMode));
       setMessage(t('profile.saved'));
       setMessageType('success');
-      setNewPassword('');
-      setConfirmPassword('');
     } catch {
       setMessage(t('profile.saveFailed'));
       setMessageType('error');
@@ -151,73 +142,6 @@ export function ProfileView() {
             />
           </div>
 
-          {/* New Password */}
-          <div>
-            <label
-              htmlFor="newPassword"
-              className="block text-base font-medium mb-1"
-              style={{ color: 'var(--color-on-surface-muted)' }}
-            >
-              <span className="flex items-center gap-1">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                {t('auth.newPassword')}
-              </span>
-            </label>
-            <input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="themed-input"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {/* Confirm Password */}
-          {newPassword && (
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-base font-medium mb-1"
-                style={{ color: 'var(--color-on-surface-muted)' }}
-              >
-                <span className="flex items-center gap-1">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    <polyline points="9 16 11 18 15 14" />
-                  </svg>
-                  {t('auth.passwordConfirm')}
-                </span>
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="themed-input"
-                placeholder="••••••••"
-              />
-            </div>
-          )}
-
           {/* Divider */}
           <div style={{ borderTop: '1px solid var(--color-border)', margin: '16px 0' }} />
 
@@ -287,6 +211,17 @@ export function ProfileView() {
             </svg>
             {saving ? t('common.saving') : t('common.save')}
           </button>
+
+          {/* Change Password Link */}
+          <div className="text-center">
+            <Link
+              to="/forgot-password"
+              className="text-sm hover:underline"
+              style={{ color: 'var(--color-primary)' }}
+            >
+              {t('profile.changePassword')}
+            </Link>
+          </div>
         </div>
       </div>
 
