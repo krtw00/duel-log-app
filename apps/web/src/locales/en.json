@@ -259,7 +259,11 @@
     "deleteWarning": "Deleting your account will permanently remove all data and cannot be undone.",
     "deleteConfirmText": "Type \"DELETE\" to confirm",
     "deleteFailed": "Failed to delete account",
-    "passwordMismatch": "Passwords do not match"
+    "passwordMismatch": "Passwords do not match",
+    "changePassword": "Change Password",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordChanged": "Password changed successfully",
+    "passwordChangeFailed": "Failed to change password"
   },
   "admin": {
     "title": "Admin Panel",
