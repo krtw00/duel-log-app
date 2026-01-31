@@ -34,9 +34,10 @@ export function StatisticsFilter({
 }: Props) {
   const { t } = useTranslation();
 
-  // Filter to my decks, and if usedDeckIds is provided, only show decks that were used
+  // Filter to my decks only (explicitly check isOpponentDeck !== true to handle undefined/null)
+  // If usedDeckIds is provided, only show decks that were used as player's deck
   const myDecks = decks
-    .filter((d) => !d.isOpponentDeck)
+    .filter((d) => d.isOpponentDeck !== true)
     .filter((d) => !usedDeckIds || usedDeckIds.has(d.id));
   const sliderMax = Math.max(totalDuels, rangeEnd, 10);
 
