@@ -129,7 +129,8 @@
     "archiveAll": "Archive All",
     "archiveAllConfirm": "Archive all active decks?",
     "generic": "Generic Deck",
-    "genericDesc": "Grouped as 'Other' in statistics"
+    "genericDesc": "Grouped as 'Other' in statistics",
+    "deleteError": "Failed to delete deck. It may be used in duel records."
   },
   "statistics": {
     "title": "Statistics",

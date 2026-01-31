@@ -138,6 +138,7 @@ export function DashboardView() {
           setRangeEnd(modeCounts[gameMode] ?? 30);
         }}
         totalDuels={modeCounts[gameMode] ?? 30}
+        usedDeckIds={new Set(deckUsage.keys())}
       />
 
       {/* Stats Cards */}
