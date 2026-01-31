@@ -102,7 +102,13 @@
     "date": "Date",
     "selectDeck": "Select deck",
     "selectOrInputDeck": "Select or type deck name",
-    "createDeck": "Create \"{{name}}\""
+    "createDeck": "Create \"{{name}}\"",
+    "registered": "Registered",
+    "registerFailed": "Failed to register",
+    "updated": "Updated",
+    "updateFailed": "Failed to update",
+    "deleted": "Deleted",
+    "deleteFailed": "Failed to delete"
   },
   "ranks": {
     "rookie": "Rookie",
