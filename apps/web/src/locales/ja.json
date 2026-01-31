@@ -259,7 +259,11 @@
     "deleteWarning": "アカウントを削除すると、すべてのデータが完全に削除され、復元できません。",
     "deleteConfirmText": "確認のため「DELETE」と入力してください",
     "deleteFailed": "削除に失敗しました",
-    "passwordMismatch": "パスワードが一致しません"
+    "passwordMismatch": "パスワードが一致しません",
+    "changePassword": "パスワード変更",
+    "passwordTooShort": "パスワードは6文字以上で入力してください",
+    "passwordChanged": "パスワードを変更しました",
+    "passwordChangeFailed": "パスワードの変更に失敗しました"
   },
   "admin": {
     "title": "管理者パネル",
