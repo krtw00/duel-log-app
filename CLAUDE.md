@@ -11,15 +11,7 @@
 
 ## 技術スタック
 
-**詳細:** `docs/02-architecture/tech-stack.md`
-
-| カテゴリ | 主要技術 |
-|---------|---------|
-| フロントエンド | React / TypeScript / shadcn/ui / TanStack Query / Zustand |
-| バックエンド | Hono / TypeScript / Drizzle ORM / Zod |
-| インフラ | Vercel Functions / Supabase (Auth + PostgreSQL) |
-| テスト | Vitest / Testing Library / Playwright |
-| モノレポ | pnpm workspaces |
+@docs/02-architecture/tech-stack.md を参照。
 
 ## 設計原則
 
@@ -32,14 +24,7 @@
 
 ## データモデル
 
-```
-User 1→N Deck (user_id)
-User 1→N Duel (user_id)
-Duel N→1 Deck (deck_id: プレイヤーデッキ)
-Duel N→1 Deck (opponent_deck_id: 相手デッキ)
-```
-
-主要テーブル: `users`, `decks`, `duels`, `shared_statistics`
+@docs/03-details/data-model.md を参照。
 
 ## 開発環境
 
@@ -47,6 +32,10 @@ Docker不使用。`pnpm dev|build|test|lint|typecheck` + `npx supabase start`
 
 - アプリ: `http://localhost:5173`
 - Supabase Studio: `http://127.0.0.1:54323`
+
+## Git運用ルール（必須）
+
+**mainへの直接push禁止。** 詳細は @docs/07-development/contributing.md を参照。
 
 ## テストユーザー
 
@@ -60,24 +49,11 @@ seedスクリプトで作成（パスワード: `password123`）:
 
 ## デプロイ
 
-**詳細:** `docs/06-deployment/vercel.md`
-
-| 環境 | サービス |
-|------|---------|
-| フロントエンド + API | Vercel (単一ドメイン) |
-| データベース + 認証 | Supabase Cloud |
+@docs/06-deployment/vercel.md を参照。
 
 ## 詳細ドキュメント
 
-`docs/`ディレクトリを参照:
-
-| ドキュメント | 内容 |
-|------------|------|
-| `docs/00-index.md` | ドキュメント全体のナビゲーション |
-| `docs/02-architecture/` | システムアーキテクチャ |
-| `docs/03-details/` | データモデル・API・主要フロー |
-| `docs/04-decisions/` | ADR（アーキテクチャ決定記録） |
-| `docs/05-guides/` | クイックスタート・テスト・デプロイ手順 |
+@docs/00-index.md を参照。
 
 ## ツール・MCP使用ガイド
 
