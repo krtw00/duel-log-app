@@ -259,7 +259,8 @@
     "deleteWarning": "アカウントを削除すると、すべてのデータが完全に削除され、復元できません。",
     "deleteConfirmText": "確認のため「DELETE」と入力してください",
     "deleteFailed": "削除に失敗しました",
-    "passwordMismatch": "パスワードが一致しません"
+    "passwordMismatch": "パスワードが一致しません",
+    "changePassword": "パスワードを変更する"
   },
   "admin": {
     "title": "管理者パネル",
