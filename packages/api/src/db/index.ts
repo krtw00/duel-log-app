@@ -14,9 +14,9 @@ const parseDbUrl = (
     const hostname = parsed.hostname;
     const port = parsed.port || (parsed.protocol === 'postgres:' ? '5432' : '');
 
-    // Supabase pooler hosts follow pattern: aws-0-{region}.pooler.supabase.com
+    // Supabase pooler hosts follow pattern: aws-{N}-{region}.pooler.supabase.com
     // Use strict regex to match only valid Supabase regions
-    const supabasePoolerRegex = /^aws-0-[a-z]+-[a-z]+-\d+\.pooler\.supabase\.com$/;
+    const supabasePoolerRegex = /^aws-\d+-[a-z]+-[a-z]+-\d+\.pooler\.supabase\.com$/;
     const isSupabasePooler = supabasePoolerRegex.test(hostname) && port === '5432';
 
     return {
