@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import devServer from '@hono/vite-dev-server';
 import { config } from 'dotenv';
 import { defineConfig } from 'vite';
@@ -11,6 +12,11 @@ export default defineConfig({
       entry: './src/index.ts',
     }),
   ],
+  resolve: {
+    alias: {
+      '@duel-log/shared': resolve(__dirname, '../shared/src'),
+    },
+  },
   server: {
     port: 3000,
     allowedHosts: true,
