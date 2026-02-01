@@ -6,10 +6,7 @@ import type { DuelRow } from '../db/types.js';
 function buildConditions(
   userId: string,
   filter: Partial<
-    Pick<
-      DuelFilter,
-      'gameMode' | 'deckId' | 'from' | 'to' | 'fromTimestamp' | 'rangeStart' | 'rangeEnd'
-    >
+    Pick<DuelFilter, 'gameMode' | 'deckId' | 'from' | 'to' | 'fromTimestamp' | 'rangeStart' | 'rangeEnd'>
   >,
 ) {
   const conditions: SqlFragment[] = [sql`user_id = ${userId}`];
