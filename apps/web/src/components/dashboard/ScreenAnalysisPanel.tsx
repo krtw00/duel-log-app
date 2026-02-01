@@ -1,8 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import type { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
+import {
+  COIN_BAR_ROI,
+  COIN_BUTTONS_ROI,
+  RESULT_TEXT_ROI,
+  SCAN_FPS,
+} from '../../utils/screenAnalysis/config.js';
 
 type Props = {
   analysis: ReturnType<typeof useScreenAnalysis>;
+  canAutoRegister: boolean;
 };
 
 function StateChip({ label, active, color }: { label: string; active: boolean; color: string }) {
@@ -20,12 +27,38 @@ function StateChip({ label, active, color }: { label: string; active: boolean; c
   );
 }
 
-export function ScreenAnalysisPanel({ analysis }: Props) {
+export function ScreenAnalysisPanel({ analysis, canAutoRegister }: Props) {
   const { t } = useTranslation();
-  const { status, startCapture, stopCapture, autoRegister, setAutoRegister } = analysis;
+  const {
+    status,
+    startCapture,
+    stopCapture,
+    autoRegister,
+    setAutoRegister,
+    debugLoggingEnabled,
+    setDebugLoggingEnabled,
+    debugSessionId,
+    lastFrame,
+  } = analysis;
 
   const isCoinActive = status.state === 'coinDetecting' || status.state === 'coinDetected';
   const isResultActive = status.state === 'resultDetecting' || status.state === 'resultDetected';
+  const previewWidth = 160;
+  const previewHeight = 90;
+
+  const roiItems = [
+    { label: t('screenAnalysis.roi.coinBar'), roi: COIN_BAR_ROI, color: 'var(--color-warning)' },
+    {
+      label: t('screenAnalysis.roi.coinButtons'),
+      roi: COIN_BUTTONS_ROI,
+      color: 'var(--color-secondary)',
+    },
+    {
+      label: t('screenAnalysis.roi.resultText'),
+      roi: RESULT_TEXT_ROI,
+      color: 'var(--color-success)',
+    },
+  ];
 
   return (
     <div
@@ -65,17 +98,33 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
         </button>
 
         {/* Auto Register Toggle */}
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={autoRegister}
-            onChange={(e) => setAutoRegister(e.target.checked)}
-            className="accent-[var(--color-primary)]"
-          />
-          <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
-            {t('screenAnalysis.autoRegister')}
-          </span>
-        </label>
+        {canAutoRegister && (
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoRegister}
+              onChange={(e) => setAutoRegister(e.target.checked)}
+              className="accent-[var(--color-primary)]"
+            />
+            <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+              {t('screenAnalysis.autoRegister')}
+            </span>
+          </label>
+        )}
+
+        {canAutoRegister && (
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={debugLoggingEnabled}
+              onChange={(e) => setDebugLoggingEnabled(e.target.checked)}
+              className="accent-[var(--color-primary)]"
+            />
+            <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+              {t('screenAnalysis.logToFile')}
+            </span>
+          </label>
+        )}
 
         {/* Status Badge */}
         <span
@@ -122,6 +171,64 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
             </span>
           )}
         </div>
+      )}
+
+      {canAutoRegister && (
+        <details className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+          <summary className="cursor-pointer">{t('screenAnalysis.debug')}</summary>
+          <div className="mt-2 space-y-2">
+            <div className="flex items-start gap-3 flex-wrap">
+              <svg
+                width={previewWidth}
+                height={previewHeight}
+                viewBox={`0 0 ${previewWidth} ${previewHeight}`}
+                style={{
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 6,
+                }}
+              >
+                {roiItems.map((item) => (
+                  <rect
+                    key={item.label}
+                    x={item.roi.left * previewWidth}
+                    y={item.roi.top * previewHeight}
+                    width={item.roi.width * previewWidth}
+                    height={item.roi.height * previewHeight}
+                    fill="transparent"
+                    stroke={item.color}
+                    strokeWidth={1}
+                  />
+                ))}
+              </svg>
+              <div className="space-y-1">
+                <div className="text-xs">{t('screenAnalysis.roi.title')}</div>
+                {roiItems.map((item) => (
+                  <div key={item.label} className="text-xs">
+                    {item.label}:{' '}
+                    {`${(item.roi.left * 100).toFixed(1)}%, ${(item.roi.top * 100).toFixed(1)}%, ${(item.roi.width * 100).toFixed(1)}%, ${(item.roi.height * 100).toFixed(1)}%`}
+                  </div>
+                ))}
+                <div className="text-xs">
+                  {t('screenAnalysis.scanFps')}: {SCAN_FPS}fps
+                </div>
+                {debugSessionId && (
+                  <div className="text-xs">
+                    {t('screenAnalysis.session')}: {debugSessionId}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {lastFrame && (
+              <div className="text-xs">
+                {t('screenAnalysis.lastFrame')}: coin {String(lastFrame.coin)} (
+                {lastFrame.coinConfidence.toFixed(2)}) / result {String(lastFrame.result)} (
+                {lastFrame.resultConfidence.toFixed(2)})
+              </div>
+            )}
+          </div>
+        </details>
       )}
     </div>
   );

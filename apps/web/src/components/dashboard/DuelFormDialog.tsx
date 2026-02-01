@@ -7,11 +7,14 @@ import {
   createDuelSchema,
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
 import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
+import { api } from '../../lib/api.js';
+import { useAuthStore } from '../../stores/auth.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
@@ -46,6 +49,13 @@ export function DuelFormDialog({
   opponentDeckUsage,
 }: Props) {
   const { t } = useTranslation();
+  const { user } = useAuthStore();
+  const { data: profile } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<{ data: { isDebugger: boolean; enableScreenAnalysis: boolean } }>('/me'),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
   const myDecks = decks
     .filter((d) => !d.isOpponentDeck && d.active)
     .sort((a, b) => {
@@ -136,8 +146,9 @@ export function DuelFormDialog({
     }
   }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks]);
 
+  const canAutoRegister = Boolean(profile?.data?.isDebugger);
   const screenAnalysisEnabled =
-    inline && !editingDuel && localStorage.getItem('duellog.screenAnalysis.enabled') === 'true';
+    inline && !editingDuel && canAutoRegister && Boolean(profile?.data?.enableScreenAnalysis);
 
   const handleFormSubmit = useCallback(
     async (data: CreateDuel) => {
@@ -425,7 +436,9 @@ export function DuelFormDialog({
   if (inline) {
     return (
       <div className="glass-card p-4 space-y-4">
-        {screenAnalysisEnabled && <ScreenAnalysisPanel analysis={screenAnalysis} />}
+        {screenAnalysisEnabled && (
+          <ScreenAnalysisPanel analysis={screenAnalysis} canAutoRegister={canAutoRegister} />
+        )}
         {formContent}
       </div>
     );
