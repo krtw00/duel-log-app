@@ -1,5 +1,5 @@
-import devServer from '@hono/vite-dev-server';
 import { resolve } from 'node:path';
+import devServer from '@hono/vite-dev-server';
 import { config } from 'dotenv';
 import { defineConfig } from 'vite';
 
