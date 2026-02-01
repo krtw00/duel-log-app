@@ -250,8 +250,6 @@
     "themeSystem": "시스템",
     "streamerMode": "스트리머 모드",
     "streamerModeDesc": "스트리밍 시 이메일 등 개인정보를 숨깁니다",
-    "screenAnalysis": "화면 분석",
-    "screenAnalysisDesc": "화면 캡처에서 코인 토스/승패를 자동으로 감지합니다",
     "saved": "저장되었습니다",
     "saveFailed": "저장에 실패했습니다",
     "language": "언어",
@@ -351,17 +349,6 @@
     "start": "캡처 시작",
     "stop": "캡처 중지",
     "autoRegister": "자동 등록",
-    "logToFile": "로그 저장",
-    "debug": "디버그",
-    "scanFps": "스캔 FPS",
-    "session": "세션 ID",
-    "lastFrame": "최근 프레임",
-    "roi": {
-      "title": "검출 영역 (%)",
-      "coinBar": "코인 바",
-      "coinButtons": "코인 버튼",
-      "resultText": "결과 텍스트"
-    },
     "status": {
       "idle": "대기 중",
       "detecting": "감지 중",

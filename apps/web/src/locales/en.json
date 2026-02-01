@@ -250,8 +250,6 @@
     "themeSystem": "System",
     "streamerMode": "Streamer Mode",
     "streamerModeDesc": "Hide personal info like email during streaming",
-    "screenAnalysis": "Screen Analysis",
-    "screenAnalysisDesc": "Automatically detect coin toss and results from screen capture",
     "saved": "Saved successfully",
     "saveFailed": "Failed to save",
     "language": "Language",
@@ -351,17 +349,6 @@
     "start": "Start Capture",
     "stop": "Stop Capture",
     "autoRegister": "Auto Register",
-    "logToFile": "Save Logs",
-    "debug": "Debug",
-    "scanFps": "Scan FPS",
-    "session": "Session ID",
-    "lastFrame": "Latest Frame",
-    "roi": {
-      "title": "Detection Area (%)",
-      "coinBar": "Coin Bar",
-      "coinButtons": "Coin Buttons",
-      "resultText": "Result Text"
-    },
     "status": {
       "idle": "Idle",
       "detecting": "Detecting",

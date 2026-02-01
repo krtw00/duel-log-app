@@ -2,12 +2,9 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "rootDir": "./src",
     "noEmit": true,
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {
-      "@duel-log/shared": ["../shared/src/index.ts"]
-    }
+    "types": ["node"]
   },
   "include": ["src"]
 }
