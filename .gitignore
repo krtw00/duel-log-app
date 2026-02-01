@@ -46,3 +46,4 @@ pnpm-debug.log*
 # Supabase
 supabase/.branches
 supabase/.temp
+packages/api/debug-logs/
