@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
+import type { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
 import {
   COIN_BAR_ROI,
   COIN_BUTTONS_ROI,
   RESULT_TEXT_ROI,
   SCAN_FPS,
 } from '../../utils/screenAnalysis/config.js';
-import type { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
 
 type Props = {
   analysis: ReturnType<typeof useScreenAnalysis>;
@@ -53,7 +53,11 @@ export function ScreenAnalysisPanel({ analysis, canAutoRegister }: Props) {
       roi: COIN_BUTTONS_ROI,
       color: 'var(--color-secondary)',
     },
-    { label: t('screenAnalysis.roi.resultText'), roi: RESULT_TEXT_ROI, color: 'var(--color-success)' },
+    {
+      label: t('screenAnalysis.roi.resultText'),
+      roi: RESULT_TEXT_ROI,
+      color: 'var(--color-success)',
+    },
   ];
 
   return (

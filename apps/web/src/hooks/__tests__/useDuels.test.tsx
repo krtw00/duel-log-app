@@ -1,11 +1,11 @@
+import type { CreateDuel, Duel } from '@duel-log/shared';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import type { CreateDuel, Duel } from '@duel-log/shared';
 import type { ReactNode } from 'react';
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
-import { useCreateDuel, useDeleteDuel } from '../useDuels.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../../lib/api.js';
 import { broadcastStreamerStats } from '../../lib/broadcast.js';
+import { useCreateDuel, useDeleteDuel } from '../useDuels.js';
 
 const notificationState = {
   success: vi.fn(),
@@ -35,7 +35,10 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-type DuelListResponse = { data: Duel[]; pagination: { total: number; limit: number; offset: number } };
+type DuelListResponse = {
+  data: Duel[];
+  pagination: { total: number; limit: number; offset: number };
+};
 
 function createWrapper(client: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {

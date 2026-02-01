@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
-import { useScreenAnalysis } from '../useScreenAnalysis.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../../lib/api.js';
+import { useScreenAnalysis } from '../useScreenAnalysis.js';
 
 vi.mock('../../lib/api.js', () => ({
   api: vi.fn().mockResolvedValue({}),
@@ -39,8 +39,6 @@ describe('useScreenAnalysis', () => {
   let originalMediaDevices: MediaDevices | undefined;
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-02-01T00:00:00Z'));
     localStorage.setItem('duellog.screenAnalysis.debugLogging', 'true');
     apiMock.mockClear();
 
@@ -92,7 +90,6 @@ describe('useScreenAnalysis', () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     localStorage.removeItem('duellog.screenAnalysis.debugLogging');
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -102,8 +99,10 @@ describe('useScreenAnalysis', () => {
         configurable: true,
       });
     } else {
-      // @ts-expect-error cleanup
-      delete globalThis.crypto;
+      Object.defineProperty(globalThis, 'crypto', {
+        value: undefined,
+        configurable: true,
+      });
     }
     if (originalMediaDevices) {
       Object.defineProperty(navigator, 'mediaDevices', {
@@ -111,8 +110,10 @@ describe('useScreenAnalysis', () => {
         configurable: true,
       });
     } else {
-      // @ts-expect-error cleanup
-      delete navigator.mediaDevices;
+      Object.defineProperty(navigator, 'mediaDevices', {
+        value: undefined,
+        configurable: true,
+      });
     }
   });
 
@@ -129,6 +130,10 @@ describe('useScreenAnalysis', () => {
     });
     expect(result.current.debugSessionId).toMatch(/^\d+-[0-9a-f]{32}$/);
     expect(mathSpy).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.stopCapture();
+    });
   });
 
   it('clears debug session state when capture stops', async () => {
