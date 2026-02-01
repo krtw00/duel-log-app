@@ -19,12 +19,26 @@ export class ApiError extends Error {
   }
 }
 
+const MAINTENANCE_BYPASS_KEY = import.meta.env.VITE_MAINTENANCE_BYPASS_KEY || '';
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  if (!session?.access_token) return {};
-  return { Authorization: `Bearer ${session.access_token}` };
+
+  const headers: Record<string, string> = {};
+
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+
+  // メンテナンスバイパスが有効な場合、ヘッダーを追加
+  const hasBypass = sessionStorage.getItem('maintenance_bypass') === 'true';
+  if (hasBypass && MAINTENANCE_BYPASS_KEY) {
+    headers['X-Bypass-Key'] = MAINTENANCE_BYPASS_KEY;
+  }
+
+  return headers;
 }
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
