@@ -5,6 +5,7 @@ import { adminMiddleware } from './middleware/admin.js';
 import { authMiddleware } from './middleware/auth.js';
 import { debuggerMiddleware } from './middleware/debugger.js';
 import { errorMiddleware } from './middleware/error.js';
+import { maintenanceMiddleware } from './middleware/maintenance.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { debugRoutes } from './routes/debug.js';
@@ -25,6 +26,7 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 app.use('*', logger());
 app.use('*', cors());
 app.use('*', errorMiddleware);
+app.use('*', maintenanceMiddleware);
 
 // 認証不要ルート（sharedStatisticsRoutesが内部でauth制御）
 app.route('/shared-statistics', sharedStatisticsRoutes);
