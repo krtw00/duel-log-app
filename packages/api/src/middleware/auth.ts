@@ -1,6 +1,6 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { createMiddleware } from 'hono/factory';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { sql } from '../db/index.js';
 import type { UserRow } from '../db/types.js';
 
@@ -42,77 +42,48 @@ function getSupabaseAdmin() {
   return supabase;
 }
 
+// JWKS（JSON Web Key Set）のキャッシュ
+let jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
+
+function getJwks() {
+  if (!jwks) {
+    const url = process.env.SUPABASE_URL;
+    if (!url) {
+      throw new Error('SUPABASE_URL is required for JWKS');
+    }
+    const jwksUrl = new URL('/.well-known/jwks.json', `${url}/auth/v1`);
+    jwks = createRemoteJWKSet(jwksUrl);
+  }
+  return jwks;
+}
+
 function getJwtIssuer() {
   const url = process.env.SUPABASE_URL;
   return url ? `${url}/auth/v1` : undefined;
 }
 
-function verifyJwt(token: string): JwtPayload {
-  const secret = process.env.SUPABASE_JWT_SECRET;
-  if (!secret) {
-    throw new Error('SUPABASE_JWT_SECRET is required for local JWT verification');
-  }
-
-  const parts = token.split('.');
-  if (parts.length !== 3) {
-    throw new Error('Invalid token format');
-  }
-
-  const [headerB64, payloadB64, signatureB64] = parts as [string, string, string];
-  const headerJson = Buffer.from(headerB64, 'base64url').toString('utf-8');
-  const payloadJson = Buffer.from(payloadB64, 'base64url').toString('utf-8');
-  const header = JSON.parse(headerJson) as { alg?: string };
-  const payload = JSON.parse(payloadJson) as JwtPayload;
-
-  if (header.alg !== 'HS256') {
-    throw new Error('Unsupported token algorithm');
-  }
-
-  const data = `${headerB64}.${payloadB64}`;
-  const expected = createHmac('sha256', secret).update(data).digest('base64url');
-
-  // JWTの署名部分をBase64URLに正規化（Base64の+を-、/を_に変換、パディング削除）
-  const signatureNormalized = signatureB64
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-
-  const expectedBuffer = Buffer.from(expected, 'utf-8');
-  const signatureBuffer = Buffer.from(signatureNormalized, 'utf-8');
-
-  if (
-    expectedBuffer.length !== signatureBuffer.length ||
-    !timingSafeEqual(expectedBuffer, signatureBuffer)
-  ) {
-    throw new Error('Invalid token signature');
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  if (payload.exp && now >= payload.exp) {
-    throw new Error('Token expired');
-  }
-  if (payload.nbf && now < payload.nbf) {
-    throw new Error('Token not active');
-  }
-
+/**
+ * joseライブラリを使用したJWT検証
+ * ES256, RS256, HS256すべてに対応
+ */
+async function verifyJwtWithJose(token: string): Promise<JwtPayload> {
   const issuer = getJwtIssuer();
-  if (issuer && payload.iss && payload.iss !== issuer) {
-    throw new Error('Invalid token issuer');
-  }
 
-  if (payload.aud) {
-    const audList = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-    if (!audList.includes('authenticated')) {
-      throw new Error('Invalid token audience');
-    }
+  try {
+    const { payload } = await jwtVerify(token, getJwks(), {
+      issuer,
+      audience: 'authenticated',
+    });
+    return payload as JwtPayload;
+  } catch {
+    throw new Error('JWT verification failed');
   }
-
-  return payload;
 }
 
 async function getAuthUserFromToken(token: string) {
-  if (process.env.SUPABASE_JWT_SECRET) {
-    const payload = verifyJwt(token);
+  // まずJWKSを使ったローカル検証を試みる（高速）
+  try {
+    const payload = await verifyJwtWithJose(token);
     if (!payload.sub) {
       throw new Error('Token missing sub');
     }
@@ -121,18 +92,19 @@ async function getAuthUserFromToken(token: string) {
       email: payload.email ?? '',
       user_metadata: payload.user_metadata ?? {},
     };
+  } catch {
+    // JWKSでの検証に失敗した場合、Supabase APIにフォールバック
+    const {
+      data: { user: supabaseUser },
+      error,
+    } = await getSupabaseAdmin().auth.getUser(token);
+
+    if (error || !supabaseUser) {
+      throw new Error('Token is invalid or expired');
+    }
+
+    return supabaseUser;
   }
-
-  const {
-    data: { user: supabaseUser },
-    error,
-  } = await getSupabaseAdmin().auth.getUser(token);
-
-  if (error || !supabaseUser) {
-    throw new Error('Token is invalid or expired');
-  }
-
-  return supabaseUser;
 }
 
 /** JWT検証 + JITプロビジョニング */
@@ -146,7 +118,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   let supabaseUser: { id: string; email?: string; user_metadata?: { display_name?: string } };
   try {
     supabaseUser = await getAuthUserFromToken(token);
-  } catch (error) {
+  } catch {
     return c.json(
       { error: { code: 'INVALID_TOKEN', message: 'Token is invalid or expired' } },
       401,

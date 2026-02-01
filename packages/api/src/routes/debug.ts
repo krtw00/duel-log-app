@@ -40,15 +40,14 @@ export const debugRoutes = new Hono<Env>().post('/screen-analysis/logs', async (
   await mkdir(dir, { recursive: true });
 
   const filePath = resolve(dir, `${sessionId}.jsonl`);
-  const lines =
-    entries
-      .map((entry) =>
-        JSON.stringify({
-          ...entry,
-          userId: user.id,
-        }),
-      )
-      .join('\n') + '\n';
+  const lines = `${entries
+    .map((entry) =>
+      JSON.stringify({
+        ...entry,
+        userId: user.id,
+      }),
+    )
+    .join('\n')}\n`;
 
   await appendFile(filePath, lines, { encoding: 'utf-8' });
 
