@@ -1,32 +1,23 @@
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  COIN_BAR_DARK_MIN,
-  COIN_BAR_ROI,
-  COIN_BAR_TEXT_MIN,
-  COIN_BUTTONS_ROI,
-  COIN_BUTTON_DARK_MIN,
-  COIN_BUTTON_YELLOW_MIN,
-  RESULT_BRIGHT_MIN,
-  RESULT_LOSE_WIDTH_MIN,
-  RESULT_TEXT_ROI,
-  RESULT_VICTORY_WIDTH_MIN,
+  COIN_LOSS_COLOR,
+  COIN_ROI,
+  COIN_WIN_COLOR,
+  RESULT_LOSS_COLOR,
+  RESULT_ROI,
+  RESULT_WIN_COLOR,
 } from '../utils/screenAnalysis/config.js';
 import type {
   AnalysisFrame,
   CoinResult,
+  ColorTarget,
   DetectionResult,
   ROI,
   WorkerMessage,
 } from '../utils/screenAnalysis/types.js';
 
-type ROIImage = {
-  pixels: Uint8ClampedArray;
-  width: number;
-  height: number;
-};
-
-function extractROI(imageData: ImageData, roi: ROI): ROIImage {
+function extractROI(imageData: ImageData, roi: ROI): Uint8ClampedArray {
   const x = Math.floor(roi.left * imageData.width);
   const y = Math.floor(roi.top * imageData.height);
   const w = Math.floor(roi.width * imageData.width);
@@ -38,179 +29,66 @@ function extractROI(imageData: ImageData, roi: ROI): ROIImage {
     const dstOffset = row * w * 4;
     pixels.set(imageData.data.subarray(srcOffset, srcOffset + w * 4), dstOffset);
   }
-  return { pixels, width: w, height: h };
+  return pixels;
 }
 
-function getLuminance(r: number, g: number, b: number): number {
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+function colorDistance(r: number, g: number, b: number, target: ColorTarget): number {
+  const dr = r - target.r;
+  const dg = g - target.g;
+  const db = b - target.b;
+  return Math.sqrt(dr * dr + dg * dg + db * db);
 }
 
-function isYellowish(r: number, g: number, b: number): boolean {
-  return r > 180 && g > 150 && b < 90;
-}
-
-function computeRatios(pixels: Uint8ClampedArray): {
-  darkRatio: number;
-  brightRatio: number;
-  yellowRatio: number;
-} {
-  let darkCount = 0;
-  let brightCount = 0;
-  let yellowCount = 0;
-  const total = pixels.length / 4;
+function computeColorScore(pixels: Uint8ClampedArray, target: ColorTarget): number {
+  let matchCount = 0;
+  const totalPixels = pixels.length / 4;
 
   for (let i = 0; i < pixels.length; i += 4) {
     const r = pixels[i] ?? 0;
     const g = pixels[i + 1] ?? 0;
     const b = pixels[i + 2] ?? 0;
-    const luminance = getLuminance(r, g, b);
-
-    if (luminance < 55) darkCount++;
-    if (luminance > 220) brightCount++;
-    if (isYellowish(r, g, b)) yellowCount++;
-  }
-
-  return {
-    darkRatio: darkCount / total,
-    brightRatio: brightCount / total,
-    yellowRatio: yellowCount / total,
-  };
-}
-
-function computeHalfDarkRatios(roi: ROIImage): { leftDark: number; rightDark: number } {
-  const { pixels, width, height } = roi;
-  const halfWidth = Math.floor(width / 2);
-  let leftDark = 0;
-  let rightDark = 0;
-  const leftTotal = halfWidth * height;
-  const rightTotal = (width - halfWidth) * height;
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = (y * width + x) * 4;
-      const r = pixels[idx] ?? 0;
-      const g = pixels[idx + 1] ?? 0;
-      const b = pixels[idx + 2] ?? 0;
-      const luminance = getLuminance(r, g, b);
-      if (luminance < 55) {
-        if (x < halfWidth) {
-          leftDark++;
-        } else {
-          rightDark++;
-        }
-      }
+    const dist = colorDistance(r, g, b, target);
+    if (dist <= target.tolerance) {
+      matchCount++;
     }
   }
 
-  return {
-    leftDark: leftDark / leftTotal,
-    rightDark: rightDark / rightTotal,
-  };
+  return matchCount / totalPixels;
 }
 
-function detectCoin(imageData: ImageData): {
-  result: CoinResult;
-  confidence: number;
-  debug: {
-    barDarkRatio: number;
-    barBrightRatio: number;
-    buttonYellowRatio: number;
-    buttonsLeftDarkRatio: number;
-    buttonsRightDarkRatio: number;
-    barPresent: boolean;
-    hasTwoButtons: boolean;
-  };
-} {
-  const bar = extractROI(imageData, COIN_BAR_ROI);
-  const barRatios = computeRatios(bar.pixels);
+function detectCoin(imageData: ImageData): { result: CoinResult; confidence: number } {
+  const pixels = extractROI(imageData, COIN_ROI);
 
-  const barPresent =
-    barRatios.darkRatio >= COIN_BAR_DARK_MIN && barRatios.brightRatio >= COIN_BAR_TEXT_MIN;
+  const winScore = computeColorScore(pixels, COIN_WIN_COLOR);
+  const lossScore = computeColorScore(pixels, COIN_LOSS_COLOR);
 
-  const buttons = extractROI(imageData, COIN_BUTTONS_ROI);
-  const buttonRatios = computeRatios(buttons.pixels);
-  const halves = computeHalfDarkRatios(buttons);
-
-  const hasTwoButtons =
-    halves.leftDark >= COIN_BUTTON_DARK_MIN &&
-    halves.rightDark >= COIN_BUTTON_DARK_MIN &&
-    buttonRatios.yellowRatio >= COIN_BUTTON_YELLOW_MIN;
-
-  const debug = {
-    barDarkRatio: barRatios.darkRatio,
-    barBrightRatio: barRatios.brightRatio,
-    buttonYellowRatio: buttonRatios.yellowRatio,
-    buttonsLeftDarkRatio: halves.leftDark,
-    buttonsRightDarkRatio: halves.rightDark,
-    barPresent,
-    hasTwoButtons,
-  };
-
-  if (!barPresent) {
-    return { result: null, confidence: 0, debug };
+  if (winScore > lossScore && winScore > 0.05) {
+    return { result: 'won', confidence: winScore };
   }
-
-  if (hasTwoButtons) {
-    const confidence = Math.min(
-      1,
-      (halves.leftDark + halves.rightDark) / 2 + buttonRatios.yellowRatio,
-    );
-    return { result: 'won', confidence, debug };
+  if (lossScore > winScore && lossScore > 0.05) {
+    return { result: 'lost', confidence: lossScore };
   }
-
-  const confidence = Math.min(1, barRatios.darkRatio + barRatios.brightRatio);
-  return { result: 'lost', confidence, debug };
+  return { result: null, confidence: 0 };
 }
 
-function detectResult(imageData: ImageData): {
-  result: DetectionResult;
-  confidence: number;
-  debug: { brightRatio: number; widthRatio: number; minX: number; maxX: number };
-} {
-  const roi = extractROI(imageData, RESULT_TEXT_ROI);
-  const { pixels, width, height } = roi;
-  const total = pixels.length / 4;
-  let brightCount = 0;
-  let minX = width;
-  let maxX = 0;
+function detectResult(imageData: ImageData): { result: DetectionResult; confidence: number } {
+  const pixels = extractROI(imageData, RESULT_ROI);
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const idx = (y * width + x) * 4;
-      const r = pixels[idx] ?? 0;
-      const g = pixels[idx + 1] ?? 0;
-      const b = pixels[idx + 2] ?? 0;
-      const luminance = getLuminance(r, g, b);
-      if (luminance > 220) {
-        brightCount++;
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-      }
-    }
+  const winScore = computeColorScore(pixels, RESULT_WIN_COLOR);
+  const lossScore = computeColorScore(pixels, RESULT_LOSS_COLOR);
+
+  if (winScore > lossScore && winScore > 0.03) {
+    return { result: 'win', confidence: winScore };
   }
-
-  const brightRatio = brightCount / total;
-  const widthRatio = maxX > minX ? (maxX - minX + 1) / width : 0;
-  const debug = { brightRatio, widthRatio, minX, maxX };
-
-  if (brightRatio < RESULT_BRIGHT_MIN || maxX <= minX) {
-    return { result: null, confidence: 0, debug };
+  if (lossScore > winScore && lossScore > 0.03) {
+    return { result: 'loss', confidence: lossScore };
   }
-
-  if (widthRatio >= RESULT_VICTORY_WIDTH_MIN) {
-    return { result: 'win', confidence: Math.min(1, widthRatio + brightRatio), debug };
-  }
-  if (widthRatio >= RESULT_LOSE_WIDTH_MIN) {
-    return { result: 'loss', confidence: Math.min(1, widthRatio + brightRatio), debug };
-  }
-
-  return { result: null, confidence: 0, debug };
+  return { result: null, confidence: 0 };
 }
 
 function analyzeFrame(imageData: ImageData): AnalysisFrame {
   // Scale to normalized size if needed
   let normalizedData = imageData;
-  const normalized = imageData.width !== CANVAS_WIDTH || imageData.height !== CANVAS_HEIGHT;
   if (imageData.width !== CANVAS_WIDTH || imageData.height !== CANVAS_HEIGHT) {
     // Create offscreen canvas for resizing
     const canvas = new OffscreenCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -235,13 +113,6 @@ function analyzeFrame(imageData: ImageData): AnalysisFrame {
     result: result.result,
     resultConfidence: result.confidence,
     timestamp: Date.now(),
-    debug: {
-      canvasWidth: normalizedData.width,
-      canvasHeight: normalizedData.height,
-      normalized,
-      coin: coin.debug,
-      result: result.debug,
-    },
   };
 }
 

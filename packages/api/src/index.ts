@@ -3,11 +3,9 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { adminMiddleware } from './middleware/admin.js';
 import { authMiddleware } from './middleware/auth.js';
-import { debuggerMiddleware } from './middleware/debugger.js';
 import { errorMiddleware } from './middleware/error.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
-import { debugRoutes } from './routes/debug.js';
 import { deckRoutes } from './routes/decks.js';
 import { duelRoutes } from './routes/duels.js';
 import { feedbackRoutes } from './routes/feedback.js';
@@ -55,10 +53,5 @@ app.route('/feedback', feedbackRoutes);
 app.use('/admin/*', authMiddleware);
 app.use('/admin/*', adminMiddleware);
 app.route('/admin', adminRoutes);
-
-// デバッガールート
-app.use('/debug/*', authMiddleware);
-app.use('/debug/*', debuggerMiddleware);
-app.route('/debug', debugRoutes);
 
 export default app;

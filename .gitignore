@@ -42,7 +42,6 @@ pnpm-debug.log*
 .mcp_cache/
 .mcp.json
 .grepai/
-debug-logs/
 
 # Supabase
 supabase/.branches
