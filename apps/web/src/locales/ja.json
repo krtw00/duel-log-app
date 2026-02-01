@@ -250,8 +250,6 @@
     "themeSystem": "システム",
     "streamerMode": "配信者モード",
     "streamerModeDesc": "配信時にメールアドレスなどの個人情報を隠します",
-    "screenAnalysis": "画面解析",
-    "screenAnalysisDesc": "画面録画からコイントス/勝敗を自動検出します",
     "saved": "保存しました",
     "saveFailed": "保存に失敗しました",
     "language": "言語",
@@ -351,17 +349,6 @@
     "start": "キャプチャ開始",
     "stop": "キャプチャ停止",
     "autoRegister": "自動登録",
-    "logToFile": "ログ保存",
-    "debug": "デバッグ",
-    "scanFps": "スキャン速度",
-    "session": "セッションID",
-    "lastFrame": "最新フレーム",
-    "roi": {
-      "title": "検出範囲（%）",
-      "coinBar": "コインバー",
-      "coinButtons": "コインボタン",
-      "resultText": "結果テキスト"
-    },
     "status": {
       "idle": "待機中",
       "detecting": "検出中",
