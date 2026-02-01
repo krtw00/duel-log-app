@@ -6,6 +6,15 @@ import { useAuthStore } from './stores/auth.js';
 
 const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
 const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').filter(Boolean);
+const MAINTENANCE_BYPASS_KEY = import.meta.env.VITE_MAINTENANCE_BYPASS_KEY || '';
+
+// URLパラメータでバイパスキーをチェック
+const urlParams = new URLSearchParams(window.location.search);
+const bypassKeyFromUrl = urlParams.get('bypass');
+if (bypassKeyFromUrl && bypassKeyFromUrl === MAINTENANCE_BYPASS_KEY) {
+  sessionStorage.setItem('maintenance_bypass', 'true');
+}
+const hasUrlBypass = sessionStorage.getItem('maintenance_bypass') === 'true';
 
 export function App() {
   const { user, initialize, loading } = useAuthStore();
@@ -25,9 +34,9 @@ export function App() {
     );
   }
 
-  // メンテナンスモード（管理者はバイパス）
+  // メンテナンスモード（管理者またはバイパスキーでスキップ）
   const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email);
-  if (MAINTENANCE_MODE && !isAdmin) {
+  if (MAINTENANCE_MODE && !isAdmin && !hasUrlBypass) {
     return <MaintenancePage />;
   }
 
