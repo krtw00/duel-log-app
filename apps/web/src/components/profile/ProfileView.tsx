@@ -14,6 +14,8 @@ export function ProfileView() {
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState('');
   const [streamerMode, setStreamerMode] = useState(false);
+  const [enableScreenAnalysis, setEnableScreenAnalysis] = useState(false);
+  const [isDebugger, setIsDebugger] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -38,10 +40,12 @@ export function ProfileView() {
     const loadProfile = async () => {
       try {
         const result = await api<{
-          data: { displayName: string; streamerMode: boolean };
+          data: { displayName: string; streamerMode: boolean; enableScreenAnalysis: boolean; isDebugger: boolean };
         }>('/me');
         setDisplayName(result.data.displayName);
         setStreamerMode(result.data.streamerMode);
+        setEnableScreenAnalysis(result.data.enableScreenAnalysis);
+        setIsDebugger(result.data.isDebugger);
         localStorage.setItem('streamerMode', String(result.data.streamerMode));
       } catch {
         // ignore
@@ -55,6 +59,9 @@ export function ProfileView() {
     setMessage('');
     try {
       const data: UpdateUser = { displayName, streamerMode };
+      if (isDebugger) {
+        data.enableScreenAnalysis = enableScreenAnalysis;
+      }
       await api('/me', { method: 'PUT', body: data });
       queryClient.invalidateQueries({ queryKey: ['me'] });
       localStorage.setItem('streamerMode', String(streamerMode));
@@ -215,6 +222,43 @@ export function ProfileView() {
               <span className="toggle-slider" />
             </label>
           </div>
+
+          {/* Screen Analysis (debugger only) */}
+          {isDebugger && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-primary)"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.3-4.3" />
+                  <path d="M8 11h6" />
+                  <path d="M11 8v6" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+                    {t('profile.screenAnalysis')}
+                  </p>
+                  <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    {t('profile.screenAnalysisDesc')}
+                  </p>
+                </div>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={enableScreenAnalysis}
+                  onChange={(e) => setEnableScreenAnalysis(e.target.checked)}
+                />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+          )}
 
           {/* Message */}
           {message && (
