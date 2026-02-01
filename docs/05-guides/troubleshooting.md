@@ -94,6 +94,66 @@ TanStack Queryのキャッシュ無効化を確認：
 
 ---
 
+## メンテナンスモード
+
+### 概要
+
+緊急時やDB障害時にサービスをメンテナンス状態にできる。
+
+| 環境変数 | 用途 |
+|---------|------|
+| `MAINTENANCE_MODE` | API側メンテナンス（503応答） |
+| `VITE_MAINTENANCE_MODE` | フロントエンド側メンテナンス画面表示 |
+| `MAINTENANCE_BYPASS_KEY` | API側バイパスキー |
+| `VITE_MAINTENANCE_BYPASS_KEY` | フロントエンド側バイパスキー |
+| `VITE_ADMIN_EMAILS` | 管理者メール（カンマ区切り） |
+
+### メンテナンスモード有効化
+
+```bash
+# メンテナンスモードON
+printf 'true' | vercel env rm MAINTENANCE_MODE production --yes
+printf 'true' | vercel env add MAINTENANCE_MODE production --yes
+printf 'true' | vercel env rm VITE_MAINTENANCE_MODE production --yes
+printf 'true' | vercel env add VITE_MAINTENANCE_MODE production --yes
+
+# 再デプロイ
+vercel --prod --yes
+```
+
+### メンテナンスモード解除
+
+```bash
+# メンテナンスモードOFF
+printf 'false' | vercel env rm MAINTENANCE_MODE production --yes
+printf 'false' | vercel env add MAINTENANCE_MODE production --yes
+printf 'false' | vercel env rm VITE_MAINTENANCE_MODE production --yes
+printf 'false' | vercel env add VITE_MAINTENANCE_MODE production --yes
+
+# 再デプロイ
+vercel --prod --yes
+```
+
+### 管理者バイパス
+
+メンテナンス中でも管理者がアクセスする方法：
+
+1. **URLパラメータ**: `https://duel-log-app.vercel.app?bypass=<BYPASS_KEY>`
+2. **管理者メール**: `VITE_ADMIN_EMAILS`に登録済みのメールでログイン
+
+バイパスURLでアクセスすると、sessionStorageにバイパスフラグが保存され、APIリクエストにも`X-Bypass-Key`ヘッダーが自動付与される。
+
+### 関連ファイル
+
+| ファイル | 役割 |
+|---------|------|
+| `apps/web/src/App.tsx` | フロントエンドメンテナンス判定 |
+| `apps/web/src/components/MaintenancePage.tsx` | メンテナンス画面UI |
+| `apps/web/src/lib/api.ts` | APIリクエストへのバイパスヘッダー付与 |
+| `packages/api/src/middleware/maintenance.ts` | APIメンテナンスミドルウェア |
+
+---
+
 ## デバッグツール
 
 | ツール | 用途 |
