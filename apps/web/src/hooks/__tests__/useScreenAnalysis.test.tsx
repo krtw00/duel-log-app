@@ -118,7 +118,6 @@ describe('useScreenAnalysis', () => {
   });
 
   it('creates a debug session id with crypto.getRandomValues', async () => {
-    const mathSpy = vi.spyOn(Math, 'random');
     const { result } = renderHook(() => useScreenAnalysis());
 
     await act(async () => {
@@ -128,8 +127,7 @@ describe('useScreenAnalysis', () => {
     await waitFor(() => {
       expect(result.current.debugSessionId).not.toBeNull();
     });
-    expect(result.current.debugSessionId).toMatch(/^\d+-[0-9a-f]{32}$/);
-    expect(mathSpy).not.toHaveBeenCalled();
+    expect(result.current.debugSessionId).toMatch(/-0102030405060708090a0b0c0d0e0f10$/);
 
     act(() => {
       result.current.stopCapture();

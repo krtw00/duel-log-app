@@ -58,7 +58,7 @@ function verifyJwt(token: string): JwtPayload {
     throw new Error('Invalid token format');
   }
 
-  const [headerB64, payloadB64, signatureB64] = parts;
+  const [headerB64, payloadB64, signatureB64] = parts as [string, string, string];
   const headerJson = Buffer.from(headerB64, 'base64url').toString('utf-8');
   const payloadJson = Buffer.from(payloadB64, 'base64url').toString('utf-8');
   const header = JSON.parse(headerJson) as { alg?: string };
