@@ -4,8 +4,8 @@ import {
   COIN_BAR_ROI,
   COIN_BUTTONS_ROI,
   CONFIDENCE_THRESHOLD,
-  RESULT_TEXT_ROI,
   RESULT_STREAK_THRESHOLD,
+  RESULT_TEXT_ROI,
   SCAN_FPS,
 } from '../utils/screenAnalysis/config.js';
 import { createInitialContext, transition } from '../utils/screenAnalysis/fsm.js';
@@ -100,7 +100,17 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
       const sessionId =
         typeof crypto !== 'undefined' && 'randomUUID' in crypto
           ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+          : (() => {
+              if (typeof crypto !== 'undefined' && 'getRandomValues' in crypto) {
+                const bytes = new Uint8Array(16);
+                crypto.getRandomValues(bytes);
+                const hex = Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join(
+                  '',
+                );
+                return `${Date.now()}-${hex}`;
+              }
+              return `${Date.now()}`;
+            })();
       debugSessionIdRef.current = sessionId;
       setDebugSessionId(sessionId);
       enqueueDebugLog({
@@ -174,48 +184,51 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
     }
   }, [fsmContext, onAutoRegister]);
 
-  const handleWorkerMessage = useCallback((event: MessageEvent) => {
-    if (event.data.type === 'result') {
-      const frame: AnalysisFrame = event.data.data;
-      setLastFrame(frame);
-      const newContext = transition(fsmRef.current, frame);
-      fsmRef.current = newContext;
-      setFsmContext(newContext);
+  const handleWorkerMessage = useCallback(
+    (event: MessageEvent) => {
+      if (event.data.type === 'result') {
+        const frame: AnalysisFrame = event.data.data;
+        setLastFrame(frame);
+        const newContext = transition(fsmRef.current, frame);
+        fsmRef.current = newContext;
+        setFsmContext(newContext);
 
-      if (debugLoggingEnabled && debugSessionIdRef.current) {
-        const now = frame.timestamp;
-        if (now - lastFrameLogAtRef.current >= DEBUG_LOG_FRAME_INTERVAL_MS) {
-          enqueueDebugLog({
-            ts: new Date(now).toISOString(),
-            level: 'debug',
-            event: 'frame',
-            state: newContext.state,
-            data: {
-              coin: frame.coin,
-              coinConfidence: frame.coinConfidence,
-              result: frame.result,
-              resultConfidence: frame.resultConfidence,
-              debug: frame.debug,
-            },
-          });
-          lastFrameLogAtRef.current = now;
-        }
+        if (debugLoggingEnabled && debugSessionIdRef.current) {
+          const now = frame.timestamp;
+          if (now - lastFrameLogAtRef.current >= DEBUG_LOG_FRAME_INTERVAL_MS) {
+            enqueueDebugLog({
+              ts: new Date(now).toISOString(),
+              level: 'debug',
+              event: 'frame',
+              state: newContext.state,
+              data: {
+                coin: frame.coin,
+                coinConfidence: frame.coinConfidence,
+                result: frame.result,
+                resultConfidence: frame.resultConfidence,
+                debug: frame.debug,
+              },
+            });
+            lastFrameLogAtRef.current = now;
+          }
 
-        if (prevStateRef.current !== newContext.state) {
-          enqueueDebugLog({
-            ts: new Date(now).toISOString(),
-            level: 'info',
-            event: 'state_transition',
-            state: newContext.state,
-            data: { from: prevStateRef.current, to: newContext.state },
-          });
+          if (prevStateRef.current !== newContext.state) {
+            enqueueDebugLog({
+              ts: new Date(now).toISOString(),
+              level: 'info',
+              event: 'state_transition',
+              state: newContext.state,
+              data: { from: prevStateRef.current, to: newContext.state },
+            });
+            prevStateRef.current = newContext.state;
+          }
+        } else {
           prevStateRef.current = newContext.state;
         }
-      } else {
-        prevStateRef.current = newContext.state;
       }
-    }
-  }, [debugLoggingEnabled, enqueueDebugLog]);
+    },
+    [debugLoggingEnabled, enqueueDebugLog],
+  );
 
   const stopCapture = useCallback(() => {
     if (intervalRef.current) {
