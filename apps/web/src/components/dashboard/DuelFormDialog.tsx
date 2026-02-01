@@ -148,10 +148,7 @@ export function DuelFormDialog({
 
   const canAutoRegister = Boolean(profile?.data?.isDebugger);
   const screenAnalysisEnabled =
-    inline &&
-    !editingDuel &&
-    canAutoRegister &&
-    Boolean(profile?.data?.enableScreenAnalysis);
+    inline && !editingDuel && canAutoRegister && Boolean(profile?.data?.enableScreenAnalysis);
 
   const handleFormSubmit = useCallback(
     async (data: CreateDuel) => {
