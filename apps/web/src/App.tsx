@@ -5,14 +5,10 @@ import { router } from './routes/index.js';
 import { useAuthStore } from './stores/auth.js';
 
 const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').filter(Boolean);
 
 export function App() {
-  const { initialize, loading } = useAuthStore();
-
-  // メンテナンスモード
-  if (MAINTENANCE_MODE) {
-    return <MaintenancePage />;
-  }
+  const { user, initialize, loading } = useAuthStore();
 
   useEffect(() => {
     initialize();
@@ -27,6 +23,12 @@ export function App() {
         </div>
       </div>
     );
+  }
+
+  // メンテナンスモード（管理者はバイパス）
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email);
+  if (MAINTENANCE_MODE && !isAdmin) {
+    return <MaintenancePage />;
   }
 
   return <RouterProvider router={router} />;
