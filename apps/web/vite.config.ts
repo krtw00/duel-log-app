@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@duel-log/shared': resolve(__dirname, '../../packages/shared/src'),
     },
   },
   server: {
