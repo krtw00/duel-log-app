@@ -1,10 +1,18 @@
 import { RouterProvider } from '@tanstack/react-router';
 import { useEffect } from 'react';
+import { MaintenancePage } from './components/MaintenancePage.js';
 import { router } from './routes/index.js';
 import { useAuthStore } from './stores/auth.js';
 
+const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
+
 export function App() {
   const { initialize, loading } = useAuthStore();
+
+  // メンテナンスモード
+  if (MAINTENANCE_MODE) {
+    return <MaintenancePage />;
+  }
 
   useEffect(() => {
     initialize();
