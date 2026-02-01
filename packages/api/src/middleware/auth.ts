@@ -70,19 +70,9 @@ function verifyJwt(token: string): JwtPayload {
 
   const data = `${headerB64}.${payloadB64}`;
   const expected = createHmac('sha256', secret).update(data).digest('base64url');
-
-  // JWTの署名部分をBase64URLに正規化（Base64の+を-、/を_に変換、パディング削除）
-  const signatureNormalized = signatureB64
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-
-  const expectedBuffer = Buffer.from(expected, 'utf-8');
-  const signatureBuffer = Buffer.from(signatureNormalized, 'utf-8');
-
   if (
-    expectedBuffer.length !== signatureBuffer.length ||
-    !timingSafeEqual(expectedBuffer, signatureBuffer)
+    expected.length !== signatureB64.length ||
+    !timingSafeEqual(Buffer.from(expected), Buffer.from(signatureB64))
   ) {
     throw new Error('Invalid token signature');
   }
