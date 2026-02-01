@@ -33,7 +33,6 @@ export type AnalysisFrame = {
   result: DetectionResult;
   resultConfidence: number;
   timestamp: number;
-  debug?: AnalysisDebug;
 };
 
 export type ScreenAnalysisStatus = {
@@ -49,31 +48,6 @@ export type ROI = {
   top: number;
   width: number;
   height: number;
-};
-
-export type CoinDebug = {
-  barDarkRatio: number;
-  barBrightRatio: number;
-  buttonYellowRatio: number;
-  buttonsLeftDarkRatio: number;
-  buttonsRightDarkRatio: number;
-  barPresent: boolean;
-  hasTwoButtons: boolean;
-};
-
-export type ResultDebug = {
-  brightRatio: number;
-  widthRatio: number;
-  minX: number;
-  maxX: number;
-};
-
-export type AnalysisDebug = {
-  canvasWidth: number;
-  canvasHeight: number;
-  normalized: boolean;
-  coin: CoinDebug;
-  result: ResultDebug;
 };
 
 export type ColorTarget = {
