@@ -126,9 +126,7 @@ export function useCreateDuel() {
         const queries = queryClient.getQueriesData<DuelListResponse>({ queryKey: ['duels'] });
         for (const [key, value] of queries) {
           if (!value) continue;
-          const updated = value.data.map((duel) =>
-            duel.id === context.tempId ? created : duel,
-          );
+          const updated = value.data.map((duel) => (duel.id === context.tempId ? created : duel));
           queryClient.setQueryData(key, { ...value, data: updated } satisfies DuelListResponse);
         }
       }

@@ -40,7 +40,12 @@ export function ProfileView() {
     const loadProfile = async () => {
       try {
         const result = await api<{
-          data: { displayName: string; streamerMode: boolean; enableScreenAnalysis: boolean; isDebugger: boolean };
+          data: {
+            displayName: string;
+            streamerMode: boolean;
+            enableScreenAnalysis: boolean;
+            isDebugger: boolean;
+          };
         }>('/me');
         setDisplayName(result.data.displayName);
         setStreamerMode(result.data.streamerMode);
