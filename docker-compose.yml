@@ -25,7 +25,7 @@ services:
     environment:
       - NODE_ENV=development
       - API_URL=http://api:3000
-      - VITE_SUPABASE_URL=http://127.0.0.1:55321
+      - VITE_SUPABASE_URL=http://127.0.0.1:54321
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     depends_on:
       install:

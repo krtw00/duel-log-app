@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { createMiddleware } from 'hono/factory';
 import { sql } from '../db/index.js';
@@ -18,6 +19,17 @@ type Env = {
 
 let supabase: ReturnType<typeof createClient> | undefined;
 
+type JwtPayload = {
+  sub?: string;
+  email?: string;
+  user_metadata?: { display_name?: string } & Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+  aud?: string | string[];
+  iss?: string;
+  exp?: number;
+  nbf?: number;
+};
+
 function getSupabaseAdmin() {
   if (!supabase) {
     const url = process.env.SUPABASE_URL;
@@ -30,6 +42,89 @@ function getSupabaseAdmin() {
   return supabase;
 }
 
+function getJwtIssuer() {
+  const url = process.env.SUPABASE_URL;
+  return url ? `${url}/auth/v1` : undefined;
+}
+
+function verifyJwt(token: string): JwtPayload {
+  const secret = process.env.SUPABASE_JWT_SECRET;
+  if (!secret) {
+    throw new Error('SUPABASE_JWT_SECRET is required for local JWT verification');
+  }
+
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid token format');
+  }
+
+  const [headerB64, payloadB64, signatureB64] = parts as [string, string, string];
+  const headerJson = Buffer.from(headerB64, 'base64url').toString('utf-8');
+  const payloadJson = Buffer.from(payloadB64, 'base64url').toString('utf-8');
+  const header = JSON.parse(headerJson) as { alg?: string };
+  const payload = JSON.parse(payloadJson) as JwtPayload;
+
+  if (header.alg !== 'HS256') {
+    throw new Error('Unsupported token algorithm');
+  }
+
+  const data = `${headerB64}.${payloadB64}`;
+  const expected = createHmac('sha256', secret).update(data).digest('base64url');
+  if (
+    expected.length !== signatureB64.length ||
+    !timingSafeEqual(Buffer.from(expected), Buffer.from(signatureB64))
+  ) {
+    throw new Error('Invalid token signature');
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.exp && now >= payload.exp) {
+    throw new Error('Token expired');
+  }
+  if (payload.nbf && now < payload.nbf) {
+    throw new Error('Token not active');
+  }
+
+  const issuer = getJwtIssuer();
+  if (issuer && payload.iss && payload.iss !== issuer) {
+    throw new Error('Invalid token issuer');
+  }
+
+  if (payload.aud) {
+    const audList = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+    if (!audList.includes('authenticated')) {
+      throw new Error('Invalid token audience');
+    }
+  }
+
+  return payload;
+}
+
+async function getAuthUserFromToken(token: string) {
+  if (process.env.SUPABASE_JWT_SECRET) {
+    const payload = verifyJwt(token);
+    if (!payload.sub) {
+      throw new Error('Token missing sub');
+    }
+    return {
+      id: payload.sub,
+      email: payload.email ?? '',
+      user_metadata: payload.user_metadata ?? {},
+    };
+  }
+
+  const {
+    data: { user: supabaseUser },
+    error,
+  } = await getSupabaseAdmin().auth.getUser(token);
+
+  if (error || !supabaseUser) {
+    throw new Error('Token is invalid or expired');
+  }
+
+  return supabaseUser;
+}
+
 /** JWT検証 + JITプロビジョニング */
 export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const authHeader = c.req.header('Authorization');
@@ -38,12 +133,10 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
-  const {
-    data: { user: supabaseUser },
-    error,
-  } = await getSupabaseAdmin().auth.getUser(token);
-
-  if (error || !supabaseUser) {
+  let supabaseUser: { id: string; email?: string; user_metadata?: { display_name?: string } };
+  try {
+    supabaseUser = await getAuthUserFromToken(token);
+  } catch (error) {
     return c.json(
       { error: { code: 'INVALID_TOKEN', message: 'Token is invalid or expired' } },
       401,
@@ -59,16 +152,11 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
 
   if (!dbUser) {
     const [created] = await sql<UserRow[]>`
-      INSERT INTO users (id, email, display_name)
-      VALUES (${supabaseUser.id}, ${supabaseUser.email ?? ''}, ${supabaseUser.user_metadata?.display_name ?? supabaseUser.email ?? ''})
+      INSERT INTO users (id, email, display_name, last_login_at)
+      VALUES (${supabaseUser.id}, ${supabaseUser.email ?? ''}, ${supabaseUser.user_metadata?.display_name ?? supabaseUser.email ?? ''}, now())
       RETURNING *
     `;
     dbUser = created;
-  } else {
-    // 最終ログイン日時を更新
-    await sql`
-      UPDATE users SET last_login_at = now() WHERE id = ${supabaseUser.id}
-    `;
   }
 
   if (!dbUser) {
