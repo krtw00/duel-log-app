@@ -103,7 +103,7 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
           : (() => {
               if (typeof crypto !== 'undefined' && 'getRandomValues' in crypto) {
                 const bytes = new Uint8Array(16);
-                crypto.getRandomValues(bytes);
+                (crypto as Crypto).getRandomValues(bytes);
                 const hex = Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join(
                   '',
                 );

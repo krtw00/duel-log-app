@@ -115,7 +115,7 @@ describe('useDuels optimistic updates', () => {
       pagination: { total: 1, limit: 50, offset: 0 },
     });
 
-    let resolveApi: (value: { data: Duel }) => void;
+    let resolveApi!: (value: { data: Duel }) => void;
     const apiPromise = new Promise<{ data: Duel }>((resolve) => {
       resolveApi = resolve;
     });
@@ -145,9 +145,6 @@ describe('useDuels optimistic updates', () => {
       createdAt: '2026-02-01T00:00:02.000Z',
       updatedAt: '2026-02-01T00:00:02.000Z',
     };
-    if (!resolveApi) {
-      throw new Error('resolveApi not set');
-    }
     resolveApi({ data: created });
 
     await waitFor(() => {
