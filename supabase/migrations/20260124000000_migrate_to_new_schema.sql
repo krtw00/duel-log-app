@@ -2,7 +2,18 @@
 -- Converts INTEGER IDs to UUIDs, renames columns, restructures data
 -- Production data: 568 users, 52204 duels, 12941 decks, 80 shared_statistics
 
-BEGIN;
+DO $migrate$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'users'
+      AND column_name = 'supabase_uuid'
+  ) THEN
+    RAISE NOTICE 'Skipping legacy migration: supabase_uuid not found on public.users.';
+    RETURN;
+  END IF;
 
 -- ============================================================
 -- Phase 1: Create new tables with correct schema
@@ -240,4 +251,4 @@ WHERE EXISTS (
   WHERE lower(decks.name) LIKE '%' || lower(p.pattern) || '%'
 );
 
-COMMIT;
+END $migrate$;
