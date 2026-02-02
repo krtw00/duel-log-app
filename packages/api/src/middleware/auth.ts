@@ -45,8 +45,30 @@ function getJwks() {
   return jwks;
 }
 
+// ユーザー情報のインメモリキャッシュ（5分間有効）
+const USER_CACHE_TTL = 5 * 60 * 1000; // 5分
+type CachedUser = { user: UserRow; cachedAt: number };
+const userCache = new Map<string, CachedUser>();
+
+function getCachedUser(userId: string): UserRow | undefined {
+  const cached = userCache.get(userId);
+  if (cached && Date.now() - cached.cachedAt < USER_CACHE_TTL) {
+    return cached.user;
+  }
+  if (cached) {
+    userCache.delete(userId);
+  }
+  return undefined;
+}
+
+function setCachedUser(userId: string, user: UserRow): void {
+  userCache.set(userId, { user, cachedAt: Date.now() });
+}
+
 /** JWT検証（JWKSエンドポイント使用） + JITプロビジョニング */
 export const authMiddleware = createMiddleware<Env>(async (c, next) => {
+  const startTime = Date.now();
+
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return c.json({ error: { code: 'UNAUTHORIZED', message: 'Missing or invalid token' } }, 401);
@@ -57,7 +79,9 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   // JWTをJWKSで検証（Supabase Auth APIを呼ばない）
   let payload: SupabaseJwtPayload;
   try {
+    const jwtStart = Date.now();
     const { payload: verifiedPayload } = await jwtVerify(token, getJwks());
+    console.log(`[auth] JWT verify: ${Date.now() - jwtStart}ms`);
     payload = verifiedPayload as unknown as SupabaseJwtPayload;
   } catch {
     return c.json(
@@ -74,28 +98,42 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
     payload.user_metadata?.name ??
     email;
 
-  // JIT provisioning: ユーザーがDBに存在しなければ作成
-  const [dbUserExisting] = await sql<UserRow[]>`
-    SELECT * FROM users WHERE id = ${userId}
-  `;
-
-  let dbUser: UserRow | undefined = dbUserExisting;
+  // キャッシュからユーザー情報を取得
+  let dbUser: UserRow | undefined = getCachedUser(userId);
 
   if (!dbUser) {
-    const [created] = await sql<UserRow[]>`
-      INSERT INTO users (id, email, display_name)
-      VALUES (${userId}, ${email}, ${displayName})
-      RETURNING *
+    // JIT provisioning: ユーザーがDBに存在しなければ作成
+    const dbStart = Date.now();
+    const [dbUserExisting] = await sql<UserRow[]>`
+      SELECT * FROM users WHERE id = ${userId}
     `;
-    dbUser = created;
-  } else {
-    // 最終ログイン日時を更新（1時間以上経過している場合のみ、パフォーマンス最適化）
-    const lastLogin = dbUser.lastLoginAt;
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
-      // 非同期で更新（レスポンスをブロックしない）
-      void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`;
+    console.log(`[auth] DB query: ${Date.now() - dbStart}ms (cache miss)`);
+
+    dbUser = dbUserExisting;
+
+    if (!dbUser) {
+      const [created] = await sql<UserRow[]>`
+        INSERT INTO users (id, email, display_name)
+        VALUES (${userId}, ${email}, ${displayName})
+        RETURNING *
+      `;
+      dbUser = created;
+    } else {
+      // 最終ログイン日時を更新（1時間以上経過している場合のみ、パフォーマンス最適化）
+      const lastLogin = dbUser.lastLoginAt;
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
+        // 非同期で更新（レスポンスをブロックしない）
+        void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`;
+      }
     }
+
+    // キャッシュに保存
+    if (dbUser) {
+      setCachedUser(userId, dbUser);
+    }
+  } else {
+    console.log('[auth] DB query: 0ms (cache hit)');
   }
 
   if (!dbUser) {
@@ -112,6 +150,8 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
     isAdmin: dbUser.isAdmin,
     isDebugger: dbUser.isDebugger,
   });
+
+  console.log(`[auth] Total auth middleware: ${Date.now() - startTime}ms`);
 
   await next();
 });

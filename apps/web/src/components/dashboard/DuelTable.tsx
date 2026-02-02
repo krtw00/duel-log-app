@@ -143,6 +143,7 @@ function MobileCardView({
                     type="button"
                     className="themed-btn themed-btn-ghost p-1"
                     onClick={() => onStartEdit(duel)}
+                    disabled={duel.id.startsWith('temp-')}
                   >
                     <svg
                       width="14"
@@ -183,6 +184,7 @@ function MobileCardView({
                       className="themed-btn themed-btn-ghost p-1"
                       style={{ color: 'var(--color-error)' }}
                       onClick={() => setConfirmDeleteId(duel.id)}
+                      disabled={duel.id.startsWith('temp-')}
                     >
                       <svg
                         width="14"
@@ -388,6 +390,7 @@ export function DuelTable({
                         className="themed-btn themed-btn-ghost p-1"
                         onClick={() => handleStartEdit(duel)}
                         title={t('common.edit')}
+                        disabled={duel.id.startsWith('temp-')}
                       >
                         <svg
                           width="14"
@@ -448,6 +451,7 @@ export function DuelTable({
                           style={{ color: 'var(--color-error)' }}
                           onClick={() => setConfirmDeleteId(duel.id)}
                           title={t('common.delete')}
+                          disabled={duel.id.startsWith('temp-')}
                         >
                           <svg
                             width="14"
