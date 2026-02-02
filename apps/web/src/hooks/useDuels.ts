@@ -33,14 +33,60 @@ export function useCreateDuel() {
   const { success, error } = useNotificationStore();
   return useMutation({
     mutationFn: (data: CreateDuel) => api<{ data: Duel }>('/duels', { method: 'POST', body: data }),
-    onSuccess: () => {
+    onMutate: async (newDuelData) => {
+      // 進行中のフェッチをキャンセル
+      await queryClient.cancelQueries({ queryKey: ['duels'] });
+
+      // 現在のキャッシュを保存（ロールバック用）
+      const previousQueries = queryClient.getQueriesData<DuelListResponse>({ queryKey: ['duels'] });
+
+      // 楽観的な新規duelを作成（仮のIDで）
+      const optimisticDuel: Duel = {
+        id: `temp-${Date.now()}`,
+        deckId: newDuelData.deckId,
+        opponentDeckId: newDuelData.opponentDeckId,
+        result: newDuelData.result,
+        gameMode: newDuelData.gameMode,
+        isFirst: newDuelData.isFirst,
+        wonCoinToss: newDuelData.wonCoinToss,
+        rank: newDuelData.rank ?? null,
+        rateValue: newDuelData.rateValue ?? null,
+        dcValue: newDuelData.dcValue ?? null,
+        memo: newDuelData.memo ?? null,
+        dueledAt: newDuelData.dueledAt,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // すべてのduelsキャッシュを更新（新しいduelを先頭に追加）
+      queryClient.setQueriesData<DuelListResponse>({ queryKey: ['duels'] }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: [optimisticDuel, ...old.data],
+          pagination: { ...old.pagination, total: old.pagination.total + 1 },
+        };
+      });
+
+      // 成功通知を即座に表示
+      success(t('duel.registered'));
+
+      return { previousQueries, optimisticDuel };
+    },
+    onError: (_err, _newDuel, context) => {
+      // エラー時にキャッシュをロールバック
+      if (context?.previousQueries) {
+        for (const [queryKey, data] of context.previousQueries) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+      error(t('duel.registerFailed'));
+    },
+    onSettled: () => {
+      // 最終的にサーバーと同期（バックグラウンド）
       queryClient.invalidateQueries({ queryKey: ['duels'] });
       queryClient.invalidateQueries({ queryKey: ['statistics'] });
       broadcastStreamerStats();
-      success(t('duel.registered'));
-    },
-    onError: () => {
-      error(t('duel.registerFailed'));
     },
   });
 }
@@ -52,14 +98,37 @@ export function useUpdateDuel() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateDuel }) =>
       api<{ data: Duel }>(`/duels/${id}`, { method: 'PATCH', body: data }),
-    onSuccess: () => {
+    onMutate: async ({ id, data: updateData }) => {
+      await queryClient.cancelQueries({ queryKey: ['duels'] });
+
+      const previousQueries = queryClient.getQueriesData<DuelListResponse>({ queryKey: ['duels'] });
+
+      // キャッシュ内の該当duelを更新
+      queryClient.setQueriesData<DuelListResponse>({ queryKey: ['duels'] }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((duel) =>
+            duel.id === id ? { ...duel, ...updateData, updatedAt: new Date().toISOString() } : duel,
+          ),
+        };
+      });
+
+      success(t('duel.updated'));
+      return { previousQueries };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousQueries) {
+        for (const [queryKey, data] of context.previousQueries) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+      error(t('duel.updateFailed'));
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['duels'] });
       queryClient.invalidateQueries({ queryKey: ['statistics'] });
       broadcastStreamerStats();
-      success(t('duel.updated'));
-    },
-    onError: () => {
-      error(t('duel.updateFailed'));
     },
   });
 }
@@ -70,14 +139,36 @@ export function useDeleteDuel() {
   const { success, error } = useNotificationStore();
   return useMutation({
     mutationFn: (id: string) => api<void>(`/duels/${id}`, { method: 'DELETE' }),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['duels'] });
+
+      const previousQueries = queryClient.getQueriesData<DuelListResponse>({ queryKey: ['duels'] });
+
+      // キャッシュから該当duelを削除
+      queryClient.setQueriesData<DuelListResponse>({ queryKey: ['duels'] }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.filter((duel) => duel.id !== id),
+          pagination: { ...old.pagination, total: Math.max(0, old.pagination.total - 1) },
+        };
+      });
+
+      success(t('duel.deleted'));
+      return { previousQueries };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousQueries) {
+        for (const [queryKey, data] of context.previousQueries) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+      error(t('duel.deleteFailed'));
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['duels'] });
       queryClient.invalidateQueries({ queryKey: ['statistics'] });
       broadcastStreamerStats();
-      success(t('duel.deleted'));
-    },
-    onError: () => {
-      error(t('duel.deleteFailed'));
     },
   });
 }
