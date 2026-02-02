@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import { createMiddleware } from 'hono/factory';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { sql } from '../db/index.js';
 import type { UserRow } from '../db/types.js';
 
@@ -16,21 +16,36 @@ type Env = {
   };
 };
 
-let supabase: ReturnType<typeof createClient> | undefined;
+// Supabase JWTペイロードの型
+type SupabaseJwtPayload = {
+  sub: string;
+  email?: string;
+  user_metadata?: {
+    display_name?: string;
+    full_name?: string;
+    name?: string;
+  };
+  aud: string | string[];
+  role: string;
+  exp: number;
+  iat: number;
+};
 
-function getSupabaseAdmin() {
-  if (!supabase) {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) {
-      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
+// Supabase JWKSエンドポイント（公開鍵取得用、キャッシュされる）
+let jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
+
+function getJwks() {
+  if (!jwks) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    if (!supabaseUrl) {
+      throw new Error('SUPABASE_URL environment variable is required');
     }
-    supabase = createClient(url, key);
+    jwks = createRemoteJWKSet(new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`));
   }
-  return supabase;
+  return jwks;
 }
 
-/** JWT検証 + JITプロビジョニング */
+/** JWT検証（JWKSエンドポイント使用） + JITプロビジョニング */
 export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
@@ -38,21 +53,30 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
-  const {
-    data: { user: supabaseUser },
-    error,
-  } = await getSupabaseAdmin().auth.getUser(token);
 
-  if (error || !supabaseUser) {
+  // JWTをJWKSで検証（Supabase Auth APIを呼ばない）
+  let payload: SupabaseJwtPayload;
+  try {
+    const { payload: verifiedPayload } = await jwtVerify(token, getJwks());
+    payload = verifiedPayload as unknown as SupabaseJwtPayload;
+  } catch {
     return c.json(
       { error: { code: 'INVALID_TOKEN', message: 'Token is invalid or expired' } },
       401,
     );
   }
 
+  const userId = payload.sub;
+  const email = payload.email ?? '';
+  const displayName =
+    payload.user_metadata?.display_name ??
+    payload.user_metadata?.full_name ??
+    payload.user_metadata?.name ??
+    email;
+
   // JIT provisioning: ユーザーがDBに存在しなければ作成
   const [dbUserExisting] = await sql<UserRow[]>`
-    SELECT * FROM users WHERE id = ${supabaseUser.id}
+    SELECT * FROM users WHERE id = ${userId}
   `;
 
   let dbUser: UserRow | undefined = dbUserExisting;
@@ -60,7 +84,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   if (!dbUser) {
     const [created] = await sql<UserRow[]>`
       INSERT INTO users (id, email, display_name)
-      VALUES (${supabaseUser.id}, ${supabaseUser.email ?? ''}, ${supabaseUser.user_metadata?.display_name ?? supabaseUser.email ?? ''})
+      VALUES (${userId}, ${email}, ${displayName})
       RETURNING *
     `;
     dbUser = created;
@@ -70,7 +94,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
       // 非同期で更新（レスポンスをブロックしない）
-      void sql`UPDATE users SET last_login_at = now() WHERE id = ${supabaseUser.id}`;
+      void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`;
     }
   }
 
