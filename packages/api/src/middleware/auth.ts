@@ -65,10 +65,13 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
     `;
     dbUser = created;
   } else {
-    // 最終ログイン日時を更新
-    await sql`
-      UPDATE users SET last_login_at = now() WHERE id = ${supabaseUser.id}
-    `;
+    // 最終ログイン日時を更新（1時間以上経過している場合のみ、パフォーマンス最適化）
+    const lastLogin = dbUser.lastLoginAt;
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
+      // 非同期で更新（レスポンスをブロックしない）
+      void sql`UPDATE users SET last_login_at = now() WHERE id = ${supabaseUser.id}`;
+    }
   }
 
   if (!dbUser) {
