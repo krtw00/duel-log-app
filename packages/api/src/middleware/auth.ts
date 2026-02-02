@@ -1,5 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
 import { createMiddleware } from 'hono/factory';
-import { jwtVerify } from 'jose';
 import { sql } from '../db/index.js';
 import type { UserRow } from '../db/types.js';
 
@@ -16,45 +16,21 @@ type Env = {
   };
 };
 
-// Supabase JWTペイロードの型
-type SupabaseJwtPayload = {
-  sub: string;
-  email?: string;
-  user_metadata?: {
-    display_name?: string;
-    full_name?: string;
-    name?: string;
-  };
-  aud: string;
-  role: string;
-  exp: number;
-  iat: number;
-};
+let supabase: ReturnType<typeof createClient> | undefined;
 
-let jwtSecret: Uint8Array | undefined;
-
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
-
-function getJwtSecret(): Uint8Array {
-  if (!jwtSecret) {
-    const secret = process.env.SUPABASE_JWT_SECRET;
-    if (!secret) {
-      throw new Error('SUPABASE_JWT_SECRET environment variable is required');
+function getSupabaseAdmin() {
+  if (!supabase) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
     }
-    // SupabaseのJWTシークレットはBase64エンコードされている
-    jwtSecret = base64ToUint8Array(secret);
+    supabase = createClient(url, key);
   }
-  return jwtSecret;
+  return supabase;
 }
 
-/** JWT検証（ローカル） + JITプロビジョニング */
+/** JWT検証 + JITプロビジョニング */
 export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
@@ -62,32 +38,21 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
+  const {
+    data: { user: supabaseUser },
+    error,
+  } = await getSupabaseAdmin().auth.getUser(token);
 
-  // JWTをローカルで検証（Supabase APIを呼ばない）
-  let payload: SupabaseJwtPayload;
-  try {
-    const { payload: verifiedPayload } = await jwtVerify(token, getJwtSecret(), {
-      audience: 'authenticated',
-    });
-    payload = verifiedPayload as unknown as SupabaseJwtPayload;
-  } catch {
+  if (error || !supabaseUser) {
     return c.json(
       { error: { code: 'INVALID_TOKEN', message: 'Token is invalid or expired' } },
       401,
     );
   }
 
-  const userId = payload.sub;
-  const email = payload.email ?? '';
-  const displayName =
-    payload.user_metadata?.display_name ??
-    payload.user_metadata?.full_name ??
-    payload.user_metadata?.name ??
-    email;
-
   // JIT provisioning: ユーザーがDBに存在しなければ作成
   const [dbUserExisting] = await sql<UserRow[]>`
-    SELECT * FROM users WHERE id = ${userId}
+    SELECT * FROM users WHERE id = ${supabaseUser.id}
   `;
 
   let dbUser: UserRow | undefined = dbUserExisting;
@@ -95,7 +60,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   if (!dbUser) {
     const [created] = await sql<UserRow[]>`
       INSERT INTO users (id, email, display_name)
-      VALUES (${userId}, ${email}, ${displayName})
+      VALUES (${supabaseUser.id}, ${supabaseUser.email ?? ''}, ${supabaseUser.user_metadata?.display_name ?? supabaseUser.email ?? ''})
       RETURNING *
     `;
     dbUser = created;
@@ -105,7 +70,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
       // 非同期で更新（レスポンスをブロックしない）
-      void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`;
+      void sql`UPDATE users SET last_login_at = now() WHERE id = ${supabaseUser.id}`;
     }
   }
 
