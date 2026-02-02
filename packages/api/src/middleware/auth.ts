@@ -33,13 +33,23 @@ type SupabaseJwtPayload = {
 
 let jwtSecret: Uint8Array | undefined;
 
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
 function getJwtSecret(): Uint8Array {
   if (!jwtSecret) {
     const secret = process.env.SUPABASE_JWT_SECRET;
     if (!secret) {
       throw new Error('SUPABASE_JWT_SECRET environment variable is required');
     }
-    jwtSecret = new TextEncoder().encode(secret);
+    // SupabaseのJWTシークレットはBase64エンコードされている
+    jwtSecret = base64ToUint8Array(secret);
   }
   return jwtSecret;
 }
