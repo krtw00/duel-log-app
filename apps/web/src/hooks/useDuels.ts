@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api.js';
 import { broadcastStreamerStats } from '../lib/broadcast.js';
+import { useAuthStore } from '../stores/auth.js';
 import { useNotificationStore } from '../stores/notificationStore.js';
 
 type DuelListResponse = { data: Duel[]; pagination: Pagination };
@@ -31,6 +32,7 @@ export function useCreateDuel() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { success, error } = useNotificationStore();
+  const user = useAuthStore((state) => state.user);
   return useMutation({
     mutationFn: (data: CreateDuel) => api<{ data: Duel }>('/duels', { method: 'POST', body: data }),
     onMutate: async (newDuelData) => {
@@ -43,6 +45,7 @@ export function useCreateDuel() {
       // 楽観的な新規duelを作成（仮のIDで）
       const optimisticDuel: Duel = {
         id: `temp-${Date.now()}`,
+        userId: user?.id ?? '',
         deckId: newDuelData.deckId,
         opponentDeckId: newDuelData.opponentDeckId,
         result: newDuelData.result,

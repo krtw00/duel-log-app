@@ -47,3 +47,6 @@ pnpm-debug.log*
 supabase/.branches
 supabase/.temp
 packages/api/debug-logs/
+
+# Vercel API build output
+api/*.js
