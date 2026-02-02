@@ -29,7 +29,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
 
   if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
+    headers.Authorization = `Bearer ${session.access_token}`;
   }
 
   // メンテナンスバイパスが有効な場合、ヘッダーを追加
