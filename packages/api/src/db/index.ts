@@ -46,5 +46,5 @@ export const sql = postgres(fixedConnectionString, {
   ssl: isLocalDb ? false : { rejectUnauthorized: false },
   prepare: false,
   idle_timeout: 20,
-  max: 3,
+  max: 10,
 });
