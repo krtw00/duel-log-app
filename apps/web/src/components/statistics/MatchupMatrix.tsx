@@ -1,6 +1,9 @@
 import type { MatchupEntry } from '@duel-log/shared';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+type SortKey = 'total' | 'winRate' | 'firstWinRate' | 'secondWinRate';
+type SortOrder = 'asc' | 'desc';
 
 type Props = {
   matchups: MatchupEntry[];
@@ -21,6 +24,57 @@ function getWinRateChipClass(winRate: number): string {
   if (winRate >= 0.55) return 'chip chip-outlined-info';
   if (winRate <= 0.45) return 'chip chip-error';
   return 'chip';
+}
+
+function SortIcon({ active, order }: { active: boolean; order: SortOrder }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="inline-block ml-1"
+      style={{
+        opacity: active ? 1 : 0.3,
+        transition: 'opacity 0.15s, transform 0.15s',
+        transform: active && order === 'asc' ? 'rotate(180deg)' : 'none',
+      }}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+type SortableHeaderProps = {
+  label: string;
+  sortKey: SortKey;
+  currentSortKey: SortKey | null;
+  currentSortOrder: SortOrder;
+  onSort: (key: SortKey) => void;
+};
+
+function SortableHeader({
+  label,
+  sortKey,
+  currentSortKey,
+  currentSortOrder,
+  onSort,
+}: SortableHeaderProps) {
+  const isActive = currentSortKey === sortKey;
+  return (
+    <th
+      className="text-center cursor-pointer select-none hover:bg-[var(--color-surface-variant)]"
+      onClick={() => onSort(sortKey)}
+      style={{ transition: 'background-color 0.15s' }}
+    >
+      <span className="inline-flex items-center justify-center">
+        {label}
+        <SortIcon active={isActive} order={isActive ? currentSortOrder : 'desc'} />
+      </span>
+    </th>
+  );
 }
 
 function MobileAccordion({ matchups }: { matchups: MatchupEntry[] }) {
@@ -100,6 +154,46 @@ export function MatchupMatrix({ matchups, loading }: Props) {
   const { t } = useTranslation();
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(0);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortKey(key);
+      setSortOrder('desc');
+    }
+    setCurrentPage(0);
+  };
+
+  const sortedMatchups = useMemo(() => {
+    if (!sortKey) return matchups;
+    return [...matchups].sort((a, b) => {
+      let aVal: number;
+      let bVal: number;
+      switch (sortKey) {
+        case 'total':
+          aVal = a.wins + a.losses;
+          bVal = b.wins + b.losses;
+          break;
+        case 'winRate':
+          aVal = a.winRate;
+          bVal = b.winRate;
+          break;
+        case 'firstWinRate':
+          aVal = a.firstWinRate;
+          bVal = b.firstWinRate;
+          break;
+        case 'secondWinRate':
+          aVal = a.secondWinRate;
+          bVal = b.secondWinRate;
+          break;
+      }
+      const diff = bVal - aVal;
+      return sortOrder === 'desc' ? diff : -diff;
+    });
+  }, [matchups, sortKey, sortOrder]);
 
   if (loading) {
     return (
@@ -123,8 +217,8 @@ export function MatchupMatrix({ matchups, loading }: Props) {
     );
   }
 
-  const totalPages = Math.ceil(matchups.length / itemsPerPage);
-  const paginatedMatchups = matchups.slice(
+  const totalPages = Math.ceil(sortedMatchups.length / itemsPerPage);
+  const paginatedMatchups = sortedMatchups.slice(
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage,
   );
@@ -142,10 +236,34 @@ export function MatchupMatrix({ matchups, loading }: Props) {
             <tr>
               <th>{t('duel.deck')}</th>
               <th>{t('duel.opponentDeck')}</th>
-              <th className="text-center">{t('statistics.total')}</th>
-              <th className="text-center">{t('dashboard.winRate')}</th>
-              <th className="text-center">{t('statistics.firstWinRate')}</th>
-              <th className="text-center">{t('statistics.secondWinRate')}</th>
+              <SortableHeader
+                label={t('statistics.total')}
+                sortKey="total"
+                currentSortKey={sortKey}
+                currentSortOrder={sortOrder}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label={t('dashboard.winRate')}
+                sortKey="winRate"
+                currentSortKey={sortKey}
+                currentSortOrder={sortOrder}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label={t('statistics.firstWinRate')}
+                sortKey="firstWinRate"
+                currentSortKey={sortKey}
+                currentSortOrder={sortOrder}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label={t('statistics.secondWinRate')}
+                sortKey="secondWinRate"
+                currentSortKey={sortKey}
+                currentSortOrder={sortOrder}
+                onSort={handleSort}
+              />
             </tr>
           </thead>
           <tbody>
@@ -180,7 +298,7 @@ export function MatchupMatrix({ matchups, loading }: Props) {
       </div>
 
       {/* Pagination */}
-      {matchups.length > 10 && (
+      {sortedMatchups.length > 10 && (
         <div
           className="flex items-center justify-end gap-4 p-3"
           style={{ borderTop: '1px solid var(--color-border)' }}
@@ -212,8 +330,8 @@ export function MatchupMatrix({ matchups, loading }: Props) {
             </select>
           </div>
           <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
-            {startIndex + 1}-{Math.min(startIndex + itemsPerPage, matchups.length)} of{' '}
-            {matchups.length}
+            {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedMatchups.length)} of{' '}
+            {sortedMatchups.length}
           </span>
           <div className="flex gap-1">
             <button
