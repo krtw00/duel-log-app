@@ -356,6 +356,11 @@
     },
     "coinDetected": "コイン検出",
     "resultDetected": "結果検出",
+    "coinScore": "コイン",
+    "resultScore": "勝敗",
+    "winShort": "勝",
+    "lossShort": "敗",
+    "deltaShort": "差",
     "waiting": "待機中..."
   }
 }

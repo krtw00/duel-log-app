@@ -1,26 +1,23 @@
-import type { ColorTarget, ROI } from './types.js';
+import type { ROI } from './types.js';
 
 // ROI regions (normalized 0-1 coordinates for 16:9 aspect ratio)
 export const COIN_ROI: ROI = {
-  left: 0.28,
-  top: 0.58,
-  width: 0.44,
-  height: 0.12,
+  left: 0.3303125,
+  top: 0.6105556,
+  width: 0.3359375,
+  height: 0.1055556,
 };
 
 export const RESULT_ROI: ROI = {
-  left: 0.05,
-  top: 0.2,
-  width: 0.9,
-  height: 0.4,
+  left: 0.086563,
+  top: 0.352778,
+  width: 0.822187,
+  height: 0.466111,
 };
 
-// Color targets for detection
-export const COIN_WIN_COLOR: ColorTarget = { r: 255, g: 215, b: 0, tolerance: 80 };
-export const COIN_LOSS_COLOR: ColorTarget = { r: 192, g: 192, b: 192, tolerance: 80 };
-
-export const RESULT_WIN_COLOR: ColorTarget = { r: 255, g: 200, b: 50, tolerance: 100 };
-export const RESULT_LOSS_COLOR: ColorTarget = { r: 100, g: 100, b: 180, tolerance: 100 };
+export const COIN_MATCH_THRESHOLD = 0.72;
+export const RESULT_MATCH_THRESHOLD = 0.7;
+export const HASH_MARGIN = 0.05;
 
 // FSM thresholds
 export const COIN_STREAK_THRESHOLD = 5; // Frames needed for coin detection
