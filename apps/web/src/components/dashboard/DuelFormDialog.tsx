@@ -3,15 +3,18 @@ import {
   type Deck,
   type Duel,
   type GameMode,
+  type User,
   RESULTS,
   createDuelSchema,
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
 import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
+import { api } from '../../lib/api.js';
 import { getDueledAtForSubmit } from '../../utils/duel.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
@@ -94,6 +97,14 @@ export function DuelFormDialog({
   const isFirst = watch('isFirst');
   const result = watch('result');
 
+  const { data: me } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<{ data: User }>('/me'),
+    staleTime: 1000 * 60 * 5,
+    enabled: inline,
+  });
+  const isDebugger = me?.data?.isDebugger ?? false;
+
   // Auto-set first/second based on coin toss result (new duels only)
   // 後攻デフォルト時はコイン結果に関わらず後攻を維持
   useEffect(() => {
@@ -137,8 +148,12 @@ export function DuelFormDialog({
     }
   }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks]);
 
+  const isSupportedGameMode = gameMode !== 'RATE' && gameMode !== 'DC';
   const screenAnalysisEnabled =
-    inline && !editingDuel && localStorage.getItem('duellog.screenAnalysis.enabled') === 'true';
+    inline &&
+    !editingDuel &&
+    isSupportedGameMode &&
+    (isDebugger || localStorage.getItem('duellog.screenAnalysis.enabled') === 'true');
 
   const handleFormSubmit = useCallback(
     async (data: CreateDuel) => {
