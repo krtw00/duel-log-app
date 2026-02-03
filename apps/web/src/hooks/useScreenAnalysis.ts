@@ -19,6 +19,7 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [autoRegister, setAutoRegister] = useState(false);
   const [fsmContext, setFsmContext] = useState<FSMContext>(createInitialContext);
+  const [lastFrame, setLastFrame] = useState<AnalysisFrame | null>(null);
 
   const workerRef = useRef<Worker | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -52,6 +53,7 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
       const newContext = transition(fsmRef.current, frame);
       fsmRef.current = newContext;
       setFsmContext(newContext);
+      setLastFrame(frame);
     }
   }, []);
 
@@ -129,6 +131,7 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
     canvasRef.current = null;
     fsmRef.current = createInitialContext();
     setFsmContext(createInitialContext());
+    setLastFrame(null);
     setIsCapturing(false);
   }, []);
 
@@ -145,6 +148,7 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
     detectionResult: fsmContext.detectionResult,
     isCapturing,
     autoRegister,
+    lastFrame,
   };
 
   return {

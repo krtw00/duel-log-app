@@ -6,7 +6,6 @@ export interface UserRow {
   isDebugger: boolean;
   themePreference: string;
   streamerMode: boolean;
-  enableScreenAnalysis: boolean;
   status: string;
   statusReason: string | null;
   lastLoginAt: Date | null;

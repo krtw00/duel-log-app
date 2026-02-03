@@ -26,6 +26,8 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
 
   const isCoinActive = status.state === 'coinDetecting' || status.state === 'coinDetected';
   const isResultActive = status.state === 'resultDetecting' || status.state === 'resultDetected';
+  const formatScore = (value: number | null | undefined) =>
+    value === null || value === undefined ? '-' : value.toFixed(3);
 
   return (
     <div
@@ -97,31 +99,51 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
 
       {/* Detection state chips */}
       {status.isCapturing && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <StateChip
-            label={`${t('screenAnalysis.coinDetected')}: ${status.coinResult === 'won' ? '✓' : status.coinResult === 'lost' ? '✗' : '-'}`}
-            active={isCoinActive}
-            color={
-              status.coinResult === 'won' ? 'var(--color-warning)' : 'var(--color-on-surface-muted)'
-            }
-          />
-          <StateChip
-            label={`${t('screenAnalysis.resultDetected')}: ${status.detectionResult === 'win' ? '✓' : status.detectionResult === 'loss' ? '✗' : '-'}`}
-            active={isResultActive}
-            color={
-              status.detectionResult === 'win'
-                ? 'var(--color-success)'
-                : status.detectionResult === 'loss'
-                  ? 'var(--color-error)'
+        <>
+          <div className="flex items-center gap-2 flex-wrap">
+            <StateChip
+              label={`${t('screenAnalysis.coinDetected')}: ${status.coinResult === 'won' ? '✓' : status.coinResult === 'lost' ? '✗' : '-'}`}
+              active={isCoinActive}
+              color={
+                status.coinResult === 'won'
+                  ? 'var(--color-warning)'
                   : 'var(--color-on-surface-muted)'
-            }
-          />
-          {status.state === 'cooldown' && (
-            <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
-              {t('screenAnalysis.waiting')}
-            </span>
+              }
+            />
+            <StateChip
+              label={`${t('screenAnalysis.resultDetected')}: ${status.detectionResult === 'win' ? '✓' : status.detectionResult === 'loss' ? '✗' : '-'}`}
+              active={isResultActive}
+              color={
+                status.detectionResult === 'win'
+                  ? 'var(--color-success)'
+                  : status.detectionResult === 'loss'
+                    ? 'var(--color-error)'
+                    : 'var(--color-on-surface-muted)'
+              }
+            />
+            {status.state === 'cooldown' && (
+              <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                {t('screenAnalysis.waiting')}
+              </span>
+            )}
+          </div>
+          {status.lastFrame && (
+            <div className="text-xs space-y-1" style={{ color: 'var(--color-on-surface-muted)' }}>
+              <div>
+                {t('screenAnalysis.coinScore')}:
+                {` ${t('screenAnalysis.winShort')} ${formatScore(status.lastFrame.coinWinScore)} / ${t('screenAnalysis.lossShort')} ${formatScore(status.lastFrame.coinLossScore)} / ${t('screenAnalysis.deltaShort')} ${formatScore(
+                  status.lastFrame.coinWinScore - status.lastFrame.coinLossScore,
+                )}`}
+              </div>
+              <div>
+                {t('screenAnalysis.resultScore')}:
+                {` ${t('screenAnalysis.winShort')} ${formatScore(status.lastFrame.resultWinScore)} / ${t('screenAnalysis.lossShort')} ${formatScore(status.lastFrame.resultLossScore)} / ${t('screenAnalysis.deltaShort')} ${formatScore(
+                  status.lastFrame.resultWinScore - status.lastFrame.resultLossScore,
+                )}`}
+              </div>
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
