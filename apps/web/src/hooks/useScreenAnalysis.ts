@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { api } from '../lib/api.js';
 import { SCAN_FPS } from '../utils/screenAnalysis/config.js';
 import { createInitialContext, transition } from '../utils/screenAnalysis/fsm.js';
 import type {
@@ -15,11 +16,21 @@ type AutoRegisterCallback = (data: {
   result: DetectionResult;
 }) => void;
 
-export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
+type ScreenAnalysisOptions = {
+  debugLogEnabled?: boolean;
+  debugLogIntervalMs?: number;
+};
+
+export function useScreenAnalysis(
+  onAutoRegister?: AutoRegisterCallback,
+  options: ScreenAnalysisOptions = {},
+) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [autoRegister, setAutoRegister] = useState(false);
   const [fsmContext, setFsmContext] = useState<FSMContext>(createInitialContext);
   const [lastFrame, setLastFrame] = useState<AnalysisFrame | null>(null);
+  const lastFrameRef = useRef<AnalysisFrame | null>(null);
+  const { debugLogEnabled = false, debugLogIntervalMs = 2000 } = options;
 
   const workerRef = useRef<Worker | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -54,6 +65,7 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
       fsmRef.current = newContext;
       setFsmContext(newContext);
       setLastFrame(frame);
+      lastFrameRef.current = frame;
     }
   }, []);
 
@@ -132,8 +144,35 @@ export function useScreenAnalysis(onAutoRegister?: AutoRegisterCallback) {
     fsmRef.current = createInitialContext();
     setFsmContext(createInitialContext());
     setLastFrame(null);
+    lastFrameRef.current = null;
     setIsCapturing(false);
   }, []);
+
+  useEffect(() => {
+    if (!debugLogEnabled || !isCapturing) return;
+
+    const intervalId = window.setInterval(() => {
+      const frame = lastFrameRef.current;
+      if (!frame) return;
+      const payload = {
+        eventAt: frame.timestamp,
+        state: fsmRef.current.state,
+        coin: frame.coin,
+        result: frame.result,
+        coinWinScore: frame.coinWinScore,
+        coinLossScore: frame.coinLossScore,
+        resultWinScore: frame.resultWinScore,
+        resultLossScore: frame.resultLossScore,
+        coinConfidence: frame.coinConfidence,
+        resultConfidence: frame.resultConfidence,
+      };
+      void api('/debug/screen-analysis', { method: 'POST', body: payload }).catch(() => {});
+    }, debugLogIntervalMs);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [debugLogEnabled, debugLogIntervalMs, isCapturing]);
 
   // Cleanup on unmount
   useEffect(() => {

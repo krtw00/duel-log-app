@@ -206,7 +206,15 @@ export function DuelFormDialog({
     [setValue, handleSubmit, handleFormSubmit],
   );
 
-  const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined);
+  const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined, {
+    debugLogEnabled: isDebugger,
+  });
+
+  useEffect(() => {
+    if (!screenAnalysisEnabled && screenAnalysis.status.isCapturing) {
+      screenAnalysis.stopCapture();
+    }
+  }, [screenAnalysisEnabled, screenAnalysis.status.isCapturing, screenAnalysis.stopCapture]);
 
   if (!open && !inline) return null;
 
