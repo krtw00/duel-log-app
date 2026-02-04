@@ -17,6 +17,10 @@ const screenAnalysisLogSchema = z.object({
   resultLossScore: z.number().optional(),
   coinConfidence: z.number().optional(),
   resultConfidence: z.number().optional(),
+  coinOcrText: z.string().optional(),
+  coinOcrResult: z.enum(['won', 'lost']).nullable().optional(),
+  coinOcrConfidence: z.number().optional(),
+  coinOcrAt: z.number().optional(),
 });
 
 const LOG_DIR = path.resolve(process.cwd(), 'logs');
