@@ -15,8 +15,8 @@ export const RESULT_ROI: ROI = {
   height: 0.466111,
 };
 
-export const COIN_MATCH_THRESHOLD = 0.72;
-export const RESULT_MATCH_THRESHOLD = 0.7;
+export const COIN_MATCH_THRESHOLD = 0.62;
+export const RESULT_MATCH_THRESHOLD = 0.65;
 export const HASH_MARGIN = 0.05;
 
 // FSM thresholds
