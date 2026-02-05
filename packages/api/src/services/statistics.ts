@@ -163,43 +163,55 @@ interface StreakResult {
 export async function getStreaks(userId: string, filter: StatisticsFilter): Promise<StreakResult> {
   const where = buildConditions(userId, filter);
 
-  const results = await sql<{ result: string }[]>`
-    SELECT d.result FROM duels d WHERE ${where} ORDER BY d.dueled_at DESC
+  // SQLのWindow関数で連勝/連敗を計算（全データ取得を回避）
+  const [result] = await sql<
+    {
+      currentStreak: number;
+      currentStreakType: string | null;
+      longestWinStreak: number;
+      longestLossStreak: number;
+    }[]
+  >`
+    WITH ordered_duels AS (
+      SELECT
+        d.result,
+        ROW_NUMBER() OVER (ORDER BY d.dueled_at DESC) as rn
+      FROM duels d
+      WHERE ${where}
+    ),
+    streak_groups AS (
+      SELECT
+        result,
+        rn,
+        SUM(CASE
+          WHEN result != LAG(result) OVER (ORDER BY rn)
+            OR LAG(result) OVER (ORDER BY rn) IS NULL
+          THEN 1 ELSE 0
+        END) OVER (ORDER BY rn) as grp
+      FROM ordered_duels
+    ),
+    streak_counts AS (
+      SELECT
+        result,
+        grp,
+        COUNT(*)::int as streak_length,
+        MIN(rn)::int as min_rn
+      FROM streak_groups
+      GROUP BY result, grp
+    )
+    SELECT
+      COALESCE((SELECT streak_length FROM streak_counts WHERE min_rn = 1), 0)::int as current_streak,
+      (SELECT result FROM streak_counts WHERE min_rn = 1) as current_streak_type,
+      COALESCE((SELECT MAX(streak_length) FROM streak_counts WHERE result = 'win'), 0)::int as longest_win_streak,
+      COALESCE((SELECT MAX(streak_length) FROM streak_counts WHERE result = 'loss'), 0)::int as longest_loss_streak
   `;
 
-  let currentStreak = 0;
-  let currentStreakType: 'win' | 'loss' | null = null;
-  let longestWinStreak = 0;
-  let longestLossStreak = 0;
-  let winStreak = 0;
-  let lossStreak = 0;
-
-  for (const row of results) {
-    if (row.result === 'win') {
-      winStreak++;
-      lossStreak = 0;
-      if (winStreak > longestWinStreak) longestWinStreak = winStreak;
-    } else {
-      lossStreak++;
-      winStreak = 0;
-      if (lossStreak > longestLossStreak) longestLossStreak = lossStreak;
-    }
-  }
-
-  // 現在の連勝/連敗（直近から連続する同一結果）
-  if (results.length > 0) {
-    currentStreakType = results[0]?.result as 'win' | 'loss';
-    currentStreak = 1;
-    for (let i = 1; i < results.length; i++) {
-      if (results[i]?.result === currentStreakType) {
-        currentStreak++;
-      } else {
-        break;
-      }
-    }
-  }
-
-  return { currentStreak, currentStreakType, longestWinStreak, longestLossStreak };
+  return {
+    currentStreak: result?.currentStreak ?? 0,
+    currentStreakType: (result?.currentStreakType as 'win' | 'loss') ?? null,
+    longestWinStreak: result?.longestWinStreak ?? 0,
+    longestLossStreak: result?.longestLossStreak ?? 0,
+  };
 }
 
 interface ValueSequenceResult {
