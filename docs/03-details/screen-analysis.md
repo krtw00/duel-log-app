@@ -58,7 +58,7 @@ flowchart LR
 |---------|------|
 | フレーム取得 | `getDisplayMedia()` + OffscreenCanvas |
 | ROI抽出 | 比率ベースの固定領域切り出し |
-| 画像解析 | OCR + 色解析（Web Worker） |
+| 画像解析 | テンプレートマッチング（Web Worker） |
 | FSM確定 | メインスレッドで時系列管理 |
 
 ### ファイル構成
@@ -68,7 +68,7 @@ src/
 ├── composables/
 │   └── useScreenAnalysis.ts      # 統合Composable + FSM
 ├── workers/
-│   └── screenAnalysisOCR.worker.ts  # ML分類Worker
+│   └── screenAnalysis.worker.ts     # 画面解析Worker
 └── utils/
     └── screenAnalysis/
         ├── config.ts             # 統合設定
@@ -133,26 +133,17 @@ src/
 
 | 項目 | 内容 |
 |------|------|
-| エンジン | Tesseract.js v7 |
-| 言語 | 日本語（`jpn`） |
-| 前処理 | グレースケール + コントラスト強調 |
-| 判定 | キーワードマッチング |
+| 手法 | Tesseract.js（日本語） + 二値化前処理 |
+| 対象 | 中央メッセージバー |
+| 判定 | 文字列（選択してください/相手が選択しています） |
 
-判定キーワード：
-
-| キーワード | 結果 |
-|-----------|------|
-| 「先攻・後攻を選択してください」 | コイン勝利 |
-| 「選択しています」 | コイン敗北 |
-
-### 勝敗検出（色解析）
+### 勝敗検出（テンプレートマッチング）
 
 | 項目 | 内容 |
 |------|------|
-| 手法 | HSV色空間での金色ピクセル解析 |
-| 対象色 | Hue: 15-55°, Saturation: ≥40%, Value: ≥50% |
-| 判定1 | 王冠の金色集中度（VICTORY判定） |
-| 判定2 | OKボタン検出（暗色ピクセル分布） |
+| 手法 | dHash + ハミング距離 |
+| 対象 | VICTORY/LOSE文字領域 |
+| 判定 | WIN/LOSEテンプレの一致率比較 |
 
 ---
 
@@ -209,14 +200,7 @@ flowchart LR
 
 | 設定 | 説明 |
 |------|------|
-| `enable_screen_analysis` | 機能のON/OFF |
 | `is_debugger` | デバッグ画像保存の有効化 |
-
-### 設定UI
-
-プロフィール設定画面で ON/OFF を切り替え。
-
----
 
 ## 関連ドキュメント
 

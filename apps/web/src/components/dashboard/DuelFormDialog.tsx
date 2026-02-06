@@ -3,15 +3,18 @@ import {
   type Deck,
   type Duel,
   type GameMode,
+  type User,
   RESULTS,
   createDuelSchema,
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
 import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
+import { api } from '../../lib/api.js';
 import { getDueledAtForSubmit } from '../../utils/duel.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
@@ -94,6 +97,14 @@ export function DuelFormDialog({
   const isFirst = watch('isFirst');
   const result = watch('result');
 
+  const { data: me } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<{ data: User }>('/me'),
+    staleTime: 1000 * 60 * 5,
+    enabled: inline,
+  });
+  const isDebugger = me?.data?.isDebugger ?? false;
+
   // Auto-set first/second based on coin toss result (new duels only)
   // 後攻デフォルト時はコイン結果に関わらず後攻を維持
   useEffect(() => {
@@ -122,6 +133,7 @@ export function DuelFormDialog({
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
     } else {
+      const defaultDeck = myDecks[0];
       reset({
         result: 'win',
         gameMode: defaultGameMode ?? 'RANK',
@@ -129,16 +141,22 @@ export function DuelFormDialog({
         wonCoinToss: defaultIsFirst,
         rank: defaultRank,
         dueledAt: new Date().toISOString(),
-        deckId: '00000000-0000-0000-0000-000000000000',
+        deckId: defaultDeck?.id ?? '00000000-0000-0000-0000-000000000000',
         opponentDeckId: '00000000-0000-0000-0000-000000000000',
       });
-      setDeckSelection({ id: '', name: '' });
+      setDeckSelection(
+        defaultDeck ? { id: defaultDeck.id, name: defaultDeck.name } : { id: '', name: '' },
+      );
       setOpponentDeckSelection({ id: '', name: '' });
     }
   }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks]);
 
+  const isSupportedGameMode = gameMode !== 'RATE' && gameMode !== 'DC';
   const screenAnalysisEnabled =
-    inline && !editingDuel && localStorage.getItem('duellog.screenAnalysis.enabled') === 'true';
+    inline &&
+    !editingDuel &&
+    isSupportedGameMode &&
+    (isDebugger || localStorage.getItem('duellog.screenAnalysis.enabled') === 'true');
 
   const handleFormSubmit = useCallback(
     async (data: CreateDuel) => {
@@ -191,7 +209,15 @@ export function DuelFormDialog({
     [setValue, handleSubmit, handleFormSubmit],
   );
 
-  const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined);
+  const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined, {
+    debugLogEnabled: isDebugger,
+  });
+
+  useEffect(() => {
+    if (!screenAnalysisEnabled && screenAnalysis.status.isCapturing) {
+      screenAnalysis.stopCapture();
+    }
+  }, [screenAnalysisEnabled, screenAnalysis.status.isCapturing, screenAnalysis.stopCapture]);
 
   if (!open && !inline) return null;
 

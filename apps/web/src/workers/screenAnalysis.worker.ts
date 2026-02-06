@@ -1,89 +1,119 @@
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  COIN_LOSS_COLOR,
   COIN_ROI,
-  COIN_WIN_COLOR,
-  RESULT_LOSS_COLOR,
+  COIN_MATCH_THRESHOLD,
+  HASH_MARGIN,
   RESULT_ROI,
-  RESULT_WIN_COLOR,
+  RESULT_MATCH_THRESHOLD,
 } from '../utils/screenAnalysis/config.js';
 import type {
   AnalysisFrame,
   CoinResult,
-  ColorTarget,
   DetectionResult,
   ROI,
   WorkerMessage,
 } from '../utils/screenAnalysis/types.js';
+import {
+  COIN_HASH_HEIGHT,
+  COIN_HASH_WIDTH,
+  COIN_LOSE_HASH,
+  COIN_WIN_HASH,
+  RESULT_HASH_HEIGHT,
+  RESULT_HASH_WIDTH,
+  RESULT_LOSE_HASH,
+  RESULT_WIN_HASH,
+} from '../utils/screenAnalysis/templates.js';
 
-function extractROI(imageData: ImageData, roi: ROI): Uint8ClampedArray {
-  const x = Math.floor(roi.left * imageData.width);
-  const y = Math.floor(roi.top * imageData.height);
-  const w = Math.floor(roi.width * imageData.width);
-  const h = Math.floor(roi.height * imageData.height);
-
-  const pixels = new Uint8ClampedArray(w * h * 4);
-  for (let row = 0; row < h; row++) {
-    const srcOffset = ((y + row) * imageData.width + x) * 4;
-    const dstOffset = row * w * 4;
-    pixels.set(imageData.data.subarray(srcOffset, srcOffset + w * 4), dstOffset);
-  }
-  return pixels;
+function luminanceAt(data: Uint8ClampedArray, width: number, x: number, y: number): number {
+  const idx = (y * width + x) * 4;
+  const r = data[idx] ?? 0;
+  const g = data[idx + 1] ?? 0;
+  const b = data[idx + 2] ?? 0;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-function colorDistance(r: number, g: number, b: number, target: ColorTarget): number {
-  const dr = r - target.r;
-  const dg = g - target.g;
-  const db = b - target.b;
-  return Math.sqrt(dr * dr + dg * dg + db * db);
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
 }
 
-function computeColorScore(pixels: Uint8ClampedArray, target: ColorTarget): number {
-  let matchCount = 0;
-  const totalPixels = pixels.length / 4;
+function computeDHash(
+  imageData: ImageData,
+  roi: ROI,
+  hashWidth: number,
+  hashHeight: number,
+): Uint8Array {
+  const { width, height, data } = imageData;
+  const x0 = Math.floor(roi.left * width);
+  const y0 = Math.floor(roi.top * height);
+  const roiW = Math.max(1, Math.floor(roi.width * width));
+  const roiH = Math.max(1, Math.floor(roi.height * height));
+  const stepX = roiW / hashWidth;
+  const stepY = roiH / hashHeight;
 
-  for (let i = 0; i < pixels.length; i += 4) {
-    const r = pixels[i] ?? 0;
-    const g = pixels[i + 1] ?? 0;
-    const b = pixels[i + 2] ?? 0;
-    const dist = colorDistance(r, g, b, target);
-    if (dist <= target.tolerance) {
-      matchCount++;
+  const bits = new Uint8Array(hashWidth * hashHeight);
+  let idx = 0;
+  for (let y = 0; y < hashHeight; y += 1) {
+    const sampleY = clamp(Math.floor(y0 + (y + 0.5) * stepY), 0, height - 1);
+    let prevLum = luminanceAt(data, width, clamp(Math.floor(x0 + 0.5 * stepX), 0, width - 1), sampleY);
+    for (let x = 0; x < hashWidth; x += 1) {
+      const sampleX = clamp(Math.floor(x0 + (x + 1.5) * stepX), 0, width - 1);
+      const nextLum = luminanceAt(data, width, sampleX, sampleY);
+      bits[idx] = prevLum > nextLum ? 1 : 0;
+      idx += 1;
+      prevLum = nextLum;
     }
   }
-
-  return matchCount / totalPixels;
+  return bits;
 }
 
-function detectCoin(imageData: ImageData): { result: CoinResult; confidence: number } {
-  const pixels = extractROI(imageData, COIN_ROI);
-
-  const winScore = computeColorScore(pixels, COIN_WIN_COLOR);
-  const lossScore = computeColorScore(pixels, COIN_LOSS_COLOR);
-
-  if (winScore > lossScore && winScore > 0.05) {
-    return { result: 'won', confidence: winScore };
+function hashSimilarity(a: Uint8Array, b: Uint8Array): number {
+  const len = Math.min(a.length, b.length);
+  let same = 0;
+  for (let i = 0; i < len; i += 1) {
+    if (a[i] === b[i]) same += 1;
   }
-  if (lossScore > winScore && lossScore > 0.05) {
-    return { result: 'lost', confidence: lossScore };
-  }
-  return { result: null, confidence: 0 };
+  return same / len;
 }
 
-function detectResult(imageData: ImageData): { result: DetectionResult; confidence: number } {
-  const pixels = extractROI(imageData, RESULT_ROI);
+function detectCoin(imageData: ImageData): {
+  result: CoinResult;
+  confidence: number;
+  winScore: number;
+  lossScore: number;
+} {
+  const hash = computeDHash(imageData, COIN_ROI, COIN_HASH_WIDTH, COIN_HASH_HEIGHT);
+  const winScore = hashSimilarity(hash, COIN_WIN_HASH);
+  const lossScore = hashSimilarity(hash, COIN_LOSE_HASH);
+  const confidence = Math.max(winScore, lossScore);
 
-  const winScore = computeColorScore(pixels, RESULT_WIN_COLOR);
-  const lossScore = computeColorScore(pixels, RESULT_LOSS_COLOR);
+  if (winScore >= COIN_MATCH_THRESHOLD && winScore - lossScore >= HASH_MARGIN) {
+    return { result: 'won', confidence, winScore, lossScore };
+  }
+  if (lossScore >= COIN_MATCH_THRESHOLD && lossScore - winScore >= HASH_MARGIN) {
+    return { result: 'lost', confidence, winScore, lossScore };
+  }
+  return { result: null, confidence, winScore, lossScore };
+}
 
-  if (winScore > lossScore && winScore > 0.03) {
-    return { result: 'win', confidence: winScore };
+function detectResult(imageData: ImageData): {
+  result: DetectionResult;
+  confidence: number;
+  winScore: number;
+  lossScore: number;
+} {
+  const hash = computeDHash(imageData, RESULT_ROI, RESULT_HASH_WIDTH, RESULT_HASH_HEIGHT);
+  const winScore = hashSimilarity(hash, RESULT_WIN_HASH);
+  const lossScore = hashSimilarity(hash, RESULT_LOSE_HASH);
+  const confidence = Math.max(winScore, lossScore);
+
+  if (winScore >= RESULT_MATCH_THRESHOLD && winScore - lossScore >= HASH_MARGIN) {
+    return { result: 'win', confidence, winScore, lossScore };
   }
-  if (lossScore > winScore && lossScore > 0.03) {
-    return { result: 'loss', confidence: lossScore };
+  if (lossScore >= RESULT_MATCH_THRESHOLD && lossScore - winScore >= HASH_MARGIN) {
+    return { result: 'loss', confidence, winScore, lossScore };
   }
-  return { result: null, confidence: 0 };
+  return { result: null, confidence, winScore, lossScore };
 }
 
 function analyzeFrame(imageData: ImageData): AnalysisFrame {
@@ -110,8 +140,12 @@ function analyzeFrame(imageData: ImageData): AnalysisFrame {
   return {
     coin: coin.result,
     coinConfidence: coin.confidence,
+    coinWinScore: coin.winScore,
+    coinLossScore: coin.lossScore,
     result: result.result,
     resultConfidence: result.confidence,
+    resultWinScore: result.winScore,
+    resultLossScore: result.lossScore,
     timestamp: Date.now(),
   };
 }
