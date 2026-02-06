@@ -55,7 +55,7 @@ function loadObsSettings(): ObsSettings {
     statsPeriod: 'session',
     theme: 'dark',
     layout: 'grid',
-    refreshInterval: 30,
+    refreshInterval: 10,
     items: [...DEFAULT_ITEMS],
     milestoneGoal: 10,
     recentResultsCount: 10,
