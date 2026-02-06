@@ -356,6 +356,11 @@
     },
     "coinDetected": "코인 감지",
     "resultDetected": "결과 감지",
+    "coinScore": "코인",
+    "resultScore": "결과",
+    "winShort": "승",
+    "lossShort": "패",
+    "deltaShort": "차",
     "waiting": "대기 중..."
   }
 }

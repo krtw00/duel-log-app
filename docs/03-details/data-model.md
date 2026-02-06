@@ -31,7 +31,6 @@ erDiagram
         boolean is_debugger
         string theme_preference
         boolean streamer_mode
-        boolean enable_screen_analysis
         string status
         string status_reason
         timestamp last_login_at
@@ -92,7 +91,6 @@ erDiagram
 | is_debugger | BOOLEAN | デバッガーフラグ |
 | theme_preference | TEXT | テーマ設定（light/dark/system） |
 | streamer_mode | BOOLEAN | 配信者モード |
-| enable_screen_analysis | BOOLEAN | 画面解析機能ON/OFF |
 | status | TEXT | ステータス（active/banned/suspended） |
 | status_reason | TEXT | ステータス変更理由（NULL可） |
 | last_login_at | TIMESTAMPTZ | 最終ログイン日時（NULL可） |

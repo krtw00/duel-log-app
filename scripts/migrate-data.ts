@@ -47,12 +47,12 @@ async function migrate() {
     // Step 1: Migrate users
     console.log('Migrating users...');
     const { rows: users } = await legacyClient.query(
-      'SELECT id, email, display_name, is_admin, is_debugger, theme_preference, streamer_mode, enable_screen_analysis, created_at, updated_at FROM users',
+      'SELECT id, email, display_name, is_admin, is_debugger, theme_preference, streamer_mode, created_at, updated_at FROM users',
     );
     for (const user of users) {
       await newClient.query(
-        `INSERT INTO users (id, email, display_name, is_admin, is_debugger, theme_preference, streamer_mode, enable_screen_analysis, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `INSERT INTO users (id, email, display_name, is_admin, is_debugger, theme_preference, streamer_mode, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          ON CONFLICT (id) DO NOTHING`,
         [
           user.id,
@@ -62,7 +62,6 @@ async function migrate() {
           user.is_debugger,
           user.theme_preference ?? 'system',
           user.streamer_mode ?? false,
-          user.enable_screen_analysis ?? false,
           user.created_at,
           user.updated_at,
         ],
