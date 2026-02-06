@@ -14,7 +14,7 @@ services:
   web:
     build: .
     container_name: duel-log-web
-    command: pnpm --filter @duel-log/web dev --host 0.0.0.0
+    command: sh -c "pnpm -F @duel-log/shared build && pnpm --filter @duel-log/web dev --host 0.0.0.0"
     working_dir: /app
     volumes:
       - .:/app:cached
@@ -33,19 +33,19 @@ services:
       api:
         condition: service_started
     networks:
-      - traefik
+      - web
       - supabase
       - default
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.duel-log.rule=Host(`duel-log.localhost`)"
       - "traefik.http.services.duel-log.loadbalancer.server.port=5173"
-      - "traefik.docker.network=traefik"
+      - "traefik.docker.network=web"
 
   api:
     build: .
     container_name: duel-log-api
-    command: pnpm --filter @duel-log/api dev --host 0.0.0.0
+    command: sh -c "pnpm -F @duel-log/shared build && pnpm --filter @duel-log/api dev --host 0.0.0.0"
     working_dir: /app
     volumes:
       - .:/app:cached
@@ -73,7 +73,7 @@ volumes:
   duel_log_shared_node_modules:
 
 networks:
-  traefik:
+  web:
     external: true
   supabase:
     external: true
