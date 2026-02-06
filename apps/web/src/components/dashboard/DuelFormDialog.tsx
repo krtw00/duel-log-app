@@ -133,6 +133,7 @@ export function DuelFormDialog({
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
     } else {
+      const defaultDeck = myDecks[0];
       reset({
         result: 'win',
         gameMode: defaultGameMode ?? 'RANK',
@@ -140,10 +141,12 @@ export function DuelFormDialog({
         wonCoinToss: defaultIsFirst,
         rank: defaultRank,
         dueledAt: new Date().toISOString(),
-        deckId: '00000000-0000-0000-0000-000000000000',
+        deckId: defaultDeck?.id ?? '00000000-0000-0000-0000-000000000000',
         opponentDeckId: '00000000-0000-0000-0000-000000000000',
       });
-      setDeckSelection({ id: '', name: '' });
+      setDeckSelection(
+        defaultDeck ? { id: defaultDeck.id, name: defaultDeck.name } : { id: '', name: '' },
+      );
       setOpponentDeckSelection({ id: '', name: '' });
     }
   }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks]);
