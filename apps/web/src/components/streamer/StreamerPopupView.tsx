@@ -2,7 +2,6 @@ import type { OverviewStats } from '@duel-log/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
-import type { StreamerMessage } from '../../lib/broadcast.js';
 import { onStreamerUpdate } from '../../lib/broadcast.js';
 import { StatsDisplayCards } from '../dashboard/StatsDisplayCards.js';
 
@@ -131,27 +130,13 @@ export function StreamerPopupView() {
     return () => clearInterval(intervalId);
   }, [fetchStats]);
 
-  // BroadcastChannel: override polling data when received
-  const handleMessage = useCallback((message: StreamerMessage) => {
-    if (message.type === 'stats-update') {
-      const p = message.payload;
-      setStats({
-        totalDuels: p.totalDuels,
-        wins: p.wins,
-        losses: p.losses,
-        winRate: p.winRate,
-        firstRate: p.firstRate,
-        firstWinRate: p.firstWinRate,
-        secondWinRate: p.secondWinRate,
-        coinTossWinRate: p.coinTossWinRate,
-      });
-    }
-  }, []);
-
+  // BroadcastChannel: refetch when notified of new data
   useEffect(() => {
-    const unsubscribe = onStreamerUpdate(handleMessage);
+    const unsubscribe = onStreamerUpdate(() => {
+      fetchStats();
+    });
     return unsubscribe;
-  }, [handleMessage]);
+  }, [fetchStats]);
 
   if (!stats) {
     return (
