@@ -30,8 +30,12 @@ export type FSMContext = {
 export type AnalysisFrame = {
   coin: CoinResult;
   coinConfidence: number;
+  coinWinScore: number;
+  coinLossScore: number;
   result: DetectionResult;
   resultConfidence: number;
+  resultWinScore: number;
+  resultLossScore: number;
   timestamp: number;
 };
 
@@ -41,6 +45,7 @@ export type ScreenAnalysisStatus = {
   detectionResult: DetectionResult;
   isCapturing: boolean;
   autoRegister: boolean;
+  lastFrame: AnalysisFrame | null;
 };
 
 export type ROI = {
@@ -48,13 +53,6 @@ export type ROI = {
   top: number;
   width: number;
   height: number;
-};
-
-export type ColorTarget = {
-  r: number;
-  g: number;
-  b: number;
-  tolerance: number;
 };
 
 export type WorkerMessage = { type: 'analyze'; imageData: ImageData } | { type: 'stop' };

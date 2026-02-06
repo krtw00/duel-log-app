@@ -356,6 +356,11 @@
     },
     "coinDetected": "Coin Detected",
     "resultDetected": "Result Detected",
+    "coinScore": "Coin",
+    "resultScore": "Result",
+    "winShort": "W",
+    "lossShort": "L",
+    "deltaShort": "Δ",
     "waiting": "Waiting..."
   }
 }
