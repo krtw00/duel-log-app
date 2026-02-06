@@ -7,6 +7,7 @@ import { errorMiddleware } from './middleware/error.js';
 import { maintenanceMiddleware } from './middleware/maintenance.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
+import { debugRoutes } from './routes/debug.js';
 import { deckRoutes } from './routes/decks.js';
 import { duelRoutes } from './routes/duels.js';
 import { feedbackRoutes } from './routes/feedback.js';
@@ -35,6 +36,7 @@ app.route('/obs', obsRoutes);
 
 // 認証必要ルート
 app.use('/auth/*', authMiddleware);
+app.use('/debug/*', authMiddleware);
 app.use('/me/*', authMiddleware);
 app.use('/me', authMiddleware);
 app.use('/decks/*', authMiddleware);
@@ -45,6 +47,7 @@ app.use('/statistics/*', authMiddleware);
 app.use('/feedback', authMiddleware);
 
 app.route('/auth', authRoutes);
+app.route('/debug', debugRoutes);
 app.route('/me', meRoutes);
 app.route('/decks', deckRoutes);
 app.route('/duels', duelRoutes);
