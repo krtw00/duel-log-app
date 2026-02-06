@@ -1,9 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { StreamerMessage } from '../broadcast.js';
-
-vi.mock('../api.js', () => ({
-  api: vi.fn(),
-}));
 
 describe('broadcast', () => {
   let mockChannel: {
@@ -33,24 +28,9 @@ describe('broadcast', () => {
 
   it('sendStreamerUpdate posts message to channel', async () => {
     const { sendStreamerUpdate } = await import('../broadcast.js');
-    const message: StreamerMessage = {
-      type: 'stats-update',
-      payload: {
-        totalDuels: 15,
-        wins: 10,
-        losses: 5,
-        winRate: 0.667,
-        firstRate: 0.6,
-        firstWinRate: 0.7,
-        secondWinRate: 0.5,
-        coinTossWinRate: 0.55,
-        deckName: 'Sky Striker',
-        gameMode: 'RANK',
-      },
-    };
 
-    sendStreamerUpdate(message);
-    expect(mockChannel.postMessage).toHaveBeenCalledWith(message);
+    sendStreamerUpdate({ type: 'refresh' });
+    expect(mockChannel.postMessage).toHaveBeenCalledWith({ type: 'refresh' });
   });
 
   it('onStreamerUpdate registers message listener and returns unsubscribe', async () => {
@@ -71,25 +51,17 @@ describe('broadcast', () => {
     onStreamerUpdate(callback);
 
     const handler = mockChannel.addEventListener.mock.calls[0]?.[1] as (
-      event: MessageEvent<StreamerMessage>,
+      event: MessageEvent,
     ) => void;
-    const message: StreamerMessage = {
-      type: 'stats-update',
-      payload: {
-        totalDuels: 8,
-        wins: 5,
-        losses: 3,
-        winRate: 0.625,
-        firstRate: 0.5,
-        firstWinRate: 0.6,
-        secondWinRate: 0.5,
-        coinTossWinRate: 0.5,
-        deckName: null,
-        gameMode: null,
-      },
-    };
 
-    handler({ data: message } as MessageEvent<StreamerMessage>);
-    expect(callback).toHaveBeenCalledWith(message);
+    handler({ data: { type: 'refresh' } } as MessageEvent);
+    expect(callback).toHaveBeenCalledWith({ type: 'refresh' });
+  });
+
+  it('broadcastStreamerStats sends refresh signal', async () => {
+    const { broadcastStreamerStats } = await import('../broadcast.js');
+
+    broadcastStreamerStats();
+    expect(mockChannel.postMessage).toHaveBeenCalledWith({ type: 'refresh' });
   });
 });
