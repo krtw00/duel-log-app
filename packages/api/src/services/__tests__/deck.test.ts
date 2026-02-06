@@ -26,7 +26,7 @@ describe('deck service', () => {
       const result = await listDecks('user-1');
 
       expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Blue-Eyes');
+      expect(result[0]!.name).toBe('Blue-Eyes');
     });
 
     it('returns empty array when no decks exist', async () => {
@@ -66,10 +66,10 @@ describe('deck service', () => {
       ];
       const { createDeck } = await loadDeckService();
 
-      const result = await createDeck('user-1', { name: 'New Deck' });
+      const result = await createDeck('user-1', { name: 'New Deck', isOpponentDeck: false });
 
-      expect(result.name).toBe('New Deck');
-      expect(result.isGeneric).toBe(false);
+      expect(result!.name).toBe('New Deck');
+      expect(result!.isGeneric).toBe(false);
     });
 
     it('creates an opponent deck', async () => {
@@ -80,7 +80,7 @@ describe('deck service', () => {
 
       const result = await createDeck('user-1', { name: 'Enemy Deck', isOpponentDeck: true });
 
-      expect(result.isOpponentDeck).toBe(true);
+      expect(result!.isOpponentDeck).toBe(true);
     });
 
     it('auto-detects generic deck patterns', async () => {
@@ -90,9 +90,9 @@ describe('deck service', () => {
       ];
       const { createDeck } = await loadDeckService();
 
-      const result = await createDeck('user-1', { name: '不明デッキ' });
+      const result = await createDeck('user-1', { name: '不明デッキ', isOpponentDeck: false });
 
-      expect(result.isGeneric).toBe(true);
+      expect(result!.isGeneric).toBe(true);
     });
   });
 

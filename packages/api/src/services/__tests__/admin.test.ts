@@ -25,7 +25,7 @@ describe('admin service', () => {
       const result = await listUsers();
 
       expect(result).toHaveLength(2);
-      expect(result[0].email).toBe('user1@example.com');
+      expect(result[0]!.email).toBe('user1@example.com');
     });
 
     it('returns empty array when no users', async () => {
