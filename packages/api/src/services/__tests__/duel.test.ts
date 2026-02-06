@@ -88,9 +88,9 @@ describe('duel service', () => {
         dueledAt: '2024-01-01T00:00:00Z',
       });
 
-      expect(result.result).toBe('win');
-      expect(result.gameMode).toBe('RANK');
-      expect(result.rank).toBe(10);
+      expect(result!.result).toBe('win');
+      expect(result!.gameMode).toBe('RANK');
+      expect(result!.rank).toBe(10);
     });
 
     it('creates duel with optional fields as null', async () => {
@@ -116,8 +116,8 @@ describe('duel service', () => {
         dueledAt: '2024-01-01T00:00:00Z',
       });
 
-      expect(result.rank).toBeNull();
-      expect(result.memo).toBeNull();
+      expect(result!.rank).toBeNull();
+      expect(result!.memo).toBeNull();
     });
   });
 
@@ -162,8 +162,8 @@ describe('duel service', () => {
       const result = await exportDuels('user-1', {});
 
       expect(result).toHaveLength(2);
-      expect(result[0].deckName).toBe('Blue-Eyes');
-      expect(result[0].opponentDeckName).toBe('Dark Magician');
+      expect(result[0]!.deckName).toBe('Blue-Eyes');
+      expect(result[0]!.opponentDeckName).toBe('Dark Magician');
     });
 
     it('returns empty array when no duels', async () => {
