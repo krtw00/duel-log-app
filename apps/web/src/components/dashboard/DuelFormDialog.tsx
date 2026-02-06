@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
 import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
+import { getDueledAtForSubmit } from '../../utils/duel.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
@@ -174,9 +175,10 @@ export function DuelFormDialog({
         setOpponentDeckSelection({ id: finalOpponentDeckId, name: opponentDeckSelection.name });
       }
 
-      onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId });
+      const dueledAt = getDueledAtForSubmit(editingDuel, data.dueledAt);
+      onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId, dueledAt });
     },
-    [deckSelection, opponentDeckSelection, createDeck, onSubmit, t],
+    [deckSelection, opponentDeckSelection, createDeck, onSubmit, t, editingDuel],
   );
 
   const handleAutoRegister = useCallback(
