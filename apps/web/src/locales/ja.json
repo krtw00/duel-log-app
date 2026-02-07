@@ -200,6 +200,7 @@
     "totalDuels": "総対戦数",
     "currentDeck": "使用デッキ",
     "invalidToken": "無効なトークンです",
+    "fetchError": "データの取得に失敗しました",
     "tokenExpired": "このリンクは期限切れです",
     "layoutGrid": "グリッド",
     "layoutHorizontal": "横並び",
