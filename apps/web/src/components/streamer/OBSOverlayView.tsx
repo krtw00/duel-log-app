@@ -109,10 +109,10 @@ export function OBSOverlayView() {
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         const errCode = (body as { error?: { code?: string } }).error?.code;
-        if (errCode === 'INVALID_TOKEN') {
+        if (errCode === 'INVALID_TOKEN' || errCode === 'UNAUTHORIZED') {
           setError(t('streamer.invalidToken'));
         } else if (!dataRef.current) {
-          setError(t('streamer.invalidToken'));
+          setError(t('streamer.fetchError'));
         }
         return;
       }
@@ -122,7 +122,7 @@ export function OBSOverlayView() {
       setError(null);
     } catch {
       if (!dataRef.current) {
-        setError(t('streamer.invalidToken'));
+        setError(t('streamer.fetchError'));
       }
     }
   }, [settings, t]);
