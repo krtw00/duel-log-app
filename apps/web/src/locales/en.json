@@ -200,6 +200,7 @@
     "totalDuels": "Total Duels",
     "currentDeck": "Current Deck",
     "invalidToken": "Invalid token",
+    "fetchError": "Failed to fetch data",
     "tokenExpired": "This link has expired",
     "layoutGrid": "Grid",
     "layoutHorizontal": "Horizontal",
