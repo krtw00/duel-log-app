@@ -200,6 +200,7 @@
     "totalDuels": "총 대전 수",
     "currentDeck": "사용 덱",
     "invalidToken": "유효하지 않은 토큰",
+    "fetchError": "데이터를 가져오지 못했습니다",
     "tokenExpired": "이 링크는 만료되었습니다",
     "layoutGrid": "그리드",
     "layoutHorizontal": "가로",
