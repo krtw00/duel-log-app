@@ -164,6 +164,8 @@ export async function getStreaks(userId: string, filter: StatisticsFilter): Prom
   const where = buildConditions(userId, filter);
 
   // SQLのWindow関数で連勝/連敗を計算（全データ取得を回避）
+  // NOTE: PostgreSQLではウィンドウ関数のネストが禁止されているため、
+  // LAGとSUMを別CTEに分離する必要がある
   const [result] = await sql<
     {
       currentStreak: number;
@@ -179,16 +181,22 @@ export async function getStreaks(userId: string, filter: StatisticsFilter): Prom
       FROM duels d
       WHERE ${where}
     ),
+    duels_with_lag AS (
+      SELECT
+        result,
+        rn,
+        LAG(result) OVER (ORDER BY rn) as prev_result
+      FROM ordered_duels
+    ),
     streak_groups AS (
       SELECT
         result,
         rn,
         SUM(CASE
-          WHEN result != LAG(result) OVER (ORDER BY rn)
-            OR LAG(result) OVER (ORDER BY rn) IS NULL
+          WHEN result != prev_result OR prev_result IS NULL
           THEN 1 ELSE 0
         END) OVER (ORDER BY rn) as grp
-      FROM ordered_duels
+      FROM duels_with_lag
     ),
     streak_counts AS (
       SELECT
