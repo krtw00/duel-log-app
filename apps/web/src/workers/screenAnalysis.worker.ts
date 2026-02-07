@@ -1,19 +1,12 @@
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  COIN_ROI,
   COIN_MATCH_THRESHOLD,
+  COIN_ROI,
   HASH_MARGIN,
-  RESULT_ROI,
   RESULT_MATCH_THRESHOLD,
+  RESULT_ROI,
 } from '../utils/screenAnalysis/config.js';
-import type {
-  AnalysisFrame,
-  CoinResult,
-  DetectionResult,
-  ROI,
-  WorkerMessage,
-} from '../utils/screenAnalysis/types.js';
 import {
   COIN_HASH_HEIGHT,
   COIN_HASH_WIDTH,
@@ -24,6 +17,13 @@ import {
   RESULT_LOSE_HASH,
   RESULT_WIN_HASH,
 } from '../utils/screenAnalysis/templates.js';
+import type {
+  AnalysisFrame,
+  CoinResult,
+  DetectionResult,
+  ROI,
+  WorkerMessage,
+} from '../utils/screenAnalysis/types.js';
 
 function luminanceAt(data: Uint8ClampedArray, width: number, x: number, y: number): number {
   const idx = (y * width + x) * 4;
@@ -55,7 +55,12 @@ function computeDHash(
   let idx = 0;
   for (let y = 0; y < hashHeight; y += 1) {
     const sampleY = clamp(Math.floor(y0 + (y + 0.5) * stepY), 0, height - 1);
-    let prevLum = luminanceAt(data, width, clamp(Math.floor(x0 + 0.5 * stepX), 0, width - 1), sampleY);
+    let prevLum = luminanceAt(
+      data,
+      width,
+      clamp(Math.floor(x0 + 0.5 * stepX), 0, width - 1),
+      sampleY,
+    );
     for (let x = 0; x < hashWidth; x += 1) {
       const sampleX = clamp(Math.floor(x0 + (x + 1.5) * stepX), 0, width - 1);
       const nextLum = luminanceAt(data, width, sampleX, sampleY);
