@@ -3,8 +3,8 @@ import {
   type Deck,
   type Duel,
   type GameMode,
-  type User,
   RESULTS,
+  type User,
   createDuelSchema,
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -64,6 +64,7 @@ export function DuelFormDialog({
       const usageB = opponentDeckUsage?.get(b.id) ?? 0;
       return usageB - usageA;
     });
+  const defaultDeck = myDecks[0];
   const createDeck = useCreateDeck();
 
   // Deck combobox state: track both ID (for existing) and name (for new)
@@ -133,7 +134,6 @@ export function DuelFormDialog({
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
     } else {
-      const defaultDeck = myDecks[0];
       reset({
         result: 'win',
         gameMode: defaultGameMode ?? 'RANK',
@@ -149,7 +149,7 @@ export function DuelFormDialog({
       );
       setOpponentDeckSelection({ id: '', name: '' });
     }
-  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks]);
+  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks, defaultDeck]);
 
   const isSupportedGameMode = gameMode !== 'RATE' && gameMode !== 'DC';
   const screenAnalysisEnabled =
