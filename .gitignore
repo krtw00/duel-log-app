@@ -50,3 +50,5 @@ packages/api/debug-logs/
 
 # Vercel API build output
 api/*.js
+
+CLAUDE.md
