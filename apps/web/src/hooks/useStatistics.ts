@@ -7,6 +7,7 @@ import type {
   ValueSequenceEntry,
 } from '@duel-log/shared';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { api } from '../lib/api.js';
 
 function filterParams(filter?: StatisticsFilter): Record<string, string | undefined> {
@@ -61,4 +62,43 @@ export function useValueSequence(filter?: StatisticsFilter & { gameMode: 'RANK' 
       }),
     enabled: !!filter?.gameMode,
   });
+}
+
+type ModeCountsResponse = { data: Record<string, number> };
+
+export function useModeCounts(filter: { from: string; to: string }) {
+  return useQuery({
+    queryKey: ['statistics', 'mode-counts', filter],
+    queryFn: () =>
+      api<ModeCountsResponse>('/statistics/mode-counts', {
+        params: { from: filter.from, to: filter.to },
+      }),
+  });
+}
+
+type DeckUsageRow = { deckId: string; count: number };
+type DeckUsageResponse = {
+  data: { deckUsage: DeckUsageRow[]; opponentDeckUsage: DeckUsageRow[] };
+};
+
+export function useDeckUsage(filter: { from: string; to: string }) {
+  const query = useQuery({
+    queryKey: ['statistics', 'deck-usage', filter],
+    queryFn: () =>
+      api<DeckUsageResponse>('/statistics/deck-usage', {
+        params: { from: filter.from, to: filter.to },
+      }),
+  });
+
+  const { deckUsage, opponentDeckUsage } = useMemo(() => {
+    const raw = query.data?.data;
+    if (!raw)
+      return { deckUsage: new Map<string, number>(), opponentDeckUsage: new Map<string, number>() };
+    return {
+      deckUsage: new Map(raw.deckUsage.map((r) => [r.deckId, r.count])),
+      opponentDeckUsage: new Map(raw.opponentDeckUsage.map((r) => [r.deckId, r.count])),
+    };
+  }, [query.data]);
+
+  return { ...query, deckUsage, opponentDeckUsage };
 }

@@ -1,4 +1,5 @@
 import type { GameMode, ValueSequenceEntry } from '@duel-log/shared';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   CartesianGrid,
@@ -29,7 +30,25 @@ export function ValueSequenceChart({ data, gameMode, loading }: Props) {
     );
   }
 
-  const validData = data.filter((d) => d.value !== null);
+  const { validData, chartData, yDomain } = useMemo(() => {
+    const valid = data.filter((d) => d.value !== null);
+    const chart = valid.map((d, i) => ({
+      index: i + 1,
+      date: new Date(d.dueledAt).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' }),
+      value: d.value,
+    }));
+
+    let domain: [number, number] | undefined;
+    if (gameMode === 'RATE' && chart.length > 0) {
+      const values = chart.map((d) => d.value as number);
+      const min = Math.min(...values, 1500);
+      const max = Math.max(...values, 1500);
+      const padding = Math.max((max - min) * 0.2, 5);
+      domain = [Math.floor(min - padding), Math.ceil(max + padding)];
+    }
+
+    return { validData: valid, chartData: chart, yDomain: domain };
+  }, [data, gameMode]);
 
   if (validData.length === 0) {
     return (
@@ -39,23 +58,7 @@ export function ValueSequenceChart({ data, gameMode, loading }: Props) {
     );
   }
 
-  const chartData = validData.map((d, i) => ({
-    index: i + 1,
-    date: new Date(d.dueledAt).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' }),
-    value: d.value,
-  }));
-
   const modeLabel = t(`gameMode.${gameMode}`);
-
-  // RATE: データのmin/maxから適切なY軸範囲を算出（1500基準線含む）
-  let yDomain: [number, number] | undefined;
-  if (gameMode === 'RATE') {
-    const values = chartData.map((d) => d.value as number);
-    const min = Math.min(...values, 1500);
-    const max = Math.max(...values, 1500);
-    const padding = Math.max((max - min) * 0.2, 5);
-    yDomain = [Math.floor(min - padding), Math.ceil(max + padding)];
-  }
 
   return (
     <ResponsiveContainer width="100%" height={280}>

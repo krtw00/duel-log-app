@@ -265,7 +265,7 @@ interface DuelHistoryResult {
   dueledAt: Date;
 }
 
-export async function getDuelHistory(userId: string, filter: StatisticsFilter) {
+export async function getDuelHistory(userId: string, filter: StatisticsFilter, limit = 1000) {
   const where = buildConditions(userId, filter);
 
   return sql<DuelHistoryResult[]>`
@@ -290,7 +290,62 @@ export async function getDuelHistory(userId: string, filter: StatisticsFilter) {
     INNER JOIN decks od ON od.id = d.opponent_deck_id
     WHERE ${where}
     ORDER BY d.dueled_at DESC
+    LIMIT ${limit}
   `;
+}
+
+interface ModeCountResult {
+  gameMode: string;
+  count: number;
+}
+
+export async function getModeCounts(userId: string, filter: { from?: string; to?: string }) {
+  const conditions: SqlFragment[] = [sql`user_id = ${userId}`];
+  if (filter.from) conditions.push(sql`dueled_at >= ${new Date(filter.from)}`);
+  if (filter.to) conditions.push(sql`dueled_at <= ${new Date(filter.to)}`);
+  const where = andWhere(conditions);
+
+  const rows = await sql<ModeCountResult[]>`
+    SELECT game_mode, count(*)::int AS count
+    FROM duels
+    WHERE ${where}
+    GROUP BY game_mode
+  `;
+
+  const result: Record<string, number> = {};
+  for (const row of rows) {
+    result[row.gameMode] = row.count;
+  }
+  return result;
+}
+
+interface DeckUsageResult {
+  deckId: string;
+  count: number;
+}
+
+export async function getDeckUsage(userId: string, filter: { from?: string; to?: string }) {
+  const conditions: SqlFragment[] = [sql`user_id = ${userId}`];
+  if (filter.from) conditions.push(sql`dueled_at >= ${new Date(filter.from)}`);
+  if (filter.to) conditions.push(sql`dueled_at <= ${new Date(filter.to)}`);
+  const where = andWhere(conditions);
+
+  const [deckRows, oppRows] = await Promise.all([
+    sql<DeckUsageResult[]>`
+      SELECT deck_id, count(*)::int AS count
+      FROM duels
+      WHERE ${where}
+      GROUP BY deck_id
+    `,
+    sql<DeckUsageResult[]>`
+      SELECT opponent_deck_id AS deck_id, count(*)::int AS count
+      FROM duels
+      WHERE ${where}
+      GROUP BY opponent_deck_id
+    `,
+  ]);
+
+  return { deckUsage: Array.from(deckRows), opponentDeckUsage: Array.from(oppRows) };
 }
 
 export async function getUserDisplayName(userId: string): Promise<string> {
