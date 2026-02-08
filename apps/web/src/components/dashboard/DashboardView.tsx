@@ -3,7 +3,12 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useCreateDuel, useDeleteDuel, useDuels, useUpdateDuel } from '../../hooks/useDuels.js';
-import { useOverviewStats, useStreaks } from '../../hooks/useStatistics.js';
+import {
+  useDeckUsage,
+  useModeCounts,
+  useOverviewStats,
+  useStreaks,
+} from '../../hooks/useStatistics.js';
 import { demoteRank } from '../../utils/ranks.js';
 import { CsvExportButton } from '../csv/CsvExportButton.js';
 import { CsvImportDialog } from '../csv/CsvImportDialog.js';
@@ -42,13 +47,11 @@ export function DashboardView() {
 
   const rangeFilter = periodType === 'range' ? { rangeStart, rangeEnd } : {};
   const filter = { gameMode, from, to, deckId, ...rangeFilter, limit: 100, offset: 0 };
-  const allFilter = { from, to, limit: 500, offset: 0 };
-  const usageFilter = { from: usageFrom, to, limit: 1000, offset: 0 };
   const statsFilter = { gameMode, from, to, deckId, ...rangeFilter };
 
   const { data: duelsData, isLoading: duelsLoading } = useDuels(filter);
-  const { data: allDuelsData } = useDuels(allFilter);
-  const { data: usageDuelsData } = useDuels(usageFilter);
+  const { data: modeCountsData } = useModeCounts({ from, to });
+  const { deckUsage, opponentDeckUsage } = useDeckUsage({ from: usageFrom, to });
   const { data: decksData, isLoading: decksLoading } = useDecks();
   const { data: overviewData, isLoading: statsLoading } = useOverviewStats(statsFilter);
   const { data: streaksData } = useStreaks(statsFilter);
@@ -58,24 +61,8 @@ export function DashboardView() {
   const deleteDuel = useDeleteDuel();
 
   const duels = duelsData?.data ?? [];
-  const allDuels = allDuelsData?.data ?? [];
-  const usageDuels = usageDuelsData?.data ?? [];
   const decks = decksData?.data ?? [];
-
-  // Deck usage counts (last month + current month)
-  const { deckUsage, opponentDeckUsage } = useMemo(() => {
-    const deckCounts = new Map<string, number>();
-    const oppCounts = new Map<string, number>();
-    for (const duel of usageDuels) {
-      if (duel.deckId) {
-        deckCounts.set(duel.deckId, (deckCounts.get(duel.deckId) ?? 0) + 1);
-      }
-      if (duel.opponentDeckId) {
-        oppCounts.set(duel.opponentDeckId, (oppCounts.get(duel.opponentDeckId) ?? 0) + 1);
-      }
-    }
-    return { deckUsage: deckCounts, opponentDeckUsage: oppCounts };
-  }, [usageDuels]);
+  const modeCounts = modeCountsData?.data ?? {};
 
   // Latest rank: use this month's data, or demote last saved rank for month start
   const DEFAULT_RANK = 18; // Platinum 5
@@ -93,12 +80,6 @@ export function DashboardView() {
     }
     return DEFAULT_RANK;
   }, [duels]);
-
-  // Mode counts from all duels in this month (not filtered by game mode)
-  const modeCounts = allDuels.reduce<Record<string, number>>((acc, d) => {
-    acc[d.gameMode] = (acc[d.gameMode] ?? 0) + 1;
-    return acc;
-  }, {});
 
   const handleDelete = (id: string) => {
     deleteDuel.mutate(id);
