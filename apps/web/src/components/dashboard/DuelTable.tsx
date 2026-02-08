@@ -1,6 +1,6 @@
 import type { CreateDuel, Deck, Duel, GameMode } from '@duel-log/shared';
 import type { TFunction } from 'i18next';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRankLabel } from '../../utils/ranks.js';
 import { DuelFormDialog } from './DuelFormDialog.js';
@@ -22,8 +22,8 @@ type Props = {
   duelNoOffset?: number;
 };
 
-function getDeckName(decks: Deck[], deckId: string): string {
-  return decks.find((d) => d.id === deckId)?.name ?? '-';
+function getDeckName(deckNameMap: Map<string, string>, deckId: string): string {
+  return deckNameMap.get(deckId) ?? '-';
 }
 
 function formatDate(dateStr: string): string {
@@ -47,7 +47,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10;
 
 function MobileCardView({
   duels,
-  decks,
+  deckNameMap,
   onStartEdit,
   onDelete,
   readOnly,
@@ -55,7 +55,7 @@ function MobileCardView({
   editForm,
 }: {
   duels: Duel[];
-  decks: Deck[];
+  deckNameMap: Map<string, string>;
   onStartEdit?: (duel: Duel) => void;
   onDelete?: (id: string) => void;
   readOnly?: boolean;
@@ -85,13 +85,13 @@ function MobileCardView({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1 min-w-0 flex-1">
                     <span className="chip chip-outlined-primary text-sm truncate">
-                      {getDeckName(decks, duel.deckId)}
+                      {getDeckName(deckNameMap, duel.deckId)}
                     </span>
                     <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
                       vs
                     </span>
                     <span className="chip chip-outlined-warning text-sm truncate">
-                      {getDeckName(decks, duel.opponentDeckId)}
+                      {getDeckName(deckNameMap, duel.opponentDeckId)}
                     </span>
                   </div>
                   <span
@@ -231,6 +231,8 @@ export function DuelTable({
   const [currentPage, setCurrentPage] = useState(0);
   const [editingDuel, setEditingDuel] = useState<Duel | null>(null);
 
+  const deckNameMap = useMemo(() => new Map(decks.map((d) => [d.id, d.name])), [decks]);
+
   if (loading) {
     return (
       <div className="animate-pulse p-4 space-y-3">
@@ -294,7 +296,7 @@ export function DuelTable({
       {/* Mobile Card View */}
       <MobileCardView
         duels={paginatedDuels}
-        decks={decks}
+        deckNameMap={deckNameMap}
         onStartEdit={!readOnly ? handleStartEdit : undefined}
         onDelete={onDelete}
         readOnly={readOnly}
@@ -339,12 +341,12 @@ export function DuelTable({
                   </td>
                   <td>
                     <span className="chip chip-outlined-primary">
-                      {getDeckName(decks, duel.deckId)}
+                      {getDeckName(deckNameMap, duel.deckId)}
                     </span>
                   </td>
                   <td>
                     <span className="chip chip-outlined-warning">
-                      {getDeckName(decks, duel.opponentDeckId)}
+                      {getDeckName(deckNameMap, duel.opponentDeckId)}
                     </span>
                   </td>
                   <td>
