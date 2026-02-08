@@ -42,6 +42,18 @@ export const statisticsRoutes = new Hono<Env>()
     const data = await statsService.getValueSequence(id, filter);
     return c.json({ data });
   })
+  .get('/mode-counts', async (c) => {
+    const { id } = c.get('user');
+    const query = c.req.query();
+    const data = await statsService.getModeCounts(id, { from: query.from, to: query.to });
+    return c.json({ data });
+  })
+  .get('/deck-usage', async (c) => {
+    const { id } = c.get('user');
+    const query = c.req.query();
+    const data = await statsService.getDeckUsage(id, { from: query.from, to: query.to });
+    return c.json({ data });
+  })
   .get('/available-decks', async (c) => {
     const { id } = c.get('user');
     const data = await deckService.getAvailableDecks(id);
