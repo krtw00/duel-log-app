@@ -202,7 +202,7 @@ export function DuelFormDialog({
         setValue('opponentDeckId', '00000000-0000-0000-0000-000000000000');
       }
     },
-    [deckSelection, opponentDeckSelection, createDeck, onSubmit, t, editingDuel],
+    [deckSelection, opponentDeckSelection, createDeck, onSubmit, t, editingDuel, setValue],
   );
 
   const handleAutoRegister = useCallback(
