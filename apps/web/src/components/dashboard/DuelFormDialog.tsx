@@ -150,9 +150,7 @@ export function DuelFormDialog({
         deckId: deck?.id ?? '00000000-0000-0000-0000-000000000000',
         opponentDeckId: '00000000-0000-0000-0000-000000000000',
       });
-      setDeckSelection(
-        deck ? { id: deck.id, name: deck.name } : { id: '', name: '' },
-      );
+      setDeckSelection(deck ? { id: deck.id, name: deck.name } : { id: '', name: '' });
       setOpponentDeckSelection({ id: '', name: '' });
     }
     // decks/defaultDeck are accessed via refs to avoid resetting user's
