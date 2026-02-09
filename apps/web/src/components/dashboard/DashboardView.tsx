@@ -217,6 +217,7 @@ export function DashboardView() {
         inline={true}
         deckUsage={deckUsage}
         opponentDeckUsage={opponentDeckUsage}
+        lastUsedDeckId={duels[0]?.deckId}
       />
 
       {/* Duel History */}
