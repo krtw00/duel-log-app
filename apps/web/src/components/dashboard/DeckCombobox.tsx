@@ -19,9 +19,14 @@ export function DeckCombobox({ decks, value, onChange, placeholder, id, error }:
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const isUserInputRef = useRef(false);
 
   // Sync input text when value (deckId) changes externally
   useEffect(() => {
+    if (isUserInputRef.current) {
+      isUserInputRef.current = false;
+      return;
+    }
     if (value) {
       const deck = decks.find((d) => d.id === value);
       if (deck) {
@@ -50,6 +55,7 @@ export function DeckCombobox({ decks, value, onChange, placeholder, id, error }:
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
+    isUserInputRef.current = true;
     setInputText(text);
     setIsOpen(true);
     setHighlightIndex(-1);
@@ -73,6 +79,7 @@ export function DeckCombobox({ decks, value, onChange, placeholder, id, error }:
 
   const handleCreateNew = () => {
     // Keep the text as-is, pass empty ID to signal "new deck"
+    isUserInputRef.current = true;
     onChange('', inputText.trim());
     setIsOpen(false);
     setHighlightIndex(-1);
