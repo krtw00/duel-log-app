@@ -1,3 +1,6 @@
+# Local overrides
+docker-compose.override.yml
+
 # Dependencies
 node_modules
 .pnpm-store

@@ -32,15 +32,11 @@ services:
         condition: service_completed_successfully
       api:
         condition: service_started
+    ports:
+      - "5173:5173"
     networks:
-      - web
       - supabase
       - default
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.duel-log.rule=Host(`duel-log.localhost`)"
-      - "traefik.http.services.duel-log.loadbalancer.server.port=5173"
-      - "traefik.docker.network=web"
 
   api:
     build: .
@@ -73,8 +69,6 @@ volumes:
   duel_log_shared_node_modules:
 
 networks:
-  web:
-    external: true
   supabase:
     external: true
     name: supabase_network_duel-log-app
