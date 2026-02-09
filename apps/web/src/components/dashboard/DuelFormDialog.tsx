@@ -205,7 +205,16 @@ export function DuelFormDialog({
         setValue('result', 'win');
       }
     },
-    [deckSelection, opponentDeckSelection, createDeck, onSubmit, t, editingDuel, setValue, defaultIsFirst],
+    [
+      deckSelection,
+      opponentDeckSelection,
+      createDeck,
+      onSubmit,
+      t,
+      editingDuel,
+      setValue,
+      defaultIsFirst,
+    ],
   );
 
   const handleAutoRegister = useCallback(
