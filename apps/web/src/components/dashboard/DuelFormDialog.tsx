@@ -196,13 +196,25 @@ export function DuelFormDialog({
       const dueledAt = getDueledAtForSubmit(editingDuel, data.dueledAt);
       onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId, dueledAt });
 
-      // Reset opponent deck selection after submission (new registration only)
+      // Reset form after submission (new registration only)
       if (!editingDuel) {
         setOpponentDeckSelection({ id: '', name: '' });
         setValue('opponentDeckId', '00000000-0000-0000-0000-000000000000');
+        setValue('wonCoinToss', defaultIsFirst);
+        setValue('isFirst', defaultIsFirst);
+        setValue('result', 'win');
       }
     },
-    [deckSelection, opponentDeckSelection, createDeck, onSubmit, t, editingDuel, setValue],
+    [
+      deckSelection,
+      opponentDeckSelection,
+      createDeck,
+      onSubmit,
+      t,
+      editingDuel,
+      setValue,
+      defaultIsFirst,
+    ],
   );
 
   const handleAutoRegister = useCallback(

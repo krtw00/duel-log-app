@@ -28,7 +28,7 @@ export function DeckCombobox({ decks, value, onChange, placeholder, id, error }:
         setInputText(deck.name);
       }
     } else {
-      // Keep current inputText if it's a new name being typed
+      setInputText('');
     }
   }, [value, decks]);
 
