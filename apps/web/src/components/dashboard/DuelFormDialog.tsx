@@ -66,7 +66,8 @@ export function DuelFormDialog({
       const usageB = opponentDeckUsage?.get(b.id) ?? 0;
       return usageB - usageA;
     });
-  const defaultDeck = (lastUsedDeckId && myDecks.find((d) => d.id === lastUsedDeckId)) || myDecks[0];
+  const defaultDeck =
+    (lastUsedDeckId && myDecks.find((d) => d.id === lastUsedDeckId)) || myDecks[0];
   const decksRef = useRef(decks);
   decksRef.current = decks;
   const defaultDeckRef = useRef(defaultDeck);
