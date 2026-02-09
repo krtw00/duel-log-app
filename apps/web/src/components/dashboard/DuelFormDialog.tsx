@@ -9,7 +9,7 @@ import {
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
@@ -65,6 +65,10 @@ export function DuelFormDialog({
       return usageB - usageA;
     });
   const defaultDeck = myDecks[0];
+  const decksRef = useRef(decks);
+  decksRef.current = decks;
+  const defaultDeckRef = useRef(defaultDeck);
+  defaultDeckRef.current = defaultDeck;
   const createDeck = useCreateDeck();
 
   // Deck combobox state: track both ID (for existing) and name (for new)
@@ -129,11 +133,13 @@ export function DuelFormDialog({
         memo: editingDuel.memo,
         dueledAt: editingDuel.dueledAt,
       });
-      const myDeck = decks.find((d) => d.id === editingDuel.deckId);
-      const oppDeck = decks.find((d) => d.id === editingDuel.opponentDeckId);
+      const currentDecks = decksRef.current;
+      const myDeck = currentDecks.find((d) => d.id === editingDuel.deckId);
+      const oppDeck = currentDecks.find((d) => d.id === editingDuel.opponentDeckId);
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
     } else {
+      const deck = defaultDeckRef.current;
       reset({
         result: 'win',
         gameMode: defaultGameMode ?? 'RANK',
@@ -141,15 +147,19 @@ export function DuelFormDialog({
         wonCoinToss: defaultIsFirst,
         rank: defaultRank,
         dueledAt: new Date().toISOString(),
-        deckId: defaultDeck?.id ?? '00000000-0000-0000-0000-000000000000',
+        deckId: deck?.id ?? '00000000-0000-0000-0000-000000000000',
         opponentDeckId: '00000000-0000-0000-0000-000000000000',
       });
       setDeckSelection(
-        defaultDeck ? { id: defaultDeck.id, name: defaultDeck.name } : { id: '', name: '' },
+        deck ? { id: deck.id, name: deck.name } : { id: '', name: '' },
       );
       setOpponentDeckSelection({ id: '', name: '' });
     }
-  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, decks, defaultDeck]);
+    // decks/defaultDeck are accessed via refs to avoid resetting user's
+    // deck selection on background refetches or post-mutation invalidation.
+    // defaultDeck?.id triggers re-init only when the actual default deck changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, defaultDeck?.id]);
 
   const isSupportedGameMode = gameMode !== 'RATE' && gameMode !== 'DC';
   const screenAnalysisEnabled =
