@@ -33,6 +33,7 @@ type Props = {
   inline?: boolean;
   deckUsage?: Map<string, number>;
   opponentDeckUsage?: Map<string, number>;
+  lastUsedDeckId?: string;
 };
 
 export function DuelFormDialog({
@@ -48,6 +49,7 @@ export function DuelFormDialog({
   inline,
   deckUsage,
   opponentDeckUsage,
+  lastUsedDeckId,
 }: Props) {
   const { t } = useTranslation();
   const myDecks = decks
@@ -64,7 +66,7 @@ export function DuelFormDialog({
       const usageB = opponentDeckUsage?.get(b.id) ?? 0;
       return usageB - usageA;
     });
-  const defaultDeck = myDecks[0];
+  const defaultDeck = (lastUsedDeckId && myDecks.find((d) => d.id === lastUsedDeckId)) || myDecks[0];
   const decksRef = useRef(decks);
   decksRef.current = decks;
   const defaultDeckRef = useRef(defaultDeck);
