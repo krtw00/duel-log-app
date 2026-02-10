@@ -9,7 +9,7 @@ import {
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
@@ -52,20 +52,28 @@ export function DuelFormDialog({
   lastUsedDeckId,
 }: Props) {
   const { t } = useTranslation();
-  const myDecks = decks
-    .filter((d) => !d.isOpponentDeck && d.active)
-    .sort((a, b) => {
-      const usageA = deckUsage?.get(a.id) ?? 0;
-      const usageB = deckUsage?.get(b.id) ?? 0;
-      return usageB - usageA;
-    });
-  const opponentDecks = decks
-    .filter((d) => d.isOpponentDeck && d.active)
-    .sort((a, b) => {
-      const usageA = opponentDeckUsage?.get(a.id) ?? 0;
-      const usageB = opponentDeckUsage?.get(b.id) ?? 0;
-      return usageB - usageA;
-    });
+  const myDecks = useMemo(
+    () =>
+      decks
+        .filter((d) => !d.isOpponentDeck && d.active)
+        .sort((a, b) => {
+          const usageA = deckUsage?.get(a.id) ?? 0;
+          const usageB = deckUsage?.get(b.id) ?? 0;
+          return usageB - usageA;
+        }),
+    [decks, deckUsage],
+  );
+  const opponentDecks = useMemo(
+    () =>
+      decks
+        .filter((d) => d.isOpponentDeck && d.active)
+        .sort((a, b) => {
+          const usageA = opponentDeckUsage?.get(a.id) ?? 0;
+          const usageB = opponentDeckUsage?.get(b.id) ?? 0;
+          return usageB - usageA;
+        }),
+    [decks, opponentDeckUsage],
+  );
   const defaultDeck =
     (lastUsedDeckId && myDecks.find((d) => d.id === lastUsedDeckId)) || myDecks[0];
   const decksRef = useRef(decks);

@@ -124,11 +124,11 @@ export async function exportDuels(
   const where = buildConditions(userId, filter);
 
   const result = await sql<ExportDuelRow[]>`
-    SELECT d.*, dk.name AS "deckName", odk.name AS "opponentDeckName"
+    SELECT d.*, COALESCE(dk.name, '') AS "deckName", COALESCE(odk.name, '') AS "opponentDeckName"
     FROM duels d
-    JOIN decks dk ON d.deck_id = dk.id
-    JOIN decks odk ON d.opponent_deck_id = odk.id
-    WHERE ${where}
+    LEFT JOIN decks dk ON d.deck_id = dk.id
+    LEFT JOIN decks odk ON d.opponent_deck_id = odk.id
+    WHERE d.id IN (SELECT id FROM duels WHERE ${where})
     ORDER BY d.dueled_at ASC
   `;
   return Array.from(result);

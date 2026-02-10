@@ -8,6 +8,12 @@ const feedbackSchema = z.object({
   type: z.enum(['bug', 'feature', 'improvement', 'other']),
   title: z.string().min(1).max(200),
   body: z.string().min(1).max(5000),
+  // バグ報告用フィールド
+  steps: z.string().max(5000).optional(),
+  expected: z.string().max(2000).optional(),
+  actual: z.string().max(2000).optional(),
+  // 機能要望用フィールド
+  useCase: z.string().max(2000).optional(),
   // クライアント環境情報（オプション）
   userAgent: z.string().optional(),
   platform: z.string().optional(),
@@ -42,7 +48,16 @@ export const feedbackRoutes = new Hono<Env>().post('/', async (c) => {
       .filter(Boolean)
       .join('\n');
 
-    const issueBody = `**Type:** ${data.type}\n**User ID:** ${id}\n\n${data.body}${envInfo ? `\n\n---\n### Environment\n${envInfo}` : ''}`;
+    const extraSections = [
+      data.steps && `### Reproduction Steps\n${data.steps}`,
+      data.expected && `### Expected\n${data.expected}`,
+      data.actual && `### Actual\n${data.actual}`,
+      data.useCase && `### Use Case\n${data.useCase}`,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+
+    const issueBody = `**Type:** ${data.type}\n**User ID:** ${id}\n\n${data.body}${extraSections ? `\n\n${extraSections}` : ''}${envInfo ? `\n\n---\n### Environment\n${envInfo}` : ''}`;
 
     const response = await fetch(`https://api.github.com/repos/${githubRepo}/issues`, {
       method: 'POST',
