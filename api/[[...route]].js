@@ -10592,11 +10592,11 @@ async function deleteDuel(userId, duelId) {
 async function exportDuels(userId, filter) {
   const where = buildConditions(userId, filter);
   const result = await sql`
-    SELECT d.*, dk.name AS "deckName", odk.name AS "opponentDeckName"
+    SELECT d.*, COALESCE(dk.name, '') AS "deckName", COALESCE(odk.name, '') AS "opponentDeckName"
     FROM duels d
-    JOIN decks dk ON d.deck_id = dk.id
-    JOIN decks odk ON d.opponent_deck_id = odk.id
-    WHERE ${where}
+    LEFT JOIN decks dk ON d.deck_id = dk.id
+    LEFT JOIN decks odk ON d.opponent_deck_id = odk.id
+    WHERE d.id IN (SELECT id FROM duels WHERE ${where})
     ORDER BY d.dueled_at ASC
   `;
   return Array.from(result);
@@ -10884,6 +10884,12 @@ var feedbackSchema = external_exports.object({
   type: external_exports.enum(["bug", "feature", "improvement", "other"]),
   title: external_exports.string().min(1).max(200),
   body: external_exports.string().min(1).max(5e3),
+  // バグ報告用フィールド
+  steps: external_exports.string().max(5e3).optional(),
+  expected: external_exports.string().max(2e3).optional(),
+  actual: external_exports.string().max(2e3).optional(),
+  // 機能要望用フィールド
+  useCase: external_exports.string().max(2e3).optional(),
   // クライアント環境情報（オプション）
   userAgent: external_exports.string().optional(),
   platform: external_exports.string().optional(),
@@ -10910,10 +10916,22 @@ var feedbackRoutes = new Hono2().post("/", async (c) => {
       data.screenSize && `**Screen:** ${data.screenSize}`,
       data.language && `**Language:** ${data.language}`
     ].filter(Boolean).join("\n");
+    const extraSections = [
+      data.steps && `### Reproduction Steps
+${data.steps}`,
+      data.expected && `### Expected
+${data.expected}`,
+      data.actual && `### Actual
+${data.actual}`,
+      data.useCase && `### Use Case
+${data.useCase}`
+    ].filter(Boolean).join("\n\n");
     const issueBody = `**Type:** ${data.type}
 **User ID:** ${id}
 
-${data.body}${envInfo ? `
+${data.body}${extraSections ? `
+
+${extraSections}` : ""}${envInfo ? `
 
 ---
 ### Environment
