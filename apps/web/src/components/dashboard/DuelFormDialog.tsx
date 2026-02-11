@@ -222,6 +222,7 @@ export function DuelFormDialog({
         setValue('wonCoinToss', defaultIsFirst);
         setValue('isFirst', defaultIsFirst);
         setValue('result', 'win');
+        setValue('memo', '');
       }
     },
     [
