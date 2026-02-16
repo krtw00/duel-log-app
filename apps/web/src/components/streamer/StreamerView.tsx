@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
+import { copyToClipboard } from '../../utils/clipboard.js';
 import { type DisplayItem, type DisplayItemKey, DragDropItems } from '../common/DragDropItems.js';
 
 type Layout = 'grid' | 'horizontal' | 'vertical';
@@ -160,9 +161,11 @@ export function StreamerView() {
         recent_count: String(obsSettings.recentResultsCount),
       });
       const url = `${window.location.origin}/obs-overlay?${params.toString()}`;
-      await navigator.clipboard.writeText(url);
-      setObsCopied(true);
-      setTimeout(() => setObsCopied(false), 2000);
+      const ok = await copyToClipboard(url);
+      if (ok) {
+        setObsCopied(true);
+        setTimeout(() => setObsCopied(false), 2000);
+      }
     } catch {
       // Failed to generate token
     } finally {

@@ -2,6 +2,7 @@ import { GAME_MODES, type GameMode } from '@duel-log/shared';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCreateSharedStatistics } from '../../hooks/useSharedStatistics.js';
+import { copyToClipboard } from '../../utils/clipboard.js';
 
 type Props = {
   open: boolean;
@@ -63,9 +64,11 @@ export function ShareStatsDialog({
 
   const handleCopy = async () => {
     if (generatedUrl) {
-      await navigator.clipboard.writeText(generatedUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      const ok = await copyToClipboard(generatedUrl);
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     }
   };
 
