@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getRankLabel } from '../../utils/ranks.js';
 
 type OBSStats = {
   totalDuels: number;
@@ -214,11 +215,7 @@ export function OBSOverlayView() {
       case 'gameModeValue': {
         const mode = data.gameMode;
         if (mode === 'RANK' && data.rank != null) {
-          const rankNames = ['rookie', 'bronze', 'silver', 'gold', 'platinum', 'diamond', 'master'];
-          const tierIndex = Math.floor((data.rank - 1) / 5);
-          const tierName = rankNames[tierIndex] ?? 'rookie';
-          const tierLevel = ((data.rank - 1) % 5) + 1;
-          return `${t(`ranks.${tierName}`)} ${tierLevel}`;
+          return getRankLabel(data.rank, t);
         }
         if (mode === 'RATE' && data.rateValue != null) {
           return `${data.rateValue}`;
