@@ -33,13 +33,14 @@ export function ShareStatsDialog({
   // ダイアログを開き直したらリセット
   useEffect(() => {
     if (open) {
-      setYear(defaultYear ?? now.getFullYear());
-      setMonth(defaultMonth ?? now.getMonth() + 1);
+      const current = new Date();
+      setYear(defaultYear ?? current.getFullYear());
+      setMonth(defaultMonth ?? current.getMonth() + 1);
       setGameMode(defaultGameMode ?? '');
       setGeneratedUrl(null);
       setCopied(false);
     }
-  }, [open, defaultYear, defaultMonth, defaultGameMode, now]);
+  }, [open, defaultYear, defaultMonth, defaultGameMode]);
 
   if (!open) return null;
 
