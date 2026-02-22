@@ -431,9 +431,15 @@ export function DuelFormDialog({
           </label>
           <input
             id="rateValue"
-            type="number"
-            step="any"
-            {...register('rateValue', { valueAsNumber: true })}
+            type="text"
+            inputMode="decimal"
+            {...register('rateValue', {
+              setValueAs: (v: string) => {
+                if (v === '' || v == null) return null;
+                const n = Number(v);
+                return Number.isNaN(n) ? null : n;
+              },
+            })}
             className="themed-input"
           />
         </div>
@@ -449,8 +455,15 @@ export function DuelFormDialog({
           </label>
           <input
             id="dcValue"
-            type="number"
-            {...register('dcValue', { valueAsNumber: true })}
+            type="text"
+            inputMode="numeric"
+            {...register('dcValue', {
+              setValueAs: (v: string) => {
+                if (v === '' || v == null) return null;
+                const n = Number(v);
+                return Number.isNaN(n) ? null : n;
+              },
+            })}
             className="themed-input"
           />
         </div>
