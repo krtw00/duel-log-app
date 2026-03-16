@@ -64,6 +64,7 @@ function MobileCardView({
 }) {
   const { t } = useTranslation();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [expandedMemoId, setExpandedMemoId] = useState<string | null>(null);
 
   return (
     <div className="sm:hidden">
@@ -74,6 +75,7 @@ function MobileCardView({
               {editForm}
             </div>
           ) : (
+            <>
             <div className="duel-card-compact">
               {/* Result indicator bar */}
               <div
@@ -121,17 +123,26 @@ function MobileCardView({
                     <span className="chip text-sm chip-rank">{getRankDisplay(duel, t)}</span>
                   )}
                   {duel.memo && (
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="var(--color-on-surface-muted)"
-                      strokeWidth="2"
+                    <button
+                      type="button"
+                      className="inline-flex items-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedMemoId(expandedMemoId === duel.id ? null : duel.id);
+                      }}
                     >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                    </svg>
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="var(--color-on-surface-muted)"
+                        strokeWidth="2"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                      </svg>
+                    </button>
                   )}
                 </div>
               </div>
@@ -202,6 +213,16 @@ function MobileCardView({
                 </div>
               )}
             </div>
+            {/* Expanded memo */}
+            {expandedMemoId === duel.id && duel.memo && (
+              <div
+                className="px-3 pb-3 text-sm whitespace-pre-wrap"
+                style={{ color: 'var(--color-on-surface-muted)', borderBottom: '1px solid var(--color-border)' }}
+              >
+                {duel.memo}
+              </div>
+            )}
+            </>
           )}
         </div>
       ))}
@@ -230,6 +251,7 @@ export function DuelTable({
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
   const [currentPage, setCurrentPage] = useState(0);
   const [editingDuel, setEditingDuel] = useState<Duel | null>(null);
+  const [expandedMemoId, setExpandedMemoId] = useState<string | null>(null);
 
   const deckNameMap = useMemo(() => new Map(decks.map((d) => [d.id, d.name])), [decks]);
 
@@ -377,9 +399,21 @@ export function DuelTable({
                       <span style={{ color: 'var(--color-on-surface-muted)' }}>-</span>
                     )}
                   </td>
-                  <td className="max-w-[120px] truncate" title={duel.memo ?? ''}>
+                  <td
+                    className={expandedMemoId === duel.id ? 'max-w-[240px]' : 'max-w-[120px] truncate'}
+                    style={{ cursor: duel.memo ? 'pointer' : undefined }}
+                    onClick={() => {
+                      if (duel.memo) setExpandedMemoId(expandedMemoId === duel.id ? null : duel.id);
+                    }}
+                  >
                     {duel.memo ? (
-                      <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      <span
+                        className="text-sm"
+                        style={{
+                          color: 'var(--color-on-surface-muted)',
+                          whiteSpace: expandedMemoId === duel.id ? 'pre-wrap' : undefined,
+                        }}
+                      >
                         {duel.memo}
                       </span>
                     ) : null}

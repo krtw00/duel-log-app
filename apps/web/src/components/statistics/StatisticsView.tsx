@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useDuels } from '../../hooks/useDuels.js';
 import { useMatchups, useValueSequence, useWinRates } from '../../hooks/useStatistics.js';
+import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
 import { DateFilterBar } from '../dashboard/DateFilterBar.js';
 import { DuelTable } from '../dashboard/DuelTable.js';
 import { GameModeTabBar } from '../dashboard/GameModeTabBar.js';
@@ -15,17 +16,16 @@ import { WinRateTable } from './WinRateTable.js';
 
 export function StatisticsView() {
   const { t } = useTranslation();
-  const now = new Date();
+  const currentSeason = getCurrentSeason();
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(currentSeason.year);
+  const [month, setMonth] = useState(currentSeason.month);
   const [deckId, setDeckId] = useState<string | undefined>(undefined);
   const [periodType, setPeriodType] = useState<'all' | 'range'>('all');
   const [rangeStart, setRangeStart] = useState(1);
   const [rangeEnd, setRangeEnd] = useState(30);
 
-  const from = new Date(year, month - 1, 1).toISOString();
-  const to = new Date(year, month, 0, 23, 59, 59).toISOString();
+  const { from, to } = getSeasonRange(year, month);
 
   const rangeFilter = periodType === 'range' ? { rangeStart, rangeEnd } : {};
   const filter = { gameMode, from, to, deckId, ...rangeFilter };
