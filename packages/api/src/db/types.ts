@@ -37,6 +37,7 @@ export interface DuelRow {
   rateValue: number | null;
   dcValue: number | null;
   memo: string | null;
+  playMistake: boolean | null;
   dueledAt: Date;
   createdAt: Date;
   updatedAt: Date;
