@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCreateSharedStatistics } from '../../hooks/useSharedStatistics.js';
 import { copyToClipboard } from '../../utils/clipboard.js';
+import { getSeasonRange } from '../../utils/season.js';
 
 type Props = {
   open: boolean;
@@ -45,8 +46,7 @@ export function ShareStatsDialog({
   if (!open) return null;
 
   const handleGenerate = () => {
-    const from = new Date(year, month - 1, 1).toISOString();
-    const to = new Date(year, month, 0, 23, 59, 59).toISOString();
+    const { from, to } = getSeasonRange(year, month);
     const expiresAt =
       expiresInDays !== null
         ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()

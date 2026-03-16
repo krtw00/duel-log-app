@@ -10,6 +10,7 @@ import {
   useStreaks,
 } from '../../hooks/useStatistics.js';
 import { demoteRank } from '../../utils/ranks.js';
+import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
 import { CsvExportButton } from '../csv/CsvExportButton.js';
 import { CsvImportDialog } from '../csv/CsvImportDialog.js';
 import { ShareStatsDialog } from '../sharing/ShareStatsDialog.js';
@@ -23,10 +24,10 @@ import { StreamerSection } from './StreamerSection.js';
 
 export function DashboardView() {
   const { t } = useTranslation();
-  const now = new Date();
+  const currentSeason = getCurrentSeason();
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(currentSeason.year);
+  const [month, setMonth] = useState(currentSeason.month);
   const [deckId, setDeckId] = useState<string | undefined>(undefined);
   const [periodType, setPeriodType] = useState<'all' | 'range'>('all');
   const [rangeStart, setRangeStart] = useState(1);
@@ -38,12 +39,11 @@ export function DashboardView() {
     return stored !== null ? stored === 'true' : true;
   });
 
-  // Build date range filter from year/month
-  const from = new Date(year, month - 1, 1).toISOString();
-  const to = new Date(year, month, 0, 23, 59, 59).toISOString();
+  // Build date range filter from year/month (season boundary: 8:00 JST)
+  const { from, to } = getSeasonRange(year, month);
 
   // 2-month window for opponent deck usage sorting (last month + current month)
-  const usageFrom = new Date(year, month - 2, 1).toISOString();
+  const { from: usageFrom } = getSeasonRange(year, month - 1);
 
   const rangeFilter = periodType === 'range' ? { rangeStart, rangeEnd } : {};
   const filter = { gameMode, from, to, deckId, ...rangeFilter, limit: 100, offset: 0 };

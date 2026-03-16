@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
 import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
 import { api } from '../../lib/api.js';
-import { getDueledAtForSubmit } from '../../utils/duel.js';
+import { fromDatetimeLocal, getDueledAtForSubmit, toDatetimeLocal } from '../../utils/duel.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
@@ -93,6 +93,8 @@ export function DuelFormDialog({
   });
   const [deckError, setDeckError] = useState('');
   const [opponentDeckError, setOpponentDeckError] = useState('');
+  const [dueledAtChanged, setDueledAtChanged] = useState(false);
+  const [showDueledAt, setShowDueledAt] = useState(false);
 
   const { register, handleSubmit, reset, watch, setValue } = useForm<CreateDuel>({
     resolver: zodResolver(createDuelSchema),
@@ -149,6 +151,8 @@ export function DuelFormDialog({
       const oppDeck = currentDecks.find((d) => d.id === editingDuel.opponentDeckId);
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
+      setShowDueledAt(true);
+      setDueledAtChanged(false);
     } else {
       const deck = defaultDeckRef.current;
       reset({
@@ -212,7 +216,7 @@ export function DuelFormDialog({
         setOpponentDeckSelection({ id: finalOpponentDeckId, name: opponentDeckSelection.name });
       }
 
-      const dueledAt = getDueledAtForSubmit(editingDuel, data.dueledAt);
+      const dueledAt = getDueledAtForSubmit(editingDuel, data.dueledAt, dueledAtChanged);
       onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId, dueledAt });
 
       // Reset form after submission (new registration only)
@@ -223,6 +227,8 @@ export function DuelFormDialog({
         setValue('isFirst', defaultIsFirst);
         setValue('result', 'win');
         setValue('memo', '');
+        setDueledAtChanged(false);
+        setShowDueledAt(false);
       }
     },
     [
@@ -234,6 +240,7 @@ export function DuelFormDialog({
       editingDuel,
       setValue,
       defaultIsFirst,
+      dueledAtChanged,
     ],
   );
 
@@ -469,7 +476,57 @@ export function DuelFormDialog({
         </div>
       )}
 
-      {/* Row 5: Memo */}
+      {/* Row 5: Duel Date/Time (optional, collapsible) */}
+      <div>
+        {!showDueledAt ? (
+          <button
+            type="button"
+            className="text-sm flex items-center gap-1"
+            style={{ color: 'var(--color-on-surface-muted)' }}
+            onClick={() => {
+              setShowDueledAt(true);
+              setValue('dueledAt', new Date().toISOString());
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            {t('duel.dueledAt')}
+          </button>
+        ) : (
+          <div>
+            <label
+              htmlFor="dueledAt"
+              className="block text-base font-medium mb-1"
+              style={{ color: 'var(--color-on-surface-muted)' }}
+            >
+              {t('duel.dueledAt')}
+            </label>
+            <input
+              id="dueledAt"
+              type="datetime-local"
+              value={toDatetimeLocal(watch('dueledAt'))}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setValue('dueledAt', fromDatetimeLocal(e.target.value));
+                  setDueledAtChanged(true);
+                }
+              }}
+              className="themed-input"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Row 6: Memo */}
       <div>
         <label
           htmlFor="memo"
