@@ -73,6 +73,8 @@
     "secondWinRate": "後攻勝率",
     "firstRate": "先攻率",
     "coinTossRate": "コイン勝率",
+    "playMistakeRate": "ミス率",
+    "playMistakeWinRate": "ミス時勝率",
     "noData": "対戦データがありません",
     "defaultSettings": "新規記録時の初期値",
     "receivingStats": "メインウィンドウから統計を受信中..."
@@ -95,6 +97,8 @@
     "dcValue": "DC値",
     "rankRate": "ランク/レート",
     "memo": "メモ",
+    "playMistake": "プレイミス",
+    "showPlayMistake": "プレイミス記録",
     "dueledAt": "対戦日時",
     "win": "勝ち",
     "loss": "負け",

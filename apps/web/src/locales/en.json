@@ -73,6 +73,8 @@
     "secondWinRate": "Second Win Rate",
     "firstRate": "Going First Rate",
     "coinTossRate": "Coin Toss Win Rate",
+    "playMistakeRate": "Mistake Rate",
+    "playMistakeWinRate": "Win Rate w/ Mistake",
     "noData": "No duel data",
     "defaultSettings": "Default Settings",
     "receivingStats": "Receiving stats from main window..."
@@ -95,6 +97,8 @@
     "dcValue": "DC Value",
     "rankRate": "Rank/Rate",
     "memo": "Memo",
+    "playMistake": "Play Mistake",
+    "showPlayMistake": "Track Mistakes",
     "dueledAt": "Duel Date",
     "win": "Win",
     "loss": "Loss",

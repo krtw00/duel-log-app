@@ -70,11 +70,11 @@ export async function getDuel(userId: string, duelId: string) {
 
 export async function createDuel(userId: string, data: CreateDuel) {
   const [created] = await sql<DuelRow[]>`
-    INSERT INTO duels (user_id, deck_id, opponent_deck_id, result, game_mode, is_first, won_coin_toss, rank, rate_value, dc_value, memo, dueled_at)
+    INSERT INTO duels (user_id, deck_id, opponent_deck_id, result, game_mode, is_first, won_coin_toss, rank, rate_value, dc_value, memo, play_mistake, dueled_at)
     VALUES (
       ${userId}, ${data.deckId}, ${data.opponentDeckId}, ${data.result}, ${data.gameMode},
       ${data.isFirst}, ${data.wonCoinToss}, ${data.rank ?? null}, ${data.rateValue ?? null},
-      ${data.dcValue ?? null}, ${data.memo ?? null}, ${new Date(data.dueledAt)}
+      ${data.dcValue ?? null}, ${data.memo ?? null}, ${data.playMistake ?? null}, ${new Date(data.dueledAt)}
     )
     RETURNING *
   `;
@@ -93,6 +93,7 @@ export async function updateDuel(userId: string, duelId: string, data: UpdateDue
   if (data.rateValue !== undefined) values.rateValue = data.rateValue;
   if (data.dcValue !== undefined) values.dcValue = data.dcValue;
   if (data.memo !== undefined) values.memo = data.memo;
+  if (data.playMistake !== undefined) values.playMistake = data.playMistake;
   if (data.dueledAt !== undefined) values.dueledAt = new Date(data.dueledAt);
 
   const [updated] = await sql<DuelRow[]>`

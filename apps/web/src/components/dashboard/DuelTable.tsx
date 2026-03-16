@@ -20,6 +20,7 @@ type Props = {
   deckUsage?: Map<string, number>;
   opponentDeckUsage?: Map<string, number>;
   duelNoOffset?: number;
+  showPlayMistake?: boolean;
 };
 
 function getDeckName(deckNameMap: Map<string, string>, deckId: string): string {
@@ -121,6 +122,17 @@ function MobileCardView({
                     </span>
                     {getRankDisplay(duel, t) && (
                       <span className="chip text-sm chip-rank">{getRankDisplay(duel, t)}</span>
+                    )}
+                    {duel.playMistake && (
+                      <span
+                        className="chip text-sm"
+                        style={{
+                          color: 'var(--color-error)',
+                          border: '1px solid var(--color-error)',
+                        }}
+                      >
+                        !
+                      </span>
                     )}
                     {duel.memo && (
                       <button
@@ -248,6 +260,7 @@ export function DuelTable({
   deckUsage,
   opponentDeckUsage,
   duelNoOffset = 0,
+  showPlayMistake,
 }: Props) {
   const { t } = useTranslation();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -313,6 +326,7 @@ export function DuelTable({
       inline={true}
       deckUsage={deckUsage}
       opponentDeckUsage={opponentDeckUsage}
+      showPlayMistake={showPlayMistake}
     />
   ) : null;
 
@@ -342,6 +356,7 @@ export function DuelTable({
               <th>{t('duel.firstSecond')}</th>
               <th>{t('duel.rankRate')}</th>
               <th>{t('duel.memo')}</th>
+              {showPlayMistake && <th style={{ width: '24px' }} />}
               <th>{t('duel.date')}</th>
               {!readOnly && <th className="text-center">{t('common.actions')}</th>}
             </tr>
@@ -423,6 +438,15 @@ export function DuelTable({
                       </span>
                     ) : null}
                   </td>
+                  {showPlayMistake && (
+                    <td className="text-center" style={{ width: '24px' }}>
+                      {duel.playMistake && (
+                        <span title={t('duel.playMistake')} style={{ color: 'var(--color-error)' }}>
+                          !
+                        </span>
+                      )}
+                    </td>
+                  )}
                   <td className="whitespace-nowrap">{formatDate(duel.dueledAt)}</td>
                   {!readOnly && (
                     <td className="text-center whitespace-nowrap">

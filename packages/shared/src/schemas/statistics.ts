@@ -22,6 +22,9 @@ export const overviewStatsSchema = z.object({
   firstWinRate: z.number(),
   secondWinRate: z.number(),
   coinTossWinRate: z.number(),
+  playMistakes: z.number().int(),
+  playMistakeRate: z.number(),
+  playMistakeWinRate: z.number(),
 });
 
 /** デッキ別勝率 */
