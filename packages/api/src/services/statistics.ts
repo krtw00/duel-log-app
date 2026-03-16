@@ -39,6 +39,9 @@ interface OverviewResult {
   firstWinRate: number;
   secondWinRate: number;
   coinTossWinRate: number;
+  playMistakes: number;
+  playMistakeRate: number;
+  playMistakeWinRate: number;
 }
 
 export async function getOverview(userId: string, filter: StatisticsFilter) {
@@ -63,7 +66,14 @@ export async function getOverview(userId: string, filter: StatisticsFilter) {
       END::float AS second_win_rate,
       CASE WHEN count(*) = 0 THEN 0
         ELSE round(count(*) filter (WHERE d.won_coin_toss = true)::numeric / count(*)::numeric, 4)
-      END::float AS coin_toss_win_rate
+      END::float AS coin_toss_win_rate,
+      count(*) filter (WHERE d.play_mistake = true)::int AS play_mistakes,
+      CASE WHEN count(*) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.play_mistake = true)::numeric / count(*)::numeric, 4)
+      END::float AS play_mistake_rate,
+      CASE WHEN count(*) filter (WHERE d.play_mistake = true) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.play_mistake = true AND d.result = 'win')::numeric / count(*) filter (WHERE d.play_mistake = true)::numeric, 4)
+      END::float AS play_mistake_win_rate
     FROM duels d
     WHERE ${where}
   `;
@@ -78,6 +88,9 @@ export async function getOverview(userId: string, filter: StatisticsFilter) {
       firstWinRate: 0,
       secondWinRate: 0,
       coinTossWinRate: 0,
+      playMistakes: 0,
+      playMistakeRate: 0,
+      playMistakeWinRate: 0,
     }
   );
 }

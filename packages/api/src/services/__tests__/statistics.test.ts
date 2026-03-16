@@ -144,6 +144,9 @@ describe('statistics service', () => {
         firstWinRate: 0,
         secondWinRate: 0,
         coinTossWinRate: 0,
+        playMistakes: 0,
+        playMistakeRate: 0,
+        playMistakeWinRate: 0,
       });
     });
   });
