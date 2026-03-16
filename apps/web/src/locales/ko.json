@@ -73,6 +73,8 @@
     "secondWinRate": "후공 승률",
     "firstRate": "선공률",
     "coinTossRate": "코인 승률",
+    "playMistakeRate": "미스율",
+    "playMistakeWinRate": "미스 시 승률",
     "noData": "듀얼 데이터 없음",
     "defaultSettings": "신규 기록 시 초기값",
     "receivingStats": "메인 윈도우에서 통계 수신 중..."
@@ -95,6 +97,8 @@
     "dcValue": "DC 값",
     "rankRate": "랭크/레이트",
     "memo": "메모",
+    "playMistake": "플레이 미스",
+    "showPlayMistake": "미스 기록",
     "dueledAt": "듀얼 날짜",
     "win": "승리",
     "loss": "패배",

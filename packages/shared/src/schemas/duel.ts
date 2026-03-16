@@ -19,6 +19,7 @@ export const duelSchema = z.object({
   rateValue: z.number().nullable(),
   dcValue: z.number().int().nullable(),
   memo: z.string().nullable(),
+  playMistake: z.boolean().nullable(),
   dueledAt: z.string().datetime(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -36,6 +37,7 @@ export const createDuelSchema = z.object({
   rateValue: z.number().nullable().optional(),
   dcValue: z.number().int().nullable().optional(),
   memo: z.string().max(1000).nullable().optional(),
+  playMistake: z.boolean().nullable().optional(),
   dueledAt: z.string().datetime(),
 });
 
@@ -51,6 +53,7 @@ export const updateDuelSchema = z.object({
   rateValue: z.number().nullable().optional(),
   dcValue: z.number().int().nullable().optional(),
   memo: z.string().max(1000).nullable().optional(),
+  playMistake: z.boolean().nullable().optional(),
   dueledAt: z.string().datetime().optional(),
 });
 

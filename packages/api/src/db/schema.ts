@@ -66,6 +66,7 @@ export const duels = pgTable(
     rateValue: real('rate_value'),
     dcValue: integer('dc_value'),
     memo: text('memo'),
+    playMistake: boolean('play_mistake'),
     dueledAt: timestamp('dueled_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

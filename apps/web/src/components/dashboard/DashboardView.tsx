@@ -38,6 +38,9 @@ export function DashboardView() {
     const stored = localStorage.getItem('duellog.defaultIsFirst');
     return stored !== null ? stored === 'true' : true;
   });
+  const [showPlayMistake, setShowPlayMistake] = useState(
+    () => localStorage.getItem('duellog.showPlayMistake') === 'true',
+  );
 
   // Build date range filter from year/month (season boundary: 8:00 JST)
   const { from, to } = getSeasonRange(year, month);
@@ -201,6 +204,20 @@ export function DashboardView() {
               </button>
             </div>
           </div>
+          <label className="flex items-center gap-2 ml-4 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPlayMistake}
+              onChange={(e) => {
+                setShowPlayMistake(e.target.checked);
+                localStorage.setItem('duellog.showPlayMistake', String(e.target.checked));
+              }}
+              className="accent-[var(--color-error)]"
+            />
+            <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+              {t('duel.showPlayMistake')}
+            </span>
+          </label>
         </div>
       </div>
 
@@ -213,6 +230,7 @@ export function DashboardView() {
         loading={createDuel.isPending}
         defaultGameMode={gameMode}
         defaultIsFirst={defaultIsFirst}
+        showPlayMistake={showPlayMistake}
         defaultRank={latestRank}
         inline={true}
         deckUsage={deckUsage}
@@ -303,6 +321,7 @@ export function DashboardView() {
           deckUsage={deckUsage}
           opponentDeckUsage={opponentDeckUsage}
           duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
+          showPlayMistake={showPlayMistake}
         />
       </div>
 

@@ -68,6 +68,7 @@ describe('getDueledAtForSubmit', () => {
       rateValue: null,
       dcValue: null,
       memo: null,
+      playMistake: null,
       dueledAt: '2026-01-15T14:30:00.000Z',
       createdAt: '2026-01-15T14:30:00.000Z',
       updatedAt: '2026-01-15T14:30:00.000Z',
