@@ -1,6 +1,6 @@
 import type { Duel } from '@duel-log/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getDueledAtForSubmit, toDatetimeLocal, fromDatetimeLocal } from '../duel.js';
+import { fromDatetimeLocal, getDueledAtForSubmit, toDatetimeLocal } from '../duel.js';
 
 describe('getDueledAtForSubmit', () => {
   beforeEach(() => {
