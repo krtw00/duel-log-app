@@ -105,6 +105,7 @@ export const duelRoutes = new Hono<Env>()
         const rateValueStr = getField('rate_value');
         const dcValueStr = getField('dc_value');
         const memo = getField('memo');
+        const playMistakeStr = getField('play_mistake');
         const dueledAt = getField('dueled_at');
 
         // Validate required fields
@@ -173,6 +174,7 @@ export const duelRoutes = new Hono<Env>()
           rateValue: parseOptionalFloat(rateValueStr),
           dcValue: parseOptionalInt(dcValueStr),
           memo: memo || null,
+          playMistake: playMistakeStr ? parseBool(playMistakeStr) : null,
           dueledAt,
         });
         imported++;
@@ -235,6 +237,7 @@ function duelsToCSV(data: ExportDuelRow[], hasGameModeFilter: boolean) {
         'rate_value',
         'dc_value',
         'memo',
+        'play_mistake',
         'dueled_at',
       ]
     : [
@@ -248,6 +251,7 @@ function duelsToCSV(data: ExportDuelRow[], hasGameModeFilter: boolean) {
         'rate_value',
         'dc_value',
         'memo',
+        'play_mistake',
         'dueled_at',
       ];
 
@@ -261,6 +265,7 @@ function duelsToCSV(data: ExportDuelRow[], hasGameModeFilter: boolean) {
       row.rateValue,
       row.dcValue,
       row.memo,
+      row.playMistake,
       row.dueledAt instanceof Date ? row.dueledAt.toISOString() : row.dueledAt,
     );
     return fields.map(escapeCSVField).join(',');

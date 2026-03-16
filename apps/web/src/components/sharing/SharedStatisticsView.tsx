@@ -66,6 +66,9 @@ function calculateStats(duels: SharedDuel[]): OverviewStats {
       firstWinRate: 0,
       secondWinRate: 0,
       coinTossWinRate: 0,
+      playMistakes: 0,
+      playMistakeRate: 0,
+      playMistakeWinRate: 0,
     };
   }
   const wins = duels.filter((d) => d.result === 'win').length;
@@ -93,6 +96,9 @@ function calculateStats(duels: SharedDuel[]): OverviewStats {
           ) / 10000
         : 0,
     coinTossWinRate: total > 0 ? Math.round((coinWins / total) * 10000) / 10000 : 0,
+    playMistakes: 0,
+    playMistakeRate: 0,
+    playMistakeWinRate: 0,
   };
 }
 
@@ -330,6 +336,7 @@ export function SharedStatisticsView() {
       rateValue: d.rateValue,
       dcValue: d.dcValue,
       memo: d.memo,
+      playMistake: null,
       dueledAt: d.dueledAt,
       createdAt: now,
       updatedAt: now,

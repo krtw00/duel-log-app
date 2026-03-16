@@ -34,6 +34,7 @@ type Props = {
   deckUsage?: Map<string, number>;
   opponentDeckUsage?: Map<string, number>;
   lastUsedDeckId?: string;
+  showPlayMistake?: boolean;
 };
 
 export function DuelFormDialog({
@@ -50,6 +51,7 @@ export function DuelFormDialog({
   deckUsage,
   opponentDeckUsage,
   lastUsedDeckId,
+  showPlayMistake,
 }: Props) {
   const { t } = useTranslation();
   const myDecks = useMemo(
@@ -227,6 +229,7 @@ export function DuelFormDialog({
         setValue('isFirst', defaultIsFirst);
         setValue('result', 'win');
         setValue('memo', '');
+        setValue('playMistake', null);
         setDueledAtChanged(false);
         setShowDueledAt(false);
       }
@@ -526,7 +529,22 @@ export function DuelFormDialog({
         )}
       </div>
 
-      {/* Row 6: Memo */}
+      {/* Row 6: Play Mistake (optional) */}
+      {showPlayMistake && (
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={watch('playMistake') === true}
+            onChange={(e) => setValue('playMistake', e.target.checked || null)}
+            className="accent-[var(--color-error)]"
+          />
+          <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+            {t('duel.playMistake')}
+          </span>
+        </label>
+      )}
+
+      {/* Row 7: Memo */}
       <div>
         <label
           htmlFor="memo"

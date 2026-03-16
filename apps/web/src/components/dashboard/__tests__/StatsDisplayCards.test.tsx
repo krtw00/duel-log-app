@@ -19,6 +19,9 @@ describe('StatsDisplayCards', () => {
       firstWinRate: 0.65,
       secondWinRate: 0.53,
       coinTossWinRate: 0.48,
+      playMistakes: 0,
+      playMistakeRate: 0,
+      playMistakeWinRate: 0,
     };
 
     const { container } = render(<StatsDisplayCards stats={stats} loading={false} />);
