@@ -21,15 +21,6 @@ type Props = {
 export function ValueSequenceChart({ data, gameMode, loading }: Props) {
   const { t } = useTranslation();
 
-  if (loading) {
-    return (
-      <div
-        className="animate-pulse h-64 rounded"
-        style={{ background: 'var(--color-surface-variant)' }}
-      />
-    );
-  }
-
   const { validData, chartData, yDomain } = useMemo(() => {
     const valid = data.filter((d) => d.value !== null);
     const chart = valid.map((d, i) => ({
@@ -49,6 +40,15 @@ export function ValueSequenceChart({ data, gameMode, loading }: Props) {
 
     return { validData: valid, chartData: chart, yDomain: domain };
   }, [data, gameMode]);
+
+  if (loading) {
+    return (
+      <div
+        className="animate-pulse h-64 rounded"
+        style={{ background: 'var(--color-surface-variant)' }}
+      />
+    );
+  }
 
   if (validData.length === 0) {
     return (
