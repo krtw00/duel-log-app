@@ -10,8 +10,8 @@ import {
   useStreaks,
   useWinRates,
 } from '../../hooks/useStatistics.js';
-import { api } from '../../lib/api.js';
 import { useStatsImageDownload } from '../../hooks/useStatsImageDownload.js';
+import { api } from '../../lib/api.js';
 import { demoteRank } from '../../utils/ranks.js';
 import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
 import { CsvExportButton } from '../csv/CsvExportButton.js';

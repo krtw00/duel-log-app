@@ -172,9 +172,8 @@ export function DuelFormDialog({
     }
     // decks/defaultDeck are accessed via refs to avoid resetting user's
     // deck selection on background refetches or post-mutation invalidation.
-    // defaultDeck?.id triggers re-init only when the actual default deck changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset, defaultDeck?.id]);
+  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset]);
 
   const isSupportedGameMode = gameMode !== 'RATE' && gameMode !== 'DC';
   const screenAnalysisEnabled =
