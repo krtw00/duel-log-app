@@ -124,7 +124,9 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
         // 非同期で更新（レスポンスをブロックしない）
-        void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`;
+        void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`.catch((error) => {
+          console.error('[auth] Failed to update last_login_at:', error);
+        });
       }
     }
 

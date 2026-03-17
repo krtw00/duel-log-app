@@ -23,8 +23,16 @@ export const errorMiddleware = createMiddleware(async (c, next) => {
     }
 
     console.error('Unhandled error:', err);
+    const isPreview = process.env.VERCEL_ENV === 'preview';
+    const message = err instanceof Error ? err.message : 'Unknown error';
     return c.json(
-      { error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' } },
+      {
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+          ...(isPreview ? { detail: message } : {}),
+        },
+      },
       500,
     );
   }
