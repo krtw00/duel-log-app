@@ -10054,6 +10054,7 @@ var duelSchema = external_exports.object({
   rateValue: external_exports.number().nullable(),
   dcValue: external_exports.number().int().nullable(),
   memo: external_exports.string().nullable(),
+  playMistake: external_exports.boolean().nullable(),
   dueledAt: external_exports.string().datetime(),
   createdAt: external_exports.string().datetime(),
   updatedAt: external_exports.string().datetime()
@@ -10069,6 +10070,7 @@ var createDuelSchema = external_exports.object({
   rateValue: external_exports.number().nullable().optional(),
   dcValue: external_exports.number().int().nullable().optional(),
   memo: external_exports.string().max(1e3).nullable().optional(),
+  playMistake: external_exports.boolean().nullable().optional(),
   dueledAt: external_exports.string().datetime()
 });
 var updateDuelSchema = external_exports.object({
@@ -10082,6 +10084,7 @@ var updateDuelSchema = external_exports.object({
   rateValue: external_exports.number().nullable().optional(),
   dcValue: external_exports.number().int().nullable().optional(),
   memo: external_exports.string().max(1e3).nullable().optional(),
+  playMistake: external_exports.boolean().nullable().optional(),
   dueledAt: external_exports.string().datetime().optional()
 });
 var duelFilterSchema = external_exports.object({
@@ -10134,7 +10137,10 @@ var overviewStatsSchema = external_exports.object({
   firstRate: external_exports.number(),
   firstWinRate: external_exports.number(),
   secondWinRate: external_exports.number(),
-  coinTossWinRate: external_exports.number()
+  coinTossWinRate: external_exports.number(),
+  playMistakes: external_exports.number().int(),
+  playMistakeRate: external_exports.number(),
+  playMistakeWinRate: external_exports.number()
 });
 var deckWinRateSchema = external_exports.object({
   deckId: external_exports.string().uuid(),
@@ -10552,11 +10558,11 @@ async function getDuel(userId, duelId) {
 }
 async function createDuel(userId, data) {
   const [created] = await sql`
-    INSERT INTO duels (user_id, deck_id, opponent_deck_id, result, game_mode, is_first, won_coin_toss, rank, rate_value, dc_value, memo, dueled_at)
+    INSERT INTO duels (user_id, deck_id, opponent_deck_id, result, game_mode, is_first, won_coin_toss, rank, rate_value, dc_value, memo, play_mistake, dueled_at)
     VALUES (
       ${userId}, ${data.deckId}, ${data.opponentDeckId}, ${data.result}, ${data.gameMode},
       ${data.isFirst}, ${data.wonCoinToss}, ${data.rank ?? null}, ${data.rateValue ?? null},
-      ${data.dcValue ?? null}, ${data.memo ?? null}, ${new Date(data.dueledAt)}
+      ${data.dcValue ?? null}, ${data.memo ?? null}, ${data.playMistake ?? null}, ${new Date(data.dueledAt)}
     )
     RETURNING *
   `;
@@ -10574,6 +10580,7 @@ async function updateDuel(userId, duelId, data) {
   if (data.rateValue !== void 0) values2.rateValue = data.rateValue;
   if (data.dcValue !== void 0) values2.dcValue = data.dcValue;
   if (data.memo !== void 0) values2.memo = data.memo;
+  if (data.playMistake !== void 0) values2.playMistake = data.playMistake;
   if (data.dueledAt !== void 0) values2.dueledAt = new Date(data.dueledAt);
   const [updated] = await sql`
     UPDATE duels
@@ -10681,6 +10688,7 @@ var duelRoutes = new Hono2().get("/", async (c) => {
       const rateValueStr = getField("rate_value");
       const dcValueStr = getField("dc_value");
       const memo = getField("memo");
+      const playMistakeStr = getField("play_mistake");
       const dueledAt = getField("dueled_at");
       if (!deckName) {
         errors.push(`Row ${lineNum}: deck_name is required`);
@@ -10742,6 +10750,7 @@ var duelRoutes = new Hono2().get("/", async (c) => {
         rateValue: parseOptionalFloat(rateValueStr),
         dcValue: parseOptionalInt(dcValueStr),
         memo: memo || null,
+        playMistake: playMistakeStr ? parseBool(playMistakeStr) : null,
         dueledAt
       });
       imported++;
@@ -10794,6 +10803,7 @@ function duelsToCSV(data, hasGameModeFilter) {
     "rate_value",
     "dc_value",
     "memo",
+    "play_mistake",
     "dueled_at"
   ] : [
     "deck_name",
@@ -10806,6 +10816,7 @@ function duelsToCSV(data, hasGameModeFilter) {
     "rate_value",
     "dc_value",
     "memo",
+    "play_mistake",
     "dueled_at"
   ];
   const rows = data.map((row) => {
@@ -10818,6 +10829,7 @@ function duelsToCSV(data, hasGameModeFilter) {
       row.rateValue,
       row.dcValue,
       row.memo,
+      row.playMistake,
       row.dueledAt instanceof Date ? row.dueledAt.toISOString() : row.dueledAt
     );
     return fields.map(escapeCSVField).join(",");
@@ -11607,7 +11619,14 @@ async function getOverview(userId, filter) {
       END::float AS second_win_rate,
       CASE WHEN count(*) = 0 THEN 0
         ELSE round(count(*) filter (WHERE d.won_coin_toss = true)::numeric / count(*)::numeric, 4)
-      END::float AS coin_toss_win_rate
+      END::float AS coin_toss_win_rate,
+      count(*) filter (WHERE d.play_mistake = true)::int AS play_mistakes,
+      CASE WHEN count(*) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.play_mistake = true)::numeric / count(*)::numeric, 4)
+      END::float AS play_mistake_rate,
+      CASE WHEN count(*) filter (WHERE d.play_mistake = true) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.play_mistake = true AND d.result = 'win')::numeric / count(*) filter (WHERE d.play_mistake = true)::numeric, 4)
+      END::float AS play_mistake_win_rate
     FROM duels d
     WHERE ${where}
   `;
@@ -11619,7 +11638,10 @@ async function getOverview(userId, filter) {
     firstRate: 0,
     firstWinRate: 0,
     secondWinRate: 0,
-    coinTossWinRate: 0
+    coinTossWinRate: 0,
+    playMistakes: 0,
+    playMistakeRate: 0,
+    playMistakeWinRate: 0
   };
 }
 async function getWinRates(userId, filter) {
