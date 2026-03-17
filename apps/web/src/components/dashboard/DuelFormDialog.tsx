@@ -479,55 +479,57 @@ export function DuelFormDialog({
         </div>
       )}
 
-      {/* Row 5: Duel Date/Time (optional, collapsible) */}
-      <div>
-        {!showDueledAt ? (
-          <button
-            type="button"
-            className="text-sm flex items-center gap-1"
-            style={{ color: 'var(--color-on-surface-muted)' }}
-            onClick={() => {
-              setShowDueledAt(true);
-              setValue('dueledAt', new Date().toISOString());
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            {t('duel.dueledAt')}
-          </button>
-        ) : (
-          <div>
-            <label
-              htmlFor="dueledAt"
-              className="block text-base font-medium mb-1"
+      {/* Row 5: Duel Date/Time (editing only) */}
+      {editingDuel && (
+        <div>
+          {!showDueledAt ? (
+            <button
+              type="button"
+              className="text-sm flex items-center gap-1"
               style={{ color: 'var(--color-on-surface-muted)' }}
-            >
-              {t('duel.dueledAt')}
-            </label>
-            <input
-              id="dueledAt"
-              type="datetime-local"
-              value={toDatetimeLocal(watch('dueledAt'))}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setValue('dueledAt', fromDatetimeLocal(e.target.value));
-                  setDueledAtChanged(true);
-                }
+              onClick={() => {
+                setShowDueledAt(true);
+                setValue('dueledAt', new Date().toISOString());
               }}
-              className="themed-input"
-            />
-          </div>
-        )}
-      </div>
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              {t('duel.dueledAt')}
+            </button>
+          ) : (
+            <div>
+              <label
+                htmlFor="dueledAt"
+                className="block text-base font-medium mb-1"
+                style={{ color: 'var(--color-on-surface-muted)' }}
+              >
+                {t('duel.dueledAt')}
+              </label>
+              <input
+                id="dueledAt"
+                type="datetime-local"
+                value={toDatetimeLocal(watch('dueledAt'))}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setValue('dueledAt', fromDatetimeLocal(e.target.value));
+                    setDueledAtChanged(true);
+                  }
+                }}
+                className="themed-input"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Row 6: Play Mistake (optional) */}
       {showPlayMistake && (
