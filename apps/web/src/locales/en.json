@@ -256,6 +256,8 @@
     "themeSystem": "System",
     "streamerMode": "Streamer Mode",
     "streamerModeDesc": "Hide personal info like email during streaming",
+    "showPlayMistakeStats": "Show Mistake Stats",
+    "showPlayMistakeStatsDesc": "Display mistake rate cards in the total stats area",
     "saved": "Saved successfully",
     "saveFailed": "Failed to save",
     "language": "Language",

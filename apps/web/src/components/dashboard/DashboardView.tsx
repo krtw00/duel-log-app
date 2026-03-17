@@ -1,5 +1,5 @@
 import type { GameMode } from '@duel-log/shared';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useCreateDuel, useDeleteDuel, useDuels, useUpdateDuel } from '../../hooks/useDuels.js';
@@ -10,6 +10,7 @@ import {
   useStreaks,
   useWinRates,
 } from '../../hooks/useStatistics.js';
+import { api } from '../../lib/api.js';
 import { useStatsImageDownload } from '../../hooks/useStatsImageDownload.js';
 import { demoteRank } from '../../utils/ranks.js';
 import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
@@ -41,9 +42,7 @@ export function DashboardView() {
     const stored = localStorage.getItem('duellog.defaultIsFirst');
     return stored !== null ? stored === 'true' : true;
   });
-  const [showPlayMistake, setShowPlayMistake] = useState(
-    () => localStorage.getItem('duellog.showPlayMistake') === 'true',
-  );
+  const [showPlayMistake, setShowPlayMistake] = useState(false);
 
   // Build date range filter from year/month (season boundary: 8:00 JST)
   const { from, to } = getSeasonRange(year, month);
@@ -69,6 +68,18 @@ export function DashboardView() {
   const createDuel = useCreateDuel();
   const updateDuel = useUpdateDuel();
   const deleteDuel = useDeleteDuel();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const result = await api<{ data: { showPlayMistakeStats: boolean } }>('/me');
+        setShowPlayMistake(result.data.showPlayMistakeStats);
+      } catch {
+        setShowPlayMistake(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
   const duels = duelsData?.data ?? [];
   const decks = decksData?.data ?? [];
@@ -140,7 +151,11 @@ export function DashboardView() {
       />
 
       {/* Stats Cards */}
-      <StatsDisplayCards stats={overviewData?.data} loading={statsLoading} />
+      <StatsDisplayCards
+        stats={overviewData?.data}
+        loading={statsLoading}
+        showPlayMistakeStats={showPlayMistake}
+      />
 
       {/* Stats Popup / OBS Overlay */}
       <StreamerSection gameMode={gameMode} />
@@ -211,20 +226,6 @@ export function DashboardView() {
               </button>
             </div>
           </div>
-          <label className="flex items-center gap-2 ml-4 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showPlayMistake}
-              onChange={(e) => {
-                setShowPlayMistake(e.target.checked);
-                localStorage.setItem('duellog.showPlayMistake', String(e.target.checked));
-              }}
-              className="accent-[var(--color-error)]"
-            />
-            <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
-              {t('duel.showPlayMistake')}
-            </span>
-          </label>
         </div>
       </div>
 
