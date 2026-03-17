@@ -73,7 +73,7 @@ duel-log-app/
 
 ### 必要条件
 
-- Node.js >= 20
+- Node.js 22.x
 - pnpm >= 10
 - Supabase CLI
 
@@ -84,7 +84,7 @@ duel-log-app/
 pnpm install
 
 # ローカルSupabase起動
-npx supabase start
+pnpm supabase:start
 
 # 開発サーバー起動
 pnpm dev
@@ -93,7 +93,8 @@ pnpm dev
 ### アクセス
 
 - アプリ: http://localhost:5173
-- Supabase Studio: http://127.0.0.1:54323
+- Supabase API: http://127.0.0.1:55321
+- Supabase Studio: http://127.0.0.1:55323
 
 ---
 
@@ -108,9 +109,9 @@ pnpm lint          # リント (Biome)
 pnpm typecheck     # 型チェック
 
 # データベース
-npx supabase start      # ローカルSupabase起動
-npx supabase stop       # 停止
-npx supabase db reset   # DBリセット（マイグレーション再適用）
+pnpm supabase:start     # ローカルSupabase起動
+pnpm supabase:stop      # 停止
+pnpm supabase:reset     # DBリセット（マイグレーション再適用）
 ```
 
 ---
@@ -134,6 +135,13 @@ npx supabase db reset   # DBリセット（マイグレーション再適用）
 | フロントエンド + API | Vercel (単一ドメイン) |
 | データベース + 認証 | Supabase Cloud |
 | CI/CD | GitHub Actions |
+
+### 推奨フロー
+
+- `develop`: staging 相当の Vercel Preview + staging 用 Supabase
+- `main`: Vercel Production + Production 用 Supabase
+
+`develop` で確認後に `main` へマージして本番リリースする運用を前提にしています。
 
 詳細: [デプロイ手順](./docs/06-deployment/vercel.md)
 
