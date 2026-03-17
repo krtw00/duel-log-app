@@ -77,7 +77,8 @@
     "playMistakeWinRate": "ミス時勝率",
     "noData": "対戦データがありません",
     "defaultSettings": "新規記録時の初期値",
-    "receivingStats": "メインウィンドウから統計を受信中..."
+    "receivingStats": "メインウィンドウから統計を受信中...",
+    "downloadStatsImage": "戦績画像"
   },
   "duel": {
     "addTitle": "対戦記録を追加",
