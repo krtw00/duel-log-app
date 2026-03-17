@@ -256,6 +256,8 @@
     "themeSystem": "システム",
     "streamerMode": "配信者モード",
     "streamerModeDesc": "配信時にメールアドレスなどの個人情報を隠します",
+    "showPlayMistakeStats": "ミス率を表示",
+    "showPlayMistakeStatsDesc": "総対戦数カードのミス率・ミス時勝率を表示します",
     "saved": "保存しました",
     "saveFailed": "保存に失敗しました",
     "language": "言語",

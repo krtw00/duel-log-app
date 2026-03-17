@@ -256,6 +256,8 @@
     "themeSystem": "시스템",
     "streamerMode": "스트리머 모드",
     "streamerModeDesc": "스트리밍 시 이메일 등 개인정보를 숨깁니다",
+    "showPlayMistakeStats": "미스율 표시",
+    "showPlayMistakeStatsDesc": "총 전적 카드에서 미스율과 미스 시 승률을 표시합니다",
     "saved": "저장되었습니다",
     "saveFailed": "저장에 실패했습니다",
     "language": "언어",

@@ -1,4 +1,4 @@
-import type { UpdateUser } from '@duel-log/shared';
+import type { UpdateUser, User } from '@duel-log/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ export function ProfileView() {
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState('');
   const [streamerMode, setStreamerMode] = useState(false);
+  const [showPlayMistakeStats, setShowPlayMistakeStats] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -37,11 +38,10 @@ export function ProfileView() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const result = await api<{
-          data: { displayName: string; streamerMode: boolean };
-        }>('/me');
+        const result = await api<{ data: User }>('/me');
         setDisplayName(result.data.displayName);
         setStreamerMode(result.data.streamerMode);
+        setShowPlayMistakeStats(result.data.showPlayMistakeStats);
         localStorage.setItem('streamerMode', String(result.data.streamerMode));
       } catch {
         // ignore
@@ -54,7 +54,7 @@ export function ProfileView() {
     setSaving(true);
     setMessage('');
     try {
-      const data: UpdateUser = { displayName, streamerMode };
+      const data: UpdateUser = { displayName, streamerMode, showPlayMistakeStats };
       await api('/me', { method: 'PUT', body: data });
       queryClient.invalidateQueries({ queryKey: ['me'] });
       localStorage.setItem('streamerMode', String(streamerMode));
@@ -211,6 +211,39 @@ export function ProfileView() {
                 type="checkbox"
                 checked={streamerMode}
                 onChange={(e) => setStreamerMode(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-error)"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+                  {t('profile.showPlayMistakeStats')}
+                </p>
+                <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  {t('profile.showPlayMistakeStatsDesc')}
+                </p>
+              </div>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={showPlayMistakeStats}
+                onChange={(e) => setShowPlayMistakeStats(e.target.checked)}
               />
               <span className="toggle-slider" />
             </label>
