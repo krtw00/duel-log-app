@@ -1,5 +1,5 @@
 import type { GameMode } from '@duel-log/shared';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useCreateDuel, useDeleteDuel, useDuels, useUpdateDuel } from '../../hooks/useDuels.js';
@@ -8,7 +8,9 @@ import {
   useModeCounts,
   useOverviewStats,
   useStreaks,
+  useWinRates,
 } from '../../hooks/useStatistics.js';
+import { useStatsImageDownload } from '../../hooks/useStatsImageDownload.js';
 import { demoteRank } from '../../utils/ranks.js';
 import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
 import { CsvExportButton } from '../csv/CsvExportButton.js';
@@ -19,6 +21,7 @@ import { DashboardHeader } from './DashboardHeader.js';
 import { DuelFormDialog } from './DuelFormDialog.js';
 import { DuelTable } from './DuelTable.js';
 import { StatsDisplayCards } from './StatsDisplayCards.js';
+import { StatsImageCard } from './StatsImageCard.js';
 import { StreakBadge } from './StreakBadge.js';
 import { StreamerSection } from './StreamerSection.js';
 
@@ -58,6 +61,10 @@ export function DashboardView() {
   const { data: decksData, isLoading: decksLoading } = useDecks();
   const { data: overviewData, isLoading: statsLoading } = useOverviewStats(statsFilter);
   const { data: streaksData } = useStreaks(statsFilter);
+  const { data: winRatesData } = useWinRates(statsFilter);
+
+  const statsImageRef = useRef<HTMLDivElement>(null);
+  const { download: downloadStatsImage, generating: imageGenerating } = useStatsImageDownload();
 
   const createDuel = useCreateDuel();
   const updateDuel = useUpdateDuel();
@@ -306,6 +313,30 @@ export function DashboardView() {
               </svg>
               <span className="hidden sm:inline">{t('sharing.title')}</span>
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (statsImageRef.current) downloadStatsImage(statsImageRef.current);
+              }}
+              disabled={imageGenerating || !overviewData?.data}
+              className="themed-btn themed-btn-outlined text-sm"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              <span className="hidden sm:inline">
+                {imageGenerating ? '...' : t('dashboard.downloadStatsImage')}
+              </span>
+            </button>
           </div>
         </div>
         <DuelTable
@@ -340,6 +371,21 @@ export function DashboardView() {
         defaultMonth={month}
         defaultGameMode={gameMode}
       />
+
+      {/* Stats Image (offscreen for capture) */}
+      {overviewData?.data && (
+        <div style={{ position: 'fixed', left: -9999, top: 0, pointerEvents: 'none' }}>
+          <StatsImageCard
+            ref={statsImageRef}
+            stats={overviewData.data}
+            streaks={streaksData?.data}
+            gameMode={gameMode}
+            deckWinRates={winRatesData?.data}
+            rank={duels[0]?.rank}
+            rateValue={duels[0]?.rateValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

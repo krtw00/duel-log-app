@@ -77,7 +77,8 @@
     "playMistakeWinRate": "미스 시 승률",
     "noData": "듀얼 데이터 없음",
     "defaultSettings": "신규 기록 시 초기값",
-    "receivingStats": "메인 윈도우에서 통계 수신 중..."
+    "receivingStats": "메인 윈도우에서 통계 수신 중...",
+    "downloadStatsImage": "전적 이미지"
   },
   "duel": {
     "addTitle": "듀얼 기록 추가",
