@@ -81,6 +81,13 @@ Vercel GitHub統合により自動デプロイ:
 | `develop` | Preview |
 | `feature/*` | Preview |
 
+`develop` push 時は GitHub Actions の `deploy-staging` job で alias も更新する。
+
+| ブランチ | 役割 | URL |
+|---------|------|-----|
+| `develop` | staging | `https://duel-log-staging-krtw00s-projects.vercel.app` |
+| `main` | production | `https://duel-log-app.vercel.app` |
+
 ---
 
 ## 環境変数管理

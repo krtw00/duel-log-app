@@ -118,6 +118,7 @@ flowchart TD
 | ファイル | Status | 概要 |
 |---------|--------|------|
 | [vercel.md](./06-deployment/vercel.md) | Active | Vercel設定 |
+| [staging.md](./06-deployment/staging.md) | Active | Staging環境 |
 | [supabase.md](./06-deployment/supabase.md) | Active | Supabase設定 |
 | [ci-cd.md](./06-deployment/ci-cd.md) | Active | CI/CDパイプライン |
 

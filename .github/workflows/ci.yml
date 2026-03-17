@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Lint & Typecheck
@@ -109,3 +113,50 @@ jobs:
         run: supabase db push
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    needs: [check, test, build]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      STAGING_ALIAS: duel-log-staging-krtw00s-projects.vercel.app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Pull Vercel preview env for develop
+        run: npx vercel pull --yes --environment=preview --git-branch=develop --token="$VERCEL_TOKEN"
+
+      - name: Build Vercel output
+        run: npx vercel build --token="$VERCEL_TOKEN"
+
+      - name: Deploy preview and capture URL
+        id: deploy
+        run: |
+          npx vercel deploy --prebuilt --target=preview --token="$VERCEL_TOKEN" --format=json > deploy-result.json
+          DEPLOY_URL="$(jq -r '.url' deploy-result.json | sed 's#^https://##')"
+          echo "deploy_url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Update staging alias
+        run: npx vercel alias set "${{ steps.deploy.outputs.deploy_url }}" "$STAGING_ALIAS" --token="$VERCEL_TOKEN"
+
+      - name: Write summary
+        run: |
+          {
+            echo "## Staging Deployment"
+            echo
+            echo "- Deployment: https://${{ steps.deploy.outputs.deploy_url }}"
+            echo "- Alias: https://$STAGING_ALIAS"
+          } >> "$GITHUB_STEP_SUMMARY"

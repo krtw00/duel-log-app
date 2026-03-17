@@ -167,9 +167,10 @@ Closes #123
 ## リリースフロー
 
 1. `develop`のテストがすべてパス
-2. `develop` → `main`へPR作成
-3. レビュー・承認
-4. マージ → 自動デプロイ
+2. `develop` の Vercel Preview 環境で動作確認
+3. `develop` → `main`へPR作成
+4. レビュー・承認
+5. マージ → Production 自動デプロイ
 
 ### バージョニング
 
