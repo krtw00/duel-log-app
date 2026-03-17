@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { sql } from './db/index.js';
 import { adminMiddleware } from './middleware/admin.js';
 import { authMiddleware } from './middleware/auth.js';
 import { errorMiddleware } from './middleware/error.js';
@@ -20,6 +21,21 @@ const app = new Hono().basePath('/api');
 
 // ヘルスチェック（ミドルウェア前）
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/health/db', async (c) => {
+  try {
+    const [row] = await sql<{ ok: number }[]>`SELECT 1 AS ok`;
+    return c.json({ status: 'ok', db: row?.ok ?? 0, timestamp: new Date().toISOString() });
+  } catch (err) {
+    return c.json(
+      {
+        status: 'error',
+        error: err instanceof Error ? err.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      500,
+    );
+  }
+});
 
 // グローバルミドルウェア
 app.use('*', logger());
