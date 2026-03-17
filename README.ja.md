@@ -1,6 +1,6 @@
 # Duel Log App
 
-[日本語](README.ja.md) | English
+日本語 | [English](README.md)
 
 **遊戯王マスターデュエルの対戦履歴を記録・分析するWebアプリケーション**
 
