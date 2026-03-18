@@ -1,6 +1,22 @@
 import { supabase } from './supabase.js';
 
-const BASE_URL = '/api';
+const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const legacyWebHosts = (import.meta.env.VITE_LEGACY_WEB_HOSTS || 'duel-log-app.vercel.app')
+  .split(',')
+  .map((host: string) => host.trim())
+  .filter(Boolean);
+
+function normalizeBaseUrl(value: string): string {
+  return value.endsWith('/') ? value.slice(0, -1) : value;
+}
+
+function resolveBaseUrl(): string {
+  if (typeof window !== 'undefined' && legacyWebHosts.includes(window.location.host)) {
+    return '/api';
+  }
+
+  return normalizeBaseUrl(DEFAULT_API_BASE_URL);
+}
 
 type RequestOptions = {
   method?: string;
@@ -44,7 +60,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, params } = options;
 
-  let url = `${BASE_URL}${path}`;
+  let url = `${resolveBaseUrl()}${path}`;
   if (params) {
     const searchParams = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
