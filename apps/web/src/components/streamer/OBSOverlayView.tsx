@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ApiError, api } from '../../lib/api.js';
 import { getRankLabel } from '../../utils/ranks.js';
 
 type OBSStats = {
@@ -97,31 +98,30 @@ export function OBSOverlayView() {
       return;
     }
     try {
-      const params = new URLSearchParams({
+      const params: Record<string, string> = {
         token: settings.token,
         game_mode: settings.gameMode,
         stats_period: settings.statsPeriod,
         recent_count: String(settings.recentCount),
-      });
+      };
       if (settings.statsPeriod === 'session') {
-        params.set('from_timestamp', sessionStartRef.current);
+        params.from_timestamp = sessionStartRef.current;
       }
-      const response = await fetch(`/api/obs/stats?${params.toString()}`);
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        const errCode = (body as { error?: { code?: string } }).error?.code;
-        if (errCode === 'INVALID_TOKEN' || errCode === 'UNAUTHORIZED') {
+      const result = await api<{ data: OBSStats }>('/obs/stats', {
+        params,
+      });
+      setData(result.data);
+      dataRef.current = result.data;
+      setError(null);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.code === 'INVALID_TOKEN' || error.code === 'UNAUTHORIZED') {
           setError(t('streamer.invalidToken'));
         } else if (!dataRef.current) {
           setError(t('streamer.fetchError'));
         }
         return;
       }
-      const result = (await response.json()) as { data: OBSStats };
-      setData(result.data);
-      dataRef.current = result.data;
-      setError(null);
-    } catch {
       if (!dataRef.current) {
         setError(t('streamer.fetchError'));
       }
