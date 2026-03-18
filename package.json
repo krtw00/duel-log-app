@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter @duel-log/web --filter @duel-log/api --parallel dev",
+    "pages:build": "pnpm --filter @duel-log/shared build && pnpm --filter @duel-log/web build",
+    "pages:deploy:production": "bash scripts/deploy-cloudflare-production.sh",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check .",
