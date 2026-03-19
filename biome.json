@@ -57,6 +57,7 @@
       ".claude",
       "*.min.js",
       "pnpm-lock.yaml",
+      "firebase.hosting.generated.json",
       "api",
       "packages/api/build.mjs"
     ]
