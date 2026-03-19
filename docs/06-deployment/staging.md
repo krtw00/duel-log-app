@@ -1,13 +1,13 @@
 ---
 depends_on: []
-tags: [deployment, staging, vercel, supabase]
+tags: [deployment, staging, google, firebase, cloud-run, supabase]
 ai_summary: "develop ブランチを staging として運用する手順"
 ---
 
 # Staging環境
 
 > Status: Active
-> 最終更新: 2026-03-17
+> 最終更新: 2026-03-19
 
 `develop` ブランチを staging 環境として運用するための手順。
 
@@ -26,7 +26,8 @@ ai_summary: "develop ブランチを staging として運用する手順"
 | レイヤー | staging | production |
 |---------|---------|------------|
 | Git ブランチ | `develop` | `main` |
-| Vercel | Preview | Production |
+| Frontend | Firebase Hosting `duel-log-staging` | Firebase Hosting `duel-log` |
+| API | Cloud Run `duel-log-api-staging` | Cloud Run `duel-log-api` |
 | Supabase | staging 用プロジェクト | production 用プロジェクト |
 
 > [!IMPORTANT]
@@ -47,23 +48,18 @@ ai_summary: "develop ブランチを staging として運用する手順"
 
 必要な値のひな形は `.env.staging.example` を参照。
 
-### 2. Vercel Preview を staging として固定する
+### 2. Google staging リソースを分離する
 
-Vercel Dashboard → Project → Settings → Git:
+- Firebase Hosting site: `duel-log-staging`
+- Cloud Run service: `duel-log-api-staging`
+- どちらも production とは別名にする
+- API / DB / Auth は production と分離する
 
-| 設定 | 値 |
-|------|----|
-| Production Branch | `main` |
-| Preview Branches | `develop`, `feature/*` |
+### 3. `develop` 向けの staging 環境変数を設定する
 
-### 3. `develop` 向けの Preview 環境変数を設定する
-
-Vercel Dashboard → Project → Settings → Environment Variables:
-
-- `Preview` 環境に staging 用の Supabase 値を設定
-- Branch 指定が使える場合は `develop` に絞る
-
-CLI で pull する場合:
+- `.vercel/.env.preview.local` に staging 用の Supabase / DB / secret を保存する
+- CI では `DUEL_LOG_STAGING_ENV_FILE` secret に同じ内容を複数行で保存する
+- ローカルで既存の preview env を使う場合:
 
 ```bash
 pnpm staging:pull
@@ -81,19 +77,20 @@ pnpm staging:build
 pnpm staging:deploy
 ```
 
-`develop` へ push した場合は GitHub Actions でも staging deploy が走り、固定 alias を更新する。
+`develop` へ push した場合は GitHub Actions でも Google staging deploy が走る。
 
 | 項目 | 値 |
 |------|----|
 | Workflow | `.github/workflows/ci.yml` の `deploy-staging` job |
-| Alias | `https://duel-log-staging-krtw00s-projects.vercel.app` |
+| Frontend | `https://duel-log-staging.web.app` |
+| API | `https://duel-log-api-staging-<hash>.asia-northeast1.run.app/api/health` |
 
 ---
 
 ## 運用フロー
 
 1. `feature/*` から `develop` にマージ
-2. `develop` の Vercel Preview を staging として確認
+2. `develop` の Google staging を確認
 3. 問題なければ `develop` から `main` に PR
 4. `main` マージで production に反映
 
@@ -101,5 +98,5 @@ pnpm staging:deploy
 
 ## 補足
 
-- staging の URL は `https://duel-log-staging-krtw00s-projects.vercel.app`
+- staging の URL は `https://duel-log-staging.web.app`
 - ローカル確認は `pnpm supabase:start` と `pnpm dev`

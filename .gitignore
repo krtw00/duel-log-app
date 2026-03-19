@@ -37,6 +37,9 @@ pnpm-debug.log*
 
 # Vercel
 .vercel
+.cloudrun
+.firebase
+firebase.hosting.generated.json
 
 # Tool-specific
 .claude/
