@@ -7,7 +7,7 @@ ai_summary: "CI/CDパイプラインの設定"
 # CI/CD設定
 
 > Status: Active
-> 最終更新: 2026-01-23
+> 最終更新: 2026-03-19
 
 GitHub ActionsによるCI/CDパイプライン
 
@@ -36,7 +36,8 @@ flowchart TD
     lint --> build["Build<br/>(pnpm build)"]
     typecheck --> build
     test --> build
-    build -->|main branch only| deploy["Deploy<br/>(Vercel)"]
+    build -->|develop branch| staging["Deploy Staging<br/>(Cloud Run + Firebase)"]
+    build -->|main branch only| deploy["Deploy Production<br/>(Cloud Run + Firebase)"]
 ```
 
 ---
@@ -59,34 +60,17 @@ flowchart TD
 | push | main, develop | プッシュ時に実行 |
 | pull_request | main, develop | PR作成/更新時に実行 |
 
-### E2E Workflow（`.github/workflows/e2e.yml`）
+### Deploy jobs（`.github/workflows/ci.yml`）
 
-| ジョブ | 実行コマンド | 説明 |
-|-------|-------------|------|
-| e2e | `pnpm test:e2e` | Playwright E2Eテスト |
-
-失敗時は`playwright-report/`をアーティファクトとしてアップロード。
-
----
-
-## Vercel統合
-
-### 自動デプロイ
-
-Vercel GitHub統合により自動デプロイ:
-
-| ブランチ | デプロイ先 |
-|---------|-----------|
-| `main` | Production |
-| `develop` | Preview |
-| `feature/*` | Preview |
-
-`develop` push 時は GitHub Actions の `deploy-staging` job で alias も更新する。
+| ジョブ | 実行条件 | デプロイ先 |
+|-------|----------|-----------|
+| `deploy-staging` | `develop` push / manual | Firebase Hosting `duel-log-staging` + Cloud Run `duel-log-api-staging` |
+| `deploy-production` | `main` push / manual | Firebase Hosting `duel-log` + Cloud Run `duel-log-api` |
 
 | ブランチ | 役割 | URL |
 |---------|------|-----|
-| `develop` | staging | `https://duel-log-staging-krtw00s-projects.vercel.app` |
-| `main` | production | `https://duel-log-app.vercel.app` |
+| `develop` | staging | `https://duel-log-staging.web.app` |
+| `main` | production | `https://duel-log.codenica.dev` |
 
 ---
 
@@ -97,13 +81,26 @@ Vercel GitHub統合により自動デプロイ:
 | Secret | 用途 |
 |--------|------|
 | `CODECOV_TOKEN` | カバレッジレポート |
-| `VERCEL_TOKEN` | Vercel CLI認証（手動デプロイ時） |
+| `SUPABASE_ACCESS_TOKEN` | production migration |
+| `SUPABASE_PROJECT_REF` | production migration |
+| `DUEL_LOG_PRODUCTION_ENV_FILE` | production 用 app / API env |
+| `DUEL_LOG_STAGING_ENV_FILE` | staging 用 app / API env |
 
 設定場所: `Settings → Secrets and variables → Actions`
 
-### Vercel環境変数
+### GitHub Variables
 
-Vercel Dashboardで管理。GitHub Secretsとは別管理。
+| Variable | 用途 |
+|---------|------|
+| `GOOGLE_CLOUD_PROJECT` | GCP project id |
+| `GOOGLE_CLOUD_REGION` | Cloud Run region |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | GitHub OIDC provider |
+| `GCP_SERVICE_ACCOUNT` | deploy service account |
+| `ARTIFACT_REGISTRY_REPOSITORY` | Docker image repo |
+| `FIREBASE_HOSTING_SITE` | production Hosting site |
+| `CLOUD_RUN_SERVICE` | production API service |
+| `STAGING_FIREBASE_HOSTING_SITE` | staging Hosting site |
+| `STAGING_CLOUD_RUN_SERVICE` | staging API service |
 
 ---
 
@@ -170,7 +167,7 @@ Vercel Dashboardで管理。GitHub Secretsとは別管理。
 
 | 入力 | オプション |
 |------|----------|
-| environment | preview, production |
+| environment | GitHub UI から branch を選んで実行 |
 
 ---
 
@@ -180,4 +177,4 @@ Vercel Dashboardで管理。GitHub Secretsとは別管理。
 |------------|------|
 | [コントリビューションガイド](../07-development/contributing.md) | コントリビューションガイド |
 | [テストガイド](../05-guides/testing.md) | テストガイド |
-| [Vercel設定](./vercel.md) | Vercel設定 |
+| [Staging環境](./staging.md) | Google staging 運用 |
