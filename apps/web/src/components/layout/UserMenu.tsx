@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
@@ -9,6 +9,7 @@ export function UserMenu() {
   const { t } = useTranslation();
   const { user, signOut } = useAuthStore();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -112,9 +113,13 @@ export function UserMenu() {
           <button
             type="button"
             onClick={async () => {
-              await signOut();
-              queryClient.clear();
-              window.location.href = '/login';
+              setOpen(false);
+              try {
+                await signOut();
+              } finally {
+                queryClient.clear();
+                await navigate({ to: '/login', replace: true });
+              }
             }}
             className="menu-item"
             style={{ color: 'var(--color-error)' }}
