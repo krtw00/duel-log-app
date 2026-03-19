@@ -1,8 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { supabase } from '../../lib/supabase.js';
+import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 
 function GoogleIcon({ className }: { className?: string }) {
   return (

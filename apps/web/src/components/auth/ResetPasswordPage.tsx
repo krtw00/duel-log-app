@@ -1,8 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { supabase } from '../../lib/supabase.js';
+import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 
 export function ResetPasswordPage() {
   const { t } = useTranslation();
