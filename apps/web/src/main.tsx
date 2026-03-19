@@ -9,10 +9,24 @@ import { useThemeStore } from './stores/themeStore.js';
 // Initialize theme before render
 useThemeStore.getState().initialize();
 
-// Register service worker
+async function cleanupLegacyServiceWorkers() {
+  if (!('serviceWorker' in navigator)) return;
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  if (registrations.length === 0) return;
+
+  await Promise.all(registrations.map((registration) => registration.unregister()));
+
+  if ('caches' in window) {
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+  }
+}
+
+// Remove stale service workers and caches left by earlier PWA experiments.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    cleanupLegacyServiceWorkers().catch(() => {});
   });
 }
 
