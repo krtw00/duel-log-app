@@ -1,6 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { supabase } from '../../lib/supabase.js';
 
 export function RegisterPage() {
@@ -109,9 +110,11 @@ export function RegisterPage() {
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-5xl font-black tracking-wider uppercase bg-gradient-to-br from-brand-cyan to-brand-purple bg-clip-text text-transparent">
-              DUEL LOG
-            </h1>
+            <DuelLogBrand
+              className="flex flex-col items-center gap-3"
+              markClassName="h-[4.5rem] w-[4.5rem]"
+              labelClassName="text-4xl font-semibold tracking-[0.3em] uppercase text-white"
+            />
             <p className="text-white/60 text-sm tracking-[3px] uppercase mt-2">
               {t('auth.register')}
             </p>
