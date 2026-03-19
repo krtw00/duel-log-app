@@ -5,6 +5,15 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -12,11 +21,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
         
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: 'pnpm'
@@ -38,11 +47,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
         
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: 'pnpm'
@@ -65,11 +74,11 @@ jobs:
     needs: [check]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
         
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: 'pnpm'
@@ -85,16 +94,16 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://placeholder.supabase.co
           VITE_SUPABASE_ANON_KEY: placeholder
-          VITE_API_URL: /api
+          VITE_API_BASE_URL: /api
 
   migrate:
     name: Migrate Database
     runs-on: ubuntu-latest
     needs: [check, test, build]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: supabase/setup-cli@v1
         with:
@@ -109,3 +118,153 @@ jobs:
         run: supabase db push
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    needs: [check, test, build]
+    if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+    env:
+      GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT || 'oauthsetting-484201' }}
+      GOOGLE_CLOUD_REGION: ${{ vars.GOOGLE_CLOUD_REGION || 'asia-northeast1' }}
+      ARTIFACT_REGISTRY_REPO: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'apps' }}
+      FIREBASE_HOSTING_SITE: ${{ vars.STAGING_FIREBASE_HOSTING_SITE || 'duel-log-staging' }}
+      CLOUD_RUN_SERVICE: ${{ vars.STAGING_CLOUD_RUN_SERVICE || 'duel-log-api-staging' }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Write staging env
+        run: |
+          mkdir -p .vercel
+          cat <<'EOF' > .vercel/.env.preview.local
+          ${{ secrets.DUEL_LOG_STAGING_ENV_FILE }}
+          EOF
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+
+      - name: Ensure staging Hosting site exists
+        run: |
+          if ! npx firebase-tools hosting:sites:list --project "$GOOGLE_CLOUD_PROJECT" | grep -q "$FIREBASE_HOSTING_SITE"; then
+            npx firebase-tools hosting:sites:create "$FIREBASE_HOSTING_SITE" --project "$GOOGLE_CLOUD_PROJECT"
+          fi
+
+      - name: Deploy Cloud Run API
+        run: pnpm cloudrun:deploy-api:staging
+        env:
+          GCP_PROJECT_ID: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GCP_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
+          ARTIFACT_REGISTRY_REPO: ${{ env.ARTIFACT_REGISTRY_REPO }}
+          CLOUD_RUN_SERVICE: ${{ env.CLOUD_RUN_SERVICE }}
+
+      - name: Deploy Firebase Hosting
+        run: pnpm firebase:deploy:web:staging
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
+          FIREBASE_HOSTING_SITE: ${{ env.FIREBASE_HOSTING_SITE }}
+          CLOUD_RUN_SERVICE: ${{ env.CLOUD_RUN_SERVICE }}
+
+      - name: Resolve staging API URL
+        id: staging_urls
+        run: |
+          API_URL="$(gcloud run services describe "$CLOUD_RUN_SERVICE" --project "$GOOGLE_CLOUD_PROJECT" --region "$GOOGLE_CLOUD_REGION" --format='value(status.url)')"
+          echo "api_url=$API_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Write summary
+        run: |
+          {
+            echo "## Staging Deployment"
+            echo
+            echo "- Frontend: https://${FIREBASE_HOSTING_SITE}.web.app"
+            echo "- API: ${{ steps.staging_urls.outputs.api_url }}/api/health"
+            echo "- Branch: develop"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    needs: [migrate]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    env:
+      GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT || 'oauthsetting-484201' }}
+      GOOGLE_CLOUD_REGION: ${{ vars.GOOGLE_CLOUD_REGION || 'asia-northeast1' }}
+      ARTIFACT_REGISTRY_REPO: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'apps' }}
+      FIREBASE_HOSTING_SITE: ${{ vars.FIREBASE_HOSTING_SITE || 'duel-log' }}
+      CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'duel-log-api' }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Write production env
+        run: |
+          mkdir -p .vercel
+          cat <<'EOF' > .vercel/.env.production.local
+          ${{ secrets.DUEL_LOG_PRODUCTION_ENV_FILE }}
+          EOF
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+
+      - name: Deploy Cloud Run API
+        run: pnpm cloudrun:deploy-api
+        env:
+          GCP_PROJECT_ID: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GCP_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
+          ARTIFACT_REGISTRY_REPO: ${{ env.ARTIFACT_REGISTRY_REPO }}
+          CLOUD_RUN_SERVICE: ${{ env.CLOUD_RUN_SERVICE }}
+
+      - name: Deploy Firebase Hosting
+        run: pnpm firebase:deploy:web
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_CLOUD_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
+          FIREBASE_HOSTING_SITE: ${{ env.FIREBASE_HOSTING_SITE }}
+          CLOUD_RUN_SERVICE: ${{ env.CLOUD_RUN_SERVICE }}
+
+      - name: Write summary
+        run: |
+          {
+            echo "## Production Deployment"
+            echo
+            echo "- Frontend: https://duel-log.codenica.dev"
+            echo "- API: https://api.duel-log.codenica.dev/api/health"
+            echo "- Branch: main"
+          } >> "$GITHUB_STEP_SUMMARY"
