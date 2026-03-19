@@ -1,6 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { supabase } from '../../lib/supabase.js';
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -89,12 +90,11 @@ export function LoginPage() {
       {/* Left: Branding (desktop only) */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center bg-gradient-to-br from-brand-dark-1 via-brand-dark-2 to-brand-dark-3">
         <div className="relative z-10 text-center px-10">
-          <h1 className="text-7xl font-black tracking-wider mb-2">
-            <span className="text-brand-cyan drop-shadow-[0_0_30px_rgba(0,217,255,0.5)]">DUEL</span>
-            <span className="text-brand-purple drop-shadow-[0_0_30px_rgba(181,54,255,0.5)]">
-              LOG
-            </span>
-          </h1>
+          <DuelLogBrand
+            className="mb-6 flex flex-col items-center gap-5"
+            markClassName="h-28 w-28 drop-shadow-[0_20px_40px_rgba(10,14,39,0.45)]"
+            labelClassName="text-6xl font-semibold tracking-[0.42em] uppercase text-white"
+          />
           <p className="text-white/70 text-lg tracking-[4px] uppercase mb-12">
             Track. Analyze. Dominate.
           </p>
@@ -163,10 +163,11 @@ export function LoginPage() {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 bg-brand-dark-1 lg:bg-brand-dark-2/50">
         {/* Mobile header */}
         <div className="lg:hidden text-center mb-8">
-          <h1 className="text-4xl font-black tracking-wider">
-            <span className="text-brand-cyan">DUEL</span>
-            <span className="text-brand-purple">LOG</span>
-          </h1>
+          <DuelLogBrand
+            className="flex flex-col items-center gap-3"
+            markClassName="h-[4.5rem] w-[4.5rem]"
+            labelClassName="text-3xl font-semibold tracking-[0.3em] uppercase text-white"
+          />
           <p className="text-white/60 text-sm tracking-[3px] uppercase mt-1">
             Track. Analyze. Dominate.
           </p>

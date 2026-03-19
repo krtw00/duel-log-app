@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { supabase } from '../../lib/supabase.js';
 
 export function ForgotPasswordPage() {
@@ -86,9 +87,11 @@ export function ForgotPasswordPage() {
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-black tracking-wider uppercase bg-gradient-to-br from-brand-cyan to-brand-purple bg-clip-text text-transparent">
-              FORGOT PASSWORD
-            </h1>
+            <DuelLogBrand
+              className="mb-3 flex flex-col items-center gap-3"
+              markClassName="h-16 w-16"
+              labelClassName="text-3xl font-semibold tracking-[0.28em] uppercase text-white"
+            />
             <p className="text-white/60 text-sm tracking-[3px] uppercase mt-2">
               {t('auth.resetPassword')}
             </p>
