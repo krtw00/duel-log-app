@@ -99,7 +99,7 @@ Vercel Dashboard → Project → Settings → Git
 | 設定項目 | 値 |
 |---------|-----|
 | Production Branch | `main` |
-| Preview Branches | `develop`, `feature/*` |
+| Preview Branches | `staging`, `feature/*` |
 
 ### 環境変数設定
 

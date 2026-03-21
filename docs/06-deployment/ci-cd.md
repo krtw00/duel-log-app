@@ -56,8 +56,8 @@ flowchart TD
 
 | イベント | ブランチ | 説明 |
 |---------|---------|------|
-| push | main, develop | プッシュ時に実行 |
-| pull_request | main, develop | PR作成/更新時に実行 |
+| push | main, staging | プッシュ時に実行 |
+| pull_request | main, staging | PR作成/更新時に実行 |
 
 ### E2E Workflow（`.github/workflows/e2e.yml`）
 
@@ -78,7 +78,7 @@ Vercel GitHub統合により自動デプロイ:
 | ブランチ | デプロイ先 |
 |---------|-----------|
 | `main` | Production |
-| `develop` | Preview |
+| `staging` | Preview |
 | `feature/*` | Preview |
 
 ---
