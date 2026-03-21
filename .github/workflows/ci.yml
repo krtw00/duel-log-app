@@ -158,7 +158,7 @@ jobs:
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
           create_credentials_file: true
 
-      - uses: google-github-actions/setup-gcloud@v2
+      - uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
 
@@ -239,7 +239,7 @@ jobs:
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
           create_credentials_file: true
 
-      - uses: google-github-actions/setup-gcloud@v2
+      - uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
 
