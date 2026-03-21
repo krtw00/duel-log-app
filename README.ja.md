@@ -138,10 +138,10 @@ pnpm supabase:reset     # DBリセット（マイグレーション再適用）
 
 ### 推奨フロー
 
-- `develop`: staging 相当の Vercel Preview + staging 用 Supabase
+- `staging`: staging 相当の Vercel Preview + staging 用 Supabase
 - `main`: Vercel Production + Production 用 Supabase
 
-`develop` で確認後に `main` へマージして本番リリースする運用を前提にしています。
+`staging` で確認後に `main` へマージして本番リリースする運用を前提にしています。
 
 詳細: [デプロイ手順](./docs/06-deployment/vercel.md)
 

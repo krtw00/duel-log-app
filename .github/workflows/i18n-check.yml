@@ -5,7 +5,7 @@ on:
     paths:
       - 'apps/web/src/locales/**'
   push:
-    branches: [main, develop]
+    branches: [main, staging]
     paths:
       - 'apps/web/src/locales/**'
 

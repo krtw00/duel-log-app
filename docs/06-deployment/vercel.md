@@ -99,17 +99,17 @@ Vercel Dashboard → Project → Settings → Git
 | 設定項目 | 値 |
 |---------|-----|
 | Production Branch | `main` |
-| Preview Branches | `develop`, `feature/*` |
+| Preview Branches | `staging`, `feature/*` |
 
 ### 推奨環境分離
 
 | Vercel環境 | Gitブランチ | 接続先 |
 |-----------|------------|--------|
-| Preview | `develop`, `feature/*` | staging / preview 用 Supabase |
+| Preview | `staging`, `feature/*` | staging / preview 用 Supabase |
 | Production | `main` | Production 用 Supabase |
 
 > [!IMPORTANT]
-> Preview と Production で Supabase プロジェクトを分けてください。同じDBを共有すると、`develop` 検証が本番データに影響します。
+> Preview と Production で Supabase プロジェクトを分けてください。同じDBを共有すると、`staging` 検証が本番データに影響します。
 
 ### 環境変数設定
 
