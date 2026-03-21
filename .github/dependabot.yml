@@ -7,7 +7,7 @@ updates:
   # バックエンド Python依存関係
   - package-ecosystem: "pip"
     directory: "/backend"
-    target-branch: "develop"
+    target-branch: "staging"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -38,7 +38,7 @@ updates:
   # フロントエンド npm依存関係
   - package-ecosystem: "npm"
     directory: "/frontend"
-    target-branch: "develop"
+    target-branch: "staging"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -86,7 +86,7 @@ updates:
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "develop"
+    target-branch: "staging"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -105,7 +105,7 @@ updates:
   # Docker
   - package-ecosystem: "docker"
     directory: "/backend"
-    target-branch: "develop"
+    target-branch: "staging"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -122,7 +122,7 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/frontend"
-    target-branch: "develop"
+    target-branch: "staging"
     schedule:
       interval: "weekly"
       day: "monday"

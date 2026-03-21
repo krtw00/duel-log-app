@@ -39,7 +39,7 @@ Git運用、コーディング規約、プルリクエスト
 
 ```
 main
- ├── develop
+ ├── staging
  │    ├── feature/xxx
  │    ├── fix/yyy
  │    └── ...
@@ -47,9 +47,9 @@ main
  └── (hotfix/zzz) ← 緊急修正のみ
 ```
 
-1. `develop`から作業ブランチを作成
-2. 作業完了後、`develop`へPR
-3. レビュー・マージ後、`develop` → `main`へリリース
+1. `staging`から作業ブランチを作成
+2. 作業完了後、`staging`へPR
+3. レビュー・マージ後、`staging` → `main`へリリース
 
 ---
 
@@ -166,8 +166,8 @@ Closes #123
 
 ## リリースフロー
 
-1. `develop`のテストがすべてパス
-2. `develop` → `main`へPR作成
+1. `staging`のテストがすべてパス
+2. `staging` → `main`へPR作成
 3. レビュー・承認
 4. マージ → 自動デプロイ
 
@@ -187,8 +187,8 @@ Semantic Versioning（SemVer）を採用：
 
 ```bash
 # 1. developから最新を取得
-git checkout develop
-git pull origin develop
+git checkout staging
+git pull origin staging
 
 # 2. 作業ブランチ作成
 git checkout -b feature/add-deck-filter
