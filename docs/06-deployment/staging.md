@@ -1,7 +1,7 @@
 ---
 depends_on: []
 tags: [deployment, staging, google, firebase, cloud-run, supabase]
-ai_summary: "develop ブランチを staging として運用する手順"
+ai_summary: "staging ブランチを staging として運用する手順"
 ---
 
 # Staging環境
@@ -9,13 +9,13 @@ ai_summary: "develop ブランチを staging として運用する手順"
 > Status: Active
 > 最終更新: 2026-03-19
 
-`develop` ブランチを staging 環境として運用するための手順。
+`staging` ブランチを staging 環境として運用するための手順。
 
 ---
 
 ## 目的
 
-- `develop` で本番一歩手前の確認をする
+- `staging` で本番一歩手前の確認をする
 - `main` は本番リリース専用にする
 - staging と production で DB / Auth を分離する
 
@@ -25,7 +25,7 @@ ai_summary: "develop ブランチを staging として運用する手順"
 
 | レイヤー | staging | production |
 |---------|---------|------------|
-| Git ブランチ | `develop` | `main` |
+| Git ブランチ | `staging` | `main` |
 | Frontend | Firebase Hosting `duel-log-staging` | Firebase Hosting `duel-log` |
 | API | Cloud Run `duel-log-api-staging` | Cloud Run `duel-log-api` |
 | Supabase | staging 用プロジェクト | production 用プロジェクト |
@@ -55,7 +55,7 @@ ai_summary: "develop ブランチを staging として運用する手順"
 - どちらも production とは別名にする
 - API / DB / Auth は production と分離する
 
-### 3. `develop` 向けの staging 環境変数を設定する
+### 3. `staging` 向けの staging 環境変数を設定する
 
 - `.vercel/.env.preview.local` に staging 用の Supabase / DB / secret を保存する
 - CI では `DUEL_LOG_STAGING_ENV_FILE` secret に同じ内容を複数行で保存する
@@ -77,7 +77,7 @@ pnpm staging:build
 pnpm staging:deploy
 ```
 
-`develop` へ push した場合は GitHub Actions でも Google staging deploy が走る。
+`staging` へ push した場合は GitHub Actions でも Google staging deploy が走る。
 
 | 項目 | 値 |
 |------|----|
@@ -89,9 +89,9 @@ pnpm staging:deploy
 
 ## 運用フロー
 
-1. `feature/*` から `develop` にマージ
-2. `develop` の Google staging を確認
-3. 問題なければ `develop` から `main` に PR
+1. `feature/*` から `staging` にマージ
+2. `staging` の Google staging を確認
+3. 問題なければ `staging` から `main` に PR
 4. `main` マージで production に反映
 
 ---

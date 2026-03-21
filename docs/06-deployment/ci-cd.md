@@ -36,7 +36,7 @@ flowchart TD
     lint --> build["Build<br/>(pnpm build)"]
     typecheck --> build
     test --> build
-    build -->|develop branch| staging["Deploy Staging<br/>(Cloud Run + Firebase)"]
+    build -->|staging branch| staging["Deploy Staging<br/>(Cloud Run + Firebase)"]
     build -->|main branch only| deploy["Deploy Production<br/>(Cloud Run + Firebase)"]
 ```
 
@@ -57,19 +57,19 @@ flowchart TD
 
 | イベント | ブランチ | 説明 |
 |---------|---------|------|
-| push | main, develop | プッシュ時に実行 |
-| pull_request | main, develop | PR作成/更新時に実行 |
+| push | main, staging | プッシュ時に実行 |
+| pull_request | main, staging | PR作成/更新時に実行 |
 
 ### Deploy jobs（`.github/workflows/ci.yml`）
 
 | ジョブ | 実行条件 | デプロイ先 |
 |-------|----------|-----------|
-| `deploy-staging` | `develop` push / manual | Firebase Hosting `duel-log-staging` + Cloud Run `duel-log-api-staging` |
+| `deploy-staging` | `staging` push / manual | Firebase Hosting `duel-log-staging` + Cloud Run `duel-log-api-staging` |
 | `deploy-production` | `main` push / manual | Firebase Hosting `duel-log` + Cloud Run `duel-log-api` |
 
 | ブランチ | 役割 | URL |
 |---------|------|-----|
-| `develop` | staging | `https://duel-log-staging.web.app` |
+| `staging` | staging | `https://duel-log-staging.web.app` |
 | `main` | production | `https://duel-log.codenica.dev` |
 
 ---
@@ -115,7 +115,7 @@ flowchart TD
 | Require PR reviews | ✅ |
 | Dismiss stale reviews | ✅ |
 
-### developブランチ
+### stagingブランチ
 
 | 設定 | 値 |
 |------|-----|
