@@ -363,7 +363,7 @@ function ScreenshotShowcase() {
   }, []);
 
   return (
-    <div className="w-full max-w-[420px] mx-auto">
+    <div className="w-full max-w-[560px] mx-auto">
       <div className="relative aspect-[16/10]">
         {LANDING_SCREENSHOTS.map((shot, i) => (
           <img
