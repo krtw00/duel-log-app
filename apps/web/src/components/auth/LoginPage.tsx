@@ -93,14 +93,14 @@ export function LoginPage() {
     <div className="min-h-screen flex">
       {/* Left: Branding (desktop only) */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center bg-gradient-to-br from-brand-dark-1 via-brand-dark-2 to-brand-dark-3">
-        <div className="relative z-10 text-center px-10">
+        <div className="relative z-10 text-center px-6 w-full max-w-[640px]">
           <h1 className="text-7xl font-black tracking-wider mb-2">
             <span className="text-brand-cyan drop-shadow-[0_0_30px_rgba(0,217,255,0.5)]">DUEL</span>
             <span className="text-brand-purple drop-shadow-[0_0_30px_rgba(181,54,255,0.5)]">
               LOG
             </span>
           </h1>
-          <p className="text-white/70 text-lg tracking-[4px] uppercase mb-8">
+          <p className="text-white/70 text-lg tracking-[4px] uppercase mb-6">
             Track. Analyze. Dominate.
           </p>
 
@@ -363,7 +363,7 @@ function ScreenshotShowcase() {
   }, []);
 
   return (
-    <div className="w-full max-w-[560px] mx-auto">
+    <div className="w-full mx-auto">
       <div className="relative aspect-[16/10]">
         {LANDING_SCREENSHOTS.map((shot, i) => (
           <img
