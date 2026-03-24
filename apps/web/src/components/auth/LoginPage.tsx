@@ -358,20 +358,22 @@ function ScreenshotShowcase() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % LANDING_SCREENSHOTS.length);
-    }, 8000);
+    }, 6000);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <div className="w-full mx-auto">
-      <div className="relative h-[480px] rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="relative h-[480px] rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]">
         {LANDING_SCREENSHOTS.map((shot, i) => (
           <img
             key={shot.src}
             src={shot.src}
             alt={shot.label}
-            className={`absolute top-0 left-0 w-full transition-opacity duration-700 ${
-              i === activeIndex ? 'opacity-100 animate-screenshot-scroll' : 'opacity-0'
+            className={`w-full transition-opacity duration-700 ${
+              i === activeIndex
+                ? 'relative opacity-100'
+                : 'absolute top-0 left-0 opacity-0 pointer-events-none'
             }`}
           />
         ))}
