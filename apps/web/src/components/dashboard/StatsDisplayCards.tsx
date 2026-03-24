@@ -5,6 +5,7 @@ type Props = {
   stats?: OverviewStats;
   loading?: boolean;
   gridClassName?: string;
+  showPlayMistakeStats?: boolean;
 };
 
 const DEFAULT_GRID = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3';
@@ -17,7 +18,12 @@ type StatCardData = {
   icon: React.ReactNode;
 };
 
-export function StatsDisplayCards({ stats, loading, gridClassName }: Props) {
+export function StatsDisplayCards({
+  stats,
+  loading,
+  gridClassName,
+  showPlayMistakeStats = false,
+}: Props) {
   const gridClass = gridClassName ?? DEFAULT_GRID;
   const { t } = useTranslation();
 
@@ -177,7 +183,7 @@ export function StatsDisplayCards({ stats, loading, gridClassName }: Props) {
     },
   ];
 
-  if (s.playMistakes > 0) {
+  if (showPlayMistakeStats && s.playMistakes > 0) {
     cards.push(
       {
         label: t('dashboard.playMistakeRate'),

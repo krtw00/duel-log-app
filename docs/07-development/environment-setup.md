@@ -27,7 +27,7 @@ ai_summary: "開発環境の詳細な構築手順"
 
 | 要件 | バージョン | インストール |
 |------|-----------|-------------|
-| Node.js | 20+ | `nvm install 20` |
+| Node.js | 22.x | `nvm install 22` |
 | pnpm | 10+ | `npm install -g pnpm` |
 | Docker Desktop | 最新版 | [公式サイト](https://www.docker.com/products/docker-desktop/)（Supabase CLI用） |
 
@@ -51,16 +51,16 @@ pnpm install
 ### 3. ローカルSupabase起動
 
 ```bash
-npx supabase start
+pnpm supabase:start
 ```
 
 起動後に表示される情報：
 
 ```
-         API URL: http://127.0.0.1:54321
-     GraphQL URL: http://127.0.0.1:54321/graphql/v1
-          DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
-      Studio URL: http://127.0.0.1:54323
+         API URL: http://127.0.0.1:55321
+     GraphQL URL: http://127.0.0.1:55321/graphql/v1
+          DB URL: postgresql://postgres:postgres@127.0.0.1:55322/postgres
+      Studio URL: http://127.0.0.1:55323
         anon key: eyJhbGciOiJIUzI1NiIs...
 service_role key: eyJhbGciOiJIUzI1NiIs...
 ```
@@ -75,9 +75,10 @@ cp .env.example .env
 
 ```bash
 # Supabase（ローカル）
-VITE_SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_URL=http://127.0.0.1:55321
+VITE_SUPABASE_URL=http://127.0.0.1:55321
 VITE_SUPABASE_ANON_KEY=<起動時に表示されたanon key>
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
 ```
 
 ### 5. データベースセットアップ
@@ -100,7 +101,8 @@ pnpm dev
 |---------|-----|
 | フロントエンド | http://localhost:5173 |
 | API | http://localhost:5173/api |
-| Supabase Studio | http://127.0.0.1:54323 |
+| Supabase API | http://127.0.0.1:55321 |
+| Supabase Studio | http://127.0.0.1:55323 |
 
 ---
 

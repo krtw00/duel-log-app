@@ -1,8 +1,12 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase.js';
-import { DuelLogBrand } from '../brand/DuelLogBrand.js';
+
+const LANDING_SCREENSHOTS = [
+  { src: '/landing/screenshot-dashboard.png', label: 'ダッシュボード' },
+  { src: '/landing/screenshot-statistics.png', label: '統計・分析' },
+] as const;
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -90,68 +94,17 @@ export function LoginPage() {
       {/* Left: Branding (desktop only) */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center bg-gradient-to-br from-brand-dark-1 via-brand-dark-2 to-brand-dark-3">
         <div className="relative z-10 text-center px-10">
-          <DuelLogBrand
-            className="mb-6 flex flex-col items-center gap-5"
-            markClassName="h-28 w-28 drop-shadow-[0_20px_40px_rgba(10,14,39,0.45)]"
-            labelClassName="text-6xl font-semibold tracking-[0.42em] uppercase text-white"
-          />
-          <p className="text-white/70 text-lg tracking-[4px] uppercase mb-12">
+          <h1 className="text-7xl font-black tracking-wider mb-2">
+            <span className="text-brand-cyan drop-shadow-[0_0_30px_rgba(0,217,255,0.5)]">DUEL</span>
+            <span className="text-brand-purple drop-shadow-[0_0_30px_rgba(181,54,255,0.5)]">
+              LOG
+            </span>
+          </h1>
+          <p className="text-white/70 text-lg tracking-[4px] uppercase mb-8">
             Track. Analyze. Dominate.
           </p>
 
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3 text-white/85 px-6 py-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 hover:translate-x-1 transition-all">
-              <svg
-                aria-hidden="true"
-                className="w-5 h-5 text-brand-cyan shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <span>対戦統計の可視化</span>
-            </div>
-            <div className="flex items-center gap-3 text-white/85 px-6 py-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 hover:translate-x-1 transition-all">
-              <svg
-                aria-hidden="true"
-                className="w-5 h-5 text-brand-purple shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-              <span>デッキ管理・分析</span>
-            </div>
-            <div className="flex items-center gap-3 text-white/85 px-6 py-3 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 hover:translate-x-1 transition-all">
-              <svg
-                aria-hidden="true"
-                className="w-5 h-5 text-brand-green shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-              <span>配信者サポート</span>
-            </div>
-          </div>
+          <ScreenshotShowcase />
         </div>
 
         {/* Glow orbs */}
@@ -163,11 +116,10 @@ export function LoginPage() {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 bg-brand-dark-1 lg:bg-brand-dark-2/50">
         {/* Mobile header */}
         <div className="lg:hidden text-center mb-8">
-          <DuelLogBrand
-            className="flex flex-col items-center gap-3"
-            markClassName="h-[4.5rem] w-[4.5rem]"
-            labelClassName="text-3xl font-semibold tracking-[0.3em] uppercase text-white"
-          />
+          <h1 className="text-4xl font-black tracking-wider">
+            <span className="text-brand-cyan">DUEL</span>
+            <span className="text-brand-purple">LOG</span>
+          </h1>
           <p className="text-white/60 text-sm tracking-[3px] uppercase mt-1">
             Track. Analyze. Dominate.
           </p>
@@ -396,6 +348,52 @@ export function LoginPage() {
 
       {/* Terms Dialog */}
       {showTermsDialog && <TermsDialog onClose={() => setShowTermsDialog(false)} />}
+    </div>
+  );
+}
+
+function ScreenshotShowcase() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % LANDING_SCREENSHOTS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="w-full max-w-[420px] mx-auto">
+      <div className="relative aspect-[16/10]">
+        {LANDING_SCREENSHOTS.map((shot, i) => (
+          <img
+            key={shot.src}
+            src={shot.src}
+            alt={shot.label}
+            className={`absolute inset-0 w-full h-full object-cover rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-700 ${
+              i === activeIndex
+                ? 'opacity-100 scale-100 translate-y-0'
+                : 'opacity-0 scale-95 translate-y-2'
+            }`}
+          />
+        ))}
+      </div>
+      <div className="flex justify-center gap-2 mt-4">
+        {LANDING_SCREENSHOTS.map((shot, i) => (
+          <button
+            key={shot.src}
+            type="button"
+            onClick={() => setActiveIndex(i)}
+            className={`px-3 py-1 text-xs rounded-full border transition-all ${
+              i === activeIndex
+                ? 'bg-brand-cyan/20 border-brand-cyan/50 text-brand-cyan'
+                : 'bg-white/5 border-white/10 text-white/50 hover:text-white/70'
+            }`}
+          >
+            {shot.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

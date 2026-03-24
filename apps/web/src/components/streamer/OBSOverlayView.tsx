@@ -98,30 +98,30 @@ export function OBSOverlayView() {
       return;
     }
     try {
-      const params: Record<string, string> = {
+      const params = new URLSearchParams({
         token: settings.token,
         game_mode: settings.gameMode,
         stats_period: settings.statsPeriod,
         recent_count: String(settings.recentCount),
-      };
+      });
       if (settings.statsPeriod === 'session') {
-        params.from_timestamp = sessionStartRef.current;
+        params.set('from_timestamp', sessionStartRef.current);
       }
       const result = await api<{ data: OBSStats }>('/obs/stats', {
-        params,
+        params: Object.fromEntries(params.entries()),
       });
       setData(result.data);
       dataRef.current = result.data;
       setError(null);
     } catch (error) {
-      if (error instanceof ApiError) {
-        if (error.code === 'INVALID_TOKEN' || error.code === 'UNAUTHORIZED') {
-          setError(t('streamer.invalidToken'));
-        } else if (!dataRef.current) {
-          setError(t('streamer.fetchError'));
-        }
+      if (
+        error instanceof ApiError &&
+        (error.code === 'INVALID_TOKEN' || error.code === 'UNAUTHORIZED')
+      ) {
+        setError(t('streamer.invalidToken'));
         return;
       }
+
       if (!dataRef.current) {
         setError(t('streamer.fetchError'));
       }

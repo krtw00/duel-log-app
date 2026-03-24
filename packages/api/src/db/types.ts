@@ -6,6 +6,7 @@ export interface UserRow {
   isDebugger: boolean;
   themePreference: string;
   streamerMode: boolean;
+  showPlayMistakeStats: boolean;
   status: string;
   statusReason: string | null;
   lastLoginAt: Date | null;
