@@ -167,7 +167,7 @@ body {
   }
   40%,
   60% {
-    transform: translateY(calc(-100% + 340px));
+    transform: translateY(calc(-100% + 480px));
   }
   85%,
   100% {

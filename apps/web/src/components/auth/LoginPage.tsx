@@ -92,15 +92,15 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left: Branding (desktop only) */}
-      <div className="hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center bg-gradient-to-br from-brand-dark-1 via-brand-dark-2 to-brand-dark-3">
-        <div className="relative z-10 text-center px-6 w-full max-w-[640px]">
-          <h1 className="text-7xl font-black tracking-wider mb-2">
+      <div className="hidden lg:flex w-3/5 relative overflow-hidden flex-col items-center justify-center bg-gradient-to-br from-brand-dark-1 via-brand-dark-2 to-brand-dark-3">
+        <div className="relative z-10 text-center px-8 w-full max-w-[720px]">
+          <h1 className="text-5xl font-black tracking-wider mb-1">
             <span className="text-brand-cyan drop-shadow-[0_0_30px_rgba(0,217,255,0.5)]">DUEL</span>
             <span className="text-brand-purple drop-shadow-[0_0_30px_rgba(181,54,255,0.5)]">
               LOG
             </span>
           </h1>
-          <p className="text-white/70 text-lg tracking-[4px] uppercase mb-6">
+          <p className="text-white/70 text-sm tracking-[4px] uppercase mb-4">
             Track. Analyze. Dominate.
           </p>
 
@@ -113,7 +113,7 @@ export function LoginPage() {
       </div>
 
       {/* Right: Form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 bg-brand-dark-1 lg:bg-brand-dark-2/50">
+      <div className="w-full lg:w-2/5 flex flex-col items-center justify-center px-6 py-12 bg-brand-dark-1 lg:bg-brand-dark-2/50">
         {/* Mobile header */}
         <div className="lg:hidden text-center mb-8">
           <h1 className="text-4xl font-black tracking-wider">
@@ -364,7 +364,7 @@ function ScreenshotShowcase() {
 
   return (
     <div className="w-full mx-auto">
-      <div className="relative h-[340px] rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="relative h-[480px] rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
         {LANDING_SCREENSHOTS.map((shot, i) => (
           <img
             key={shot.src}
