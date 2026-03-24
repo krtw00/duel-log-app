@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const DEFAULT_INPUT = '.vercel/.env.production.local';
+const DEFAULT_INPUT = '.env/production';
 const DEFAULT_OUTPUT = '.firebase/hosting.production.env';
 
 const REQUIRED_KEYS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'];
@@ -19,7 +19,7 @@ const OPTIONAL_KEYS = [
 const DEFAULTS = {
   VITE_API_BASE_URL: '/api',
   VITE_PRIMARY_WEB_URL: 'https://duel-log.codenica.dev',
-  VITE_LEGACY_WEB_HOSTS: 'duel-log-app.vercel.app',
+  VITE_LEGACY_WEB_HOSTS: '',
 };
 
 function parseArgs(argv) {

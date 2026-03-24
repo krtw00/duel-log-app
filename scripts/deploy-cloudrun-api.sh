@@ -15,7 +15,7 @@ SERVICE_NAME="${CLOUD_RUN_SERVICE:-duel-log-api}"
 IMAGE_NAME="${CLOUD_RUN_IMAGE_NAME:-api}"
 MIN_INSTANCES="${CLOUD_RUN_MIN_INSTANCES:-1}"
 MAX_INSTANCES="${CLOUD_RUN_MAX_INSTANCES:-20}"
-ENV_INPUT="${CLOUD_RUN_ENV_INPUT:-$ROOT_DIR/.vercel/.env.production.local}"
+ENV_INPUT="${CLOUD_RUN_ENV_INPUT:-$ROOT_DIR/.env/production}"
 ENV_FILE="${CLOUD_RUN_ENV_FILE:-$ROOT_DIR/.cloudrun/api.env.yaml}"
 BUILD_CONFIG="${CLOUD_BUILD_CONFIG:-deploy/google/cloudbuild.api.yaml}"
 
