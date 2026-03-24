@@ -100,7 +100,7 @@ jobs:
     name: Migrate Database
     runs-on: ubuntu-latest
     needs: [check, test, build]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v5
@@ -146,8 +146,8 @@ jobs:
 
       - name: Write staging env
         run: |
-          mkdir -p .vercel
-          cat <<'EOF' > .vercel/.env.preview.local
+          mkdir -p .env
+          cat <<'EOF' > .env/staging
           ${{ secrets.DUEL_LOG_STAGING_ENV_FILE }}
           EOF
 
@@ -203,7 +203,7 @@ jobs:
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
-    needs: [migrate]
+    needs: [check, test, build]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     env:
       GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT || 'oauthsetting-484201' }}
@@ -227,8 +227,8 @@ jobs:
 
       - name: Write production env
         run: |
-          mkdir -p .vercel
-          cat <<'EOF' > .vercel/.env.production.local
+          mkdir -p .env
+          cat <<'EOF' > .env/production
           ${{ secrets.DUEL_LOG_PRODUCTION_ENV_FILE }}
           EOF
 

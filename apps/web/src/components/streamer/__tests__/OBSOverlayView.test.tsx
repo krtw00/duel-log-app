@@ -30,7 +30,11 @@ vi.mock('../../../utils/ranks.js', () => ({
 describe('OBSOverlayView', () => {
   beforeEach(() => {
     apiMock.mockReset();
-    window.history.pushState({}, '', '/obs-overlay?token=test-token&game_mode=RANK&stats_period=monthly');
+    window.history.pushState(
+      {},
+      '',
+      '/obs-overlay?token=test-token&game_mode=RANK&stats_period=monthly',
+    );
   });
 
   afterEach(() => {

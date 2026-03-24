@@ -1,4 +1,5 @@
 import { Wrench } from 'lucide-react';
+import { DuelLogBrand } from './brand/DuelLogBrand.js';
 
 export function MaintenancePage() {
   return (
@@ -6,6 +7,13 @@ export function MaintenancePage() {
       <div className="max-w-lg w-full text-center">
         {/* アイコン */}
         <div className="mb-8">
+          <div className="mb-5 flex justify-center">
+            <DuelLogBrand
+              className="flex flex-col items-center gap-3"
+              markClassName="h-16 w-16"
+              labelClassName="text-xl font-semibold tracking-[0.24em] uppercase text-white"
+            />
+          </div>
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-cyan/10 border border-brand-cyan/20">
             <Wrench className="w-10 h-10 text-brand-cyan animate-pulse" />
           </div>
@@ -36,7 +44,7 @@ export function MaintenancePage() {
 
         {/* フッター */}
         <div className="text-white/40 text-sm">
-          <p>Duel Log</p>
+          <p>Service maintenance in progress</p>
         </div>
       </div>
     </div>

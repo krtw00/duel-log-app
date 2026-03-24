@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '../LanguageSwitcher.js';
 import { ThemeToggle } from '../ThemeToggle.js';
+import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { UserMenu } from './UserMenu.js';
 
 export function AppBar() {
@@ -55,9 +56,12 @@ export function AppBar() {
   };
 
   const logo = (
-    <Link to="/" className="flex items-center gap-0.5 text-lg font-bold tracking-tight">
-      <span style={{ color: '#00d9ff' }}>DUEL</span>
-      <span style={{ color: '#b536ff' }}>LOG</span>
+    <Link to="/" className="flex items-center">
+      <DuelLogBrand
+        className="flex items-center gap-2"
+        markClassName="h-9 w-9 shrink-0"
+        labelClassName="text-base font-semibold tracking-[0.18em] uppercase text-white"
+      />
     </Link>
   );
 
