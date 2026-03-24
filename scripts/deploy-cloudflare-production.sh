@@ -9,9 +9,9 @@ if [[ -f ".env.cloudflare.production" ]]; then
   set -a
   source ".env.cloudflare.production"
   set +a
-elif [[ -f ".vercel/.env.production.local" ]]; then
+elif [[ -f ".env/production" ]]; then
   set -a
-  source ".vercel/.env.production.local"
+  source ".env/production"
   set +a
 fi
 

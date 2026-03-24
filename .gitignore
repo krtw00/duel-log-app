@@ -35,8 +35,8 @@ pnpm-debug.log*
 *.sqlite
 *.sqlite3
 
-# Vercel
-.vercel
+# Deploy
+.env/
 .cloudrun
 .firebase
 firebase.hosting.generated.json
@@ -54,7 +54,7 @@ supabase/.branches
 supabase/.temp
 packages/api/debug-logs/
 
-# Vercel API build output
+# API build output
 api/*.js
 
 CLAUDE.md

@@ -50,7 +50,7 @@
       "node_modules",
       "dist",
       ".pnpm-store",
-      ".vercel",
+      ".env",
       "backend",
       "frontend",
       "scripts",
@@ -59,7 +59,7 @@
       "pnpm-lock.yaml",
       "firebase.hosting.generated.json",
       "api",
-      "packages/api/build.mjs"
+      "packages/api/build-server.mjs"
     ]
   }
 }

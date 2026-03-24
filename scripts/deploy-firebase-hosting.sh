@@ -12,14 +12,14 @@ PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-${GCP_PROJECT_ID:-}}"
 REGION="${GOOGLE_CLOUD_REGION:-${GCP_REGION:-asia-northeast1}}"
 SITE_ID="${FIREBASE_HOSTING_SITE:-duel-log}"
 SERVICE_NAME="${CLOUD_RUN_SERVICE:-duel-log-api}"
-ENV_INPUT="${FIREBASE_WEB_ENV_INPUT:-$ROOT_DIR/.vercel/.env.production.local}"
+ENV_INPUT="${FIREBASE_WEB_ENV_INPUT:-$ROOT_DIR/.env/production}"
 ENV_FILE="${FIREBASE_WEB_ENV_FILE:-$ROOT_DIR/.firebase/hosting.production.env}"
 CONFIG_FILE="${FIREBASE_CONFIG_FILE:-$ROOT_DIR/firebase.hosting.generated.json}"
 MODE="${FIREBASE_HOSTING_MODE:-spa}"
 PUBLIC_DIR="${FIREBASE_HOSTING_PUBLIC_DIR:-$ROOT_DIR/apps/web/dist}"
 API_BASE_URL="${FIREBASE_WEB_API_BASE_URL:-/api}"
 PRIMARY_WEB_URL="${FIREBASE_WEB_PRIMARY_URL:-https://duel-log.codenica.dev}"
-LEGACY_WEB_HOSTS="${FIREBASE_WEB_LEGACY_HOSTS:-duel-log-app.vercel.app}"
+LEGACY_WEB_HOSTS="${FIREBASE_WEB_LEGACY_HOSTS:-}"
 
 if [[ -z "$PROJECT_ID" ]]; then
   echo "GOOGLE_CLOUD_PROJECT or GCP_PROJECT_ID is required." >&2

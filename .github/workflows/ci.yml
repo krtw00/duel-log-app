@@ -146,8 +146,8 @@ jobs:
 
       - name: Write staging env
         run: |
-          mkdir -p .vercel
-          cat <<'EOF' > .vercel/.env.preview.local
+          mkdir -p .env
+          cat <<'EOF' > .env/staging
           ${{ secrets.DUEL_LOG_STAGING_ENV_FILE }}
           EOF
 
@@ -227,8 +227,8 @@ jobs:
 
       - name: Write production env
         run: |
-          mkdir -p .vercel
-          cat <<'EOF' > .vercel/.env.production.local
+          mkdir -p .env
+          cat <<'EOF' > .env/production
           ${{ secrets.DUEL_LOG_PRODUCTION_ENV_FILE }}
           EOF
 

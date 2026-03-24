@@ -1,15 +1,6 @@
 import { supabase } from './supabase.js';
 
-const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
-const legacyWebHosts = new Set(['duel-log-app.vercel.app']);
-
-function resolveBaseUrl() {
-  const currentOrigin = window.location.origin;
-  if (legacyWebHosts.has(window.location.hostname)) {
-    return currentOrigin;
-  }
-  return DEFAULT_API_BASE_URL;
-}
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 type RequestOptions = {
   method?: string;
@@ -52,7 +43,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, params } = options;
-  const baseUrl = resolveBaseUrl();
+  const baseUrl = API_BASE_URL;
 
   let url = `${baseUrl}${path}`;
   if (params) {

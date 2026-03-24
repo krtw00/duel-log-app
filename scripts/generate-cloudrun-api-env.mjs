@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const DEFAULT_INPUT = '.vercel/.env.production.local';
+const DEFAULT_INPUT = '.env/production';
 const DEFAULT_OUTPUT = '.cloudrun/api.env.yaml';
 
 const REQUIRED_KEYS = ['DATABASE_URL', 'SUPABASE_URL'];
