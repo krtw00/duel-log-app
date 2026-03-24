@@ -161,9 +161,18 @@ body {
 }
 
 @keyframes screenshot-scroll {
-  0%, 15% { object-position: top; }
-  40%, 60% { object-position: bottom; }
-  85%, 100% { object-position: top; }
+  0%,
+  15% {
+    object-position: top;
+  }
+  40%,
+  60% {
+    object-position: bottom;
+  }
+  85%,
+  100% {
+    object-position: top;
+  }
 }
 
 @utility animate-float {
