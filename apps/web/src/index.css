@@ -163,15 +163,15 @@ body {
 @keyframes screenshot-scroll {
   0%,
   15% {
-    object-position: top;
+    transform: translateY(0);
   }
   40%,
   60% {
-    object-position: bottom;
+    transform: translateY(calc(-100% + 340px));
   }
   85%,
   100% {
-    object-position: top;
+    transform: translateY(0);
   }
 }
 
