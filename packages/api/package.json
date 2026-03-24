@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "node build.mjs",
-    "build:server": "node build-server.mjs",
+    "build": "node build-server.mjs",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
