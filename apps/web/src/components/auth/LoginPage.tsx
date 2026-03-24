@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase.js';
 
@@ -354,13 +354,6 @@ export function LoginPage() {
 
 function ScreenshotShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % LANDING_SCREENSHOTS.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <div className="w-full mx-auto">
