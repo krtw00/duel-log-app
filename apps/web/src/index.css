@@ -156,6 +156,16 @@ body {
 }
 
 /* Utilities */
+@utility animate-screenshot-scroll {
+  animation: screenshot-scroll 8s ease-in-out infinite;
+}
+
+@keyframes screenshot-scroll {
+  0%, 15% { object-position: top; }
+  40%, 60% { object-position: bottom; }
+  85%, 100% { object-position: top; }
+}
+
 @utility animate-float {
   animation: float 10s ease-in-out infinite;
 }
