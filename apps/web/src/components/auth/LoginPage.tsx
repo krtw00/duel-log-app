@@ -370,10 +370,8 @@ function ScreenshotShowcase() {
             key={shot.src}
             src={shot.src}
             alt={shot.label}
-            className={`absolute inset-0 w-full object-cover object-top transition-all duration-700 ${
-              i === activeIndex
-                ? 'opacity-100 scale-100 animate-screenshot-scroll'
-                : 'opacity-0 scale-95'
+            className={`absolute top-0 left-0 w-full transition-opacity duration-700 ${
+              i === activeIndex ? 'opacity-100 animate-screenshot-scroll' : 'opacity-0'
             }`}
           />
         ))}
