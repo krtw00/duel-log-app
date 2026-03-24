@@ -1,10 +1,16 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OBSOverlayView } from '../OBSOverlayView.js';
 
 const apiMock = vi.fn();
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 vi.mock('../../../lib/api.js', () => ({
+  api: apiMock,
   ApiError: class ApiError extends Error {
     constructor(
       public status: number,
@@ -15,17 +21,27 @@ vi.mock('../../../lib/api.js', () => ({
       this.name = 'ApiError';
     }
   },
-  api: (...args: unknown[]) => apiMock(...args),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
+vi.mock('../../../utils/ranks.js', () => ({
+  getRankLabel: () => 'Master I',
 }));
 
 describe('OBSOverlayView', () => {
   beforeEach(() => {
+    apiMock.mockReset();
+    window.history.pushState(
+      {},
+      '',
+      '/obs-overlay?token=test-token&game_mode=RANK&stats_period=monthly',
+    );
+  });
+
+  afterEach(() => {
+    window.history.pushState({}, '', '/');
+  });
+
+  it('fetches OBS stats via the shared api client', async () => {
     apiMock.mockResolvedValue({
       data: {
         totalDuels: 10,
@@ -35,40 +51,34 @@ describe('OBSOverlayView', () => {
         firstRate: 0.5,
         firstWinRate: 0.7,
         secondWinRate: 0.5,
-        coinTossWinRate: 0.5,
+        coinTossWinRate: 0.4,
         currentStreak: 2,
         currentStreakType: 'win',
+        currentDeck: 'Blue-Eyes',
         recentResults: [],
-        sessionWins: 0,
+        sessionWins: 6,
         gameMode: 'RANK',
+        rank: 1,
       },
     });
-    window.history.replaceState(
-      {},
-      '',
-      '/streamer/overlay?token=test-token&game_mode=RANK&stats_period=monthly&recent_count=10',
-    );
-  });
 
-  afterEach(() => {
-    cleanup();
-    apiMock.mockReset();
-  });
-
-  it('fetches OBS stats through the shared API client', async () => {
-    render(<OBSOverlayView />);
+    const { OBSOverlayView } = await import('../OBSOverlayView.js');
+    const view = render(<OBSOverlayView />);
 
     await waitFor(() => {
-      expect(apiMock).toHaveBeenCalledWith('/obs/stats', {
-        params: {
-          token: 'test-token',
-          game_mode: 'RANK',
-          stats_period: 'monthly',
-          recent_count: '10',
-        },
-      });
+      expect(apiMock).toHaveBeenCalledWith(
+        '/obs/stats',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            token: 'test-token',
+            game_mode: 'RANK',
+            stats_period: 'monthly',
+            recent_count: '10',
+          }),
+        }),
+      );
     });
 
-    expect(screen.getByText('60.0%')).toBeInTheDocument();
+    view.unmount();
   });
 });

@@ -167,9 +167,10 @@ Closes #123
 ## リリースフロー
 
 1. `staging`のテストがすべてパス
-2. `staging` → `main`へPR作成
-3. レビュー・承認
-4. マージ → 自動デプロイ
+2. `staging` の Vercel Preview 環境で動作確認
+3. `staging` → `main`へPR作成
+4. レビュー・承認
+5. マージ → Production 自動デプロイ
 
 ### バージョニング
 
@@ -186,7 +187,7 @@ Semantic Versioning（SemVer）を採用：
 ## 開発フロー例
 
 ```bash
-# 1. developから最新を取得
+# 1. stagingから最新を取得
 git checkout staging
 git pull origin staging
 

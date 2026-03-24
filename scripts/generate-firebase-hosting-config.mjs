@@ -65,33 +65,6 @@ const config = {
     rewrites,
     headers: [
       {
-        source: '/',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-cache',
-          },
-        ],
-      },
-      {
-        source: '/index.html',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-cache',
-          },
-        ],
-      },
-      {
-        source: '/manifest.json',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-cache',
-          },
-        ],
-      },
-      {
         source: '/service-worker.js',
         headers: [
           {
