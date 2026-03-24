@@ -1,5 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase.js';
 
@@ -92,15 +92,15 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left: Branding (desktop only) */}
-      <div className="hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center bg-gradient-to-br from-brand-dark-1 via-brand-dark-2 to-brand-dark-3">
-        <div className="relative z-10 text-center px-10">
-          <h1 className="text-7xl font-black tracking-wider mb-2">
+      <div className="hidden lg:flex w-3/5 relative overflow-hidden flex-col items-center justify-center bg-gradient-to-br from-brand-dark-1 via-brand-dark-2 to-brand-dark-3">
+        <div className="relative z-10 text-center px-8 w-full max-w-[720px]">
+          <h1 className="text-5xl font-black tracking-wider mb-1">
             <span className="text-brand-cyan drop-shadow-[0_0_30px_rgba(0,217,255,0.5)]">DUEL</span>
             <span className="text-brand-purple drop-shadow-[0_0_30px_rgba(181,54,255,0.5)]">
               LOG
             </span>
           </h1>
-          <p className="text-white/70 text-lg tracking-[4px] uppercase mb-8">
+          <p className="text-white/70 text-sm tracking-[4px] uppercase mb-4">
             Track. Analyze. Dominate.
           </p>
 
@@ -113,7 +113,7 @@ export function LoginPage() {
       </div>
 
       {/* Right: Form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 bg-brand-dark-1 lg:bg-brand-dark-2/50">
+      <div className="w-full lg:w-2/5 flex flex-col items-center justify-center px-6 py-12 bg-brand-dark-1 lg:bg-brand-dark-2/50">
         {/* Mobile header */}
         <div className="lg:hidden text-center mb-8">
           <h1 className="text-4xl font-black tracking-wider">
@@ -355,25 +355,18 @@ export function LoginPage() {
 function ScreenshotShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % LANDING_SCREENSHOTS.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
-    <div className="w-full max-w-[420px] mx-auto">
-      <div className="relative aspect-[16/10]">
+    <div className="w-full mx-auto">
+      <div className="relative h-[calc(100vh-200px)] max-h-[600px] rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]">
         {LANDING_SCREENSHOTS.map((shot, i) => (
           <img
             key={shot.src}
             src={shot.src}
             alt={shot.label}
-            className={`absolute inset-0 w-full h-full object-cover rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-700 ${
+            className={`w-full transition-opacity duration-700 ${
               i === activeIndex
-                ? 'opacity-100 scale-100 translate-y-0'
-                : 'opacity-0 scale-95 translate-y-2'
+                ? 'relative opacity-100'
+                : 'absolute top-0 left-0 opacity-0 pointer-events-none'
             }`}
           />
         ))}
