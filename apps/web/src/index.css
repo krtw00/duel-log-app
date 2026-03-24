@@ -156,25 +156,6 @@ body {
 }
 
 /* Utilities */
-@utility animate-screenshot-scroll {
-  animation: screenshot-scroll 8s ease-in-out infinite;
-}
-
-@keyframes screenshot-scroll {
-  0%,
-  15% {
-    transform: translateY(0);
-  }
-  40%,
-  60% {
-    transform: translateY(calc(-100% + 480px));
-  }
-  85%,
-  100% {
-    transform: translateY(0);
-  }
-}
-
 @utility animate-float {
   animation: float 10s ease-in-out infinite;
 }
