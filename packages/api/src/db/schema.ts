@@ -19,6 +19,7 @@ export const users = pgTable('users', {
   themePreference: text('theme_preference').notNull().default('system'),
   streamerMode: boolean('streamer_mode').notNull().default(false),
   showPlayMistakeStats: boolean('show_play_mistake_stats').notNull().default(false),
+  classicLayout: boolean('classic_layout').notNull().default(false),
   status: text('status').notNull().default('active'),
   statusReason: text('status_reason'),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
