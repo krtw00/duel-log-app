@@ -353,15 +353,19 @@ export function DashboardView() {
         }
       />
 
-      {/* Stats Cards */}
-      <StatsDisplayCards
-        stats={overviewData?.data}
-        loading={statsLoading}
-        showPlayMistakeStats={showPlayMistake}
-      />
+      {/* Stats Cards - PC only */}
+      <div className="hidden lg:block">
+        <StatsDisplayCards
+          stats={overviewData?.data}
+          loading={statsLoading}
+          showPlayMistakeStats={showPlayMistake}
+        />
+      </div>
 
-      {/* Stats Popup / OBS Overlay */}
-      <StreamerSection gameMode={gameMode} />
+      {/* Stats Popup / OBS Overlay - PC only */}
+      <div className="hidden lg:block">
+        <StreamerSection gameMode={gameMode} />
+      </div>
 
       {/* Mobile: Tab switcher */}
       <div className="lg:hidden">
