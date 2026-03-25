@@ -1,3 +1,4 @@
+import { sql as drizzleSql } from 'drizzle-orm';
 import {
   boolean,
   index,
@@ -68,6 +69,10 @@ export const duels = pgTable(
     rateValue: real('rate_value'),
     dcValue: integer('dc_value'),
     memo: text('memo'),
+    opponentHandtraps: text('opponent_handtraps')
+      .array()
+      .notNull()
+      .default(drizzleSql`'{}'::text[]`),
     playMistake: boolean('play_mistake'),
     dueledAt: timestamp('dueled_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -90,3 +95,16 @@ export const sharedStatistics = pgTable('shared_statistics', {
   expiresAt: timestamp('expires_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const userHandtrapCards = pgTable(
+  'user_handtrap_cards',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('idx_user_handtrap_cards_user_id').on(table.userId)],
+);
