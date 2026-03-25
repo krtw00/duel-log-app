@@ -85,23 +85,15 @@ function MobileCardView({
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1 min-w-0 flex-1">
-                      <span className="chip chip-outlined-primary text-sm truncate">
-                        {getDeckName(deckNameMap, duel.deckId)}
-                      </span>
-                      <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
-                        vs
-                      </span>
-                      <span className="chip chip-outlined-warning text-sm truncate">
-                        {getDeckName(deckNameMap, duel.opponentDeckId)}
-                      </span>
-                    </div>
-                    <span
-                      className="text-sm whitespace-nowrap"
-                      style={{ color: 'var(--color-on-surface-muted)' }}
-                    >
-                      {formatDate(duel.dueledAt)}
+                  <div className="flex items-center gap-1 flex-wrap min-w-0">
+                    <span className="chip chip-outlined-primary text-sm truncate max-w-[40%]">
+                      {getDeckName(deckNameMap, duel.deckId)}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+                      vs
+                    </span>
+                    <span className="chip chip-outlined-warning text-sm truncate max-w-[40%]">
+                      {getDeckName(deckNameMap, duel.opponentDeckId)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
@@ -134,6 +126,12 @@ function MobileCardView({
                         !
                       </span>
                     )}
+                    <span
+                      className="ml-auto text-xs whitespace-nowrap"
+                      style={{ color: 'var(--color-on-surface-muted)' }}
+                    >
+                      {formatDate(duel.dueledAt)}
+                    </span>
                     {duel.memo && (
                       <button
                         type="button"
