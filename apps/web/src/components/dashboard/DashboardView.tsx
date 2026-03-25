@@ -29,7 +29,13 @@ import { StreamerSection } from './StreamerSection.js';
 export function DashboardView() {
   const { t } = useTranslation();
   const currentSeason = getCurrentSeason();
-  const classicLayout = localStorage.getItem('duellog.classicLayout') === 'true';
+  const [classicLayout, setClassicLayout] = useState(
+    () => localStorage.getItem('duellog.classicLayout') === 'true',
+  );
+  // Sync classicLayout on mount (e.g. after navigating back from profile)
+  useEffect(() => {
+    setClassicLayout(localStorage.getItem('duellog.classicLayout') === 'true');
+  }, []);
   const [activeTab, setActiveTab] = useState<'record' | 'history'>('record');
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [year, setYear] = useState(currentSeason.year);
