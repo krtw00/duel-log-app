@@ -32,9 +32,14 @@ export function DashboardView() {
   const [classicLayout, setClassicLayout] = useState(
     () => localStorage.getItem('duellog.classicLayout') === 'true',
   );
-  // Sync classicLayout on mount (e.g. after navigating back from profile)
+  // Sync classicLayout when changed in profile or on mount
   useEffect(() => {
     setClassicLayout(localStorage.getItem('duellog.classicLayout') === 'true');
+    const onClassicLayoutChange = (e: Event) => {
+      setClassicLayout((e as CustomEvent).detail as boolean);
+    };
+    window.addEventListener('classicLayoutChange', onClassicLayoutChange);
+    return () => window.removeEventListener('classicLayoutChange', onClassicLayoutChange);
   }, []);
   const [activeTab, setActiveTab] = useState<'record' | 'history'>('record');
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
