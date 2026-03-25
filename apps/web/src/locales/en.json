@@ -77,6 +77,8 @@
     "playMistakeWinRate": "Win Rate w/ Mistake",
     "noData": "No duel data",
     "defaultSettings": "Default Settings",
+    "tabRecord": "Record",
+    "tabHistory": "History",
     "receivingStats": "Receiving stats from main window...",
     "downloadStatsImage": "Stats Image"
   },

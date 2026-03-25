@@ -77,6 +77,8 @@
     "playMistakeWinRate": "ミス時勝率",
     "noData": "対戦データがありません",
     "defaultSettings": "新規記録時の初期値",
+    "tabRecord": "記録",
+    "tabHistory": "履歴",
     "receivingStats": "メインウィンドウから統計を受信中...",
     "downloadStatsImage": "戦績画像"
   },
