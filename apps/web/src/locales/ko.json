@@ -100,6 +100,9 @@
     "dcValue": "DC 값",
     "rankRate": "랭크/레이트",
     "memo": "메모",
+    "opponentHandtraps": "상대 유발",
+    "addCustomHandtrap": "카드 추가",
+    "customHandtrapPlaceholder": "카드 이름",
     "playMistake": "플레이 미스",
     "showPlayMistake": "미스 기록",
     "dueledAt": "듀얼 날짜",
@@ -175,7 +178,11 @@
     "rangeEnd": "끝",
     "reset": "초기화",
     "trendNotAvailable": "추이 그래프는 레이트 매치·DC에만 지원됩니다",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "handtrapCard": "카드",
+    "handtrapHitCount": "피탄 횟수",
+    "handtrapWinRate": "피탄 시 승률",
+    "handtrapNoData": "유발 데이터가 없습니다"
   },
   "streak": {
     "winStreak": "{{count}}연승 중",

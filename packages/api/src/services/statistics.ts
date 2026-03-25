@@ -241,6 +241,14 @@ interface ValueSequenceResult {
   dueledAt: Date;
 }
 
+interface HandtrapStatsResult {
+  handtrapId: string;
+  totalHit: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+}
+
 export async function getValueSequence(userId: string, filter: StatisticsFilter) {
   const where = buildConditions(userId, filter);
 
@@ -257,6 +265,25 @@ export async function getValueSequence(userId: string, filter: StatisticsFilter)
     FROM duels d
     WHERE ${where}
     ORDER BY d.dueled_at
+  `;
+}
+
+export async function getHandtrapStats(userId: string, filter: StatisticsFilter) {
+  const where = buildConditions(userId, filter);
+
+  return sql<HandtrapStatsResult[]>`
+    SELECT
+      ht AS handtrap_id,
+      count(*)::int AS total_hit,
+      count(*) filter (WHERE d.result = 'win')::int AS wins,
+      count(*) filter (WHERE d.result = 'loss')::int AS losses,
+      CASE WHEN count(*) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.result = 'win')::numeric / count(*)::numeric, 4)
+      END::float AS win_rate
+    FROM duels d, unnest(d.opponent_handtraps) AS ht
+    WHERE ${where}
+    GROUP BY ht
+    ORDER BY total_hit DESC, handtrap_id ASC
   `;
 }
 

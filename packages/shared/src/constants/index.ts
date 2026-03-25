@@ -13,3 +13,6 @@ export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 /** ユーザーステータス */
 export const USER_STATUSES = ['active', 'banned', 'suspended'] as const;
 export type UserStatus = (typeof USER_STATUSES)[number];
+
+export { DEFAULT_HANDTRAP_CARDS } from './handtraps.js';
+export type { DefaultHandtrapCard } from './handtraps.js';

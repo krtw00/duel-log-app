@@ -100,6 +100,9 @@
     "dcValue": "DC値",
     "rankRate": "ランク/レート",
     "memo": "メモ",
+    "opponentHandtraps": "相手の誘発",
+    "addCustomHandtrap": "カードを追加",
+    "customHandtrapPlaceholder": "カード名",
     "playMistake": "プレイミス",
     "showPlayMistake": "プレイミス記録",
     "dueledAt": "対戦日時",
@@ -175,7 +178,11 @@
     "rangeEnd": "終了",
     "reset": "リセット",
     "trendNotAvailable": "推移グラフはレートマッチ・DCのみ対応しています",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "handtrapCard": "カード",
+    "handtrapHitCount": "被弾回数",
+    "handtrapWinRate": "被弾時勝率",
+    "handtrapNoData": "誘発データがありません"
   },
   "streak": {
     "winStreak": "{{count}}連勝中",

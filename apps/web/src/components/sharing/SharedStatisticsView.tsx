@@ -336,6 +336,7 @@ export function SharedStatisticsView() {
       rateValue: d.rateValue,
       dcValue: d.dcValue,
       memo: d.memo,
+      opponentHandtraps: [],
       playMistake: null,
       dueledAt: d.dueledAt,
       createdAt: now,

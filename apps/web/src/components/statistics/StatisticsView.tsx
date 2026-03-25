@@ -4,13 +4,20 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useDuels } from '../../hooks/useDuels.js';
-import { useMatchups, useValueSequence, useWinRates } from '../../hooks/useStatistics.js';
+import { useUserHandtrapCards } from '../../hooks/useHandtrapCards.js';
+import {
+  useHandtrapStats,
+  useMatchups,
+  useValueSequence,
+  useWinRates,
+} from '../../hooks/useStatistics.js';
 import { api } from '../../lib/api.js';
 import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
 import { DateFilterBar } from '../dashboard/DateFilterBar.js';
 import { DuelTable } from '../dashboard/DuelTable.js';
 import { GameModeTabBar } from '../dashboard/GameModeTabBar.js';
 import { DeckDistributionChart } from './DeckDistributionChart.js';
+import { HandtrapStats } from './HandtrapStats.js';
 import { MatchupMatrix } from './MatchupMatrix.js';
 import { StatisticsFilter } from './StatisticsFilter.js';
 import { ValueSequenceChart } from './ValueSequenceChart.js';
@@ -46,6 +53,8 @@ export function StatisticsView() {
 
   const { data: winRatesData, isLoading: winRatesLoading } = useWinRates(filter);
   const { data: matchupsData, isLoading: matchupsLoading } = useMatchups(filter);
+  const { data: handtrapStatsData, isLoading: handtrapStatsLoading } = useHandtrapStats(filter);
+  const { data: customHandtrapCardsData } = useUserHandtrapCards();
   const { data: valueData, isLoading: valueLoading } = useValueSequence(
     valueFilter as { gameMode: 'RATE' | 'DC'; from?: string; to?: string } | undefined,
   );
@@ -65,6 +74,7 @@ export function StatisticsView() {
   const duels = duelsData?.data ?? [];
   const totalDuelsForMode = totalData?.pagination?.total ?? 30;
   const classicLayout = meData?.data?.classicLayout ?? false;
+  const customHandtrapCards = customHandtrapCardsData?.data ?? [];
 
   return (
     <div className="space-y-6">
@@ -274,9 +284,11 @@ export function StatisticsView() {
 
       {(classicLayout || subTab === 'handtraps') && (
         <div className="glass-card p-4">
-          <p className="py-8 text-center" style={{ color: 'var(--color-on-surface-muted)' }}>
-            {t('statistics.comingSoon')}
-          </p>
+          <HandtrapStats
+            stats={handtrapStatsData?.data ?? []}
+            customCards={customHandtrapCards}
+            loading={handtrapStatsLoading}
+          />
         </div>
       )}
     </div>
