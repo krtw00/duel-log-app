@@ -42,6 +42,13 @@ export const statisticsRoutes = new Hono<Env>()
     const data = await statsService.getValueSequence(id, filter);
     return c.json({ data });
   })
+  .get('/handtraps', async (c) => {
+    const { id } = c.get('user');
+    const query = c.req.query();
+    const filter = statisticsFilterSchema.parse(query);
+    const data = await statsService.getHandtrapStats(id, filter);
+    return c.json({ data });
+  })
   .get('/mode-counts', async (c) => {
     const { id } = c.get('user');
     const query = c.req.query();

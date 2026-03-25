@@ -12,6 +12,7 @@ import { debugRoutes } from './routes/debug.js';
 import { deckRoutes } from './routes/decks.js';
 import { duelRoutes } from './routes/duels.js';
 import { feedbackRoutes } from './routes/feedback.js';
+import { handtrapCardRoutes } from './routes/handtrapCards.js';
 import { meRoutes } from './routes/me.js';
 import { obsRoutes } from './routes/obs.js';
 import { sharedStatisticsRoutes } from './routes/sharedStatistics.js';
@@ -60,6 +61,8 @@ app.use('/decks', authMiddleware);
 app.use('/duels/*', authMiddleware);
 app.use('/duels', authMiddleware);
 app.use('/statistics/*', authMiddleware);
+app.use('/handtrap-cards/*', authMiddleware);
+app.use('/handtrap-cards', authMiddleware);
 app.use('/feedback', authMiddleware);
 
 app.route('/auth', authRoutes);
@@ -68,6 +71,7 @@ app.route('/me', meRoutes);
 app.route('/decks', deckRoutes);
 app.route('/duels', duelRoutes);
 app.route('/statistics', statisticsRoutes);
+app.route('/handtrap-cards', handtrapCardRoutes);
 app.route('/feedback', feedbackRoutes);
 
 // 管理者ルート
