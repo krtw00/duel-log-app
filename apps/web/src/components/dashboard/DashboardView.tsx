@@ -29,6 +29,7 @@ import { StreamerSection } from './StreamerSection.js';
 export function DashboardView() {
   const { t } = useTranslation();
   const currentSeason = getCurrentSeason();
+  const classicLayout = localStorage.getItem('duellog.classicLayout') === 'true';
   const [activeTab, setActiveTab] = useState<'record' | 'history'>('record');
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [year, setYear] = useState(currentSeason.year);
@@ -353,8 +354,8 @@ export function DashboardView() {
         }
       />
 
-      {/* Stats Cards - PC only */}
-      <div className="hidden lg:block">
+      {/* Stats Cards */}
+      <div className={classicLayout ? '' : 'hidden lg:block'}>
         <StatsDisplayCards
           stats={overviewData?.data}
           loading={statsLoading}
@@ -362,34 +363,43 @@ export function DashboardView() {
         />
       </div>
 
-      {/* Stats Popup / OBS Overlay - PC only */}
-      <div className="hidden lg:block">
+      {/* Stats Popup / OBS Overlay */}
+      <div className={classicLayout ? '' : 'hidden lg:block'}>
         <StreamerSection gameMode={gameMode} />
       </div>
 
-      {/* Mobile: Tab switcher */}
+      {/* Mobile */}
       <div className="lg:hidden">
-        <div className="glass-card p-2 mb-4">
-          <div className="tab-bar">
-            <button
-              type="button"
-              className={`tab-item ${activeTab === 'record' ? 'tab-item-active' : ''}`}
-              onClick={() => setActiveTab('record')}
-            >
-              {t('dashboard.tabRecord')}
-            </button>
-            <button
-              type="button"
-              className={`tab-item ${activeTab === 'history' ? 'tab-item-active' : ''}`}
-              onClick={() => setActiveTab('history')}
-            >
-              {t('dashboard.tabHistory')}
-            </button>
+        {classicLayout ? (
+          <div className="space-y-6">
+            {renderRecordContent()}
+            {renderHistoryContent()}
           </div>
-        </div>
-        <div className="space-y-6">
-          {activeTab === 'record' ? renderRecordContent() : renderHistoryContent()}
-        </div>
+        ) : (
+          <>
+            <div className="glass-card p-2 mb-4">
+              <div className="tab-bar">
+                <button
+                  type="button"
+                  className={`tab-item ${activeTab === 'record' ? 'tab-item-active' : ''}`}
+                  onClick={() => setActiveTab('record')}
+                >
+                  {t('dashboard.tabRecord')}
+                </button>
+                <button
+                  type="button"
+                  className={`tab-item ${activeTab === 'history' ? 'tab-item-active' : ''}`}
+                  onClick={() => setActiveTab('history')}
+                >
+                  {t('dashboard.tabHistory')}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-6">
+              {activeTab === 'record' ? renderRecordContent() : renderHistoryContent()}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
