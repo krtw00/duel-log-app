@@ -98,26 +98,26 @@ function MobileCardView({
                   </div>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
                     <span
-                      className={`chip text-sm ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}
+                      className={`chip shrink-0 ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}
                     >
                       {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
                     </span>
                     <span
-                      className={`chip text-sm ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}
+                      className={`chip shrink-0 ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}
                     >
                       {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
                     </span>
                     <span
-                      className={`chip text-sm ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}
+                      className={`chip shrink-0 ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}
                     >
                       {duel.isFirst ? t('duel.first') : t('duel.second')}
                     </span>
                     {getRankDisplay(duel, t) && (
-                      <span className="chip text-sm chip-rank">{getRankDisplay(duel, t)}</span>
+                      <span className="chip shrink-0 chip-rank">{getRankDisplay(duel, t)}</span>
                     )}
                     {duel.playMistake && (
                       <span
-                        className="chip text-sm"
+                        className="chip shrink-0"
                         style={{
                           color: 'var(--color-error)',
                           border: '1px solid var(--color-error)',
