@@ -1066,7 +1066,7 @@ body {
 
 .tab-item {
   flex: 1;
-  min-width: 0;
+  min-width: fit-content;
   display: flex;
   align-items: center;
   justify-content: center;
