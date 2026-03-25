@@ -160,6 +160,10 @@
     "monthly": "Monthly",
     "refreshInterval": "Refresh Interval (sec)",
     "filter": "Filter",
+    "tabWinRate": "Win Rate",
+    "tabDeckDistribution": "Distribution",
+    "tabTrend": "Trend",
+    "tabHandtraps": "Hand Traps",
     "myDeck": "My Deck",
     "allDecks": "All Decks",
     "period": "Period",
@@ -167,7 +171,9 @@
     "periodRange": "Range",
     "rangeStart": "Start",
     "rangeEnd": "End",
-    "reset": "Reset"
+    "reset": "Reset",
+    "trendNotAvailable": "Trend chart is only available for Rate and DC modes",
+    "comingSoon": "Coming Soon"
   },
   "streak": {
     "winStreak": "{{count}} Win Streak",

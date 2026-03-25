@@ -160,6 +160,10 @@
     "monthly": "月間",
     "refreshInterval": "更新間隔（秒）",
     "filter": "フィルター",
+    "tabWinRate": "勝率・相性",
+    "tabDeckDistribution": "デッキ分布",
+    "tabTrend": "推移",
+    "tabHandtraps": "誘発",
     "myDeck": "使用デッキ",
     "allDecks": "全デッキ",
     "period": "期間",
@@ -167,7 +171,9 @@
     "periodRange": "範囲指定",
     "rangeStart": "開始",
     "rangeEnd": "終了",
-    "reset": "リセット"
+    "reset": "リセット",
+    "trendNotAvailable": "推移グラフはレートマッチ・DCのみ対応しています",
+    "comingSoon": "Coming Soon"
   },
   "streak": {
     "winStreak": "{{count}}連勝中",
