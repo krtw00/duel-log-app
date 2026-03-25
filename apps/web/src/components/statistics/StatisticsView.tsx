@@ -21,7 +21,7 @@ export function StatisticsView() {
   const currentSeason = getCurrentSeason();
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [subTab, setSubTab] = useState<'winRate' | 'deckDistribution' | 'trend' | 'handtraps'>(
-    'winRate',
+    'deckDistribution',
   );
   const [year, setYear] = useState(currentSeason.year);
   const [month, setMonth] = useState(currentSeason.month);
@@ -109,17 +109,17 @@ export function StatisticsView() {
           <div className="tab-bar">
             <button
               type="button"
-              className={`tab-item ${subTab === 'winRate' ? 'active' : ''}`}
-              onClick={() => setSubTab('winRate')}
-            >
-              {t('statistics.tabWinRate')}
-            </button>
-            <button
-              type="button"
               className={`tab-item ${subTab === 'deckDistribution' ? 'active' : ''}`}
               onClick={() => setSubTab('deckDistribution')}
             >
               {t('statistics.tabDeckDistribution')}
+            </button>
+            <button
+              type="button"
+              className={`tab-item ${subTab === 'winRate' ? 'active' : ''}`}
+              onClick={() => setSubTab('winRate')}
+            >
+              {t('statistics.tabWinRate')}
             </button>
             <button
               type="button"
@@ -137,49 +137,6 @@ export function StatisticsView() {
             </button>
           </div>
         </div>
-      )}
-
-      {(classicLayout || subTab === 'winRate') && (
-        <>
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--color-success)"
-                strokeWidth="2"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-              <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
-                {t('statistics.winRateByDeck')}
-              </h2>
-            </div>
-            <WinRateTable winRates={winRatesData?.data ?? []} loading={winRatesLoading} />
-          </div>
-
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--color-secondary)"
-                strokeWidth="2"
-              >
-                <path d="M18 6L6 18" />
-                <path d="M6 6l12 12" />
-              </svg>
-              <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
-                {t('statistics.matchupMatrix')}
-              </h2>
-            </div>
-            <MatchupMatrix matchups={matchupsData?.data ?? []} loading={matchupsLoading} />
-          </div>
-        </>
       )}
 
       {(classicLayout || subTab === 'deckDistribution') && (
@@ -237,6 +194,49 @@ export function StatisticsView() {
             />
           </div>
         </div>
+      )}
+
+      {(classicLayout || subTab === 'winRate') && (
+        <>
+          <div className="glass-card p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-success)"
+                strokeWidth="2"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+                {t('statistics.winRateByDeck')}
+              </h2>
+            </div>
+            <WinRateTable winRates={winRatesData?.data ?? []} loading={winRatesLoading} />
+          </div>
+
+          <div className="glass-card p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-secondary)"
+                strokeWidth="2"
+              >
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+                {t('statistics.matchupMatrix')}
+              </h2>
+            </div>
+            <MatchupMatrix matchups={matchupsData?.data ?? []} loading={matchupsLoading} />
+          </div>
+        </>
       )}
 
       {(classicLayout || subTab === 'trend') && (
