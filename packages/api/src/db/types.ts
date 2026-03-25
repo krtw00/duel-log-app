@@ -7,6 +7,7 @@ export interface UserRow {
   themePreference: string;
   streamerMode: boolean;
   showPlayMistakeStats: boolean;
+  classicLayout: boolean;
   status: string;
   statusReason: string | null;
   lastLoginAt: Date | null;

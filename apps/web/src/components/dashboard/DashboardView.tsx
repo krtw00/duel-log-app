@@ -1,5 +1,6 @@
-import type { GameMode } from '@duel-log/shared';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import type { GameMode, User } from '@duel-log/shared';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useCreateDuel, useDeleteDuel, useDuels, useUpdateDuel } from '../../hooks/useDuels.js';
@@ -29,18 +30,6 @@ import { StreamerSection } from './StreamerSection.js';
 export function DashboardView() {
   const { t } = useTranslation();
   const currentSeason = getCurrentSeason();
-  const [classicLayout, setClassicLayout] = useState(
-    () => localStorage.getItem('duellog.classicLayout') === 'true',
-  );
-  // Sync classicLayout when changed in profile or on mount
-  useEffect(() => {
-    setClassicLayout(localStorage.getItem('duellog.classicLayout') === 'true');
-    const onClassicLayoutChange = (e: Event) => {
-      setClassicLayout((e as CustomEvent).detail as boolean);
-    };
-    window.addEventListener('classicLayoutChange', onClassicLayoutChange);
-    return () => window.removeEventListener('classicLayoutChange', onClassicLayoutChange);
-  }, []);
   const [activeTab, setActiveTab] = useState<'record' | 'history'>('record');
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [year, setYear] = useState(currentSeason.year);
@@ -55,7 +44,11 @@ export function DashboardView() {
     const stored = localStorage.getItem('duellog.defaultIsFirst');
     return stored !== null ? stored === 'true' : true;
   });
-  const [showPlayMistake, setShowPlayMistake] = useState(false);
+  const { data: meData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<{ data: User }>('/me'),
+    staleTime: 1000 * 60 * 5,
+  });
 
   // Build date range filter from year/month (season boundary: 8:00 JST)
   const { from, to } = getSeasonRange(year, month);
@@ -82,21 +75,11 @@ export function DashboardView() {
   const updateDuel = useUpdateDuel();
   const deleteDuel = useDeleteDuel();
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const result = await api<{ data: { showPlayMistakeStats: boolean } }>('/me');
-        setShowPlayMistake(result.data.showPlayMistakeStats);
-      } catch {
-        setShowPlayMistake(false);
-      }
-    };
-    loadProfile();
-  }, []);
-
   const duels = duelsData?.data ?? [];
   const decks = decksData?.data ?? [];
   const modeCounts = modeCountsData?.data ?? {};
+  const classicLayout = meData?.data?.classicLayout ?? false;
+  const showPlayMistake = meData?.data?.showPlayMistakeStats ?? false;
 
   // Latest rank: use this month's data, or demote last saved rank for month start
   const DEFAULT_RANK = 18; // Platinum 5

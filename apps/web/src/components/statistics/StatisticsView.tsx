@@ -1,9 +1,11 @@
-import type { GameMode } from '@duel-log/shared';
+import type { GameMode, User } from '@duel-log/shared';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useDuels } from '../../hooks/useDuels.js';
 import { useMatchups, useValueSequence, useWinRates } from '../../hooks/useStatistics.js';
+import { api } from '../../lib/api.js';
 import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
 import { DateFilterBar } from '../dashboard/DateFilterBar.js';
 import { DuelTable } from '../dashboard/DuelTable.js';
@@ -27,6 +29,11 @@ export function StatisticsView() {
   const [periodType, setPeriodType] = useState<'all' | 'range'>('all');
   const [rangeStart, setRangeStart] = useState(1);
   const [rangeEnd, setRangeEnd] = useState(30);
+  const { data: meData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<{ data: User }>('/me'),
+    staleTime: 1000 * 60 * 5,
+  });
 
   const { from, to } = getSeasonRange(year, month);
 
@@ -57,6 +64,7 @@ export function StatisticsView() {
   const decks = decksData?.data ?? [];
   const duels = duelsData?.data ?? [];
   const totalDuelsForMode = totalData?.pagination?.total ?? 30;
+  const classicLayout = meData?.data?.classicLayout ?? false;
 
   return (
     <div className="space-y-6">
@@ -96,40 +104,42 @@ export function StatisticsView() {
         <GameModeTabBar value={gameMode} onChange={setGameMode} />
       </div>
 
-      <div className="glass-card p-3">
-        <div className="tab-bar">
-          <button
-            type="button"
-            className={`tab-item ${subTab === 'winRate' ? 'active' : ''}`}
-            onClick={() => setSubTab('winRate')}
-          >
-            {t('statistics.tabWinRate')}
-          </button>
-          <button
-            type="button"
-            className={`tab-item ${subTab === 'deckDistribution' ? 'active' : ''}`}
-            onClick={() => setSubTab('deckDistribution')}
-          >
-            {t('statistics.tabDeckDistribution')}
-          </button>
-          <button
-            type="button"
-            className={`tab-item ${subTab === 'trend' ? 'active' : ''}`}
-            onClick={() => setSubTab('trend')}
-          >
-            {t('statistics.tabTrend')}
-          </button>
-          <button
-            type="button"
-            className={`tab-item ${subTab === 'handtraps' ? 'active' : ''}`}
-            onClick={() => setSubTab('handtraps')}
-          >
-            {t('statistics.tabHandtraps')}
-          </button>
+      {!classicLayout && (
+        <div className="glass-card p-3">
+          <div className="tab-bar">
+            <button
+              type="button"
+              className={`tab-item ${subTab === 'winRate' ? 'active' : ''}`}
+              onClick={() => setSubTab('winRate')}
+            >
+              {t('statistics.tabWinRate')}
+            </button>
+            <button
+              type="button"
+              className={`tab-item ${subTab === 'deckDistribution' ? 'active' : ''}`}
+              onClick={() => setSubTab('deckDistribution')}
+            >
+              {t('statistics.tabDeckDistribution')}
+            </button>
+            <button
+              type="button"
+              className={`tab-item ${subTab === 'trend' ? 'active' : ''}`}
+              onClick={() => setSubTab('trend')}
+            >
+              {t('statistics.tabTrend')}
+            </button>
+            <button
+              type="button"
+              className={`tab-item ${subTab === 'handtraps' ? 'active' : ''}`}
+              onClick={() => setSubTab('handtraps')}
+            >
+              {t('statistics.tabHandtraps')}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {subTab === 'winRate' && (
+      {(classicLayout || subTab === 'winRate') && (
         <>
           <div className="glass-card p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -172,7 +182,7 @@ export function StatisticsView() {
         </>
       )}
 
-      {subTab === 'deckDistribution' && (
+      {(classicLayout || subTab === 'deckDistribution') && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="glass-card flex flex-col p-4">
             <div className="mb-3 flex items-center gap-2">
@@ -229,7 +239,7 @@ export function StatisticsView() {
         </div>
       )}
 
-      {subTab === 'trend' && (
+      {(classicLayout || subTab === 'trend') && (
         <div className="glass-card p-4">
           {gameMode === 'RATE' || gameMode === 'DC' ? (
             <>
@@ -262,7 +272,7 @@ export function StatisticsView() {
         </div>
       )}
 
-      {subTab === 'handtraps' && (
+      {(classicLayout || subTab === 'handtraps') && (
         <div className="glass-card p-4">
           <p className="py-8 text-center" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('statistics.comingSoon')}
