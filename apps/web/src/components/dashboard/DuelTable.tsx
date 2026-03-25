@@ -85,18 +85,29 @@ function MobileCardView({
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1 flex-wrap min-w-0">
-                    <span className="chip chip-outlined-primary text-sm truncate max-w-[40%]">
+                  {/* Line 1: Deck names + date */}
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="chip chip-outlined-primary truncate max-w-[35%]">
                       {getDeckName(deckNameMap, duel.deckId)}
                     </span>
-                    <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    <span
+                      className="text-xs shrink-0"
+                      style={{ color: 'var(--color-on-surface-muted)' }}
+                    >
                       vs
                     </span>
-                    <span className="chip chip-outlined-warning text-sm truncate max-w-[40%]">
+                    <span className="chip chip-outlined-warning truncate max-w-[35%]">
                       {getDeckName(deckNameMap, duel.opponentDeckId)}
                     </span>
+                    <span
+                      className="ml-auto text-xs whitespace-nowrap shrink-0"
+                      style={{ color: 'var(--color-on-surface-muted)' }}
+                    >
+                      {formatDate(duel.dueledAt)}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1 mt-1 flex-wrap">
+                  {/* Line 2: Result badges */}
+                  <div className="flex items-center gap-1 mt-1">
                     <span
                       className={`chip shrink-0 ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}
                     >
@@ -126,16 +137,10 @@ function MobileCardView({
                         !
                       </span>
                     )}
-                    <span
-                      className="ml-auto text-xs whitespace-nowrap"
-                      style={{ color: 'var(--color-on-surface-muted)' }}
-                    >
-                      {formatDate(duel.dueledAt)}
-                    </span>
                     {duel.memo && (
                       <button
                         type="button"
-                        className="inline-flex items-center"
+                        className="inline-flex items-center ml-auto"
                         onClick={(e) => {
                           e.stopPropagation();
                           setExpandedMemoId(expandedMemoId === duel.id ? null : duel.id);
