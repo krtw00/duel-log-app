@@ -107,9 +107,217 @@ export function DashboardView() {
     deleteDuel.mutate(id);
   };
 
+  const renderDefaultSettingsCard = () => (
+    <div className="glass-card p-4">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--color-primary)"
+            strokeWidth="2"
+          >
+            <path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+          <span className="text-base font-medium" style={{ color: 'var(--color-on-surface)' }}>
+            {t('dashboard.defaultSettings')}
+          </span>
+        </div>
+        <div className="ml-4 flex items-center gap-2">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--color-on-surface-muted)"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <div
+            className="flex overflow-hidden rounded-lg"
+            style={{ border: '1px solid var(--color-border)' }}
+          >
+            <button
+              type="button"
+              className="px-3 py-1 text-sm font-medium transition-colors"
+              style={{
+                background: !defaultIsFirst ? 'var(--color-primary)' : 'transparent',
+                color: !defaultIsFirst ? '#0a0e27' : 'var(--color-on-surface-muted)',
+              }}
+              onClick={() => {
+                setDefaultIsFirst(false);
+                localStorage.setItem('duellog.defaultIsFirst', 'false');
+              }}
+            >
+              {t('duel.second')}
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1 text-sm font-medium transition-colors"
+              style={{
+                background: defaultIsFirst ? 'var(--color-primary)' : 'transparent',
+                color: defaultIsFirst ? '#0a0e27' : 'var(--color-on-surface-muted)',
+              }}
+              onClick={() => {
+                setDefaultIsFirst(true);
+                localStorage.setItem('duellog.defaultIsFirst', 'true');
+              }}
+            >
+              {t('duel.first')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderRecordContent = () => (
+    <>
+      <StatsDisplayCards
+        stats={overviewData?.data}
+        loading={statsLoading}
+        showPlayMistakeStats={showPlayMistake}
+      />
+      <StreamerSection gameMode={gameMode} />
+      {renderDefaultSettingsCard()}
+      <DuelFormDialog
+        open={true}
+        onClose={() => {}}
+        onSubmit={(data) => createDuel.mutate(data)}
+        decks={decks}
+        loading={createDuel.isPending}
+        defaultGameMode={gameMode}
+        defaultIsFirst={defaultIsFirst}
+        showPlayMistake={showPlayMistake}
+        defaultRank={latestRank}
+        inline={true}
+        deckUsage={deckUsage}
+        opponentDeckUsage={opponentDeckUsage}
+        lastUsedDeckId={duels[0]?.deckId}
+      />
+    </>
+  );
+
+  const renderHistoryContent = () => (
+    <div className="glass-card overflow-hidden">
+      <div
+        className="flex flex-wrap items-center justify-between gap-2 p-4"
+        style={{ borderBottom: '1px solid var(--color-border)' }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeWidth="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18" />
+              <path d="M9 3v18" />
+            </svg>
+            <h2 className="text-base font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+              {t('dashboard.title')}
+            </h2>
+          </div>
+          <StreakBadge streaks={streaksData?.data} />
+        </div>
+        <div className="flex items-center gap-2">
+          <CsvExportButton gameMode={gameMode} />
+          <button
+            type="button"
+            onClick={() => setImportDialogOpen(true)}
+            className="themed-btn themed-btn-outlined-warning text-sm"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span className="hidden sm:inline">{t('common.import')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShareDialogOpen(true)}
+            className="themed-btn themed-btn-outlined-success text-sm"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            <span className="hidden sm:inline">{t('sharing.title')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (statsImageRef.current) downloadStatsImage(statsImageRef.current);
+            }}
+            disabled={imageGenerating || !overviewData?.data}
+            className="themed-btn themed-btn-outlined text-sm"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+            <span className="hidden sm:inline">
+              {imageGenerating ? '...' : t('dashboard.downloadStatsImage')}
+            </span>
+          </button>
+        </div>
+      </div>
+      <DuelTable
+        duels={duels}
+        decks={decks}
+        loading={duelsLoading || decksLoading}
+        onEdit={(duel, data) => updateDuel.mutate({ id: duel.id, data })}
+        onDelete={handleDelete}
+        gameMode={gameMode}
+        defaultIsFirst={defaultIsFirst}
+        defaultRank={latestRank}
+        editLoading={updateDuel.isPending}
+        deckUsage={deckUsage}
+        opponentDeckUsage={opponentDeckUsage}
+        duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
+        showPlayMistake={showPlayMistake}
+      />
+    </div>
+  );
+
   return (
     <div className="space-y-6">
-      {/* Header: GameMode Tabs + Date Filter */}
       <DashboardHeader
         gameMode={gameMode}
         onGameModeChange={setGameMode}
@@ -120,7 +328,6 @@ export function DashboardView() {
         modeCounts={modeCounts}
       />
 
-      {/* Filter */}
       <StatisticsFilter
         decks={decks}
         deckId={deckId}
@@ -151,7 +358,7 @@ export function DashboardView() {
         }
       />
 
-      <div className="glass-card p-3">
+      <div className="glass-card p-3 lg:hidden">
         <div className="tab-bar">
           <button
             type="button"
@@ -170,230 +377,21 @@ export function DashboardView() {
         </div>
       </div>
 
-      {activeTab === 'record' ? (
-        <>
-          {/* Stats Cards */}
-          <StatsDisplayCards
-            stats={overviewData?.data}
-            loading={statsLoading}
-            showPlayMistakeStats={showPlayMistake}
-          />
+      <div className="space-y-6 lg:hidden">
+        {activeTab === 'record' ? renderRecordContent() : renderHistoryContent()}
+      </div>
 
-          {/* Stats Popup / OBS Overlay */}
-          <StreamerSection gameMode={gameMode} />
+      <div className="hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+        <div className="space-y-6">{renderRecordContent()}</div>
+        <div>{renderHistoryContent()}</div>
+      </div>
 
-          {/* Default Settings */}
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-primary)"
-                  strokeWidth="2"
-                >
-                  <path d="M12 3v1m0 16v1m-8-9H3m18 0h-1m-2.636-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707" />
-                  <circle cx="12" cy="12" r="4" />
-                </svg>
-                <span
-                  className="text-base font-medium"
-                  style={{ color: 'var(--color-on-surface)' }}
-                >
-                  {t('dashboard.defaultSettings')}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 ml-4">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-on-surface-muted)"
-                  strokeWidth="2"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-                <div
-                  className="flex rounded-lg overflow-hidden"
-                  style={{ border: '1px solid var(--color-border)' }}
-                >
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-sm font-medium transition-colors"
-                    style={{
-                      background: !defaultIsFirst ? 'var(--color-primary)' : 'transparent',
-                      color: !defaultIsFirst ? '#0a0e27' : 'var(--color-on-surface-muted)',
-                    }}
-                    onClick={() => {
-                      setDefaultIsFirst(false);
-                      localStorage.setItem('duellog.defaultIsFirst', 'false');
-                    }}
-                  >
-                    {t('duel.second')}
-                  </button>
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-sm font-medium transition-colors"
-                    style={{
-                      background: defaultIsFirst ? 'var(--color-primary)' : 'transparent',
-                      color: defaultIsFirst ? '#0a0e27' : 'var(--color-on-surface-muted)',
-                    }}
-                    onClick={() => {
-                      setDefaultIsFirst(true);
-                      localStorage.setItem('duellog.defaultIsFirst', 'true');
-                    }}
-                  >
-                    {t('duel.first')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Inline Form (new duel creation) */}
-          <DuelFormDialog
-            open={true}
-            onClose={() => {}}
-            onSubmit={(data) => createDuel.mutate(data)}
-            decks={decks}
-            loading={createDuel.isPending}
-            defaultGameMode={gameMode}
-            defaultIsFirst={defaultIsFirst}
-            showPlayMistake={showPlayMistake}
-            defaultRank={latestRank}
-            inline={true}
-            deckUsage={deckUsage}
-            opponentDeckUsage={opponentDeckUsage}
-            lastUsedDeckId={duels[0]?.deckId}
-          />
-        </>
-      ) : (
-        <div className="glass-card overflow-hidden">
-          <div
-            className="p-4 flex items-center justify-between flex-wrap gap-2"
-            style={{ borderBottom: '1px solid var(--color-border)' }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-primary)"
-                  strokeWidth="2"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <path d="M3 9h18" />
-                  <path d="M9 3v18" />
-                </svg>
-                <h2
-                  className="text-base font-semibold"
-                  style={{ color: 'var(--color-on-surface)' }}
-                >
-                  {t('dashboard.title')}
-                </h2>
-              </div>
-              <StreakBadge streaks={streaksData?.data} />
-            </div>
-            <div className="flex items-center gap-2">
-              <CsvExportButton gameMode={gameMode} />
-              <button
-                type="button"
-                onClick={() => setImportDialogOpen(true)}
-                className="themed-btn themed-btn-outlined-warning text-sm"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                <span className="hidden sm:inline">{t('common.import')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShareDialogOpen(true)}
-                className="themed-btn themed-btn-outlined-success text-sm"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="18" cy="5" r="3" />
-                  <circle cx="6" cy="12" r="3" />
-                  <circle cx="18" cy="19" r="3" />
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                </svg>
-                <span className="hidden sm:inline">{t('sharing.title')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (statsImageRef.current) downloadStatsImage(statsImageRef.current);
-                }}
-                disabled={imageGenerating || !overviewData?.data}
-                className="themed-btn themed-btn-outlined text-sm"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-                <span className="hidden sm:inline">
-                  {imageGenerating ? '...' : t('dashboard.downloadStatsImage')}
-                </span>
-              </button>
-            </div>
-          </div>
-          <DuelTable
-            duels={duels}
-            decks={decks}
-            loading={duelsLoading || decksLoading}
-            onEdit={(duel, data) => updateDuel.mutate({ id: duel.id, data })}
-            onDelete={handleDelete}
-            gameMode={gameMode}
-            defaultIsFirst={defaultIsFirst}
-            defaultRank={latestRank}
-            editLoading={updateDuel.isPending}
-            deckUsage={deckUsage}
-            opponentDeckUsage={opponentDeckUsage}
-            duelNoOffset={periodType === 'range' ? rangeStart - 1 : 0}
-            showPlayMistake={showPlayMistake}
-          />
-        </div>
-      )}
-
-      {/* CSV Import */}
       <CsvImportDialog
         open={importDialogOpen}
         onClose={() => setImportDialogOpen(false)}
         gameMode={gameMode}
       />
 
-      {/* Share Stats */}
       <ShareStatsDialog
         open={shareDialogOpen}
         onClose={() => setShareDialogOpen(false)}
@@ -402,7 +400,6 @@ export function DashboardView() {
         defaultGameMode={gameMode}
       />
 
-      {/* Stats Image (offscreen for capture) */}
       {overviewData?.data && (
         <div style={{ position: 'fixed', left: -9999, top: 0, pointerEvents: 'none' }}>
           <StatsImageCard
