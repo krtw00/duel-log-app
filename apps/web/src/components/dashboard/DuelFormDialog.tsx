@@ -1,5 +1,6 @@
 import {
   type CreateDuel,
+  DEFAULT_HANDTRAP_CARDS,
   type Deck,
   type Duel,
   type GameMode,
@@ -13,9 +14,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
+import { useCreateHandtrapCard, useUserHandtrapCards } from '../../hooks/useHandtrapCards.js';
 import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
 import { api } from '../../lib/api.js';
 import { fromDatetimeLocal, getDueledAtForSubmit, toDatetimeLocal } from '../../utils/duel.js';
+import {
+  getHandtrapName,
+  resolveCustomHandtrapCards,
+  toCustomHandtrapId,
+} from '../../utils/handtraps.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
@@ -53,7 +60,7 @@ export function DuelFormDialog({
   lastUsedDeckId,
   showPlayMistake,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const myDecks = useMemo(
     () =>
       decks
@@ -83,6 +90,8 @@ export function DuelFormDialog({
   const defaultDeckRef = useRef(defaultDeck);
   defaultDeckRef.current = defaultDeck;
   const createDeck = useCreateDeck();
+  const createHandtrapCard = useCreateHandtrapCard();
+  const { data: handtrapCardsData } = useUserHandtrapCards();
 
   // Deck combobox state: track both ID (for existing) and name (for new)
   const [deckSelection, setDeckSelection] = useState<{ id: string; name: string }>({
@@ -97,6 +106,17 @@ export function DuelFormDialog({
   const [opponentDeckError, setOpponentDeckError] = useState('');
   const [dueledAtChanged, setDueledAtChanged] = useState(false);
   const [showDueledAt, setShowDueledAt] = useState(false);
+  const [selectedHandtraps, setSelectedHandtraps] = useState<string[]>([]);
+  const [customHandtrapName, setCustomHandtrapName] = useState('');
+
+  const customHandtrapCards = useMemo(
+    () => resolveCustomHandtrapCards(handtrapCardsData?.data ?? []),
+    [handtrapCardsData?.data],
+  );
+  const allHandtrapCards = useMemo(
+    () => [...DEFAULT_HANDTRAP_CARDS, ...customHandtrapCards],
+    [customHandtrapCards],
+  );
 
   const { register, handleSubmit, reset, watch, setValue } = useForm<CreateDuel>({
     resolver: zodResolver(createDuelSchema),
@@ -109,6 +129,7 @@ export function DuelFormDialog({
       dueledAt: new Date().toISOString(),
       deckId: '00000000-0000-0000-0000-000000000000',
       opponentDeckId: '00000000-0000-0000-0000-000000000000',
+      opponentHandtraps: [],
     },
   });
 
@@ -146,6 +167,7 @@ export function DuelFormDialog({
         rateValue: editingDuel.rateValue,
         dcValue: editingDuel.dcValue,
         memo: editingDuel.memo,
+        opponentHandtraps: editingDuel.opponentHandtraps,
         dueledAt: editingDuel.dueledAt,
       });
       const currentDecks = decksRef.current;
@@ -153,6 +175,7 @@ export function DuelFormDialog({
       const oppDeck = currentDecks.find((d) => d.id === editingDuel.opponentDeckId);
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
+      setSelectedHandtraps(editingDuel.opponentHandtraps ?? []);
       setShowDueledAt(true);
       setDueledAtChanged(false);
     } else {
@@ -166,9 +189,11 @@ export function DuelFormDialog({
         dueledAt: new Date().toISOString(),
         deckId: deck?.id ?? '00000000-0000-0000-0000-000000000000',
         opponentDeckId: '00000000-0000-0000-0000-000000000000',
+        opponentHandtraps: [],
       });
       setDeckSelection(deck ? { id: deck.id, name: deck.name } : { id: '', name: '' });
       setOpponentDeckSelection({ id: '', name: '' });
+      setSelectedHandtraps([]);
     }
     // decks/defaultDeck are accessed via refs to avoid resetting user's
     // deck selection on background refetches or post-mutation invalidation.
@@ -181,6 +206,24 @@ export function DuelFormDialog({
     !editingDuel &&
     isSupportedGameMode &&
     (isDebugger || localStorage.getItem('duellog.screenAnalysis.enabled') === 'true');
+
+  const toggleHandtrap = useCallback((id: string) => {
+    setSelectedHandtraps((current) =>
+      current.includes(id) ? current.filter((cardId) => cardId !== id) : [...current, id],
+    );
+  }, []);
+
+  const handleAddCustomHandtrap = useCallback(async () => {
+    const trimmedName = customHandtrapName.trim();
+    if (!trimmedName) return;
+
+    const created = await createHandtrapCard.mutateAsync(trimmedName);
+    setCustomHandtrapName('');
+    setSelectedHandtraps((current) => {
+      const nextId = toCustomHandtrapId(created.data.id);
+      return current.includes(nextId) ? current : [...current, nextId];
+    });
+  }, [createHandtrapCard, customHandtrapName]);
 
   const handleFormSubmit = useCallback(
     async (data: CreateDuel) => {
@@ -218,7 +261,13 @@ export function DuelFormDialog({
       }
 
       const dueledAt = getDueledAtForSubmit(editingDuel, data.dueledAt, dueledAtChanged);
-      onSubmit({ ...data, deckId: finalDeckId, opponentDeckId: finalOpponentDeckId, dueledAt });
+      onSubmit({
+        ...data,
+        deckId: finalDeckId,
+        opponentDeckId: finalOpponentDeckId,
+        opponentHandtraps: selectedHandtraps,
+        dueledAt,
+      });
 
       // Reset form after submission (new registration only)
       if (!editingDuel) {
@@ -228,6 +277,8 @@ export function DuelFormDialog({
         setValue('isFirst', defaultIsFirst);
         setValue('result', 'win');
         setValue('memo', '');
+        setSelectedHandtraps([]);
+        setCustomHandtrapName('');
         setValue('playMistake', null);
         setDueledAtChanged(false);
         setShowDueledAt(false);
@@ -243,6 +294,7 @@ export function DuelFormDialog({
       setValue,
       defaultIsFirst,
       dueledAtChanged,
+      selectedHandtraps,
     ],
   );
 
@@ -546,6 +598,53 @@ export function DuelFormDialog({
       )}
 
       {/* Row 7: Memo */}
+      <div>
+        <label
+          className="block text-base font-medium mb-1"
+          style={{ color: 'var(--color-on-surface-muted)' }}
+        >
+          {t('duel.opponentHandtraps')}
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {allHandtrapCards.map((card) => {
+            const selected = selectedHandtraps.includes(card.id);
+            return (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() => toggleHandtrap(card.id)}
+                className={`chip ${selected ? 'chip-primary' : ''}`}
+              >
+                {getHandtrapName(card, i18n.language)}
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input
+            type="text"
+            value={customHandtrapName}
+            onChange={(e) => setCustomHandtrapName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                void handleAddCustomHandtrap();
+              }
+            }}
+            placeholder={t('duel.customHandtrapPlaceholder')}
+            className="themed-input"
+          />
+          <button
+            type="button"
+            onClick={() => void handleAddCustomHandtrap()}
+            disabled={createHandtrapCard.isPending || !customHandtrapName.trim()}
+            className="themed-btn themed-btn-ghost"
+          >
+            {t('duel.addCustomHandtrap')}
+          </button>
+        </div>
+      </div>
+
       <div>
         <label
           htmlFor="memo"

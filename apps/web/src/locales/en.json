@@ -100,6 +100,9 @@
     "dcValue": "DC Value",
     "rankRate": "Rank/Rate",
     "memo": "Memo",
+    "opponentHandtraps": "Opponent Hand Traps",
+    "addCustomHandtrap": "Add Card",
+    "customHandtrapPlaceholder": "Card name",
     "playMistake": "Play Mistake",
     "showPlayMistake": "Track Mistakes",
     "dueledAt": "Duel Date",
@@ -175,7 +178,11 @@
     "rangeEnd": "End",
     "reset": "Reset",
     "trendNotAvailable": "Trend chart is only available for Rate and DC modes",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "handtrapCard": "Card",
+    "handtrapHitCount": "Hit Count",
+    "handtrapWinRate": "Win Rate When Hit",
+    "handtrapNoData": "No hand trap data"
   },
   "streak": {
     "winStreak": "{{count}} Win Streak",
