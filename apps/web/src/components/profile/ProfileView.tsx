@@ -15,9 +15,7 @@ export function ProfileView() {
   const [displayName, setDisplayName] = useState('');
   const [streamerMode, setStreamerMode] = useState(false);
   const [showPlayMistakeStats, setShowPlayMistakeStats] = useState(false);
-  const [classicLayout, setClassicLayout] = useState(
-    () => localStorage.getItem('duellog.classicLayout') === 'true',
-  );
+  const [classicLayout, setClassicLayout] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -45,6 +43,7 @@ export function ProfileView() {
         setDisplayName(result.data.displayName);
         setStreamerMode(result.data.streamerMode);
         setShowPlayMistakeStats(result.data.showPlayMistakeStats);
+        setClassicLayout(result.data.classicLayout);
         localStorage.setItem('streamerMode', String(result.data.streamerMode));
       } catch {
         // ignore
@@ -57,7 +56,12 @@ export function ProfileView() {
     setSaving(true);
     setMessage('');
     try {
-      const data: UpdateUser = { displayName, streamerMode, showPlayMistakeStats };
+      const data: UpdateUser = {
+        displayName,
+        streamerMode,
+        showPlayMistakeStats,
+        classicLayout,
+      };
       await api('/me', { method: 'PUT', body: data });
       queryClient.invalidateQueries({ queryKey: ['me'] });
       localStorage.setItem('streamerMode', String(streamerMode));
@@ -281,13 +285,7 @@ export function ProfileView() {
               <input
                 type="checkbox"
                 checked={classicLayout}
-                onChange={(e) => {
-                  setClassicLayout(e.target.checked);
-                  localStorage.setItem('duellog.classicLayout', String(e.target.checked));
-                  window.dispatchEvent(
-                    new CustomEvent('classicLayoutChange', { detail: e.target.checked }),
-                  );
-                }}
+                onChange={(e) => setClassicLayout(e.target.checked)}
               />
               <span className="toggle-slider" />
             </label>

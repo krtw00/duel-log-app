@@ -11,6 +11,7 @@ export const userSchema = z.object({
   themePreference: z.enum(THEME_PREFERENCES),
   streamerMode: z.boolean(),
   showPlayMistakeStats: z.boolean(),
+  classicLayout: z.boolean(),
   status: z.enum(USER_STATUSES),
   statusReason: z.string().nullable(),
   lastLoginAt: z.string().datetime().nullable(),
@@ -24,6 +25,7 @@ export const updateUserSchema = z.object({
   themePreference: z.enum(THEME_PREFERENCES).optional(),
   streamerMode: z.boolean().optional(),
   showPlayMistakeStats: z.boolean().optional(),
+  classicLayout: z.boolean().optional(),
 });
 
 /** 管理者によるステータス変更 */
