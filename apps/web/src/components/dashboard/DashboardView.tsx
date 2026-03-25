@@ -413,10 +413,17 @@ export function DashboardView() {
         )}
       </div>
 
-      <div className="hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
-        <div className="space-y-6">{renderRecordContent()}</div>
-        <div>{renderHistoryContent()}</div>
-      </div>
+      {classicLayout ? (
+        <div className="hidden lg:block space-y-6">
+          {renderRecordContent()}
+          {renderHistoryContent()}
+        </div>
+      ) : (
+        <div className="hidden lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+          <div className="space-y-6">{renderRecordContent()}</div>
+          <div>{renderHistoryContent()}</div>
+        </div>
+      )}
 
       {/* CSV Import */}
       <CsvImportDialog
