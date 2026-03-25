@@ -284,6 +284,9 @@ export function ProfileView() {
                 onChange={(e) => {
                   setClassicLayout(e.target.checked);
                   localStorage.setItem('duellog.classicLayout', String(e.target.checked));
+                  window.dispatchEvent(
+                    new CustomEvent('classicLayoutChange', { detail: e.target.checked }),
+                  );
                 }}
               />
               <span className="toggle-slider" />
