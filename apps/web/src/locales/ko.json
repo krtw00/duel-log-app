@@ -162,6 +162,10 @@
     "monthly": "월간",
     "refreshInterval": "새로고침 간격(초)",
     "filter": "필터",
+    "tabWinRate": "승률·상성",
+    "tabDeckDistribution": "덱 분포",
+    "tabTrend": "추이",
+    "tabHandtraps": "유발",
     "myDeck": "사용 덱",
     "allDecks": "전체 덱",
     "period": "기간",
@@ -169,7 +173,9 @@
     "periodRange": "범위 지정",
     "rangeStart": "시작",
     "rangeEnd": "끝",
-    "reset": "초기화"
+    "reset": "초기화",
+    "trendNotAvailable": "추이 그래프는 레이트 매치·DC에만 지원됩니다",
+    "comingSoon": "Coming Soon"
   },
   "streak": {
     "winStreak": "{{count}}연승 중",
