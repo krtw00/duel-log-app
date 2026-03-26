@@ -54,6 +54,7 @@ export function StatsImageDialog({
   const { download, copyToClipboard, generating } = useStatsImageDownload();
   const { success, error } = useNotificationStore();
   const cardRef = useRef<HTMLDivElement>(null);
+  const scaleWrapperRef = useRef<HTMLDivElement>(null);
   const previewFrameRef = useRef<HTMLDivElement>(null);
   const [visibility, setVisibility] = useState<ImageVisibility>(() => loadVisibility());
   const [previewScale, setPreviewScale] = useState(PREVIEW_SCALE);
@@ -99,26 +100,33 @@ export function StatsImageDialog({
     setVisibility((current) => ({ ...current, [key]: event.target.checked }));
   };
 
-  const handleDownload = async () => {
-    if (!cardRef.current) {
-      return;
-    }
+  const captureWithFullScale = async <T,>(fn: (el: HTMLElement) => Promise<T>) => {
+    const card = cardRef.current;
+    const wrapper = scaleWrapperRef.current;
+    if (!card || !wrapper) return undefined;
 
-    await download(cardRef.current);
+    const prev = wrapper.style.transform;
+    wrapper.style.transform = 'scale(1)';
+    try {
+      return await fn(card);
+    } finally {
+      wrapper.style.transform = prev;
+    }
+  };
+
+  const handleDownload = async () => {
+    await captureWithFullScale((el) => download(el));
   };
 
   const handleCopy = async () => {
-    if (!cardRef.current) {
-      return;
-    }
-
-    const copied = await copyToClipboard(cardRef.current);
+    const copied = await captureWithFullScale((el) => copyToClipboard(el));
     if (copied) {
       success(t('dashboard.statsImageCopied'));
       return;
     }
-
-    error(t('dashboard.statsImageCopyFailed'));
+    if (copied === false) {
+      error(t('dashboard.statsImageCopyFailed'));
+    }
   };
 
   return (
@@ -247,6 +255,7 @@ export function StatsImageDialog({
                 <div ref={previewFrameRef} style={{ width: '100%', maxWidth: PREVIEW_MAX_WIDTH }}>
                   <div style={{ height: previewHeight }}>
                     <div
+                      ref={scaleWrapperRef}
                       style={{
                         width: CARD_WIDTH,
                         height: CARD_HEIGHT,
