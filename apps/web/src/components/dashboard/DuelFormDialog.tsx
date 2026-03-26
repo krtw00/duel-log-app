@@ -30,7 +30,6 @@ import {
 } from '../../utils/handtraps.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
-import { HandtrapSelectDialog } from './HandtrapSelectDialog.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
 
 type Props = {
@@ -128,9 +127,10 @@ export function DuelFormDialog({
   const [dueledAtChanged, setDueledAtChanged] = useState(false);
   const [showDueledAt, setShowDueledAt] = useState(false);
   const [selectedHandtraps, setSelectedHandtraps] = useState<string[]>([]);
-  const [handtrapDialogOpen, setHandtrapDialogOpen] = useState(false);
   const [hiddenDefaults, setHiddenDefaults] = useState<string[]>(readHiddenDefaults);
   const [customHandtrapName, setCustomHandtrapName] = useState('');
+  const [handtrapMenuOpen, setHandtrapMenuOpen] = useState(false);
+  const handtrapMenuRef = useRef<HTMLDivElement>(null);
 
   const customHandtrapCards = useMemo(
     () => resolveCustomHandtrapCards(handtrapCardsData?.data ?? []),
@@ -206,7 +206,7 @@ export function DuelFormDialog({
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
       setSelectedHandtraps(editingDuel.opponentHandtraps ?? []);
-      setHandtrapDialogOpen(false);
+      setHandtrapMenuOpen(false);
       setShowDueledAt(true);
       setDueledAtChanged(false);
     } else {
@@ -225,7 +225,7 @@ export function DuelFormDialog({
       setDeckSelection(deck ? { id: deck.id, name: deck.name } : { id: '', name: '' });
       setOpponentDeckSelection({ id: '', name: '' });
       setSelectedHandtraps([]);
-      setHandtrapDialogOpen(false);
+      setHandtrapMenuOpen(false);
     }
     // decks/defaultDeck are accessed via refs to avoid resetting user's
     // deck selection on background refetches or post-mutation invalidation.
@@ -238,6 +238,17 @@ export function DuelFormDialog({
     !editingDuel &&
     isSupportedGameMode &&
     (isDebugger || localStorage.getItem('duellog.screenAnalysis.enabled') === 'true');
+
+  useEffect(() => {
+    if (!handtrapMenuOpen) return undefined;
+    const handleClick = (e: MouseEvent) => {
+      if (handtrapMenuRef.current && !handtrapMenuRef.current.contains(e.target as Node)) {
+        setHandtrapMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [handtrapMenuOpen]);
 
   const toggleHandtrap = useCallback((id: string) => {
     setSelectedHandtraps((current) =>
@@ -331,7 +342,7 @@ export function DuelFormDialog({
         setValue('result', 'win');
         setValue('memo', '');
         setSelectedHandtraps([]);
-        setHandtrapDialogOpen(false);
+        setHandtrapMenuOpen(false);
         setCustomHandtrapName('');
         setValue('playMistake', null);
         setDueledAtChanged(false);
@@ -653,67 +664,160 @@ export function DuelFormDialog({
 
       {/* Handtraps */}
       <div>
-        <button
-          type="button"
-          onClick={() => setHandtrapDialogOpen(true)}
-          className="w-full text-left flex items-center justify-between py-2 px-3 rounded-lg border"
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-on-surface-muted)',
-            background: 'var(--color-surface-variant)',
-          }}
-        >
-          <span className="text-sm font-medium">
-            {t('duel.opponentHandtraps')}
-            {selectedHandtraps.length > 0 && (
-              <span style={{ color: 'var(--color-primary)' }}> ({selectedHandtraps.length})</span>
-            )}
-          </span>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
+        <div className="flex items-center justify-between mb-1.5">
+          <label
+            className="block text-base font-medium"
+            style={{ color: 'var(--color-on-surface-muted)' }}
           >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-        {selectedHandtraps.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {selectedHandtraps
-              .filter((id) => !hiddenDefaults.includes(id))
-              .map((id) => {
-                const card = allHandtrapCards.find((entry) => entry.id === id);
-                if (!card) return null;
-                return (
-                  <span
-                    key={id}
-                    className="chip chip-primary"
-                    style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+            {t('duel.opponentHandtraps')}
+          </label>
+          <div className="relative" ref={handtrapMenuRef}>
+            <button
+              type="button"
+              onClick={() => setHandtrapMenuOpen((v) => !v)}
+              className="themed-btn themed-btn-ghost p-1"
+              aria-label={t('common.settings')}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
+            {handtrapMenuOpen && (
+              <div
+                className="absolute right-0 top-full mt-1 z-50 rounded-lg border p-3 space-y-2"
+                style={{
+                  background: 'var(--color-surface)',
+                  borderColor: 'var(--color-border)',
+                  minWidth: 220,
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+                }}
+              >
+                <div
+                  className="text-xs font-medium mb-2"
+                  style={{ color: 'var(--color-on-surface-muted)' }}
+                >
+                  {t('duel.handtrapSelectTitle')}
+                </div>
+                {visibleHandtrapCards
+                  .filter((c) => 'isCustom' in c)
+                  .map((card) => (
+                    <div key={card.id} className="flex items-center justify-between gap-2">
+                      <span
+                        className="text-sm truncate"
+                        style={{ color: 'var(--color-on-surface)' }}
+                      >
+                        {getHandtrapName(card, i18n.language)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteCustomHandtrap(card.id)}
+                        className="text-xs shrink-0"
+                        style={{ color: 'var(--color-error)' }}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </div>
+                  ))}
+                {hiddenDefaults.length > 0 && (
+                  <>
+                    <div
+                      className="text-xs pt-1"
+                      style={{ color: 'var(--color-on-surface-muted)', opacity: 0.6 }}
+                    >
+                      {t('duel.handtrapHiddenSection')}
+                    </div>
+                    {DEFAULT_HANDTRAP_CARDS.filter((c) => hiddenDefaults.includes(c.id)).map(
+                      (card) => (
+                        <div key={card.id} className="flex items-center justify-between gap-2">
+                          <span
+                            className="text-sm truncate"
+                            style={{ color: 'var(--color-on-surface)', opacity: 0.5 }}
+                          >
+                            {getHandtrapName(card, i18n.language)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleHiddenDefault(card.id)}
+                            className="text-xs shrink-0"
+                            style={{ color: 'var(--color-primary)' }}
+                          >
+                            {t('duel.handtrapRestore')}
+                          </button>
+                        </div>
+                      ),
+                    )}
+                  </>
+                )}
+                <div className="flex gap-1.5 pt-1">
+                  <input
+                    type="text"
+                    value={customHandtrapName}
+                    onChange={(e) => setCustomHandtrapName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void handleAddCustomHandtrap();
+                      }
+                    }}
+                    placeholder={t('duel.customHandtrapPlaceholder')}
+                    className="themed-input text-sm"
+                    style={{ padding: '4px 8px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleAddCustomHandtrap()}
+                    disabled={createHandtrapCard.isPending || !customHandtrapName.trim()}
+                    className="themed-btn themed-btn-ghost text-xs shrink-0"
                   >
-                    {getHandtrapName(card, i18n.language)}
-                  </span>
-                );
-              })}
+                    {t('duel.addCustomHandtrap')}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+        <div className="grid grid-cols-3 gap-1.5">
+          {visibleHandtrapCards.map((card) => {
+            const selected = selectedHandtraps.includes(card.id);
+            const isDefault = !('isCustom' in card);
+            return (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() => toggleHandtrap(card.id)}
+                onContextMenu={
+                  isDefault
+                    ? (e) => {
+                        e.preventDefault();
+                        toggleHiddenDefault(card.id);
+                      }
+                    : undefined
+                }
+                className={`text-xs py-1.5 px-2 rounded-md border text-center truncate transition-colors ${selected ? 'chip-primary' : ''}`}
+                style={
+                  selected
+                    ? undefined
+                    : {
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-on-surface-muted)',
+                        background: 'transparent',
+                      }
+                }
+              >
+                {getHandtrapName(card, i18n.language)}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <HandtrapSelectDialog
-        open={handtrapDialogOpen}
-        onClose={() => setHandtrapDialogOpen(false)}
-        selectedHandtraps={selectedHandtraps}
-        onToggle={toggleHandtrap}
-        allHandtrapCards={visibleHandtrapCards}
-        hiddenDefaults={hiddenDefaults}
-        onToggleHidden={toggleHiddenDefault}
-        customHandtrapName={customHandtrapName}
-        onCustomHandtrapNameChange={setCustomHandtrapName}
-        onAddCustomHandtrap={handleAddCustomHandtrap}
-        onDeleteCustomHandtrap={handleDeleteCustomHandtrap}
-        addingCustom={createHandtrapCard.isPending}
-      />
 
       <div>
         <label
