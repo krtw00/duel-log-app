@@ -80,7 +80,18 @@
     "tabRecord": "Record",
     "tabHistory": "History",
     "receivingStats": "Receiving stats from main window...",
-    "downloadStatsImage": "Stats Image"
+    "downloadStatsImage": "Stats Image",
+    "statsImageTitle": "Stats Image",
+    "statsImageDownload": "Download",
+    "statsImageCopy": "Copy to Clipboard",
+    "statsImageCopied": "Copied",
+    "statsImageCopyFailed": "Copy failed",
+    "statsImageDetailedRates": "Detailed Rates",
+    "statsImageMistakeStats": "Mistake Stats",
+    "statsImageRankRate": "Rank / Rate",
+    "statsImageDeckWinRates": "Deck Win Rates",
+    "statsImageStreakBadge": "Streak Badge",
+    "statsImageDisplayItems": "Display Items"
   },
   "duel": {
     "addTitle": "Add Duel Record",
