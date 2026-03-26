@@ -29,6 +29,7 @@ import { StreamerSection } from './StreamerSection.js';
 export function DashboardView() {
   const { t } = useTranslation();
   const currentSeason = getCurrentSeason();
+  const [activeTab, setActiveTab] = useState<'record' | 'history'>('record');
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [year, setYear] = useState(currentSeason.year);
   const [month, setMonth] = useState(currentSeason.month);
@@ -354,10 +355,29 @@ export function DashboardView() {
         <StreamerSection gameMode={gameMode} />
       </div>
 
-      {/* Mobile */}
-      <div className="lg:hidden space-y-6">
-        {renderRecordContent()}
-        {renderHistoryContent()}
+      {/* Mobile: tab switching */}
+      <div className="lg:hidden">
+        <div className="glass-card p-2 mb-4">
+          <div className="tab-bar">
+            <button
+              type="button"
+              className={`tab-item ${activeTab === 'record' ? 'tab-item-active' : ''}`}
+              onClick={() => setActiveTab('record')}
+            >
+              {t('dashboard.tabRecord')}
+            </button>
+            <button
+              type="button"
+              className={`tab-item ${activeTab === 'history' ? 'tab-item-active' : ''}`}
+              onClick={() => setActiveTab('history')}
+            >
+              {t('dashboard.tabHistory')}
+            </button>
+          </div>
+        </div>
+        <div className="space-y-6">
+          {activeTab === 'record' ? renderRecordContent() : renderHistoryContent()}
+        </div>
       </div>
 
       {classicLayout ? (
