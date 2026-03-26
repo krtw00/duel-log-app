@@ -357,7 +357,7 @@ function ScreenshotShowcase() {
 
   return (
     <div className="w-full mx-auto">
-      <div className="relative h-[calc(100vh-200px)] max-h-[600px] rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]">
+      <div className="relative rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
         {LANDING_SCREENSHOTS.map((shot, i) => (
           <img
             key={shot.src}
