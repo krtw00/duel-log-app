@@ -13,19 +13,19 @@ export const DEFAULT_HANDTRAP_CARDS = [
   },
   {
     id: 'mulcharmy-fuwaross',
-    nameJa: 'マルチャミー・フワロス',
+    nameJa: 'フワロス',
     nameEn: 'Mulcharmy Fuwaross',
     nameKo: '멀차미 후와로스',
   },
   {
     id: 'droll-lock-bird',
-    nameJa: 'ドロール&ロックバード',
+    nameJa: 'ドロール',
     nameEn: 'Droll & Lock Bird',
     nameKo: '드롤 & 로크 버드',
   },
   {
     id: 'effect-veiler',
-    nameJa: 'エフェクト・ヴェーラー',
+    nameJa: 'ヴェーラー',
     nameEn: 'Effect Veiler',
     nameKo: '이펙트 뵐러',
   },
