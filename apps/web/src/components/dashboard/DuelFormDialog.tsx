@@ -14,17 +14,23 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateDeck } from '../../hooks/useDecks.js';
-import { useCreateHandtrapCard, useUserHandtrapCards } from '../../hooks/useHandtrapCards.js';
+import {
+  useCreateHandtrapCard,
+  useDeleteHandtrapCard,
+  useUserHandtrapCards,
+} from '../../hooks/useHandtrapCards.js';
 import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
 import { api } from '../../lib/api.js';
 import { fromDatetimeLocal, getDueledAtForSubmit, toDatetimeLocal } from '../../utils/duel.js';
 import {
+  fromCustomHandtrapId,
   getHandtrapName,
   resolveCustomHandtrapCards,
   toCustomHandtrapId,
 } from '../../utils/handtraps.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
+import { HandtrapSelectDialog } from './HandtrapSelectDialog.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
 
 type Props = {
@@ -43,6 +49,20 @@ type Props = {
   lastUsedDeckId?: string;
   showPlayMistake?: boolean;
 };
+
+const HIDDEN_DEFAULTS_KEY = 'duellog.hiddenDefaultHandtraps';
+
+function readHiddenDefaults() {
+  try {
+    const stored = localStorage.getItem(HIDDEN_DEFAULTS_KEY);
+    const parsed = JSON.parse(stored ?? '[]');
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === 'string')
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 export function DuelFormDialog({
   open,
@@ -91,6 +111,7 @@ export function DuelFormDialog({
   defaultDeckRef.current = defaultDeck;
   const createDeck = useCreateDeck();
   const createHandtrapCard = useCreateHandtrapCard();
+  const deleteHandtrapCard = useDeleteHandtrapCard();
   const { data: handtrapCardsData } = useUserHandtrapCards();
 
   // Deck combobox state: track both ID (for existing) and name (for new)
@@ -107,6 +128,8 @@ export function DuelFormDialog({
   const [dueledAtChanged, setDueledAtChanged] = useState(false);
   const [showDueledAt, setShowDueledAt] = useState(false);
   const [selectedHandtraps, setSelectedHandtraps] = useState<string[]>([]);
+  const [handtrapDialogOpen, setHandtrapDialogOpen] = useState(false);
+  const [hiddenDefaults, setHiddenDefaults] = useState<string[]>(readHiddenDefaults);
   const [customHandtrapName, setCustomHandtrapName] = useState('');
 
   const customHandtrapCards = useMemo(
@@ -116,6 +139,13 @@ export function DuelFormDialog({
   const allHandtrapCards = useMemo(
     () => [...DEFAULT_HANDTRAP_CARDS, ...customHandtrapCards],
     [customHandtrapCards],
+  );
+  const visibleHandtrapCards = useMemo(
+    () =>
+      allHandtrapCards.filter((card) =>
+        'isCustom' in card ? true : !hiddenDefaults.includes(card.id),
+      ),
+    [allHandtrapCards, hiddenDefaults],
   );
 
   const { register, handleSubmit, reset, watch, setValue } = useForm<CreateDuel>({
@@ -176,6 +206,7 @@ export function DuelFormDialog({
       setDeckSelection({ id: editingDuel.deckId, name: myDeck?.name ?? '' });
       setOpponentDeckSelection({ id: editingDuel.opponentDeckId, name: oppDeck?.name ?? '' });
       setSelectedHandtraps(editingDuel.opponentHandtraps ?? []);
+      setHandtrapDialogOpen(false);
       setShowDueledAt(true);
       setDueledAtChanged(false);
     } else {
@@ -194,6 +225,7 @@ export function DuelFormDialog({
       setDeckSelection(deck ? { id: deck.id, name: deck.name } : { id: '', name: '' });
       setOpponentDeckSelection({ id: '', name: '' });
       setSelectedHandtraps([]);
+      setHandtrapDialogOpen(false);
     }
     // decks/defaultDeck are accessed via refs to avoid resetting user's
     // deck selection on background refetches or post-mutation invalidation.
@@ -224,6 +256,27 @@ export function DuelFormDialog({
       return current.includes(nextId) ? current : [...current, nextId];
     });
   }, [createHandtrapCard, customHandtrapName]);
+
+  const toggleHiddenDefault = useCallback((id: string) => {
+    setHiddenDefaults((current) => {
+      const shouldHide = !current.includes(id);
+      const next = shouldHide ? [...current, id] : current.filter((value) => value !== id);
+      localStorage.setItem(HIDDEN_DEFAULTS_KEY, JSON.stringify(next));
+      if (shouldHide) {
+        setSelectedHandtraps((selected) => selected.filter((cardId) => cardId !== id));
+      }
+      return next;
+    });
+  }, []);
+
+  const handleDeleteCustomHandtrap = useCallback(
+    async (id: string) => {
+      const rawId = fromCustomHandtrapId(id);
+      await deleteHandtrapCard.mutateAsync(rawId);
+      setSelectedHandtraps((current) => current.filter((cardId) => cardId !== id));
+    },
+    [deleteHandtrapCard],
+  );
 
   const handleFormSubmit = useCallback(
     async (data: CreateDuel) => {
@@ -278,6 +331,7 @@ export function DuelFormDialog({
         setValue('result', 'win');
         setValue('memo', '');
         setSelectedHandtraps([]);
+        setHandtrapDialogOpen(false);
         setCustomHandtrapName('');
         setValue('playMistake', null);
         setDueledAtChanged(false);
@@ -597,53 +651,69 @@ export function DuelFormDialog({
         </label>
       )}
 
-      {/* Row 7: Memo */}
+      {/* Handtraps */}
       <div>
-        <label
-          className="block text-base font-medium mb-1"
-          style={{ color: 'var(--color-on-surface-muted)' }}
+        <button
+          type="button"
+          onClick={() => setHandtrapDialogOpen(true)}
+          className="w-full text-left flex items-center justify-between py-2 px-3 rounded-lg border"
+          style={{
+            borderColor: 'var(--color-border)',
+            color: 'var(--color-on-surface-muted)',
+            background: 'var(--color-surface-variant)',
+          }}
         >
-          {t('duel.opponentHandtraps')}
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {allHandtrapCards.map((card) => {
-            const selected = selectedHandtraps.includes(card.id);
-            return (
-              <button
-                key={card.id}
-                type="button"
-                onClick={() => toggleHandtrap(card.id)}
-                className={`chip ${selected ? 'chip-primary' : ''}`}
-              >
-                {getHandtrapName(card, i18n.language)}
-              </button>
-            );
-          })}
-        </div>
-        <div className="mt-3 flex gap-2">
-          <input
-            type="text"
-            value={customHandtrapName}
-            onChange={(e) => setCustomHandtrapName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                void handleAddCustomHandtrap();
-              }
-            }}
-            placeholder={t('duel.customHandtrapPlaceholder')}
-            className="themed-input"
-          />
-          <button
-            type="button"
-            onClick={() => void handleAddCustomHandtrap()}
-            disabled={createHandtrapCard.isPending || !customHandtrapName.trim()}
-            className="themed-btn themed-btn-ghost"
+          <span className="text-sm font-medium">
+            {t('duel.opponentHandtraps')}
+            {selectedHandtraps.length > 0 && (
+              <span style={{ color: 'var(--color-primary)' }}> ({selectedHandtraps.length})</span>
+            )}
+          </span>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
           >
-            {t('duel.addCustomHandtrap')}
-          </button>
-        </div>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+        {selectedHandtraps.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {selectedHandtraps
+              .filter((id) => !hiddenDefaults.includes(id))
+              .map((id) => {
+                const card = allHandtrapCards.find((entry) => entry.id === id);
+                if (!card) return null;
+                return (
+                  <span
+                    key={id}
+                    className="chip chip-primary"
+                    style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+                  >
+                    {getHandtrapName(card, i18n.language)}
+                  </span>
+                );
+              })}
+          </div>
+        )}
       </div>
+      <HandtrapSelectDialog
+        open={handtrapDialogOpen}
+        onClose={() => setHandtrapDialogOpen(false)}
+        selectedHandtraps={selectedHandtraps}
+        onToggle={toggleHandtrap}
+        allHandtrapCards={visibleHandtrapCards}
+        hiddenDefaults={hiddenDefaults}
+        onToggleHidden={toggleHiddenDefault}
+        customHandtrapName={customHandtrapName}
+        onCustomHandtrapNameChange={setCustomHandtrapName}
+        onAddCustomHandtrap={handleAddCustomHandtrap}
+        onDeleteCustomHandtrap={handleDeleteCustomHandtrap}
+        addingCustom={createHandtrapCard.isPending}
+      />
 
       <div>
         <label
