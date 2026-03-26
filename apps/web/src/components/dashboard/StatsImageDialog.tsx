@@ -15,6 +15,7 @@ type Props = {
   deckWinRates?: DeckWinRate[];
   rank?: number | null;
   rateValue?: number | null;
+  filterLabel?: string;
 };
 
 const STORAGE_KEY = 'duellog.statsImage.visibility';
@@ -49,6 +50,7 @@ export function StatsImageDialog({
   deckWinRates,
   rank,
   rateValue,
+  filterLabel,
 }: Props) {
   const { t } = useTranslation();
   const { download, copyToClipboard, generating } = useStatsImageDownload();
@@ -271,6 +273,7 @@ export function StatsImageDialog({
                         deckWinRates={deckWinRates}
                         rank={rank}
                         rateValue={rateValue}
+                        filterLabel={filterLabel}
                         visibility={visibility}
                       />
                     </div>

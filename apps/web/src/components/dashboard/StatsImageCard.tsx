@@ -26,6 +26,7 @@ type Props = {
   deckWinRates?: DeckWinRate[];
   rank?: number | null;
   rateValue?: number | null;
+  filterLabel?: string;
   visibility?: ImageVisibility;
 };
 
@@ -80,7 +81,8 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
   props: Props,
   ref: Ref<HTMLDivElement>,
 ) {
-  const { stats, streaks, gameMode, deckWinRates, rank, rateValue, visibility } = props;
+  const { stats, streaks, gameMode, deckWinRates, rank, rateValue, filterLabel, visibility } =
+    props;
   const { t } = useTranslation();
 
   const resolvedVisibility = { ...DEFAULT_VISIBILITY, ...visibility };
@@ -140,62 +142,68 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
         boxSizing: 'border-box',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 28,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <svg viewBox="0 0 64 64" width="38" height="38" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="5" width="54" height="54" rx="16" fill="#243041" />
-            <rect x="5" y="5" width="54" height="54" rx="16" fill="none" stroke="#4b5a70" />
-            <g
-              fontFamily="'Liberation Serif', 'Times New Roman', serif"
-              fontSize="43"
-              fontWeight="700"
+      <div style={{ marginBottom: filterLabel ? 12 : 28 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <svg viewBox="0 0 64 64" width="38" height="38" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="5" width="54" height="54" rx="16" fill="#243041" />
+              <rect x="5" y="5" width="54" height="54" rx="16" fill="none" stroke="#4b5a70" />
+              <g
+                fontFamily="'Liberation Serif', 'Times New Roman', serif"
+                fontSize="43"
+                fontWeight="700"
+              >
+                <text x="11.828" y="41.831" fill="#e8edf4">
+                  D
+                </text>
+                <text x="24.528" y="50.331" fill="#f8fbff">
+                  L
+                </text>
+              </g>
+            </svg>
+            <span
+              style={{
+                fontSize: 24,
+                fontWeight: 700,
+                fontStyle: 'italic',
+                fontFamily: "'Liberation Serif', 'Times New Roman', serif",
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase' as const,
+                color: C.text,
+              }}
             >
-              <text x="11.828" y="41.831" fill="#e8edf4">
-                D
-              </text>
-              <text x="24.528" y="50.331" fill="#f8fbff">
-                L
-              </text>
-            </g>
-          </svg>
-          <span
-            style={{
-              fontSize: 24,
-              fontWeight: 700,
-              fontStyle: 'italic',
-              fontFamily: "'Liberation Serif', 'Times New Roman', serif",
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase' as const,
-              color: C.text,
-            }}
-          >
-            Duel Log
-          </span>
-          <span style={{ fontSize: 16, color: C.textSecondary, marginLeft: 4 }}>
-            {GAME_MODE_LABELS[gameMode] ?? gameMode}
-          </span>
-        </div>
-        {showStreakBadge && (
-          <div
-            style={{
-              background: streaks?.currentStreakType === 'win' ? C.success : C.error,
-              color: C.bg,
-              borderRadius: 20,
-              padding: '6px 16px',
-              fontSize: 14,
-              fontWeight: 700,
-            }}
-          >
-            {streaks?.currentStreakType === 'win' ? '🔥' : '💀'} {streaks?.currentStreak}{' '}
-            {streaks?.currentStreakType === 'win' ? t('streak.winStreak') : t('streak.lossStreak')}
+              Duel Log
+            </span>
+            <span style={{ fontSize: 16, color: C.textSecondary, marginLeft: 4 }}>
+              {GAME_MODE_LABELS[gameMode] ?? gameMode}
+            </span>
           </div>
+          {showStreakBadge && (
+            <div
+              style={{
+                background: streaks?.currentStreakType === 'win' ? C.success : C.error,
+                color: C.bg,
+                borderRadius: 20,
+                padding: '6px 16px',
+                fontSize: 14,
+                fontWeight: 700,
+              }}
+            >
+              {streaks?.currentStreakType === 'win' ? '🔥' : '💀'} {streaks?.currentStreak}{' '}
+              {streaks?.currentStreakType === 'win'
+                ? t('streak.winStreak')
+                : t('streak.lossStreak')}
+            </div>
+          )}
+        </div>
+        {filterLabel && (
+          <div style={{ fontSize: 15, color: C.textSecondary, marginTop: 6 }}>{filterLabel}</div>
         )}
       </div>
 

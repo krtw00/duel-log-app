@@ -77,6 +77,19 @@ export function DashboardView() {
   const modeCounts = modeCountsData?.data ?? {};
   const classicLayout = meData?.data?.classicLayout ?? false;
   const showPlayMistake = meData?.data?.showPlayMistakeStats ?? false;
+  const filterLabel = useMemo(() => {
+    const parts: string[] = [`${year}年${month}月`];
+    if (deckId) {
+      const deckName = decks.find((d) => d.id === deckId)?.name;
+      if (deckName) {
+        parts.push(deckName);
+      }
+    }
+    if (periodType === 'range') {
+      parts.push(`#${rangeStart}-${rangeEnd}`);
+    }
+    return parts.join(' · ');
+  }, [year, month, deckId, decks, periodType, rangeStart, rangeEnd]);
 
   // Latest rank: use this month's data, or demote last saved rank for month start
   const DEFAULT_RANK = 18; // Platinum 5
@@ -418,6 +431,7 @@ export function DashboardView() {
           deckWinRates={winRatesData?.data}
           rank={duels[0]?.rank}
           rateValue={duels[0]?.rateValue}
+          filterLabel={filterLabel}
         />
       )}
     </div>
