@@ -395,7 +395,7 @@ export function DashboardView() {
           {renderHistoryContent()}
         </div>
       ) : (
-        <div className="hidden lg:grid lg:grid-cols-[500px_1fr] lg:items-start lg:gap-6">
+        <div className="hidden lg:grid lg:grid-cols-[560px_1fr] lg:items-start lg:gap-6">
           <div className="space-y-6">{renderRecordContent()}</div>
           <div>{renderHistoryContent()}</div>
         </div>

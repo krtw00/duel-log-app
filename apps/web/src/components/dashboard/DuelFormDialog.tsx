@@ -706,57 +706,48 @@ export function DuelFormDialog({
                 >
                   {t('duel.handtrapSelectTitle')}
                 </div>
-                {visibleHandtrapCards
-                  .filter((c) => 'isCustom' in c)
-                  .map((card) => (
-                    <div key={card.id} className="flex items-center justify-between gap-2">
+                {allHandtrapCards.map((card) => {
+                  const isCustom = 'isCustom' in card;
+                  const isHidden = !isCustom && hiddenDefaults.includes(card.id);
+                  return (
+                    <div
+                      key={card.id}
+                      className="flex items-center justify-between gap-2"
+                      style={isHidden ? { opacity: 0.5 } : undefined}
+                    >
                       <span
                         className="text-sm truncate"
                         style={{ color: 'var(--color-on-surface)' }}
                       >
                         {getHandtrapName(card, i18n.language)}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => void handleDeleteCustomHandtrap(card.id)}
-                        className="text-xs shrink-0"
-                        style={{ color: 'var(--color-error)' }}
-                      >
-                        {t('common.delete')}
-                      </button>
+                      {isCustom ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteCustomHandtrap(card.id)}
+                          className="text-xs shrink-0"
+                          style={{ color: 'var(--color-error)' }}
+                        >
+                          {t('common.delete')}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => toggleHiddenDefault(card.id)}
+                          className="text-xs shrink-0"
+                          style={{
+                            color: isHidden
+                              ? 'var(--color-primary)'
+                              : 'var(--color-on-surface-muted)',
+                          }}
+                        >
+                          {isHidden ? t('duel.handtrapRestore') : t('duel.handtrapHide')}
+                        </button>
+                      )}
                     </div>
-                  ))}
-                {hiddenDefaults.length > 0 && (
-                  <>
-                    <div
-                      className="text-xs pt-1"
-                      style={{ color: 'var(--color-on-surface-muted)', opacity: 0.6 }}
-                    >
-                      {t('duel.handtrapHiddenSection')}
-                    </div>
-                    {DEFAULT_HANDTRAP_CARDS.filter((c) => hiddenDefaults.includes(c.id)).map(
-                      (card) => (
-                        <div key={card.id} className="flex items-center justify-between gap-2">
-                          <span
-                            className="text-sm truncate"
-                            style={{ color: 'var(--color-on-surface)', opacity: 0.5 }}
-                          >
-                            {getHandtrapName(card, i18n.language)}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => toggleHiddenDefault(card.id)}
-                            className="text-xs shrink-0"
-                            style={{ color: 'var(--color-primary)' }}
-                          >
-                            {t('duel.handtrapRestore')}
-                          </button>
-                        </div>
-                      ),
-                    )}
-                  </>
-                )}
-                <div className="flex gap-1.5 pt-1">
+                  );
+                })}
+                <div className="flex gap-1.5 pt-2">
                   <input
                     type="text"
                     value={customHandtrapName}
@@ -768,8 +759,8 @@ export function DuelFormDialog({
                       }
                     }}
                     placeholder={t('duel.customHandtrapPlaceholder')}
-                    className="themed-input text-sm"
-                    style={{ padding: '4px 8px' }}
+                    className="themed-input text-sm flex-1"
+                    style={{ padding: '6px 10px', minWidth: 0 }}
                   />
                   <button
                     type="button"
