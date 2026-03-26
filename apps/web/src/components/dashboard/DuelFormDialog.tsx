@@ -696,7 +696,7 @@ export function DuelFormDialog({
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'var(--color-border)',
-                  minWidth: 220,
+                  minWidth: 260,
                   boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
                 }}
               >
@@ -747,7 +747,7 @@ export function DuelFormDialog({
                     </div>
                   );
                 })}
-                <div className="flex gap-1.5 pt-2">
+                <div className="space-y-1.5 pt-2">
                   <input
                     type="text"
                     value={customHandtrapName}
@@ -759,14 +759,13 @@ export function DuelFormDialog({
                       }
                     }}
                     placeholder={t('duel.customHandtrapPlaceholder')}
-                    className="themed-input text-sm flex-1"
-                    style={{ padding: '6px 10px', minWidth: 0 }}
+                    className="themed-input text-sm w-full"
                   />
                   <button
                     type="button"
                     onClick={() => void handleAddCustomHandtrap()}
                     disabled={createHandtrapCard.isPending || !customHandtrapName.trim()}
-                    className="themed-btn themed-btn-ghost text-xs shrink-0"
+                    className="themed-btn themed-btn-ghost text-xs w-full"
                   >
                     {t('duel.addCustomHandtrap')}
                   </button>
