@@ -203,7 +203,28 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
           )}
         </div>
         {filterLabel && (
-          <div style={{ fontSize: 15, color: C.textSecondary, marginTop: 6 }}>{filterLabel}</div>
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: C.text,
+              marginTop: 8,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: 3,
+                height: 18,
+                borderRadius: 2,
+                background: C.primary,
+              }}
+            />
+            {filterLabel}
+          </div>
         )}
       </div>
 
