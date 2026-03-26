@@ -692,11 +692,13 @@ export function DuelFormDialog({
             </button>
             {handtrapMenuOpen && (
               <div
-                className="absolute right-0 top-full mt-1 z-50 rounded-lg border p-3 space-y-2"
+                className="absolute right-0 bottom-full mb-1 z-50 rounded-lg border p-3 space-y-2"
                 style={{
                   background: 'var(--color-surface)',
                   borderColor: 'var(--color-border)',
                   minWidth: 260,
+                  maxHeight: '70vh',
+                  overflowY: 'auto',
                   boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
                 }}
               >
