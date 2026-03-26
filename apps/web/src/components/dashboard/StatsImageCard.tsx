@@ -2,6 +2,22 @@ import type { DeckWinRate, GameMode, OverviewStats, Streaks } from '@duel-log/sh
 import { type Ref, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+export type ImageVisibility = {
+  detailedRates: boolean;
+  mistakeStats: boolean;
+  rankRate: boolean;
+  deckWinRates: boolean;
+  streakBadge: boolean;
+};
+
+export const DEFAULT_VISIBILITY: ImageVisibility = {
+  detailedRates: true,
+  mistakeStats: true,
+  rankRate: true,
+  deckWinRates: true,
+  streakBadge: true,
+};
+
 type Props = {
   stats: OverviewStats;
   streaks?: Streaks;
@@ -9,11 +25,11 @@ type Props = {
   deckWinRates?: DeckWinRate[];
   rank?: number | null;
   rateValue?: number | null;
+  visibility?: ImageVisibility;
 };
 
 const C = {
   bg: '#0a0e27',
-  surface: '#12162e',
   surfaceVariant: '#1a1f3a',
   primary: '#00d9ff',
   secondary: '#b536ff',
@@ -34,8 +50,12 @@ const GAME_MODE_LABELS: Record<string, string> = {
   DC: 'Duel Cup',
 };
 
-function pct(v: number): string {
-  return `${(v * 100).toFixed(1)}%`;
+function pct(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
+function clampPercent(value: number): string {
+  return `${Math.max(0, Math.min(100, value * 100))}%`;
 }
 
 function StatBox({ label, value, color }: { label: string; value: string; color?: string }) {
@@ -44,13 +64,13 @@ function StatBox({ label, value, color }: { label: string; value: string; color?
       style={{
         background: C.glass,
         border: `1px solid ${C.border}`,
-        borderRadius: 8,
-        padding: '8px 12px',
+        borderRadius: 10,
+        padding: '16px',
         textAlign: 'center',
       }}
     >
-      <div style={{ fontSize: 11, color: C.textSecondary, marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 700, color: color ?? C.text }}>{value}</div>
+      <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: color ?? C.text }}>{value}</div>
     </div>
   );
 }
@@ -59,10 +79,48 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
   props: Props,
   ref: Ref<HTMLDivElement>,
 ) {
-  const { stats, streaks, gameMode, deckWinRates, rank, rateValue } = props;
+  const { stats, streaks, gameMode, deckWinRates, rank, rateValue, visibility } = props;
   const { t } = useTranslation();
 
+  const resolvedVisibility = { ...DEFAULT_VISIBILITY, ...visibility };
+  const hasMistakeStats = stats.playMistakes > 0;
+  const showDetailedRates = resolvedVisibility.detailedRates;
+  const showMistakeStats = resolvedVisibility.mistakeStats && hasMistakeStats;
+  const showRankRate = resolvedVisibility.rankRate && (rank != null || rateValue != null);
+  const showDeckWinRates = resolvedVisibility.deckWinRates;
+  const showStreakBadge =
+    resolvedVisibility.streakBadge &&
+    streaks != null &&
+    streaks.currentStreak >= 2 &&
+    streaks.currentStreakType != null;
   const topDecks = deckWinRates?.slice(0, 5) ?? [];
+
+  const rankRateCard = showRankRate ? (
+    <div
+      style={{
+        background: C.glass,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: '16px 20px',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 28,
+      }}
+    >
+      {rank != null && (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>Rank</div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: C.primary }}>{rank}</div>
+        </div>
+      )}
+      {rateValue != null && (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>Rate</div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: C.secondary }}>{rateValue}</div>
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div
@@ -75,17 +133,16 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
         fontFamily: 'system-ui, -apple-system, sans-serif',
         display: 'flex',
         flexDirection: 'column',
-        padding: 32,
+        padding: 40,
         boxSizing: 'border-box',
       }}
     >
-      {/* Header */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 24,
+          marginBottom: 28,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
@@ -105,10 +162,10 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
             {GAME_MODE_LABELS[gameMode] ?? gameMode}
           </span>
         </div>
-        {streaks && streaks.currentStreak >= 2 && streaks.currentStreakType && (
+        {showStreakBadge && (
           <div
             style={{
-              background: streaks.currentStreakType === 'win' ? C.success : C.error,
+              background: streaks?.currentStreakType === 'win' ? C.success : C.error,
               color: C.bg,
               borderRadius: 20,
               padding: '6px 16px',
@@ -116,35 +173,42 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
               fontWeight: 700,
             }}
           >
-            {streaks.currentStreakType === 'win' ? '🔥' : '💀'} {streaks.currentStreak}{' '}
-            {streaks.currentStreakType === 'win' ? t('streak.winStreak') : t('streak.lossStreak')}
+            {streaks?.currentStreakType === 'win' ? '🔥' : '💀'} {streaks?.currentStreak}{' '}
+            {streaks?.currentStreakType === 'win' ? t('streak.winStreak') : t('streak.lossStreak')}
           </div>
         )}
       </div>
 
-      {/* Main */}
-      <div style={{ display: 'flex', gap: 24, flex: 1, minHeight: 0 }}>
-        {/* Left Column (60%) */}
-        <div style={{ flex: '0 0 60%', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Big win rate */}
+      <div style={{ display: 'flex', gap: showDeckWinRates ? 24 : 0, flex: 1, minHeight: 0 }}>
+        <div
+          style={{
+            flex: showDeckWinRates ? '0 0 60%' : '1 1 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          }}
+        >
           <div
             style={{
               background: C.glass,
               border: `1px solid ${C.border}`,
-              borderRadius: 12,
-              padding: '20px 24px',
+              borderRadius: 14,
+              padding: showDetailedRates ? '24px 28px' : '32px 36px',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'space-between',
               gap: 32,
+              minHeight: showDetailedRates ? 0 : 220,
+              flex: showDetailedRates || showMistakeStats ? undefined : 1,
             }}
           >
             <div>
-              <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>
+              <div style={{ fontSize: 14, color: C.textSecondary, marginBottom: 6 }}>
                 {t('dashboard.winRate')}
               </div>
               <div
                 style={{
-                  fontSize: 56,
+                  fontSize: showDetailedRates ? 60 : 72,
                   fontWeight: 800,
                   color: C.primary,
                   lineHeight: 1,
@@ -153,43 +217,63 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
                 {pct(stats.winRate)}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 24 }}>
+            <div style={{ display: 'flex', gap: showDetailedRates ? 24 : 32 }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: C.textSecondary }}>
+                <div style={{ fontSize: 13, color: C.textSecondary }}>
                   {t('dashboard.totalDuels')}
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 700 }}>{stats.totalDuels}</div>
+                <div style={{ fontSize: showDetailedRates ? 30 : 34, fontWeight: 700 }}>
+                  {stats.totalDuels}
+                </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: C.success }}>WIN</div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: C.success }}>{stats.wins}</div>
+                <div style={{ fontSize: 13, color: C.success }}>WIN</div>
+                <div
+                  style={{
+                    fontSize: showDetailedRates ? 30 : 34,
+                    fontWeight: 700,
+                    color: C.success,
+                  }}
+                >
+                  {stats.wins}
+                </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: C.error }}>LOSE</div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: C.error }}>{stats.losses}</div>
+                <div style={{ fontSize: 13, color: C.error }}>LOSE</div>
+                <div
+                  style={{
+                    fontSize: showDetailedRates ? 30 : 34,
+                    fontWeight: 700,
+                    color: C.error,
+                  }}
+                >
+                  {stats.losses}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Sub stats grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-            <StatBox label={t('dashboard.firstRate')} value={pct(stats.firstRate)} />
-            <StatBox
-              label={t('dashboard.firstWinRate')}
-              value={pct(stats.firstWinRate)}
-              color={C.primary}
-            />
-            <StatBox
-              label={t('dashboard.secondWinRate')}
-              value={pct(stats.secondWinRate)}
-              color={C.secondary}
-            />
-            <StatBox label={t('dashboard.coinTossRate')} value={pct(stats.coinTossWinRate)} />
-          </div>
+          {!showDeckWinRates && rankRateCard}
 
-          {/* Play mistake stats */}
-          {stats.playMistakes > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+          {showDetailedRates && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+              <StatBox label={t('dashboard.firstRate')} value={pct(stats.firstRate)} />
+              <StatBox
+                label={t('dashboard.firstWinRate')}
+                value={pct(stats.firstWinRate)}
+                color={C.primary}
+              />
+              <StatBox
+                label={t('dashboard.secondWinRate')}
+                value={pct(stats.secondWinRate)}
+                color={C.secondary}
+              />
+              <StatBox label={t('dashboard.coinTossRate')} value={pct(stats.coinTossWinRate)} />
+            </div>
+          )}
+
+          {showMistakeStats && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
               <StatBox
                 label={t('dashboard.playMistakeRate')}
                 value={pct(stats.playMistakeRate)}
@@ -204,120 +288,116 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
           )}
         </div>
 
-        {/* Right Column (40%) */}
-        <div
-          style={{
-            flex: '0 0 calc(40% - 24px)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-          }}
-        >
-          {/* Rank / Rate */}
-          {(rank != null || rateValue != null) && (
+        {showDeckWinRates && (
+          <div
+            style={{
+              flex: '0 0 calc(40% - 24px)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+          >
+            {rankRateCard}
+
             <div
               style={{
                 background: C.glass,
                 border: `1px solid ${C.border}`,
                 borderRadius: 12,
-                padding: '12px 16px',
-                display: 'flex',
-                justifyContent: 'center',
-                gap: 24,
+                padding: '16px 18px',
+                flex: 1,
+                overflow: 'hidden',
               }}
             >
-              {rank != null && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: C.textSecondary }}>Rank</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: C.primary }}>{rank}</div>
-                </div>
-              )}
-              {rateValue != null && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: C.textSecondary }}>Rate</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: C.secondary }}>
-                    {rateValue}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Deck Win Rates */}
-          <div
-            style={{
-              background: C.glass,
-              border: `1px solid ${C.border}`,
-              borderRadius: 12,
-              padding: '12px 16px',
-              flex: 1,
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 8 }}>
-              Deck Win Rates
-            </div>
-            {topDecks.length === 0 ? (
-              <div style={{ color: C.textSecondary, fontSize: 13 }}>—</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {topDecks.map((d) => (
-                  <div
-                    key={d.deckId}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '6px 8px',
-                      background: C.surfaceVariant,
-                      borderRadius: 6,
-                    }}
-                  >
-                    <span
+              <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 10 }}>
+                Deck Win Rates
+              </div>
+              {topDecks.length === 0 ? (
+                <div style={{ color: C.textSecondary, fontSize: 13 }}>-</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {topDecks.map((deck) => (
+                    <div
+                      key={deck.deckId}
                       style={{
-                        fontSize: 13,
-                        fontWeight: 600,
+                        position: 'relative',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        background: C.surfaceVariant,
+                        borderRadius: 6,
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '60%',
                       }}
                     >
-                      {d.deckName}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 11, color: C.textSecondary }}>
-                        {d.wins}W {d.losses}L
-                      </span>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          height: '100%',
+                          width: clampPercent(deck.winRate),
+                          background: deck.winRate >= 0.5 ? `${C.success}20` : `${C.error}20`,
+                          borderRadius: 6,
+                        }}
+                      />
                       <span
                         style={{
-                          fontSize: 15,
-                          fontWeight: 700,
-                          color: d.winRate >= 0.5 ? C.success : C.error,
+                          position: 'relative',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '60%',
                         }}
                       >
-                        {pct(d.winRate)}
+                        {deck.deckName}
                       </span>
+                      <div
+                        style={{
+                          position: 'relative',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                        }}
+                      >
+                        <span style={{ fontSize: 11, color: C.textSecondary }}>
+                          {deck.wins}W {deck.losses}L
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 700,
+                            color: deck.winRate >= 0.5 ? C.success : C.error,
+                          }}
+                        >
+                          {pct(deck.winRate)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Footer */}
-      <div
-        style={{
-          marginTop: 16,
-          textAlign: 'right',
-          fontSize: 12,
-          color: C.textSecondary,
-          letterSpacing: 1,
-        }}
-      >
-        duel-log-app.vercel.app
+      <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            opacity: 0.6,
+            letterSpacing: 1.4,
+            background: `linear-gradient(90deg, ${C.primary}, ${C.secondary})`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          DUEL LOG
+        </span>
       </div>
     </div>
   );
