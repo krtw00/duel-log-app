@@ -357,13 +357,13 @@ function ScreenshotShowcase() {
 
   return (
     <div className="w-full mx-auto">
-      <div className="relative rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="relative rounded-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden aspect-[1440/900]">
         {LANDING_SCREENSHOTS.map((shot, i) => (
           <img
             key={shot.src}
             src={shot.src}
             alt={shot.label}
-            className={`w-full transition-opacity duration-700 ${
+            className={`w-full h-full object-cover transition-opacity duration-700 ${
               i === activeIndex
                 ? 'relative opacity-100'
                 : 'absolute top-0 left-0 opacity-0 pointer-events-none'
