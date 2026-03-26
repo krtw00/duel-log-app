@@ -432,7 +432,7 @@ export function DuelFormDialog({
       </div>
 
       {/* Row 2: Coin / First-Second / Result (radio groups) */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {/* Coin Toss */}
         <div className="radio-group-wrapper">
           <div className="radio-label">{t('duel.coinToss')}</div>
