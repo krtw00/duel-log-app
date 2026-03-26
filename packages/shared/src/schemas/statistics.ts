@@ -65,3 +65,11 @@ export const valueSequenceEntrySchema = z.object({
   value: z.number().nullable(),
   dueledAt: z.string().datetime(),
 });
+
+export const handtrapStatsEntrySchema = z.object({
+  handtrapId: z.string(),
+  totalHit: z.number().int(),
+  wins: z.number().int(),
+  losses: z.number().int(),
+  winRate: z.number(),
+});

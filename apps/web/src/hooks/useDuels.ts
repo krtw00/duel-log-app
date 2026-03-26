@@ -56,6 +56,7 @@ export function useCreateDuel() {
         rateValue: newDuelData.rateValue ?? null,
         dcValue: newDuelData.dcValue ?? null,
         memo: newDuelData.memo ?? null,
+        opponentHandtraps: newDuelData.opponentHandtraps ?? [],
         playMistake: newDuelData.playMistake ?? null,
         dueledAt: newDuelData.dueledAt,
         createdAt: new Date().toISOString(),

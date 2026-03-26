@@ -14,6 +14,7 @@ import type {
 } from '../schemas/sharedStatistics.js';
 import type {
   deckWinRateSchema,
+  handtrapStatsEntrySchema,
   matchupEntrySchema,
   overviewStatsSchema,
   statisticsFilterSchema,
@@ -46,6 +47,7 @@ export type SharedStatisticsFilter = z.infer<typeof sharedStatisticsFilterSchema
 // Statistics
 export type OverviewStats = z.infer<typeof overviewStatsSchema>;
 export type DeckWinRate = z.infer<typeof deckWinRateSchema>;
+export type HandtrapStatsEntry = z.infer<typeof handtrapStatsEntrySchema>;
 export type MatchupEntry = z.infer<typeof matchupEntrySchema>;
 export type Streaks = z.infer<typeof streaksSchema>;
 export type ValueSequenceEntry = z.infer<typeof valueSequenceEntrySchema>;
