@@ -1,5 +1,6 @@
 import type {
   DeckWinRate,
+  HandtrapStatsEntry,
   MatchupEntry,
   OverviewStats,
   StatisticsFilter,
@@ -61,6 +62,16 @@ export function useValueSequence(filter?: StatisticsFilter & { gameMode: 'RANK' 
         params: filterParams(filter),
       }),
     enabled: !!filter?.gameMode,
+  });
+}
+
+export function useHandtrapStats(filter?: StatisticsFilter) {
+  return useQuery({
+    queryKey: ['statistics', 'handtraps', filter],
+    queryFn: () =>
+      api<{ data: HandtrapStatsEntry[] }>('/statistics/handtraps', {
+        params: filterParams(filter),
+      }),
   });
 }
 

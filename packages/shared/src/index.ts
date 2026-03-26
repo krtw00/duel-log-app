@@ -1,6 +1,18 @@
 // Constants
-export { GAME_MODES, RESULTS, THEME_PREFERENCES, USER_STATUSES } from './constants/index.js';
-export type { GameMode, Result, ThemePreference, UserStatus } from './constants/index.js';
+export {
+  DEFAULT_HANDTRAP_CARDS,
+  GAME_MODES,
+  RESULTS,
+  THEME_PREFERENCES,
+  USER_STATUSES,
+} from './constants/index.js';
+export type {
+  DefaultHandtrapCard,
+  GameMode,
+  Result,
+  ThemePreference,
+  UserStatus,
+} from './constants/index.js';
 
 // Schemas
 export { userSchema, updateUserSchema, updateUserStatusSchema } from './schemas/user.js';
@@ -19,6 +31,7 @@ export {
 export {
   overviewStatsSchema,
   deckWinRateSchema,
+  handtrapStatsEntrySchema,
   matchupEntrySchema,
   streaksSchema,
   valueSequenceEntrySchema,
@@ -49,6 +62,7 @@ export type {
   SharedStatisticsFilter,
   OverviewStats,
   DeckWinRate,
+  HandtrapStatsEntry,
   MatchupEntry,
   Streaks,
   ValueSequenceEntry,

@@ -15,6 +15,7 @@ export function ProfileView() {
   const [displayName, setDisplayName] = useState('');
   const [streamerMode, setStreamerMode] = useState(false);
   const [showPlayMistakeStats, setShowPlayMistakeStats] = useState(false);
+  const [classicLayout, setClassicLayout] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -42,6 +43,7 @@ export function ProfileView() {
         setDisplayName(result.data.displayName);
         setStreamerMode(result.data.streamerMode);
         setShowPlayMistakeStats(result.data.showPlayMistakeStats);
+        setClassicLayout(result.data.classicLayout);
         localStorage.setItem('streamerMode', String(result.data.streamerMode));
       } catch {
         // ignore
@@ -54,7 +56,12 @@ export function ProfileView() {
     setSaving(true);
     setMessage('');
     try {
-      const data: UpdateUser = { displayName, streamerMode, showPlayMistakeStats };
+      const data: UpdateUser = {
+        displayName,
+        streamerMode,
+        showPlayMistakeStats,
+        classicLayout,
+      };
       await api('/me', { method: 'PUT', body: data });
       queryClient.invalidateQueries({ queryKey: ['me'] });
       localStorage.setItem('streamerMode', String(streamerMode));
@@ -244,6 +251,41 @@ export function ProfileView() {
                 type="checkbox"
                 checked={showPlayMistakeStats}
                 onChange={(e) => setShowPlayMistakeStats(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </label>
+          </div>
+
+          {/* Classic Layout */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-warning)"
+                strokeWidth="2"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--color-on-surface)' }}>
+                  {t('profile.classicLayout')}
+                </p>
+                <p className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+                  {t('profile.classicLayoutDesc')}
+                </p>
+              </div>
+            </div>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={classicLayout}
+                onChange={(e) => setClassicLayout(e.target.checked)}
               />
               <span className="toggle-slider" />
             </label>

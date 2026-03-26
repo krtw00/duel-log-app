@@ -1,3 +1,4 @@
+import { sql as drizzleSql } from 'drizzle-orm';
 import {
   boolean,
   index,
@@ -19,6 +20,7 @@ export const users = pgTable('users', {
   themePreference: text('theme_preference').notNull().default('system'),
   streamerMode: boolean('streamer_mode').notNull().default(false),
   showPlayMistakeStats: boolean('show_play_mistake_stats').notNull().default(false),
+  classicLayout: boolean('classic_layout').notNull().default(false),
   status: text('status').notNull().default('active'),
   statusReason: text('status_reason'),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
@@ -67,6 +69,10 @@ export const duels = pgTable(
     rateValue: real('rate_value'),
     dcValue: integer('dc_value'),
     memo: text('memo'),
+    opponentHandtraps: text('opponent_handtraps')
+      .array()
+      .notNull()
+      .default(drizzleSql`'{}'::text[]`),
     playMistake: boolean('play_mistake'),
     dueledAt: timestamp('dueled_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -89,3 +95,16 @@ export const sharedStatistics = pgTable('shared_statistics', {
   expiresAt: timestamp('expires_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const userHandtrapCards = pgTable(
+  'user_handtrap_cards',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('idx_user_handtrap_cards_user_id').on(table.userId)],
+);

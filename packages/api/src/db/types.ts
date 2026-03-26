@@ -7,6 +7,7 @@ export interface UserRow {
   themePreference: string;
   streamerMode: boolean;
   showPlayMistakeStats: boolean;
+  classicLayout: boolean;
   status: string;
   statusReason: string | null;
   lastLoginAt: Date | null;
@@ -38,10 +39,18 @@ export interface DuelRow {
   rateValue: number | null;
   dcValue: number | null;
   memo: string | null;
+  opponentHandtraps: string[];
   playMistake: boolean | null;
   dueledAt: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface UserHandtrapCardRow {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: Date;
 }
 
 export interface SharedStatisticsRow {
