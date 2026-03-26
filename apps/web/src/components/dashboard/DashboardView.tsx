@@ -1,6 +1,6 @@
 import type { GameMode, User } from '@duel-log/shared';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDecks } from '../../hooks/useDecks.js';
 import { useCreateDuel, useDeleteDuel, useDuels, useUpdateDuel } from '../../hooks/useDuels.js';
@@ -11,7 +11,6 @@ import {
   useStreaks,
   useWinRates,
 } from '../../hooks/useStatistics.js';
-import { useStatsImageDownload } from '../../hooks/useStatsImageDownload.js';
 import { api } from '../../lib/api.js';
 import { demoteRank } from '../../utils/ranks.js';
 import { getCurrentSeason, getSeasonRange } from '../../utils/season.js';
@@ -23,7 +22,7 @@ import { DashboardHeader } from './DashboardHeader.js';
 import { DuelFormDialog } from './DuelFormDialog.js';
 import { DuelTable } from './DuelTable.js';
 import { StatsDisplayCards } from './StatsDisplayCards.js';
-import { StatsImageCard } from './StatsImageCard.js';
+import { StatsImageDialog } from './StatsImageDialog.js';
 import { StreakBadge } from './StreakBadge.js';
 import { StreamerSection } from './StreamerSection.js';
 
@@ -40,6 +39,7 @@ export function DashboardView() {
   const [rangeEnd, setRangeEnd] = useState(30);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [statsImageDialogOpen, setStatsImageDialogOpen] = useState(false);
   const [defaultIsFirst, setDefaultIsFirst] = useState(() => {
     const stored = localStorage.getItem('duellog.defaultIsFirst');
     return stored !== null ? stored === 'true' : true;
@@ -67,9 +67,6 @@ export function DashboardView() {
   const { data: overviewData, isLoading: statsLoading } = useOverviewStats(statsFilter);
   const { data: streaksData } = useStreaks(statsFilter);
   const { data: winRatesData } = useWinRates(statsFilter);
-
-  const statsImageRef = useRef<HTMLDivElement>(null);
-  const { download: downloadStatsImage, generating: imageGenerating } = useStatsImageDownload();
 
   const createDuel = useCreateDuel();
   const updateDuel = useUpdateDuel();
@@ -262,10 +259,8 @@ export function DashboardView() {
           </button>
           <button
             type="button"
-            onClick={() => {
-              if (statsImageRef.current) downloadStatsImage(statsImageRef.current);
-            }}
-            disabled={imageGenerating || !overviewData?.data}
+            onClick={() => setStatsImageDialogOpen(true)}
+            disabled={!overviewData?.data}
             className="themed-btn themed-btn-outlined text-sm"
           >
             <svg
@@ -280,9 +275,7 @@ export function DashboardView() {
               <circle cx="8.5" cy="8.5" r="1.5" />
               <path d="M21 15l-5-5L5 21" />
             </svg>
-            <span className="hidden sm:inline">
-              {imageGenerating ? '...' : t('dashboard.downloadStatsImage')}
-            </span>
+            <span className="hidden sm:inline">{t('dashboard.downloadStatsImage')}</span>
           </button>
         </div>
       </div>
@@ -424,19 +417,17 @@ export function DashboardView() {
         defaultGameMode={gameMode}
       />
 
-      {/* Stats Image (offscreen for capture) */}
       {overviewData?.data && (
-        <div style={{ position: 'fixed', left: -9999, top: 0, pointerEvents: 'none' }}>
-          <StatsImageCard
-            ref={statsImageRef}
-            stats={overviewData.data}
-            streaks={streaksData?.data}
-            gameMode={gameMode}
-            deckWinRates={winRatesData?.data}
-            rank={duels[0]?.rank}
-            rateValue={duels[0]?.rateValue}
-          />
-        </div>
+        <StatsImageDialog
+          open={statsImageDialogOpen}
+          onClose={() => setStatsImageDialogOpen(false)}
+          stats={overviewData.data}
+          streaks={streaksData?.data}
+          gameMode={gameMode}
+          deckWinRates={winRatesData?.data}
+          rank={duels[0]?.rank}
+          rateValue={duels[0]?.rateValue}
+        />
       )}
     </div>
   );

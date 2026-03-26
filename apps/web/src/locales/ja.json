@@ -80,7 +80,18 @@
     "tabRecord": "記録",
     "tabHistory": "履歴",
     "receivingStats": "メインウィンドウから統計を受信中...",
-    "downloadStatsImage": "戦績画像"
+    "downloadStatsImage": "戦績画像",
+    "statsImageTitle": "戦績画像",
+    "statsImageDownload": "ダウンロード",
+    "statsImageCopy": "クリップボードにコピー",
+    "statsImageCopied": "コピーしました",
+    "statsImageCopyFailed": "コピーに失敗しました",
+    "statsImageDetailedRates": "詳細勝率",
+    "statsImageMistakeStats": "ミス統計",
+    "statsImageRankRate": "ランク/レート",
+    "statsImageDeckWinRates": "デッキ別勝率",
+    "statsImageStreakBadge": "連勝/連敗バッジ",
+    "statsImageDisplayItems": "表示項目"
   },
   "duel": {
     "addTitle": "対戦記録を追加",

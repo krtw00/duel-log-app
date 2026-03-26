@@ -80,7 +80,18 @@
     "tabRecord": "기록",
     "tabHistory": "기록 목록",
     "receivingStats": "메인 윈도우에서 통계 수신 중...",
-    "downloadStatsImage": "전적 이미지"
+    "downloadStatsImage": "전적 이미지",
+    "statsImageTitle": "전적 이미지",
+    "statsImageDownload": "다운로드",
+    "statsImageCopy": "클립보드에 복사",
+    "statsImageCopied": "복사되었습니다",
+    "statsImageCopyFailed": "복사 실패",
+    "statsImageDetailedRates": "상세 승률",
+    "statsImageMistakeStats": "미스 통계",
+    "statsImageRankRate": "랭크/레이트",
+    "statsImageDeckWinRates": "덱별 승률",
+    "statsImageStreakBadge": "연승/연패 배지",
+    "statsImageDisplayItems": "표시 항목"
   },
   "duel": {
     "addTitle": "듀얼 기록 추가",
