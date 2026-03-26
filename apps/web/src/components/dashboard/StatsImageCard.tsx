@@ -202,7 +202,7 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
       <div style={{ display: 'flex', gap: showDeckWinRates ? 24 : 0, flex: 1, minHeight: 0 }}>
         <div
           style={{
-            flex: showDeckWinRates ? '0 0 60%' : '1 1 auto',
+            flex: showDeckWinRates ? '0 0 55%' : '1 1 auto',
             display: 'flex',
             flexDirection: 'column',
             gap: 16,
@@ -311,7 +311,7 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
         {showDeckWinRates && (
           <div
             style={{
-              flex: '0 0 calc(40% - 24px)',
+              flex: '0 0 calc(45% - 24px)',
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
@@ -369,7 +369,8 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          maxWidth: '60%',
+                          flex: '1 1 auto',
+                          minWidth: 0,
                         }}
                       >
                         {deck.deckName}
@@ -380,6 +381,8 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
                           display: 'flex',
                           alignItems: 'center',
                           gap: 8,
+                          flexShrink: 0,
+                          marginLeft: 8,
                         }}
                       >
                         <span style={{ fontSize: 11, color: C.textSecondary }}>
