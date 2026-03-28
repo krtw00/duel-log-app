@@ -195,10 +195,10 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
                 fontWeight: 700,
               }}
             >
-              {streaks?.currentStreakType === 'win' ? '🔥' : '💀'} {streaks?.currentStreak}{' '}
+              {streaks?.currentStreakType === 'win' ? '🔥' : '💀'}{' '}
               {streaks?.currentStreakType === 'win'
-                ? t('streak.winStreak')
-                : t('streak.lossStreak')}
+                ? t('streak.winStreak', { count: streaks?.currentStreak })
+                : t('streak.lossStreak', { count: streaks?.currentStreak })}
             </div>
           )}
         </div>
