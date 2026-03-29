@@ -74,79 +74,79 @@ function MobileCardView({
                 className={`duel-card-indicator ${duel.result === 'win' ? 'duel-card-indicator-win' : 'duel-card-indicator-loss'}`}
               />
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1 flex-wrap min-w-0">
-                    <span className="chip chip-outlined-primary text-sm truncate max-w-[40%]">
-                      {getDeckName(deckNameMap, duel.deckId)}
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
-                      vs
-                    </span>
-                    <span className="chip chip-outlined-warning text-sm truncate max-w-[40%]">
-                      {getDeckName(deckNameMap, duel.opponentDeckId)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 mt-1 flex-wrap">
-                    <span
-                      className={`chip text-sm ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}
-                    >
-                      {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
-                    </span>
-                    <span
-                      className={`chip text-sm ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}
-                    >
-                      {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
-                    </span>
-                    <span
-                      className={`chip text-sm ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}
-                    >
-                      {duel.isFirst ? t('duel.first') : t('duel.second')}
-                    </span>
-                    {getRankDisplay(duel, t) && (
-                      <span className="chip text-sm chip-rank">{getRankDisplay(duel, t)}</span>
-                    )}
-                    {duel.playMistake && (
-                      <span
-                        className="chip text-sm"
-                        style={{
-                          color: 'var(--color-error)',
-                          border: '1px solid var(--color-error)',
-                        }}
-                      >
-                        !
-                      </span>
-                    )}
-                    <span
-                      className="ml-auto text-xs whitespace-nowrap"
-                      style={{ color: 'var(--color-on-surface-muted)' }}
-                    >
-                      {formatDate(duel.dueledAt)}
-                    </span>
-                    {duel.memo && (
-                      <button
-                        type="button"
-                        className="inline-flex items-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedMemoId(expandedMemoId === duel.id ? null : duel.id);
-                        }}
-                      >
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="var(--color-on-surface-muted)"
-                          strokeWidth="2"
-                        >
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 flex-wrap min-w-0">
+                  <span className="chip chip-outlined-primary text-sm truncate max-w-[40%]">
+                    {getDeckName(deckNameMap, duel.deckId)}
+                  </span>
+                  <span className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+                    vs
+                  </span>
+                  <span className="chip chip-outlined-warning text-sm truncate max-w-[40%]">
+                    {getDeckName(deckNameMap, duel.opponentDeckId)}
+                  </span>
                 </div>
+                <div className="flex items-center gap-1 mt-1 flex-wrap">
+                  <span
+                    className={`chip text-sm ${duel.result === 'win' ? 'chip-success' : 'chip-error'}`}
+                  >
+                    {duel.result === 'win' ? t('duel.win') : t('duel.loss')}
+                  </span>
+                  <span
+                    className={`chip text-sm ${duel.wonCoinToss ? 'chip-coin-win' : 'chip-coin-loss'}`}
+                  >
+                    {duel.wonCoinToss ? t('duel.coinTossWin') : t('duel.coinTossLoss')}
+                  </span>
+                  <span
+                    className={`chip text-sm ${duel.isFirst ? 'chip-outlined-info' : 'chip-outlined-secondary'}`}
+                  >
+                    {duel.isFirst ? t('duel.first') : t('duel.second')}
+                  </span>
+                  {getRankDisplay(duel, t) && (
+                    <span className="chip text-sm chip-rank">{getRankDisplay(duel, t)}</span>
+                  )}
+                  {duel.playMistake && (
+                    <span
+                      className="chip text-sm"
+                      style={{
+                        color: 'var(--color-error)',
+                        border: '1px solid var(--color-error)',
+                      }}
+                    >
+                      !
+                    </span>
+                  )}
+                  <span
+                    className="ml-auto text-xs whitespace-nowrap"
+                    style={{ color: 'var(--color-on-surface-muted)' }}
+                  >
+                    {formatDate(duel.dueledAt)}
+                  </span>
+                  {duel.memo && (
+                    <button
+                      type="button"
+                      className="inline-flex items-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedMemoId(expandedMemoId === duel.id ? null : duel.id);
+                      }}
+                    >
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="var(--color-on-surface-muted)"
+                        strokeWidth="2"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Actions */}
               {!readOnly && onStartEdit && onDelete && (
