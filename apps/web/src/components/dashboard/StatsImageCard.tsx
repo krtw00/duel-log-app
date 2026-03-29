@@ -67,12 +67,12 @@ function StatBox({ label, value, color }: { label: string; value: string; color?
         background: C.glass,
         border: `1px solid ${C.border}`,
         borderRadius: 10,
-        padding: '16px',
+        padding: '12px',
         textAlign: 'center',
       }}
     >
-      <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: color ?? C.text }}>{value}</div>
+      <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: color ?? C.text }}>{value}</div>
     </div>
   );
 }
@@ -104,24 +104,24 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
         background: C.glass,
         border: `1px solid ${C.border}`,
         borderRadius: 12,
-        padding: '16px 20px',
+        padding: '14px 18px',
         display: 'flex',
         justifyContent: 'center',
-        gap: 28,
+        gap: 20,
       }}
     >
       {rank != null && (
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>Rank</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.primary }}>
+          <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 4 }}>Rank</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.primary }}>
             {getRankLabel(rank, t)}
           </div>
         </div>
       )}
       {rateValue != null && (
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 4 }}>Rate</div>
-          <div style={{ fontSize: 26, fontWeight: 700, color: C.secondary }}>{rateValue}</div>
+          <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 4 }}>Rate</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.secondary }}>{rateValue}</div>
         </div>
       )}
     </div>
@@ -131,321 +131,300 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
     <div
       ref={ref}
       style={{
-        width: 1200,
-        height: 675,
+        width: 720,
+        height: 900,
         background: `linear-gradient(135deg, ${C.bg} 0%, #0f1535 100%)`,
         color: C.text,
         fontFamily: 'system-ui, -apple-system, sans-serif',
         display: 'flex',
         flexDirection: 'column',
-        padding: 40,
+        padding: 28,
         boxSizing: 'border-box',
+        gap: 12,
       }}
     >
-      <div style={{ marginBottom: filterLabel ? 12 : 28 }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg viewBox="0 0 64 64" width="38" height="38" xmlns="http://www.w3.org/2000/svg">
-              <rect x="5" y="5" width="54" height="54" rx="16" fill="#243041" />
-              <rect x="5" y="5" width="54" height="54" rx="16" fill="none" stroke="#4b5a70" />
-              <g
-                fontFamily="'Liberation Serif', 'Times New Roman', serif"
-                fontSize="43"
-                fontWeight="700"
-              >
-                <text x="11.828" y="41.831" fill="#e8edf4">
-                  D
-                </text>
-                <text x="24.528" y="50.331" fill="#f8fbff">
-                  L
-                </text>
-              </g>
-            </svg>
-            <span
-              style={{
-                fontSize: 24,
-                fontWeight: 700,
-                fontStyle: 'italic',
-                fontFamily: "'Liberation Serif', 'Times New Roman', serif",
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase' as const,
-                color: C.text,
-              }}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <svg viewBox="0 0 64 64" width="34" height="34" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="54" height="54" rx="16" fill="#243041" />
+            <rect x="5" y="5" width="54" height="54" rx="16" fill="none" stroke="#4b5a70" />
+            <g
+              fontFamily="'Liberation Serif', 'Times New Roman', serif"
+              fontSize="43"
+              fontWeight="700"
             >
-              Duel Log
-            </span>
-            <span style={{ fontSize: 16, color: C.textSecondary, marginLeft: 4 }}>
-              {GAME_MODE_LABELS[gameMode] ?? gameMode}
-            </span>
-          </div>
-          {showStreakBadge && (
-            <div
-              style={{
-                background: streaks?.currentStreakType === 'win' ? C.success : C.error,
-                color: C.bg,
-                borderRadius: 20,
-                padding: '6px 16px',
-                fontSize: 14,
-                fontWeight: 700,
-              }}
-            >
-              {streaks?.currentStreakType === 'win' ? '🔥' : '💀'}{' '}
-              {streaks?.currentStreakType === 'win'
-                ? t('streak.winStreak', { count: streaks?.currentStreak })
-                : t('streak.lossStreak', { count: streaks?.currentStreak })}
-            </div>
-          )}
-        </div>
-        {filterLabel && (
-          <div
+              <text x="11.828" y="41.831" fill="#e8edf4">
+                D
+              </text>
+              <text x="24.528" y="50.331" fill="#f8fbff">
+                L
+              </text>
+            </g>
+          </svg>
+          <span
             style={{
-              fontSize: 18,
-              fontWeight: 600,
+              fontSize: 22,
+              fontWeight: 700,
+              fontStyle: 'italic',
+              fontFamily: "'Liberation Serif', 'Times New Roman', serif",
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase' as const,
               color: C.text,
-              marginTop: 8,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
             }}
           >
-            <span
-              style={{
-                display: 'inline-block',
-                width: 3,
-                height: 18,
-                borderRadius: 2,
-                background: C.primary,
-              }}
-            />
-            {filterLabel}
+            Duel Log
+          </span>
+          <span style={{ fontSize: 14, color: C.textSecondary, marginLeft: 2 }}>
+            {GAME_MODE_LABELS[gameMode] ?? gameMode}
+          </span>
+        </div>
+        {showStreakBadge && (
+          <div
+            style={{
+              background: streaks?.currentStreakType === 'win' ? C.success : C.error,
+              color: C.bg,
+              borderRadius: 20,
+              padding: '5px 12px',
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            {streaks?.currentStreakType === 'win' ? '🔥' : '💀'}{' '}
+            {streaks?.currentStreakType === 'win'
+              ? t('streak.winStreak', { count: streaks?.currentStreak })
+              : t('streak.lossStreak', { count: streaks?.currentStreak })}
           </div>
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: showDeckWinRates ? 24 : 0, flex: 1, minHeight: 0 }}>
+      {filterLabel && (
         <div
           style={{
-            flex: showDeckWinRates ? '0 0 55%' : '1 1 auto',
+            fontSize: 14,
+            fontWeight: 600,
+            color: C.text,
             display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
+            alignItems: 'center',
+            gap: 8,
           }}
         >
-          <div
+          <span
             style={{
-              background: C.glass,
-              border: `1px solid ${C.border}`,
-              borderRadius: 14,
-              padding: showDetailedRates ? '24px 28px' : '32px 36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 32,
-              minHeight: showDetailedRates ? 0 : 220,
-              flex: showDetailedRates || showMistakeStats ? undefined : 1,
+              display: 'inline-block',
+              width: 3,
+              height: 16,
+              borderRadius: 2,
+              background: C.primary,
             }}
-          >
-            <div>
-              <div style={{ fontSize: 14, color: C.textSecondary, marginBottom: 6 }}>
-                {t('dashboard.winRate')}
+          />
+          {filterLabel}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0 }}>
+        <div
+          style={{
+            background: C.glass,
+            border: `1px solid ${C.border}`,
+            borderRadius: 14,
+            padding: showDetailedRates ? '20px 24px' : '24px 28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 20,
+          }}
+        >
+          <div style={{ flex: '0 0 auto' }}>
+            <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 6 }}>
+              {t('dashboard.winRate')}
+            </div>
+            <div
+              style={{
+                fontSize: showDetailedRates ? 48 : 56,
+                fontWeight: 800,
+                color: C.primary,
+                lineHeight: 1,
+              }}
+            >
+              {pct(stats.winRate)}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: showDetailedRates ? 16 : 20 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 12, color: C.textSecondary }}>
+                {t('dashboard.totalDuels')}
               </div>
-              <div
-                style={{
-                  fontSize: showDetailedRates ? 60 : 72,
-                  fontWeight: 800,
-                  color: C.primary,
-                  lineHeight: 1,
-                }}
-              >
-                {pct(stats.winRate)}
+              <div style={{ fontSize: showDetailedRates ? 24 : 28, fontWeight: 700 }}>
+                {stats.totalDuels}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: showDetailedRates ? 24 : 32 }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 13, color: C.textSecondary }}>
-                  {t('dashboard.totalDuels')}
-                </div>
-                <div style={{ fontSize: showDetailedRates ? 30 : 34, fontWeight: 700 }}>
-                  {stats.totalDuels}
-                </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 12, color: C.success }}>WIN</div>
+              <div
+                style={{
+                  fontSize: showDetailedRates ? 24 : 28,
+                  fontWeight: 700,
+                  color: C.success,
+                }}
+              >
+                {stats.wins}
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 13, color: C.success }}>WIN</div>
-                <div
-                  style={{
-                    fontSize: showDetailedRates ? 30 : 34,
-                    fontWeight: 700,
-                    color: C.success,
-                  }}
-                >
-                  {stats.wins}
-                </div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 13, color: C.error }}>LOSE</div>
-                <div
-                  style={{
-                    fontSize: showDetailedRates ? 30 : 34,
-                    fontWeight: 700,
-                    color: C.error,
-                  }}
-                >
-                  {stats.losses}
-                </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 12, color: C.error }}>LOSE</div>
+              <div
+                style={{
+                  fontSize: showDetailedRates ? 24 : 28,
+                  fontWeight: 700,
+                  color: C.error,
+                }}
+              >
+                {stats.losses}
               </div>
             </div>
           </div>
-
-          {!showDeckWinRates && rankRateCard}
-
-          {showDetailedRates && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-              <StatBox label={t('dashboard.firstRate')} value={pct(stats.firstRate)} />
-              <StatBox
-                label={t('dashboard.firstWinRate')}
-                value={pct(stats.firstWinRate)}
-                color={C.primary}
-              />
-              <StatBox
-                label={t('dashboard.secondWinRate')}
-                value={pct(stats.secondWinRate)}
-                color={C.secondary}
-              />
-              <StatBox label={t('dashboard.coinTossRate')} value={pct(stats.coinTossWinRate)} />
-            </div>
-          )}
-
-          {showMistakeStats && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-              <StatBox
-                label={t('dashboard.playMistakeRate')}
-                value={pct(stats.playMistakeRate)}
-                color={C.error}
-              />
-              <StatBox
-                label={t('dashboard.playMistakeWinRate')}
-                value={pct(stats.playMistakeWinRate)}
-                color={C.accent}
-              />
-            </div>
-          )}
         </div>
+
+        {rankRateCard}
+
+        {showDetailedRates && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            <StatBox label={t('dashboard.firstRate')} value={pct(stats.firstRate)} />
+            <StatBox
+              label={t('dashboard.firstWinRate')}
+              value={pct(stats.firstWinRate)}
+              color={C.primary}
+            />
+            <StatBox
+              label={t('dashboard.secondWinRate')}
+              value={pct(stats.secondWinRate)}
+              color={C.secondary}
+            />
+            <StatBox label={t('dashboard.coinTossRate')} value={pct(stats.coinTossWinRate)} />
+          </div>
+        )}
+
+        {showMistakeStats && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            <StatBox
+              label={t('dashboard.playMistakeRate')}
+              value={pct(stats.playMistakeRate)}
+              color={C.error}
+            />
+            <StatBox
+              label={t('dashboard.playMistakeWinRate')}
+              value={pct(stats.playMistakeWinRate)}
+              color={C.accent}
+            />
+          </div>
+        )}
 
         {showDeckWinRates && (
           <div
             style={{
-              flex: '0 0 calc(45% - 24px)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
+              background: C.glass,
+              border: `1px solid ${C.border}`,
+              borderRadius: 12,
+              padding: '14px 16px',
+              width: '100%',
+              boxSizing: 'border-box',
+              overflow: 'hidden',
             }}
           >
-            {rankRateCard}
-
-            <div
-              style={{
-                background: C.glass,
-                border: `1px solid ${C.border}`,
-                borderRadius: 12,
-                padding: '16px 18px',
-                flex: 1,
-                overflow: 'hidden',
-              }}
-            >
-              <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 10 }}>
-                Deck Win Rates
-              </div>
-              {topDecks.length === 0 ? (
-                <div style={{ color: C.textSecondary, fontSize: 13 }}>-</div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {topDecks.map((deck) => (
+            <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 10 }}>
+              Deck Win Rates
+            </div>
+            {topDecks.length === 0 ? (
+              <div style={{ color: C.textSecondary, fontSize: 13 }}>-</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {topDecks.map((deck) => (
+                  <div
+                    key={deck.deckId}
+                    style={{
+                      position: 'relative',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 12px',
+                      background: C.surfaceVariant,
+                      borderRadius: 6,
+                      overflow: 'hidden',
+                    }}
+                  >
                     <div
-                      key={deck.deckId}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        height: '100%',
+                        width: clampPercent(deck.winRate),
+                        background: deck.winRate >= 0.5 ? `${C.success}20` : `${C.error}20`,
+                        borderRadius: 6,
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: 'relative',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        flex: '1 1 auto',
+                        minWidth: 0,
+                      }}
+                    >
+                      {deck.deckName}
+                    </span>
+                    <div
                       style={{
                         position: 'relative',
                         display: 'flex',
-                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        padding: '10px 12px',
-                        background: C.surfaceVariant,
-                        borderRadius: 6,
-                        overflow: 'hidden',
+                        gap: 8,
+                        flexShrink: 0,
+                        marginLeft: 8,
                       }}
                     >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          height: '100%',
-                          width: clampPercent(deck.winRate),
-                          background: deck.winRate >= 0.5 ? `${C.success}20` : `${C.error}20`,
-                          borderRadius: 6,
-                        }}
-                      />
+                      <span style={{ fontSize: 11, color: C.textSecondary }}>
+                        {deck.wins}W {deck.losses}L
+                      </span>
                       <span
                         style={{
-                          position: 'relative',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          flex: '1 1 auto',
-                          minWidth: 0,
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: deck.winRate >= 0.5 ? C.success : C.error,
                         }}
                       >
-                        {deck.deckName}
+                        {pct(deck.winRate)}
                       </span>
-                      <div
-                        style={{
-                          position: 'relative',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          flexShrink: 0,
-                          marginLeft: 8,
-                        }}
-                      >
-                        <span style={{ fontSize: 11, color: C.textSecondary }}>
-                          {deck.wins}W {deck.losses}L
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 700,
-                            color: deck.winRate >= 0.5 ? C.success : C.error,
-                          }}
-                        >
-                          {pct(deck.winRate)}
-                        </span>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <div
         style={{
-          marginTop: 20,
+          marginTop: 'auto',
+          paddingTop: 4,
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
           gap: 6,
         }}
       >
-        <svg viewBox="0 0 64 64" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 64 64" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
           <rect x="5" y="5" width="54" height="54" rx="16" fill="#243041" />
           <rect x="5" y="5" width="54" height="54" rx="16" fill="none" stroke="#4b5a70" />
           <g
@@ -463,7 +442,7 @@ export const StatsImageCard = forwardRef(function StatsImageCard(
         </svg>
         <span
           style={{
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 700,
             fontStyle: 'italic',
             fontFamily: "'Liberation Serif', 'Times New Roman', serif",
