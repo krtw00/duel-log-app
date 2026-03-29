@@ -19,8 +19,8 @@ type Props = {
 };
 
 const STORAGE_KEY = 'duellog.statsImage.visibility';
-const CARD_WIDTH = 1200;
-const CARD_HEIGHT = 675;
+const CARD_WIDTH = 720;
+const CARD_HEIGHT = 900;
 const PREVIEW_SCALE = 0.5;
 const PREVIEW_MAX_WIDTH = CARD_WIDTH * PREVIEW_SCALE;
 
