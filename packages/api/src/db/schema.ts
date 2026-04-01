@@ -15,6 +15,9 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
   email: text('email').notNull().unique(),
   displayName: text('display_name').notNull(),
+  passwordHash: text('password_hash'),
+  oauthProvider: text('oauth_provider'),
+  oauthProviderId: text('oauth_provider_id'),
   isAdmin: boolean('is_admin').notNull().default(false),
   isDebugger: boolean('is_debugger').notNull().default(false),
   themePreference: text('theme_preference').notNull().default('system'),
@@ -107,4 +110,34 @@ export const userHandtrapCards = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('idx_user_handtrap_cards_user_id').on(table.userId)],
+);
+
+export const refreshTokens = pgTable(
+  'refresh_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('idx_refresh_tokens_user_id').on(table.userId),
+    index('idx_refresh_tokens_token_hash').on(table.tokenHash),
+  ],
+);
+
+export const oauthStates = pgTable(
+  'oauth_states',
+  {
+    id: uuid('id').primaryKey(),
+    state: text('state').notNull().unique(),
+    codeVerifier: text('code_verifier'),
+    provider: text('provider').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('idx_oauth_states_expires_at').on(table.expiresAt)],
 );

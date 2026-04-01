@@ -25,8 +25,7 @@ services:
     environment:
       - NODE_ENV=development
       - API_URL=http://api:3000
-      - VITE_SUPABASE_URL=http://127.0.0.1:55321
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_API_BASE_URL=http://localhost:3000/api
     depends_on:
       install:
         condition: service_completed_successfully
@@ -53,8 +52,10 @@ services:
       - .env
     environment:
       - NODE_ENV=development
-      - SUPABASE_URL=http://supabase_kong_duel-log-app:8000
       - DATABASE_URL=postgresql://postgres:postgres@supabase_db_duel-log-app:5432/postgres
+      - JWT_SECRET=dev-jwt-secret
+      - AUTH_CALLBACK_URL=http://localhost:3000/api/auth/oauth/callback
+      - WEB_URL=http://localhost:5173
     depends_on:
       install:
         condition: service_completed_successfully

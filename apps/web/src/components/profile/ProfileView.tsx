@@ -3,14 +3,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api.js';
-import { supabase } from '../../lib/supabase.js';
+import { signOut as authSignOut } from '../../lib/auth.js';
 import { useAuthStore } from '../../stores/auth.js';
 import { CsvExportButton } from '../csv/CsvExportButton.js';
 import { CsvImportDialog } from '../csv/CsvImportDialog.js';
 
 export function ProfileView() {
   const { t } = useTranslation();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState('');
   const [streamerMode, setStreamerMode] = useState(false);
@@ -90,8 +90,7 @@ export function ProfileView() {
     setChangingPassword(true);
     setPasswordMessage('');
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
+      await api('/me/password', { method: 'PUT', body: { password: newPassword } });
       setPasswordMessage(t('profile.passwordChanged'));
       setPasswordMessageType('success');
       setNewPassword('');
@@ -110,7 +109,10 @@ export function ProfileView() {
     setDeleting(true);
     try {
       await api('/me', { method: 'DELETE' });
-      window.location.href = '/';
+      await authSignOut();
+      setUser(null);
+      queryClient.clear();
+      window.location.href = '/login';
     } catch {
       setMessage(t('profile.deleteFailed'));
       setMessageType('error');

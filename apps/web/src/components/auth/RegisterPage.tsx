@@ -1,7 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../lib/supabase.js';
+import { register } from '../../lib/auth.js';
+import { useAuthStore } from '../../stores/auth.js';
 import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 
 export function RegisterPage() {
@@ -14,8 +15,8 @@ export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState('');
-  const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,70 +29,17 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { display_name: displayName },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) {
-        setError(error.message);
-      } else if (data.session) {
-        // メール確認不要（自動ログイン完了）→ ダッシュボードへ
-        navigate({ to: '/' });
-      } else {
-        // メール確認が必要
-        setRequiresConfirmation(true);
-      }
+      const response = await register(email, password, displayName);
+      setUser({ id: response.data.user.id, email: response.data.user.email });
+      navigate({ to: '/' });
+    } catch (err) {
+      const message =
+        (err as { error?: { message?: string } })?.error?.message || t('auth.authError');
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
-
-  if (requiresConfirmation) {
-    return (
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-dark-1 px-6">
-        {/* Background decoration */}
-        <div className="absolute inset-0 z-0">
-          <div className="grid-pattern animate-grid-scroll" />
-          <div className="absolute top-[10%] left-[10%] w-96 h-96 bg-brand-cyan rounded-full blur-[80px] opacity-15 animate-float" />
-          <div className="absolute bottom-[15%] right-[15%] w-72 h-72 bg-brand-purple rounded-full blur-[80px] opacity-15 animate-float-delayed" />
-        </div>
-
-        {/* Card */}
-        <div className="relative z-10 w-full max-w-[500px] mx-5 backdrop-blur-[10px] border border-white/20 rounded-2xl overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-cyan via-brand-purple to-brand-pink animate-shimmer" />
-          <div className="p-8 text-center">
-            <div className="mb-6">
-              <svg
-                aria-hidden="true"
-                className="w-16 h-16 text-brand-cyan mx-auto"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-4">
-              {t('auth.emailConfirmationSent')}
-            </h1>
-            <p className="text-white/60 mb-6">{t('auth.emailConfirmationMessage')}</p>
-            <Link to="/login" className="text-brand-cyan hover:underline">
-              {t('auth.goToLogin')}
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-dark-1 px-6 py-12">

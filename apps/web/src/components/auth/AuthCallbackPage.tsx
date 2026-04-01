@@ -1,73 +1,42 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../lib/supabase.js';
+import { getUserFromAccessToken, handleOAuthCallback } from '../../lib/auth.js';
+import { useAuthStore } from '../../stores/auth.js';
 
 export function AuthCallbackPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
   const [error, setError] = useState('');
   const [status, setStatus] = useState(t('auth.processing'));
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Check for PKCE code in URL params
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
+        setStatus(t('auth.processing'));
+        const tokens = handleOAuthCallback();
 
-        if (code) {
-          setStatus(t('auth.processing'));
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            setError(error.message);
-            return;
-          }
-          navigate({ to: '/' });
+        if (!tokens) {
+          setError('Authentication tokens were not returned');
           return;
         }
 
-        // Fallback: check for hash-based tokens or existing session
-        const { error } = await supabase.auth.getSession();
-        if (error) {
-          setError(error.message);
+        const user = getUserFromAccessToken(tokens.accessToken);
+        if (!user) {
+          setError('Authentication token is invalid');
           return;
         }
 
-        // Listen for auth state change (OAuth redirect with hash)
-        const {
-          data: { subscription },
-        } = supabase.auth.onAuthStateChange((event, session) => {
-          if (event === 'SIGNED_IN' && session) {
-            subscription.unsubscribe();
-            navigate({ to: '/' });
-          }
-        });
-
-        // Timeout after 30 seconds
-        const timeout = setTimeout(() => {
-          subscription.unsubscribe();
-          // Try one more time to get session
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-              navigate({ to: '/' });
-            } else {
-              setError('Authentication timeout');
-            }
-          });
-        }, 30000);
-
-        return () => {
-          clearTimeout(timeout);
-          subscription.unsubscribe();
-        };
+        setUser(user);
+        navigate({ to: '/', replace: true });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       }
     };
 
-    handleCallback();
-  }, [navigate, t]);
+    void handleCallback();
+  }, [navigate, setUser, t]);
 
   if (error) {
     return (

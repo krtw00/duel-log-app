@@ -1,10 +1,8 @@
 import { Outlet, createRoute, redirect } from '@tanstack/react-router';
 import { AuthCallbackPage } from '../components/auth/AuthCallbackPage.js';
-import { ForgotPasswordPage } from '../components/auth/ForgotPasswordPage.js';
 import { LoginPage } from '../components/auth/LoginPage.js';
 import { RegisterPage } from '../components/auth/RegisterPage.js';
-import { ResetPasswordPage } from '../components/auth/ResetPasswordPage.js';
-import { supabase } from '../lib/supabase.js';
+import { getAccessToken } from '../lib/auth.js';
 import { rootRoute } from './__root.js';
 
 /** 認証レイアウト: 認証済みならダッシュボードへリダイレクト */
@@ -12,10 +10,8 @@ export const authLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'auth-layout',
   beforeLoad: async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session) {
+    const token = await getAccessToken();
+    if (token) {
       throw redirect({ to: '/' });
     }
   },
@@ -42,26 +38,4 @@ export const callbackRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: '/auth/callback',
   component: AuthCallbackPage,
-});
-
-/** パスワードリセット: 認証状態に関係なくアクセス可能 */
-export const forgotPasswordRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/forgot-password',
-  component: () => (
-    <div className="min-h-screen bg-brand-dark-1">
-      <ForgotPasswordPage />
-    </div>
-  ),
-});
-
-/** パスワード再設定: 認証状態に関係なくアクセス可能（メールリンクから） */
-export const resetPasswordRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/reset-password',
-  component: () => (
-    <div className="min-h-screen bg-brand-dark-1">
-      <ResetPasswordPage />
-    </div>
-  ),
 });

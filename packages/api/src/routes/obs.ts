@@ -11,13 +11,13 @@ import * as statsService from '../services/statistics.js';
 type Env = { Variables: { user: AuthUser } };
 
 const getSecret = (): string => {
-  const secret = process.env.OBS_TOKEN_SECRET || process.env.SUPABASE_JWT_SECRET;
+  const secret = process.env.OBS_TOKEN_SECRET || process.env.JWT_SECRET;
   if (!secret) {
     // Fallback for local development only
     if (process.env.NODE_ENV !== 'production') {
       return 'obs-dev-secret-key-do-not-use-in-production';
     }
-    throw new Error('OBS_TOKEN_SECRET or SUPABASE_JWT_SECRET is required');
+    throw new Error('OBS_TOKEN_SECRET or JWT_SECRET is required');
   }
   return secret;
 };

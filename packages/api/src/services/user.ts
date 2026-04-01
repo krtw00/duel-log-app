@@ -19,6 +19,14 @@ export async function updateUser(userId: string, data: UpdateUser) {
   return updated;
 }
 
+export async function updatePassword(userId: string, passwordHash: string) {
+  await sql`
+    UPDATE users
+    SET password_hash = ${passwordHash}, updated_at = now()
+    WHERE id = ${userId}
+  `;
+}
+
 export async function deleteUser(userId: string) {
   await sql`DELETE FROM users WHERE id = ${userId}`;
 }

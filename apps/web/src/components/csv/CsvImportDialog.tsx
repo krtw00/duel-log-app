@@ -2,7 +2,7 @@ import type { GameMode } from '@duel-log/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../lib/supabase.js';
+import { getAccessToken } from '../../lib/auth.js';
 
 type Props = {
   open: boolean;
@@ -24,10 +24,8 @@ export function CsvImportDialog({ open, onClose, gameMode }: Props) {
 
   const importMutation = useMutation({
     mutationFn: async (csvFile: File) => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('Not authenticated');
+      const token = await getAccessToken();
+      if (!token) throw new Error('Not authenticated');
 
       const text = await csvFile.text();
       const params = new URLSearchParams();
@@ -37,7 +35,7 @@ export function CsvImportDialog({ open, onClose, gameMode }: Props) {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'text/csv',
         },
         body: text,
