@@ -57,7 +57,7 @@ export function DashboardView() {
   const { from: usageFrom } = getSeasonRange(year, month - 1);
 
   const rangeFilter = periodType === 'range' ? { rangeStart, rangeEnd } : {};
-  const filter = { gameMode, from, to, deckId, ...rangeFilter, limit: 100, offset: 0 };
+  const filter = { gameMode, from, to, deckId, ...rangeFilter, limit: 1000, offset: 0 };
   const statsFilter = { gameMode, from, to, deckId, ...rangeFilter };
 
   const { data: duelsData, isLoading: duelsLoading } = useDuels(filter);

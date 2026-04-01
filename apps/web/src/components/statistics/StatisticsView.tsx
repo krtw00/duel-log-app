@@ -65,7 +65,7 @@ export function StatisticsView() {
     to,
     deckId,
     ...rangeFilter,
-    limit: 500,
+    limit: 1000,
     offset: 0,
   });
   const { data: totalData } = useDuels({ gameMode, from, to, limit: 1, offset: 0 });
