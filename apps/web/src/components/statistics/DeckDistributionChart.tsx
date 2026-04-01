@@ -1,7 +1,7 @@
 import type { MatchupEntry } from '@duel-log/shared';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 type Props = {
   matchups: MatchupEntry[];
@@ -69,67 +69,70 @@ export function DeckDistributionChart({ matchups, loading }: Props) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="w-full" style={{ height: '100%', minHeight: '400px' }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="40%"
-            cy="50%"
-            outerRadius="80%"
-            innerRadius="25%"
-            startAngle={90}
-            endAngle={-270}
-            stroke="var(--color-surface)"
-            strokeWidth={2}
-          >
-            {data.map((entry, index) => (
-              <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            wrapperStyle={{ zIndex: 1000 }}
-            contentStyle={{
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-              color: 'var(--color-on-surface)',
-            }}
-            itemStyle={{ color: 'var(--color-on-surface)' }}
-            labelStyle={{ color: 'var(--color-on-surface)', fontWeight: 600 }}
-            formatter={(value, name) => {
-              const pct = total > 0 ? (((value as number) / total) * 100).toFixed(1) : '0';
-              return [`${pct}% (${value}${t('statistics.matches')})`, name];
-            }}
-          />
-          <Legend
-            layout="vertical"
-            align="right"
-            verticalAlign="middle"
-            wrapperStyle={{
-              color: 'var(--color-on-surface-muted)',
-              fontSize: '12px',
-              paddingLeft: '12px',
-              maxHeight: '90%',
-              overflowY: 'auto',
-            }}
-            formatter={(value) => {
-              const entry = data.find((d) => d.name === value);
-              const pct = entry && total > 0 ? ((entry.value / total) * 100).toFixed(0) : '0';
-              return `${value} (${pct}%)`;
-            }}
-            {...{
-              payload: data.map((d, i) => ({
-                value: d.name,
-                type: 'circle' as const,
-                color: COLORS[i % COLORS.length],
-              })),
-            }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+    <div className="flex gap-4" style={{ minHeight: '300px' }}>
+      <div style={{ width: '45%', minWidth: '160px', minHeight: '250px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius="80%"
+              innerRadius="25%"
+              startAngle={90}
+              endAngle={-270}
+              stroke="var(--color-surface)"
+              strokeWidth={2}
+            >
+              {data.map((entry, index) => (
+                <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              wrapperStyle={{ zIndex: 1000 }}
+              contentStyle={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                color: 'var(--color-on-surface)',
+              }}
+              itemStyle={{ color: 'var(--color-on-surface)' }}
+              labelStyle={{ color: 'var(--color-on-surface)', fontWeight: 600 }}
+              formatter={(value, name) => {
+                const pct = total > 0 ? (((value as number) / total) * 100).toFixed(1) : '0';
+                return [`${pct}% (${value}${t('statistics.matches')})`, name];
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{ maxHeight: '300px', fontSize: '12px', color: 'var(--color-on-surface-muted)' }}
+      >
+        <div className="space-y-1">
+          {data.map((d, i) => {
+            const pct = total > 0 ? ((d.value / total) * 100).toFixed(0) : '0';
+            return (
+              <div key={d.name} className="flex items-center gap-2">
+                <span
+                  className="inline-block shrink-0 rounded-sm"
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    backgroundColor: COLORS[i % COLORS.length],
+                  }}
+                />
+                <span className="truncate">
+                  {d.name} ({pct}%)
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
