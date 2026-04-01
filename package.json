@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter @duel-log/web --filter @duel-log/api --parallel dev",
+    "auth:migrate-password-hashes": "node scripts/migrate-supabase-password-hashes.mjs",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:reset": "npx supabase db reset",
@@ -44,7 +45,6 @@
     }
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.91.0",
     "hono": "^4.12.7",
     "lucide-react": "^0.562.0",
     "postgres": "^3.4.8",

@@ -9,7 +9,7 @@ import { StatisticsView } from '../components/statistics/StatisticsView.js';
 import { OBSOverlayView } from '../components/streamer/OBSOverlayView.js';
 import { StreamerPopupView } from '../components/streamer/StreamerPopupView.js';
 import { StreamerView } from '../components/streamer/StreamerView.js';
-import { supabase } from '../lib/supabase.js';
+import { getAccessToken } from '../lib/auth.js';
 import { rootRoute } from './__root.js';
 
 /** アプリレイアウト: 未認証ならログインへリダイレクト */
@@ -17,10 +17,8 @@ export const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app-layout',
   beforeLoad: async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
+    const token = await getAccessToken();
+    if (!token) {
       throw redirect({ to: '/login' });
     }
   },

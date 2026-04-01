@@ -1,7 +1,7 @@
 import type { GameMode } from '@duel-log/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../lib/supabase.js';
+import { getAccessToken } from '../../lib/auth.js';
 
 type Props = {
   gameMode?: GameMode;
@@ -14,10 +14,8 @@ export function CsvExportButton({ gameMode }: Props) {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
+      const token = await getAccessToken();
+      if (!token) return;
 
       const params = new URLSearchParams();
       if (gameMode) params.set('gameMode', gameMode);
@@ -25,7 +23,7 @@ export function CsvExportButton({ gameMode }: Props) {
       const url = `/api/duels/export${qs ? `?${qs}` : ''}`;
 
       const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) throw new Error('Export failed');

@@ -1,12 +1,17 @@
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase.js';
+import { signOut as authSignOut, getAccessToken, getUserFromAccessToken } from '../lib/auth.js';
+
+type AuthUser = {
+  id: string;
+  email: string;
+};
 
 type AuthState = {
-  user: SupabaseUser | null;
+  user: AuthUser | null;
   loading: boolean;
   initialize: () => Promise<void>;
   signOut: () => Promise<void>;
+  setUser: (user: AuthUser | null) => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -14,18 +19,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   initialize: async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    set({ user: session?.user ?? null, loading: false });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      set({ user: session?.user ?? null });
-    });
+    const token = await getAccessToken();
+    const user = token ? getUserFromAccessToken(token) : null;
+    set({ user, loading: false });
   },
 
   signOut: async () => {
-    await supabase.auth.signOut({ scope: 'local' });
+    await authSignOut();
     set({ user: null, loading: false });
   },
+
+  setUser: (user) => set({ user }),
 }));

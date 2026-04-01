@@ -1,7 +1,7 @@
 import { createMiddleware } from 'hono/factory';
-import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { sql } from '../db/index.js';
 import type { UserRow } from '../db/types.js';
+import { verifyToken } from '../lib/jwt.js';
 
 export type AuthUser = {
   id: string;
@@ -15,35 +15,6 @@ type Env = {
     user: AuthUser;
   };
 };
-
-// Supabase JWTペイロードの型
-type SupabaseJwtPayload = {
-  sub: string;
-  email?: string;
-  user_metadata?: {
-    display_name?: string;
-    full_name?: string;
-    name?: string;
-  };
-  aud: string | string[];
-  role: string;
-  exp: number;
-  iat: number;
-};
-
-// Supabase JWKSエンドポイント（公開鍵取得用、キャッシュされる）
-let jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
-
-function getJwks() {
-  if (!jwks) {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    if (!supabaseUrl) {
-      throw new Error('SUPABASE_URL environment variable is required');
-    }
-    jwks = createRemoteJWKSet(new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`));
-  }
-  return jwks;
-}
 
 // ユーザー情報のインメモリキャッシュ（5分間有効）
 const USER_CACHE_TTL = 5 * 60 * 1000; // 5分
@@ -65,7 +36,7 @@ function setCachedUser(userId: string, user: UserRow): void {
   userCache.set(userId, { user, cachedAt: Date.now() });
 }
 
-/** JWT検証（JWKSエンドポイント使用） + JITプロビジョニング */
+/** JWT検証（HS256） + ユーザーキャッシュ */
 export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const startTime = Date.now();
 
@@ -77,12 +48,12 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const token = authHeader.slice(7);
 
   // JWTをJWKSで検証（Supabase Auth APIを呼ばない）
-  let payload: SupabaseJwtPayload;
+  let payload: Awaited<ReturnType<typeof verifyToken>>;
   try {
     const jwtStart = Date.now();
-    const { payload: verifiedPayload } = await jwtVerify(token, getJwks());
+    const verifiedPayload = await verifyToken(token);
     console.log(`[auth] JWT verify: ${Date.now() - jwtStart}ms`);
-    payload = verifiedPayload as unknown as SupabaseJwtPayload;
+    payload = verifiedPayload;
   } catch {
     return c.json(
       { error: { code: 'INVALID_TOKEN', message: 'Token is invalid or expired' } },
@@ -90,19 +61,16 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
     );
   }
 
+  if (payload.type !== 'access') {
+    return c.json({ error: { code: 'INVALID_TOKEN', message: 'Token type is invalid' } }, 401);
+  }
+
   const userId = payload.sub;
-  const email = payload.email ?? '';
-  const displayName =
-    payload.user_metadata?.display_name ??
-    payload.user_metadata?.full_name ??
-    payload.user_metadata?.name ??
-    email;
 
   // キャッシュからユーザー情報を取得
   let dbUser: UserRow | undefined = getCachedUser(userId);
 
   if (!dbUser) {
-    // JIT provisioning: ユーザーがDBに存在しなければ作成
     const dbStart = Date.now();
     const [dbUserExisting] = await sql<UserRow[]>`
       SELECT * FROM users WHERE id = ${userId}
@@ -111,14 +79,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
 
     dbUser = dbUserExisting;
 
-    if (!dbUser) {
-      const [created] = await sql<UserRow[]>`
-        INSERT INTO users (id, email, display_name)
-        VALUES (${userId}, ${email}, ${displayName})
-        RETURNING *
-      `;
-      dbUser = created;
-    } else {
+    if (dbUser) {
       // 最終ログイン日時を更新（1時間以上経過している場合のみ、パフォーマンス最適化）
       const lastLogin = dbUser.lastLoginAt;
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -139,7 +100,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   }
 
   if (!dbUser) {
-    return c.json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to provision user' } }, 500);
+    return c.json({ error: { code: 'UNAUTHORIZED', message: 'User not found' } }, 401);
   }
 
   if (dbUser.status !== 'active') {

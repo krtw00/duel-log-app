@@ -1,5 +1,7 @@
 import { updateUserSchema } from '@duel-log/shared';
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { hashPassword } from '../lib/password.js';
 import type { AuthUser } from '../middleware/auth.js';
 import * as userService from '../services/user.js';
 
@@ -20,6 +22,12 @@ export const meRoutes = new Hono<Env>()
     const data = updateUserSchema.parse(body);
     const updated = await userService.updateUser(id, data);
     return c.json({ data: updated });
+  })
+  .put('/password', async (c) => {
+    const { id } = c.get('user');
+    const body = z.object({ password: z.string().min(6).max(72) }).parse(await c.req.json());
+    await userService.updatePassword(id, await hashPassword(body.password));
+    return c.json({ data: { message: 'Password updated' } });
   })
   .delete('/', async (c) => {
     const { id } = c.get('user');

@@ -4,7 +4,7 @@ import path from 'node:path';
 const DEFAULT_INPUT = '.env/production';
 const DEFAULT_OUTPUT = '.firebase/hosting.production.env';
 
-const REQUIRED_KEYS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'];
+const REQUIRED_KEYS = [];
 const OPTIONAL_KEYS = [
   'VITE_MAINTENANCE_MODE',
   'VITE_ADMIN_EMAILS',

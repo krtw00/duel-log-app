@@ -47,12 +47,11 @@ app.use('*', maintenanceMiddleware);
 // 認証不要ルート（sharedStatisticsRoutesが内部でauth制御）
 app.route('/shared-statistics', sharedStatisticsRoutes);
 
-// OBSルート（/obs/stats はトークン認証、/obs/token は Supabase Auth 認証）
+// OBSルート（/obs/stats はトークン認証、/obs/token は通常認証）
 app.use('/obs/token', authMiddleware);
 app.route('/obs', obsRoutes);
 
 // 認証必要ルート
-app.use('/auth/*', authMiddleware);
 app.use('/debug/*', authMiddleware);
 app.use('/me/*', authMiddleware);
 app.use('/me', authMiddleware);

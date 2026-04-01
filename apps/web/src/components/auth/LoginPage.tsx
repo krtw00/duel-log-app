@@ -1,7 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../lib/supabase.js';
+import { getOAuthUrl, login } from '../../lib/auth.js';
+import { useAuthStore } from '../../stores/auth.js';
 
 const LANDING_SCREENSHOTS = [
   { src: '/landing/screenshot-dashboard.png', label: 'ダッシュボード' },
@@ -44,6 +45,7 @@ function DiscordIcon({ className }: { className?: string }) {
 export function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -66,27 +68,22 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setError(error.message);
-      } else {
-        navigate({ to: '/' });
-      }
+      const response = await login(email, password);
+      setUser({ id: response.data.user.id, email: response.data.user.email });
+      navigate({ to: '/' });
+    } catch (err) {
+      const message =
+        (err as { error?: { message?: string } })?.error?.message || t('auth.authError');
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOAuthLogin = async (provider: 'google' | 'discord') => {
+  const handleOAuthLogin = (provider: 'google' | 'discord') => {
+    setError('');
     setOauthLoading(provider);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) {
-      setError(error.message);
-      setOauthLoading(null);
-    }
+    window.location.href = getOAuthUrl(provider);
   };
 
   return (
@@ -284,16 +281,6 @@ export function LoginPage() {
               className="block w-full py-2.5 px-4 bg-brand-purple/20 text-brand-purple border border-brand-purple/30 rounded-lg font-semibold text-sm hover:bg-brand-purple/30 transition-colors"
             >
               {t('auth.register')}
-            </Link>
-          </div>
-
-          {/* Forgot password */}
-          <div className="text-center mb-4">
-            <Link
-              to="/forgot-password"
-              className="text-white/60 text-sm hover:text-brand-cyan transition-colors"
-            >
-              {t('auth.forgotPassword')}
             </Link>
           </div>
 

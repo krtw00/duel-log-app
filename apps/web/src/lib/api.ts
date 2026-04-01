@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js';
+import { getAccessToken } from './auth.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -22,14 +22,11 @@ export class ApiError extends Error {
 const MAINTENANCE_BYPASS_KEY = import.meta.env.VITE_MAINTENANCE_BYPASS_KEY || '';
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   const headers: Record<string, string> = {};
+  const token = await getAccessToken();
 
-  if (session?.access_token) {
-    headers.Authorization = `Bearer ${session.access_token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
   // メンテナンスバイパスが有効な場合、ヘッダーを追加

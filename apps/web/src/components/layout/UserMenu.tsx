@@ -15,19 +15,14 @@ export function UserMenu() {
 
   const { data: profile } = useQuery({
     queryKey: ['me'],
-    queryFn: () => api<{ data: { displayName: string; streamerMode: boolean } }>('/me'),
+    queryFn: () =>
+      api<{ data: { displayName: string; streamerMode: boolean; isAdmin: boolean } }>('/me'),
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
 
   const isStreamerMode = localStorage.getItem('streamerMode') === 'true';
-  const displayName =
-    profile?.data?.displayName ||
-    user?.user_metadata?.display_name ||
-    user?.user_metadata?.username ||
-    user?.user_metadata?.name ||
-    user?.email?.split('@')[0] ||
-    'User';
+  const displayName = profile?.data?.displayName || user?.email?.split('@')[0] || 'User';
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -94,7 +89,7 @@ export function UserMenu() {
             </svg>
             {t('nav.profile')}
           </Link>
-          {user?.user_metadata?.is_admin && (
+          {profile?.data?.isAdmin && (
             <Link to="/admin" className="menu-item" onClick={() => setOpen(false)}>
               <svg
                 width="16"

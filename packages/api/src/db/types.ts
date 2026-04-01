@@ -2,6 +2,9 @@ export interface UserRow {
   id: string;
   email: string;
   displayName: string;
+  passwordHash: string | null;
+  oauthProvider: string | null;
+  oauthProviderId: string | null;
   isAdmin: boolean;
   isDebugger: boolean;
   themePreference: string;
@@ -13,6 +16,23 @@ export interface UserRow {
   lastLoginAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface RefreshTokenRow {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
+  createdAt: Date;
+}
+
+export interface OAuthStateRow {
+  id: string;
+  state: string;
+  codeVerifier: string | null;
+  provider: string;
+  createdAt: Date;
+  expiresAt: Date;
 }
 
 export interface DeckRow {
