@@ -110,8 +110,8 @@ export function DeckDistributionChart({ matchups, loading }: Props) {
             verticalAlign="middle"
             wrapperStyle={{
               color: 'var(--color-on-surface-muted)',
-              fontSize: '18px',
-              paddingLeft: '16px',
+              fontSize: '12px',
+              paddingLeft: '12px',
               maxHeight: '90%',
               overflowY: 'auto',
             }}
