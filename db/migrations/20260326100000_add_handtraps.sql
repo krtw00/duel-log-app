@@ -8,13 +8,3 @@ CREATE TABLE IF NOT EXISTS public.user_handtrap_cards (
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE(user_id, name)
 );
-
-ALTER TABLE public.user_handtrap_cards ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can manage their own handtrap cards" ON public.user_handtrap_cards;
-
-CREATE POLICY "Users can manage their own handtrap cards"
-  ON public.user_handtrap_cards
-  FOR ALL
-  USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
