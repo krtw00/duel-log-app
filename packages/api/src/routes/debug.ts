@@ -28,17 +28,20 @@ const screenAnalysisLogSchema = z.object({
   resultConfidence: z.number().optional(),
   coinOcrText: z.string().optional(),
   coinOcrResult: z.enum(['won', 'lost']).nullable().optional(),
-  coinOcrConfidence: z.number().optional(),
-  coinOcrAt: z.number().optional(),
+  coinOcrConfidence: z.number().nullable().optional(),
+  coinOcrIsFirst: z.boolean().nullable().optional(),
+  coinOcrAt: z.number().nullable().optional(),
   ocrLastSkipReason: z.string().nullable().optional(),
-  ocrLastAttemptAt: z.number().optional(),
-  ocrLastCompletedAt: z.number().optional(),
+  ocrLastAttemptAt: z.number().nullable().optional(),
+  ocrLastCompletedAt: z.number().nullable().optional(),
   ocrLastError: z.string().nullable().optional(),
   ocrLastRawText: z.string().nullable().optional(),
   ocrLastParsedResult: z.enum(['won', 'lost']).nullable().optional(),
   ocrLastParsedConfidence: z.number().nullable().optional(),
+  ocrLastParsedIsFirst: z.boolean().nullable().optional(),
   ocrRoi: z
     .object({
+      label: z.string().optional(),
       x: z.number(),
       y: z.number(),
       width: z.number(),
@@ -52,6 +55,8 @@ const screenAnalysisLogSchema = z.object({
   captureHeight: z.number().nullable().optional(),
   ocrRawImageDataUrl: z.string().nullable().optional(),
   ocrProcessedImageDataUrl: z.string().nullable().optional(),
+  resultImageDataUrl: z.string().nullable().optional(),
+  fullPreviewImageDataUrl: z.string().nullable().optional(),
 }).passthrough();
 
 const LOG_DIR = path.resolve(process.cwd(), 'logs');
@@ -91,7 +96,7 @@ async function writeImageAsset(
   captureToken: number | undefined,
   eventType: string,
   eventAt: number | undefined,
-  kind: 'raw' | 'processed',
+  kind: 'raw' | 'processed' | 'result' | 'full',
   dataUrl: string,
 ) {
   const parsed = parseImageDataUrl(dataUrl);
@@ -130,8 +135,12 @@ export const debugRoutes = new Hono<Env>().post('/screen-analysis', async (c) =>
   };
   const rawImageDataUrl = parsed.data.ocrRawImageDataUrl;
   const processedImageDataUrl = parsed.data.ocrProcessedImageDataUrl;
+  const resultImageDataUrl = parsed.data.resultImageDataUrl;
+  const fullPreviewImageDataUrl = parsed.data.fullPreviewImageDataUrl;
   delete logEntry.ocrRawImageDataUrl;
   delete logEntry.ocrProcessedImageDataUrl;
+  delete logEntry.resultImageDataUrl;
+  delete logEntry.fullPreviewImageDataUrl;
 
   try {
     if (typeof rawImageDataUrl === 'string') {
@@ -152,6 +161,26 @@ export const debugRoutes = new Hono<Env>().post('/screen-analysis', async (c) =>
         typeof logEntry.eventAt === 'number' ? logEntry.eventAt : undefined,
         'processed',
         processedImageDataUrl,
+      );
+    }
+    if (typeof resultImageDataUrl === 'string') {
+      logEntry.resultImagePath = await writeImageAsset(
+        String(logEntry.sessionId),
+        typeof logEntry.captureToken === 'number' ? logEntry.captureToken : undefined,
+        String(logEntry.type),
+        typeof logEntry.eventAt === 'number' ? logEntry.eventAt : undefined,
+        'result',
+        resultImageDataUrl,
+      );
+    }
+    if (typeof fullPreviewImageDataUrl === 'string') {
+      logEntry.fullPreviewImagePath = await writeImageAsset(
+        String(logEntry.sessionId),
+        typeof logEntry.captureToken === 'number' ? logEntry.captureToken : undefined,
+        String(logEntry.type),
+        typeof logEntry.eventAt === 'number' ? logEntry.eventAt : undefined,
+        'full',
+        fullPreviewImageDataUrl,
       );
     }
   } catch {

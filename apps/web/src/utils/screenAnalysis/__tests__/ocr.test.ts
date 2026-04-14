@@ -83,6 +83,13 @@ describe('parseTurnOrderText', () => {
     });
   });
 
+  it('tolerates light OCR noise in first-player confirmation text', () => {
+    expect(parseTurnOrderText('\u95a2\u3089\u306a\u305f\u304c\u5148\u653b\u3067\u3059')).toEqual({
+      isFirst: true,
+      confidence: 0.96,
+    });
+  });
+
   it('detects a second-player confirmation prompt', () => {
     expect(parseTurnOrderText(YOU_GO_SECOND_PROMPT)).toEqual({
       isFirst: false,

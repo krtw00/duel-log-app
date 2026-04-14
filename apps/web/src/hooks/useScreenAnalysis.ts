@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api.js';
 import { ScreenCapture } from '../utils/screenAnalysis/capture.js';
+import {
+  COIN_OCR_CONFIRM_ROI,
+  COIN_OCR_ROI,
+  COIN_OCR_SELECTION_ROI,
+  COIN_ROI,
+  RESULT_CENTER_ROI,
+  RESULT_ROI,
+  RESULT_TEXT_ROI,
+} from '../utils/screenAnalysis/config.js';
 import { createInitialContext, transition } from '../utils/screenAnalysis/fsm.js';
 import { CoinOcrManager } from '../utils/screenAnalysis/ocr.js';
 import type {
@@ -8,6 +17,7 @@ import type {
   CoinResult,
   DetectionResult,
   FSMContext,
+  ROI,
   ScreenAnalysisStatus,
 } from '../utils/screenAnalysis/types.js';
 
@@ -21,6 +31,71 @@ type ScreenAnalysisOptions = {
   debugLogEnabled?: boolean;
   debugLogIntervalMs?: number;
 };
+
+function captureVideoRegion(video: HTMLVideoElement, roi: ROI): string | null {
+  const width = video.videoWidth;
+  const height = video.videoHeight;
+  if (!width || !height) return null;
+
+  const x = Math.max(0, Math.floor(roi.left * width));
+  const y = Math.max(0, Math.floor(roi.top * height));
+  const cropWidth = Math.max(1, Math.floor(roi.width * width));
+  const cropHeight = Math.max(1, Math.floor(roi.height * height));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = cropWidth;
+  canvas.height = cropHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  ctx.drawImage(video, x, y, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+
+function captureVideoPreviewWithRois(
+  video: HTMLVideoElement,
+  rois: Array<{ roi: ROI; color: string; label: string }>,
+): string | null {
+  const width = video.videoWidth;
+  const height = video.videoHeight;
+  if (!width || !height) return null;
+
+  const targetWidth = Math.min(width, 1280);
+  const scale = targetWidth / width;
+  const targetHeight = Math.max(1, Math.round(height * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+  ctx.lineWidth = Math.max(2, Math.round(3 * scale));
+  ctx.font = `${Math.max(14, Math.round(20 * scale))}px sans-serif`;
+
+  for (const { roi, color, label } of rois) {
+    const x = Math.round(roi.left * targetWidth);
+    const y = Math.round(roi.top * targetHeight);
+    const cropWidth = Math.round(roi.width * targetWidth);
+    const cropHeight = Math.round(roi.height * targetHeight);
+
+    ctx.strokeStyle = color;
+    ctx.strokeRect(x, y, cropWidth, cropHeight);
+
+    const labelPaddingX = 8;
+    const labelHeight = Math.max(18, Math.round(26 * scale));
+    const labelWidth = Math.ceil(ctx.measureText(label).width) + labelPaddingX * 2;
+    const labelY = Math.max(0, y - labelHeight);
+
+    ctx.fillStyle = color;
+    ctx.fillRect(x, labelY, labelWidth, labelHeight);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(label, x + labelPaddingX, labelY + labelHeight - Math.max(5, Math.round(7 * scale)));
+  }
+
+  return canvas.toDataURL('image/jpeg', 0.82);
+}
 
 export function useScreenAnalysis(
   onAutoRegister?: AutoRegisterCallback,
@@ -90,15 +165,17 @@ export function useScreenAnalysis(
       if (event.data.type === 'result') {
         let frame: AnalysisFrame = event.data.data;
         const ocrSnapshot = ocrRef.current.snapshot;
-        if (ocrSnapshot?.detectedIsFirst != null) {
-          detectedIsFirstRef.current = ocrSnapshot.detectedIsFirst;
-          setDetectedIsFirst(ocrSnapshot.detectedIsFirst);
+        const freshOcrSnapshot =
+          ocrSnapshot && ocrSnapshot.expiresAt >= frame.timestamp ? ocrSnapshot : null;
+        if (freshOcrSnapshot?.detectedIsFirst != null) {
+          detectedIsFirstRef.current = freshOcrSnapshot.detectedIsFirst;
+          setDetectedIsFirst(freshOcrSnapshot.detectedIsFirst);
         }
-        if (ocrSnapshot && ocrSnapshot.expiresAt >= frame.timestamp && ocrSnapshot.result) {
+        if (freshOcrSnapshot && freshOcrSnapshot.result) {
           frame = {
             ...frame,
-            coin: ocrSnapshot.result,
-            coinConfidence: Math.max(frame.coinConfidence, ocrSnapshot.confidence),
+            coin: freshOcrSnapshot.result,
+            coinConfidence: Math.max(frame.coinConfidence, freshOcrSnapshot.confidence),
           };
         }
         const prevContext = fsmRef.current;
@@ -294,6 +371,20 @@ export function useScreenAnalysis(
         ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
         ocrLastParsedIsFirst: ocrDiagnostics.lastParsedIsFirst,
         ocrRoi: ocrDiagnostics.roi,
+        resultImageDataUrl: captureRef.current.video
+          ? captureVideoRegion(captureRef.current.video, RESULT_ROI)
+          : null,
+        fullPreviewImageDataUrl: captureRef.current.video
+          ? captureVideoPreviewWithRois(captureRef.current.video, [
+              { roi: COIN_ROI, color: '#eab308', label: 'coin' },
+              { roi: COIN_OCR_SELECTION_ROI, color: '#22c55e', label: 'ocr-select' },
+              { roi: COIN_OCR_CONFIRM_ROI, color: '#06b6d4', label: 'ocr-confirm' },
+              { roi: COIN_OCR_ROI, color: '#a855f7', label: 'ocr-legacy' },
+              { roi: RESULT_TEXT_ROI, color: '#ef4444', label: 'result-text' },
+              { roi: RESULT_CENTER_ROI, color: '#f97316', label: 'result-center' },
+              { roi: RESULT_ROI, color: '#fb7185', label: 'result-legacy' },
+            ])
+          : null,
         ...(includePreviewImages
           ? {
               ocrRawImageDataUrl: ocrDiagnostics.rawPreviewDataUrl,

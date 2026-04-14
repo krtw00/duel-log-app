@@ -5,7 +5,7 @@ import {
   COIN_ROI,
   HASH_MARGIN,
   RESULT_MATCH_THRESHOLD,
-  RESULT_ROI,
+  RESULT_ROIS,
 } from '../utils/screenAnalysis/config.js';
 import {
   COIN_HASH_HEIGHT,
@@ -107,18 +107,41 @@ function detectResult(imageData: ImageData): {
   winScore: number;
   lossScore: number;
 } {
-  const hash = computeDHash(imageData, RESULT_ROI, RESULT_HASH_WIDTH, RESULT_HASH_HEIGHT);
-  const winScore = hashSimilarity(hash, RESULT_WIN_HASH);
-  const lossScore = hashSimilarity(hash, RESULT_LOSE_HASH);
-  const confidence = Math.max(winScore, lossScore);
+  let best = {
+    result: null as DetectionResult,
+    confidence: 0,
+    winScore: 0,
+    lossScore: 0,
+  };
 
-  if (winScore >= RESULT_MATCH_THRESHOLD && winScore - lossScore >= HASH_MARGIN) {
-    return { result: 'win', confidence, winScore, lossScore };
+  for (const { roi } of RESULT_ROIS) {
+    const hash = computeDHash(imageData, roi, RESULT_HASH_WIDTH, RESULT_HASH_HEIGHT);
+    const winScore = hashSimilarity(hash, RESULT_WIN_HASH);
+    const lossScore = hashSimilarity(hash, RESULT_LOSE_HASH);
+    const confidence = Math.max(winScore, lossScore);
+
+    if (winScore >= RESULT_MATCH_THRESHOLD && winScore - lossScore >= HASH_MARGIN) {
+      return { result: 'win', confidence, winScore, lossScore };
+    }
+    if (lossScore >= RESULT_MATCH_THRESHOLD && lossScore - winScore >= HASH_MARGIN) {
+      return { result: 'loss', confidence, winScore, lossScore };
+    }
+
+    if (
+      confidence > best.confidence ||
+      (confidence === best.confidence &&
+        Math.abs(winScore - lossScore) > Math.abs(best.winScore - best.lossScore))
+    ) {
+      best = {
+        result: null,
+        confidence,
+        winScore,
+        lossScore,
+      };
+    }
   }
-  if (lossScore >= RESULT_MATCH_THRESHOLD && lossScore - winScore >= HASH_MARGIN) {
-    return { result: 'loss', confidence, winScore, lossScore };
-  }
-  return { result: null, confidence, winScore, lossScore };
+
+  return best;
 }
 
 function analyzeFrame(imageData: ImageData): AnalysisFrame {

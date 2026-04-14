@@ -1,5 +1,5 @@
 import type { TesseractWorker } from 'tesseract.js';
-import { COIN_OCR_ROI } from './config.js';
+import { COIN_OCR_ROIS } from './config.js';
 import type { CoinResult, FSMState } from './types.js';
 
 export type CoinOcrSnapshot = {
@@ -26,6 +26,7 @@ export type CoinOcrDiagnostics = {
   processedPreviewDataUrl: string | null;
   roi:
     | {
+        label: string;
         x: number;
         y: number;
         width: number;
@@ -36,8 +37,9 @@ export type CoinOcrDiagnostics = {
     | null;
 };
 
-const COIN_OCR_INTERVAL_MS = 800;
+const COIN_OCR_INTERVAL_MS = 500;
 const COIN_OCR_TTL_MS = 4000;
+const TURN_ORDER_OCR_TTL_MS = 2500;
 const COIN_OCR_SCALE = 2;
 const COIN_OCR_LUMINANCE_THRESHOLD = 180;
 const COIN_OCR_IDLE_RESULT_TTL_MS = 0;
@@ -67,7 +69,7 @@ export function parseSelectionPromptText(
   text: string,
 ): { state: SelectionPromptState; confidence: number } | null {
   const cleaned = text.replace(/\s+/g, '').replace(/[|\uff5c]/g, '');
-  const hasTurnWords = /\u5148\u653b|\u5f8c\u653b/.test(cleaned);
+  const hasTurnWords = /\u5148\u653b|\u5148\u884c|\u5f8c\u653b/.test(cleaned);
   const hasSelectionWords =
     /\u9078\u629e/.test(cleaned) ||
     /\u9078\u629e\u3057\u3066\u3044/.test(cleaned) ||
@@ -116,22 +118,43 @@ export function parseTurnOrderText(
   text: string,
 ): { isFirst: boolean; confidence: number } | null {
   const cleaned = text.replace(/\s+/g, '').replace(/[|\uff5c]/g, '');
+  const hasSelfRef = /\u3042\u306a\u305f|\u306a\u305f/.test(cleaned);
+  const hasOpponentRef = /\u5bfe\u6226\u76f8\u624b/.test(cleaned);
+  const hasSelectionRef = /\u9078\u629e/.test(cleaned);
 
   const isSelfFirst =
-    /\u3042\u306a\u305f\u304c\u5148\u653b\u3067\u3059/.test(cleaned) ||
-    /\u3042\u306a\u305f\u306f\u5148\u653b\u3067\u3059/.test(cleaned) ||
-    /\u3042\u306a\u305f\u304c\u5148\u653b/.test(cleaned) ||
-    /\u3042\u306a\u305f\u306f\u5148\u653b/.test(cleaned);
+    !hasOpponentRef &&
+    !hasSelectionRef &&
+    hasSelfRef &&
+    /\u5148\u653b|\u5148\u884c/.test(cleaned);
   const isSelfSecond =
-    /\u3042\u306a\u305f\u304c\u5f8c\u653b\u3067\u3059/.test(cleaned) ||
-    /\u3042\u306a\u305f\u306f\u5f8c\u653b\u3067\u3059/.test(cleaned) ||
-    /\u3042\u306a\u305f\u304c\u5f8c\u653b/.test(cleaned) ||
-    /\u3042\u306a\u305f\u306f\u5f8c\u653b/.test(cleaned);
+    !hasOpponentRef && !hasSelectionRef && hasSelfRef && /\u5f8c\u653b/.test(cleaned);
 
   if (isSelfFirst) return { isFirst: true, confidence: 0.96 };
   if (isSelfSecond) return { isFirst: false, confidence: 0.96 };
   return null;
 }
+
+type CapturedImage = {
+  dataUrl: string;
+  roi: {
+    label: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    targetWidth: number;
+    targetHeight: number;
+  };
+  rawPreviewDataUrl: string;
+  processedPreviewDataUrl: string;
+};
+
+type OcrAttempt = CapturedImage & {
+  text: string;
+  parsed: { result: CoinResult; confidence: number } | null;
+  turnOrder: { isFirst: boolean; confidence: number } | null;
+};
 
 export class CoinOcrManager {
   snapshot: CoinOcrSnapshot | null = null;
@@ -167,7 +190,10 @@ export class CoinOcrManager {
     return this.workerPromise;
   }
 
-  private captureImage(video: HTMLVideoElement): string | null {
+  private captureImage(
+    video: HTMLVideoElement,
+    roiConfig: (typeof COIN_OCR_ROIS)[number],
+  ): CapturedImage | null {
     const width = video.videoWidth;
     const height = video.videoHeight;
     if (!width || !height) return null;
@@ -177,21 +203,12 @@ export class CoinOcrManager {
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    const roiX = Math.max(0, Math.floor(COIN_OCR_ROI.left * width));
-    const roiY = Math.max(0, Math.floor(COIN_OCR_ROI.top * height));
-    const roiWidth = Math.max(1, Math.floor(COIN_OCR_ROI.width * width));
-    const roiHeight = Math.max(1, Math.floor(COIN_OCR_ROI.height * height));
+    const roiX = Math.max(0, Math.floor(roiConfig.roi.left * width));
+    const roiY = Math.max(0, Math.floor(roiConfig.roi.top * height));
+    const roiWidth = Math.max(1, Math.floor(roiConfig.roi.width * width));
+    const roiHeight = Math.max(1, Math.floor(roiConfig.roi.height * height));
     const targetWidth = Math.max(1, Math.floor(roiWidth * COIN_OCR_SCALE));
     const targetHeight = Math.max(1, Math.floor(roiHeight * COIN_OCR_SCALE));
-
-    this.diagnostics.roi = {
-      x: roiX,
-      y: roiY,
-      width: roiWidth,
-      height: roiHeight,
-      targetWidth,
-      targetHeight,
-    };
 
     if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
       canvas.width = targetWidth;
@@ -199,7 +216,7 @@ export class CoinOcrManager {
     }
 
     ctx.drawImage(video, roiX, roiY, roiWidth, roiHeight, 0, 0, targetWidth, targetHeight);
-    this.diagnostics.rawPreviewDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const rawPreviewDataUrl = canvas.toDataURL('image/jpeg', 0.85);
     const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
@@ -214,9 +231,20 @@ export class CoinOcrManager {
       data[i + 3] = 255;
     }
     ctx.putImageData(imageData, 0, 0);
-    const processedDataUrl = canvas.toDataURL('image/png');
-    this.diagnostics.processedPreviewDataUrl = processedDataUrl;
-    return processedDataUrl;
+    return {
+      dataUrl: canvas.toDataURL('image/png'),
+      rawPreviewDataUrl,
+      processedPreviewDataUrl: canvas.toDataURL('image/png'),
+      roi: {
+        label: roiConfig.label,
+        x: roiX,
+        y: roiY,
+        width: roiWidth,
+        height: roiHeight,
+        targetWidth,
+        targetHeight,
+      },
+    };
   }
 
   private async run(
@@ -227,33 +255,70 @@ export class CoinOcrManager {
   ): Promise<void> {
     if (!getIsCapturing()) return;
 
-    const image = this.captureImage(video);
-    if (!image) return;
     this.diagnostics.lastAttemptAt = Date.now();
     this.diagnostics.lastError = null;
     this.diagnostics.lastSkipReason = null;
 
     try {
       const worker = await this.ensureWorker();
-      const { data } = await worker.recognize(image as never);
-      if (getCaptureToken() !== captureToken || !getIsCapturing()) return;
+      let bestAttempt: OcrAttempt | null = null;
 
-      const text = data.text ?? '';
-      const parsed = parseCoinText(text);
-      const turnOrder = parseTurnOrderText(text);
+      for (const roiConfig of COIN_OCR_ROIS) {
+        const captured = this.captureImage(video, roiConfig);
+        if (!captured) continue;
+
+        const { data } = await worker.recognize(captured.dataUrl as never);
+        if (getCaptureToken() !== captureToken || !getIsCapturing()) return;
+
+        const text = data.text ?? '';
+        const parsed = parseCoinText(text);
+        const turnOrder = parseTurnOrderText(text);
+        const attempt: OcrAttempt = {
+          ...captured,
+          text,
+          parsed,
+          turnOrder,
+        };
+
+        if (
+          !bestAttempt ||
+          (attempt.parsed ? 2 : attempt.turnOrder ? 1 : 0) >
+            (bestAttempt.parsed ? 2 : bestAttempt.turnOrder ? 1 : 0) ||
+          text.replace(/\s+/g, '').length > bestAttempt.text.replace(/\s+/g, '').length
+        ) {
+          bestAttempt = attempt;
+        }
+
+        if (parsed || turnOrder) {
+          bestAttempt = attempt;
+          break;
+        }
+      }
+
+      if (!bestAttempt) return;
+
       const now = Date.now();
       this.diagnostics.lastCompletedAt = now;
-      this.diagnostics.lastRawText = text;
-      this.diagnostics.lastParsedResult = parsed?.result ?? null;
-      this.diagnostics.lastParsedConfidence = parsed?.confidence ?? null;
-      this.diagnostics.lastParsedIsFirst = turnOrder?.isFirst ?? null;
+      this.diagnostics.lastRawText = bestAttempt.text;
+      this.diagnostics.lastParsedResult = bestAttempt.parsed?.result ?? null;
+      this.diagnostics.lastParsedConfidence = bestAttempt.parsed?.confidence ?? null;
+      this.diagnostics.lastParsedIsFirst = bestAttempt.turnOrder?.isFirst ?? null;
+      this.diagnostics.rawPreviewDataUrl = bestAttempt.rawPreviewDataUrl;
+      this.diagnostics.processedPreviewDataUrl = bestAttempt.processedPreviewDataUrl;
+      this.diagnostics.roi = bestAttempt.roi;
       this.snapshot = {
-        text,
-        result: parsed?.result ?? null,
-        confidence: parsed?.confidence ?? 0,
-        detectedIsFirst: turnOrder?.isFirst ?? null,
+        text: bestAttempt.text,
+        result: bestAttempt.parsed?.result ?? null,
+        confidence: bestAttempt.parsed?.confidence ?? 0,
+        detectedIsFirst: bestAttempt.turnOrder?.isFirst ?? null,
         updatedAt: now,
-        expiresAt: now + (parsed?.result ? COIN_OCR_TTL_MS : COIN_OCR_IDLE_RESULT_TTL_MS),
+        expiresAt:
+          now +
+          (bestAttempt.turnOrder
+            ? TURN_ORDER_OCR_TTL_MS
+            : bestAttempt.parsed?.result
+              ? COIN_OCR_TTL_MS
+              : COIN_OCR_IDLE_RESULT_TTL_MS),
       };
     } catch (error) {
       console.warn('[CoinOcrManager] OCR recognition failed:', error);
@@ -286,19 +351,6 @@ export class CoinOcrManager {
     }
 
     const now = Date.now();
-    const hasTurnOrder = this.snapshot?.detectedIsFirst !== null;
-    if (hasTurnOrder) {
-      this.diagnostics.lastSkipReason = 'turn_order_captured';
-      return;
-    }
-    if (
-      this.snapshot?.result &&
-      this.snapshot.expiresAt > now &&
-      (fsmState !== 'coinDetected' || hasTurnOrder)
-    ) {
-      this.diagnostics.lastSkipReason = 'snapshot_fresh';
-      return;
-    }
     if (now - this.lastOcrAt < COIN_OCR_INTERVAL_MS) {
       this.diagnostics.lastSkipReason = 'rate_limited';
       return;

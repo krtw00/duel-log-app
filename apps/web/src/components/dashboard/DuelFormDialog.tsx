@@ -391,6 +391,36 @@ export function DuelFormDialog({
     }
   }, [screenAnalysisEnabled, screenAnalysis.status.isCapturing, screenAnalysis.stopCapture]);
 
+  useEffect(() => {
+    if (!screenAnalysisEnabled || editingDuel) return;
+
+    if (screenAnalysis.status.detectedIsFirst !== null) {
+      setValue('isFirst', screenAnalysis.status.detectedIsFirst);
+      setValue(
+        'wonCoinToss',
+        deriveWonCoinTossFromIsFirst(screenAnalysis.status.detectedIsFirst, defaultIsFirst),
+      );
+    } else if (screenAnalysis.status.coinResult !== null) {
+      setValue('wonCoinToss', screenAnalysis.status.coinResult === 'won');
+      setValue(
+        'isFirst',
+        deriveIsFirstFromWonCoinToss(screenAnalysis.status.coinResult === 'won', defaultIsFirst),
+      );
+    }
+
+    if (screenAnalysis.status.detectionResult !== null) {
+      setValue('result', screenAnalysis.status.detectionResult);
+    }
+  }, [
+    defaultIsFirst,
+    editingDuel,
+    screenAnalysis.status.coinResult,
+    screenAnalysis.status.detectionResult,
+    screenAnalysis.status.detectedIsFirst,
+    screenAnalysisEnabled,
+    setValue,
+  ]);
+
   if (!open && !inline) return null;
 
   const formContent = (
