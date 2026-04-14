@@ -12,10 +12,52 @@ export type CoinOcrSnapshot = {
 
 export type SelectionPromptState = 'selfSelect' | 'opponentSelect';
 
+export type CoinOcrDiagnostics = {
+  lastSkipReason: string | null;
+  lastAttemptAt: number | null;
+  lastCompletedAt: number | null;
+  lastError: string | null;
+  lastRawText: string | null;
+  lastParsedResult: CoinResult | null;
+  lastParsedConfidence: number | null;
+  rawPreviewDataUrl: string | null;
+  processedPreviewDataUrl: string | null;
+  roi:
+    | {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        targetWidth: number;
+        targetHeight: number;
+      }
+    | null;
+};
+
 const COIN_OCR_INTERVAL_MS = 1500;
 const COIN_OCR_TTL_MS = 4000;
 const COIN_OCR_SCALE = 2;
 const COIN_OCR_LUMINANCE_THRESHOLD = 180;
+
+function createInitialDiagnostics(): CoinOcrDiagnostics {
+  return {
+    lastSkipReason: null,
+    lastAttemptAt: null,
+    lastCompletedAt: null,
+    lastError: null,
+    lastRawText: null,
+    lastParsedResult: null,
+    lastParsedConfidence: null,
+    rawPreviewDataUrl: null,
+    processedPreviewDataUrl: null,
+    roi: null,
+  };
+}
+
+function stringifyError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
 
 export function parseSelectionPromptText(
   text: string,
@@ -58,6 +100,11 @@ export class CoinOcrManager {
   private canvas: HTMLCanvasElement | null = null;
   private running = false;
   private lastOcrAt = 0;
+  private diagnostics: CoinOcrDiagnostics = createInitialDiagnostics();
+
+  getDiagnostics(): CoinOcrDiagnostics {
+    return { ...this.diagnostics, roi: this.diagnostics.roi ? { ...this.diagnostics.roi } : null };
+  }
 
   private async ensureWorker(): Promise<TesseractWorker> {
     if (this.worker) return this.worker;
@@ -96,12 +143,22 @@ export class CoinOcrManager {
     const targetWidth = Math.max(1, Math.floor(roiWidth * COIN_OCR_SCALE));
     const targetHeight = Math.max(1, Math.floor(roiHeight * COIN_OCR_SCALE));
 
+    this.diagnostics.roi = {
+      x: roiX,
+      y: roiY,
+      width: roiWidth,
+      height: roiHeight,
+      targetWidth,
+      targetHeight,
+    };
+
     if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
       canvas.width = targetWidth;
       canvas.height = targetHeight;
     }
 
     ctx.drawImage(video, roiX, roiY, roiWidth, roiHeight, 0, 0, targetWidth, targetHeight);
+    this.diagnostics.rawPreviewDataUrl = canvas.toDataURL('image/jpeg', 0.85);
     const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
     const data = imageData.data;
     for (let i = 0; i < data.length; i += 4) {
@@ -115,6 +172,8 @@ export class CoinOcrManager {
       data[i + 2] = v;
       data[i + 3] = 255;
     }
+    ctx.putImageData(imageData, 0, 0);
+    this.diagnostics.processedPreviewDataUrl = canvas.toDataURL('image/png');
     return imageData;
   }
 
@@ -128,6 +187,9 @@ export class CoinOcrManager {
 
     const imageData = this.captureImage(video);
     if (!imageData) return;
+    this.diagnostics.lastAttemptAt = Date.now();
+    this.diagnostics.lastError = null;
+    this.diagnostics.lastSkipReason = null;
 
     try {
       const worker = await this.ensureWorker();
@@ -137,6 +199,10 @@ export class CoinOcrManager {
       const text = data.text ?? '';
       const parsed = parseCoinText(text);
       const now = Date.now();
+      this.diagnostics.lastCompletedAt = now;
+      this.diagnostics.lastRawText = text;
+      this.diagnostics.lastParsedResult = parsed?.result ?? null;
+      this.diagnostics.lastParsedConfidence = parsed?.confidence ?? null;
       this.snapshot = {
         text,
         result: parsed?.result ?? null,
@@ -146,6 +212,8 @@ export class CoinOcrManager {
       };
     } catch (error) {
       console.warn('[CoinOcrManager] OCR recognition failed:', error);
+      this.diagnostics.lastCompletedAt = Date.now();
+      this.diagnostics.lastError = stringifyError(error);
       if (getCaptureToken() === captureToken) {
         this.snapshot = null;
       }
@@ -159,13 +227,28 @@ export class CoinOcrManager {
     getCaptureToken: () => number,
     getIsCapturing: () => boolean,
   ): void {
-    if (this.running) return;
-    if (!getIsCapturing()) return;
-    if (fsmState !== 'idle' && fsmState !== 'coinDetecting') return;
+    if (this.running) {
+      this.diagnostics.lastSkipReason = 'running';
+      return;
+    }
+    if (!getIsCapturing()) {
+      this.diagnostics.lastSkipReason = 'not_capturing';
+      return;
+    }
+    if (fsmState !== 'idle' && fsmState !== 'coinDetecting') {
+      this.diagnostics.lastSkipReason = `fsm:${fsmState}`;
+      return;
+    }
 
     const now = Date.now();
-    if (this.snapshot && this.snapshot.expiresAt > now) return;
-    if (now - this.lastOcrAt < COIN_OCR_INTERVAL_MS) return;
+    if (this.snapshot && this.snapshot.expiresAt > now) {
+      this.diagnostics.lastSkipReason = 'snapshot_fresh';
+      return;
+    }
+    if (now - this.lastOcrAt < COIN_OCR_INTERVAL_MS) {
+      this.diagnostics.lastSkipReason = 'rate_limited';
+      return;
+    }
 
     this.lastOcrAt = now;
     this.running = true;
@@ -178,6 +261,7 @@ export class CoinOcrManager {
     this.snapshot = null;
     this.running = false;
     this.lastOcrAt = 0;
+    this.diagnostics = createInitialDiagnostics();
   }
 
   dispose(): void {

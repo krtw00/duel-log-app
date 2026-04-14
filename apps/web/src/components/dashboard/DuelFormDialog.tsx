@@ -375,7 +375,7 @@ export function DuelFormDialog({
   );
 
   const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined, {
-    debugLogEnabled: isDebugger,
+    debugLogEnabled: isDebugger || isAdmin,
   });
 
   useEffect(() => {

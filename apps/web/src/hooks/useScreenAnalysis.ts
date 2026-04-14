@@ -40,6 +40,10 @@ export function useScreenAnalysis(
   const autoRegisterRef = useRef(autoRegister);
   const isCapturingRef = useRef(false);
   const captureTokenRef = useRef(0);
+  const lastLoggedPreviewAtRef = useRef<number | null>(null);
+  const debugSessionIdRef = useRef(
+    globalThis.crypto?.randomUUID?.() ?? `screen-analysis-${Date.now().toString(36)}`,
+  );
 
   useEffect(() => {
     autoRegisterRef.current = autoRegister;
@@ -63,26 +67,107 @@ export function useScreenAnalysis(
     }
   }, [fsmContext, onAutoRegister]);
 
-  const handleWorkerMessage = useCallback((event: MessageEvent) => {
-    if (event.data.type === 'result') {
-      let frame: AnalysisFrame = event.data.data;
-      const ocrSnapshot = ocrRef.current.snapshot;
-      if (ocrSnapshot && ocrSnapshot.expiresAt >= frame.timestamp && ocrSnapshot.result) {
-        frame = {
-          ...frame,
-          coin: ocrSnapshot.result,
-          coinConfidence: Math.max(frame.coinConfidence, ocrSnapshot.confidence),
-        };
+  const logDebugEvent = useCallback(
+    (payload: Record<string, unknown>) => {
+      if (!debugLogEnabled) return;
+      void api('/debug/screen-analysis', {
+        method: 'POST',
+        body: {
+          sessionId: debugSessionIdRef.current,
+          captureToken: captureTokenRef.current,
+          ...payload,
+        },
+      }).catch(() => {});
+    },
+    [debugLogEnabled],
+  );
+
+  const handleWorkerMessage = useCallback(
+    (event: MessageEvent) => {
+      if (event.data.type === 'result') {
+        let frame: AnalysisFrame = event.data.data;
+        const ocrSnapshot = ocrRef.current.snapshot;
+        if (ocrSnapshot && ocrSnapshot.expiresAt >= frame.timestamp && ocrSnapshot.result) {
+          frame = {
+            ...frame,
+            coin: ocrSnapshot.result,
+            coinConfidence: Math.max(frame.coinConfidence, ocrSnapshot.confidence),
+          };
+        }
+        const prevContext = fsmRef.current;
+        const newContext = transition(prevContext, frame);
+        const ocrDiagnostics = ocrRef.current.getDiagnostics();
+        if (
+          debugLogEnabled &&
+          (prevContext.state !== newContext.state ||
+            prevContext.coinResult !== newContext.coinResult ||
+            prevContext.detectionResult !== newContext.detectionResult)
+        ) {
+          logDebugEvent({
+            type: 'fsm_transition',
+            eventAt: frame.timestamp,
+            prevState: prevContext.state,
+            nextState: newContext.state,
+            prevCoin: prevContext.coinResult,
+            nextCoin: newContext.coinResult,
+            prevResult: prevContext.detectionResult,
+            nextResult: newContext.detectionResult,
+            coin: frame.coin,
+            result: frame.result,
+            coinWinScore: frame.coinWinScore,
+            coinLossScore: frame.coinLossScore,
+            resultWinScore: frame.resultWinScore,
+            resultLossScore: frame.resultLossScore,
+            coinConfidence: frame.coinConfidence,
+            resultConfidence: frame.resultConfidence,
+            coinOcrText: ocrSnapshot?.text?.slice(0, 120),
+            coinOcrResult: ocrSnapshot?.result ?? null,
+            coinOcrConfidence: ocrSnapshot?.confidence,
+            coinOcrAt: ocrSnapshot?.updatedAt,
+            ocrLastSkipReason: ocrDiagnostics.lastSkipReason,
+            ocrLastAttemptAt: ocrDiagnostics.lastAttemptAt,
+            ocrLastCompletedAt: ocrDiagnostics.lastCompletedAt,
+            ocrLastError: ocrDiagnostics.lastError,
+            ocrLastRawText: ocrDiagnostics.lastRawText?.slice(0, 120) ?? null,
+            ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
+            ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
+            ocrRoi: ocrDiagnostics.roi,
+          });
+        }
+        fsmRef.current = newContext;
+        setFsmContext(newContext);
+        setLastFrame(frame);
+        lastFrameRef.current = frame;
       }
-      const newContext = transition(fsmRef.current, frame);
-      fsmRef.current = newContext;
-      setFsmContext(newContext);
-      setLastFrame(frame);
-      lastFrameRef.current = frame;
-    }
-  }, []);
+    },
+    [debugLogEnabled, logDebugEvent],
+  );
 
   const stopCapture = useCallback(() => {
+    const finalContext = fsmRef.current;
+    const finalFrame = lastFrameRef.current;
+    const ocrDiagnostics = ocrRef.current.getDiagnostics();
+    logDebugEvent({
+      type: 'capture_stopped',
+      eventAt: Date.now(),
+      state: finalContext.state,
+      coin: finalContext.coinResult,
+      result: finalContext.detectionResult,
+      coinWinScore: finalFrame?.coinWinScore,
+      coinLossScore: finalFrame?.coinLossScore,
+      resultWinScore: finalFrame?.resultWinScore,
+      resultLossScore: finalFrame?.resultLossScore,
+      coinConfidence: finalFrame?.coinConfidence,
+      resultConfidence: finalFrame?.resultConfidence,
+      ocrLastSkipReason: ocrDiagnostics.lastSkipReason,
+      ocrLastAttemptAt: ocrDiagnostics.lastAttemptAt,
+      ocrLastCompletedAt: ocrDiagnostics.lastCompletedAt,
+      ocrLastError: ocrDiagnostics.lastError,
+      ocrLastRawText: ocrDiagnostics.lastRawText?.slice(0, 120) ?? null,
+      ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
+      ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
+      ocrRoi: ocrDiagnostics.roi,
+    });
     captureTokenRef.current += 1;
     isCapturingRef.current = false;
 
@@ -99,7 +184,7 @@ export function useScreenAnalysis(
     setLastFrame(null);
     lastFrameRef.current = null;
     setIsCapturing(false);
-  }, []);
+  }, [logDebugEvent]);
 
   const startCapture = useCallback(async () => {
     const capture = captureRef.current;
@@ -116,6 +201,7 @@ export function useScreenAnalysis(
     const token = captureTokenRef.current;
     isCapturingRef.current = true;
     ocr.reset();
+    lastLoggedPreviewAtRef.current = null;
 
     const started = await capture.start(
       (imageData) => {
@@ -135,14 +221,24 @@ export function useScreenAnalysis(
     );
 
     if (!started) {
+      logDebugEvent({
+        type: 'capture_denied',
+        eventAt: Date.now(),
+      });
       worker.terminate();
       workerRef.current = null;
       isCapturingRef.current = false;
       return;
     }
 
+    logDebugEvent({
+      type: 'capture_started',
+      eventAt: Date.now(),
+      captureWidth: capture.video?.videoWidth ?? null,
+      captureHeight: capture.video?.videoHeight ?? null,
+    });
     setIsCapturing(true);
-  }, [handleWorkerMessage, stopCapture]);
+  }, [handleWorkerMessage, logDebugEvent, stopCapture]);
 
   useEffect(() => {
     if (!debugLogEnabled || !isCapturing) return;
@@ -154,7 +250,12 @@ export function useScreenAnalysis(
         ocrRef.current.snapshot && ocrRef.current.snapshot.expiresAt >= frame.timestamp
           ? ocrRef.current.snapshot
           : null;
+      const ocrDiagnostics = ocrRef.current.getDiagnostics();
+      const includePreviewImages =
+        ocrDiagnostics.lastCompletedAt != null &&
+        ocrDiagnostics.lastCompletedAt !== lastLoggedPreviewAtRef.current;
       const payload = {
+        type: 'tick',
         eventAt: frame.timestamp,
         state: fsmRef.current.state,
         coin: frame.coin,
@@ -169,14 +270,31 @@ export function useScreenAnalysis(
         coinOcrResult: ocrSnapshot?.result ?? null,
         coinOcrConfidence: ocrSnapshot?.confidence,
         coinOcrAt: ocrSnapshot?.updatedAt,
+        ocrLastSkipReason: ocrDiagnostics.lastSkipReason,
+        ocrLastAttemptAt: ocrDiagnostics.lastAttemptAt,
+        ocrLastCompletedAt: ocrDiagnostics.lastCompletedAt,
+        ocrLastError: ocrDiagnostics.lastError,
+        ocrLastRawText: ocrDiagnostics.lastRawText?.slice(0, 120) ?? null,
+        ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
+        ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
+        ocrRoi: ocrDiagnostics.roi,
+        ...(includePreviewImages
+          ? {
+              ocrRawImageDataUrl: ocrDiagnostics.rawPreviewDataUrl,
+              ocrProcessedImageDataUrl: ocrDiagnostics.processedPreviewDataUrl,
+            }
+          : {}),
       };
-      void api('/debug/screen-analysis', { method: 'POST', body: payload }).catch(() => {});
+      if (includePreviewImages) {
+        lastLoggedPreviewAtRef.current = ocrDiagnostics.lastCompletedAt;
+      }
+      logDebugEvent(payload);
     }, debugLogIntervalMs);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [debugLogEnabled, debugLogIntervalMs, isCapturing]);
+  }, [debugLogEnabled, debugLogIntervalMs, isCapturing, logDebugEvent]);
 
   // Cleanup on unmount
   useEffect(() => {

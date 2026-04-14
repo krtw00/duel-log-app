@@ -52,6 +52,8 @@ firebase.hosting.generated.json
 # Local database workspace
 db/.temp
 packages/api/debug-logs/
+packages/api/logs/
+apps/web/*.traineddata
 
 # API build output
 api/*.js
