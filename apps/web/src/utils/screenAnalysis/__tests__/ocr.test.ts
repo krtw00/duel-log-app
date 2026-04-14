@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { parseCoinText, parseSelectionPromptText } from '../ocr.js';
+import { parseCoinText, parseSelectionPromptText, parseTurnOrderText } from '../ocr.js';
 
 const SELF_SELECT_PROMPT =
   '\u5148\u653b\u30fb\u5f8c\u653b\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044';
 const OPPONENT_SELECT_PROMPT =
   '\u5bfe\u6226\u76f8\u624b\u304c\u5148\u653b\u30fb\u5f8c\u653b\u3092\u9078\u629e\u3057\u3066\u3044\u307e\u3059';
+const YOU_GO_FIRST_PROMPT = '\u3042\u306a\u305f\u304c\u5148\u653b\u3067\u3059\u3002';
+const YOU_GO_SECOND_PROMPT = '\u3042\u306a\u305f\u304c\u5f8c\u653b\u3067\u3059\u3002';
+const FALSE_POSITIVE_PROMPT =
+  '\u79fb\u884c\u3059\u308b\u30d5\u30a7\u30a4\u30b9\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044';
 
 describe('parseSelectionPromptText', () => {
   it('detects the self-select prompt', () => {
@@ -31,6 +35,10 @@ describe('parseSelectionPromptText', () => {
       confidence: 0.92,
     });
   });
+
+  it('does not treat unrelated selection prompts as coin selection', () => {
+    expect(parseSelectionPromptText(FALSE_POSITIVE_PROMPT)).toBeNull();
+  });
 });
 
 describe('parseCoinText', () => {
@@ -46,5 +54,44 @@ describe('parseCoinText', () => {
       result: 'lost',
       confidence: 0.92,
     });
+  });
+
+  it('maps a first-player confirmation prompt to coin won as a fallback', () => {
+    expect(parseCoinText(YOU_GO_FIRST_PROMPT)).toEqual({
+      result: 'won',
+      confidence: 0.96,
+    });
+  });
+
+  it('maps a second-player confirmation prompt to coin lost as a fallback', () => {
+    expect(parseCoinText(YOU_GO_SECOND_PROMPT)).toEqual({
+      result: 'lost',
+      confidence: 0.96,
+    });
+  });
+
+  it('does not map unrelated prompts to a coin result', () => {
+    expect(parseCoinText(FALSE_POSITIVE_PROMPT)).toBeNull();
+  });
+});
+
+describe('parseTurnOrderText', () => {
+  it('detects a first-player confirmation prompt', () => {
+    expect(parseTurnOrderText(YOU_GO_FIRST_PROMPT)).toEqual({
+      isFirst: true,
+      confidence: 0.96,
+    });
+  });
+
+  it('detects a second-player confirmation prompt', () => {
+    expect(parseTurnOrderText(YOU_GO_SECOND_PROMPT)).toEqual({
+      isFirst: false,
+      confidence: 0.96,
+    });
+  });
+
+  it('ignores selection prompts that do not settle turn order yet', () => {
+    expect(parseTurnOrderText(SELF_SELECT_PROMPT)).toBeNull();
+    expect(parseTurnOrderText(OPPONENT_SELECT_PROMPT)).toBeNull();
   });
 });

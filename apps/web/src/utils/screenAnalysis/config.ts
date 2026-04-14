@@ -8,6 +8,13 @@ export const COIN_ROI: ROI = {
   height: 0.1055556,
 };
 
+export const COIN_OCR_ROI: ROI = {
+  left: 0.2603125,
+  top: 0.5805556,
+  width: 0.4759375,
+  height: 0.1555556,
+};
+
 export const RESULT_ROI: ROI = {
   left: 0.086563,
   top: 0.352778,

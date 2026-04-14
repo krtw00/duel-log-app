@@ -127,6 +127,16 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
               </span>
             )}
           </div>
+          <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+            {t('duel.firstSecond')}:
+            {` ${
+              status.detectedIsFirst === null
+                ? '-'
+                : status.detectedIsFirst
+                  ? t('duel.first')
+                  : t('duel.second')
+            }`}
+          </div>
           {status.lastFrame && (
             <div className="text-xs space-y-1" style={{ color: 'var(--color-on-surface-muted)' }}>
               <div>

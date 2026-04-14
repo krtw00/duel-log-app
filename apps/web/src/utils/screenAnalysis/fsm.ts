@@ -1,6 +1,5 @@
 import {
   COIN_STREAK_THRESHOLD,
-  COIN_VALIDITY_MS,
   CONFIDENCE_THRESHOLD,
   COOLDOWN_MS,
   RESULT_STREAK_THRESHOLD,
@@ -110,11 +109,6 @@ export function transition(ctx: FSMContext, frame: AnalysisFrame): FSMContext {
 
   // coinDetected → resultDetecting
   if (ctx.state === 'coinDetected') {
-    // Check coin validity timeout
-    if (now - ctx.coinDetectedAt > COIN_VALIDITY_MS) {
-      return createInitialContext();
-    }
-
     if (frame.result && frame.resultConfidence >= CONFIDENCE_THRESHOLD) {
       return {
         ...ctx,
@@ -128,11 +122,6 @@ export function transition(ctx: FSMContext, frame: AnalysisFrame): FSMContext {
 
   // resultDetecting → resultDetected
   if (ctx.state === 'resultDetecting') {
-    // Check coin validity timeout
-    if (now - ctx.coinDetectedAt > COIN_VALIDITY_MS) {
-      return createInitialContext();
-    }
-
     const resultState = updateStreak(
       { streak: ctx.resultStreak, candidate: ctx.detectionResult },
       frame.result,

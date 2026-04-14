@@ -30,6 +30,7 @@ export function useScreenAnalysis(
   const [autoRegister, setAutoRegister] = useState(false);
   const [fsmContext, setFsmContext] = useState<FSMContext>(createInitialContext);
   const [lastFrame, setLastFrame] = useState<AnalysisFrame | null>(null);
+  const [detectedIsFirst, setDetectedIsFirst] = useState<boolean | null>(null);
   const lastFrameRef = useRef<AnalysisFrame | null>(null);
   const { debugLogEnabled = false, debugLogIntervalMs = 2000 } = options;
 
@@ -41,6 +42,7 @@ export function useScreenAnalysis(
   const isCapturingRef = useRef(false);
   const captureTokenRef = useRef(0);
   const lastLoggedPreviewAtRef = useRef<number | null>(null);
+  const detectedIsFirstRef = useRef<boolean | null>(null);
   const debugSessionIdRef = useRef(
     globalThis.crypto?.randomUUID?.() ?? `screen-analysis-${Date.now().toString(36)}`,
   );
@@ -57,10 +59,11 @@ export function useScreenAnalysis(
   useEffect(() => {
     if (fsmContext.state === 'resultDetected' && autoRegisterRef.current && onAutoRegister) {
       const { coinResult, detectionResult } = fsmContext;
+      const resolvedIsFirst = detectedIsFirstRef.current ?? coinResult === 'won';
       setTimeout(() => {
         onAutoRegister({
           coin: coinResult,
-          isFirst: coinResult === 'won',
+          isFirst: resolvedIsFirst,
           result: detectionResult,
         });
       }, 500);
@@ -87,6 +90,10 @@ export function useScreenAnalysis(
       if (event.data.type === 'result') {
         let frame: AnalysisFrame = event.data.data;
         const ocrSnapshot = ocrRef.current.snapshot;
+        if (ocrSnapshot?.detectedIsFirst != null) {
+          detectedIsFirstRef.current = ocrSnapshot.detectedIsFirst;
+          setDetectedIsFirst(ocrSnapshot.detectedIsFirst);
+        }
         if (ocrSnapshot && ocrSnapshot.expiresAt >= frame.timestamp && ocrSnapshot.result) {
           frame = {
             ...frame,
@@ -123,6 +130,7 @@ export function useScreenAnalysis(
             coinOcrText: ocrSnapshot?.text?.slice(0, 120),
             coinOcrResult: ocrSnapshot?.result ?? null,
             coinOcrConfidence: ocrSnapshot?.confidence,
+            coinOcrIsFirst: ocrSnapshot?.detectedIsFirst ?? null,
             coinOcrAt: ocrSnapshot?.updatedAt,
             ocrLastSkipReason: ocrDiagnostics.lastSkipReason,
             ocrLastAttemptAt: ocrDiagnostics.lastAttemptAt,
@@ -131,6 +139,7 @@ export function useScreenAnalysis(
             ocrLastRawText: ocrDiagnostics.lastRawText?.slice(0, 120) ?? null,
             ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
             ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
+            ocrLastParsedIsFirst: ocrDiagnostics.lastParsedIsFirst,
             ocrRoi: ocrDiagnostics.roi,
           });
         }
@@ -166,10 +175,13 @@ export function useScreenAnalysis(
       ocrLastRawText: ocrDiagnostics.lastRawText?.slice(0, 120) ?? null,
       ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
       ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
+      ocrLastParsedIsFirst: ocrDiagnostics.lastParsedIsFirst,
       ocrRoi: ocrDiagnostics.roi,
     });
     captureTokenRef.current += 1;
     isCapturingRef.current = false;
+    detectedIsFirstRef.current = null;
+    setDetectedIsFirst(null);
 
     captureRef.current.stop();
     ocrRef.current.dispose();
@@ -200,6 +212,8 @@ export function useScreenAnalysis(
     captureTokenRef.current += 1;
     const token = captureTokenRef.current;
     isCapturingRef.current = true;
+    detectedIsFirstRef.current = null;
+    setDetectedIsFirst(null);
     ocr.reset();
     lastLoggedPreviewAtRef.current = null;
 
@@ -269,6 +283,7 @@ export function useScreenAnalysis(
         coinOcrText: ocrSnapshot?.text?.slice(0, 120),
         coinOcrResult: ocrSnapshot?.result ?? null,
         coinOcrConfidence: ocrSnapshot?.confidence,
+        coinOcrIsFirst: ocrSnapshot?.detectedIsFirst ?? null,
         coinOcrAt: ocrSnapshot?.updatedAt,
         ocrLastSkipReason: ocrDiagnostics.lastSkipReason,
         ocrLastAttemptAt: ocrDiagnostics.lastAttemptAt,
@@ -277,6 +292,7 @@ export function useScreenAnalysis(
         ocrLastRawText: ocrDiagnostics.lastRawText?.slice(0, 120) ?? null,
         ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
         ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
+        ocrLastParsedIsFirst: ocrDiagnostics.lastParsedIsFirst,
         ocrRoi: ocrDiagnostics.roi,
         ...(includePreviewImages
           ? {
@@ -306,6 +322,7 @@ export function useScreenAnalysis(
   const status: ScreenAnalysisStatus = {
     state: fsmContext.state,
     coinResult: fsmContext.coinResult,
+    detectedIsFirst,
     detectionResult: fsmContext.detectionResult,
     isCapturing,
     autoRegister,

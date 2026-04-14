@@ -23,6 +23,11 @@ import { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
 import { api } from '../../lib/api.js';
 import { fromDatetimeLocal, getDueledAtForSubmit, toDatetimeLocal } from '../../utils/duel.js';
 import {
+  deriveIsFirstFromWonCoinToss,
+  deriveWonCoinTossFromIsFirst,
+  getDefaultTurnValues,
+} from '../../utils/duelDefaults.js';
+import {
   fromCustomHandtrapId,
   getHandtrapName,
   resolveCustomHandtrapCards,
@@ -131,6 +136,7 @@ export function DuelFormDialog({
   const [customHandtrapName, setCustomHandtrapName] = useState('');
   const [handtrapMenuOpen, setHandtrapMenuOpen] = useState(false);
   const handtrapMenuRef = useRef<HTMLDivElement>(null);
+  const defaultTurnValues = getDefaultTurnValues(defaultIsFirst);
 
   const customHandtrapCards = useMemo(
     () => resolveCustomHandtrapCards(handtrapCardsData?.data ?? []),
@@ -153,8 +159,8 @@ export function DuelFormDialog({
     defaultValues: {
       result: 'win',
       gameMode: defaultGameMode ?? 'RANK',
-      isFirst: defaultIsFirst,
-      wonCoinToss: defaultIsFirst,
+      isFirst: defaultTurnValues.isFirst,
+      wonCoinToss: defaultTurnValues.wonCoinToss,
       rank: defaultRank,
       dueledAt: new Date().toISOString(),
       deckId: '00000000-0000-0000-0000-000000000000',
@@ -180,8 +186,8 @@ export function DuelFormDialog({
   // Auto-set first/second based on coin toss result (new duels only)
   // 後攻デフォルト時はコイン結果に関わらず後攻を維持
   useEffect(() => {
-    if (!editingDuel && wonCoinToss !== undefined && defaultIsFirst) {
-      setValue('isFirst', wonCoinToss);
+    if (!editingDuel && wonCoinToss !== undefined) {
+      setValue('isFirst', deriveIsFirstFromWonCoinToss(wonCoinToss, defaultIsFirst));
     }
   }, [wonCoinToss, editingDuel, defaultIsFirst, setValue]);
 
@@ -215,8 +221,8 @@ export function DuelFormDialog({
       reset({
         result: 'win',
         gameMode: defaultGameMode ?? 'RANK',
-        isFirst: defaultIsFirst,
-        wonCoinToss: defaultIsFirst,
+        isFirst: defaultTurnValues.isFirst,
+        wonCoinToss: defaultTurnValues.wonCoinToss,
         rank: defaultRank,
         dueledAt: new Date().toISOString(),
         deckId: deck?.id ?? '00000000-0000-0000-0000-000000000000',
@@ -231,7 +237,7 @@ export function DuelFormDialog({
     // decks/defaultDeck are accessed via refs to avoid resetting user's
     // deck selection on background refetches or post-mutation invalidation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingDuel, defaultGameMode, defaultIsFirst, defaultRank, reset]);
+  }, [editingDuel, defaultGameMode, defaultRank, defaultTurnValues.isFirst, defaultTurnValues.wonCoinToss, reset]);
 
   const isSupportedGameMode = gameMode !== 'RATE' && gameMode !== 'DC';
   const screenAnalysisEnabled =
@@ -338,8 +344,8 @@ export function DuelFormDialog({
       if (!editingDuel) {
         setOpponentDeckSelection({ id: '', name: '' });
         setValue('opponentDeckId', '00000000-0000-0000-0000-000000000000');
-        setValue('wonCoinToss', defaultIsFirst);
-        setValue('isFirst', defaultIsFirst);
+        setValue('wonCoinToss', defaultTurnValues.wonCoinToss);
+        setValue('isFirst', defaultTurnValues.isFirst);
         setValue('result', 'win');
         setValue('memo', '');
         setSelectedHandtraps([]);
@@ -358,7 +364,8 @@ export function DuelFormDialog({
       t,
       editingDuel,
       setValue,
-      defaultIsFirst,
+      defaultTurnValues.isFirst,
+      defaultTurnValues.wonCoinToss,
       dueledAtChanged,
       selectedHandtraps,
     ],
@@ -366,12 +373,12 @@ export function DuelFormDialog({
 
   const handleAutoRegister = useCallback(
     (data: { coin: 'won' | 'lost' | null; isFirst: boolean; result: 'win' | 'loss' | null }) => {
-      if (data.coin !== null) setValue('wonCoinToss', data.coin === 'won');
-      if (data.result !== null) setValue('result', data.result);
       setValue('isFirst', data.isFirst);
+      setValue('wonCoinToss', deriveWonCoinTossFromIsFirst(data.isFirst, defaultIsFirst));
+      if (data.result !== null) setValue('result', data.result);
       handleSubmit(handleFormSubmit)();
     },
-    [setValue, handleSubmit, handleFormSubmit],
+    [defaultIsFirst, setValue, handleSubmit, handleFormSubmit],
   );
 
   const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined, {
