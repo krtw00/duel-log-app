@@ -47,7 +47,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
 
   const token = authHeader.slice(7);
 
-  // JWTをJWKSで検証（Supabase Auth APIを呼ばない）
+  // Signed application JWT verification
   let payload: Awaited<ReturnType<typeof verifyToken>>;
   try {
     const jwtStart = Date.now();

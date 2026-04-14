@@ -1,0 +1,2 @@
+-- Historical no-op.
+-- Supabase auth triggers are not part of the generic PostgreSQL setup.

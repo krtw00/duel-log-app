@@ -4,7 +4,7 @@
  * ygo-grimoireのテーマデータを参考に、人間らしい対戦履歴を生成する。
  *
  * Usage:
- *   npx tsx scripts/generate-dummy-data.ts > supabase/seed-dummy.sql
+ *   npx tsx scripts/generate-dummy-data.ts > db/seed-dummy.sql
  *
  * 生成内容:
  *   - testuser (UUID: 00000000-...01) に対して
@@ -417,51 +417,12 @@ function generateUserSQL(): string[] {
   lines.push(`DELETE FROM public.duels WHERE user_id = '${USER_ID}';`);
   lines.push(`DELETE FROM public.decks WHERE user_id = '${USER_ID}';`);
   lines.push(`DELETE FROM public.users WHERE id = '${USER_ID}';`);
-  lines.push(`DELETE FROM auth.identities WHERE user_id = '${USER_ID}';`);
-  lines.push(`DELETE FROM auth.users WHERE id = '${USER_ID}';`);
-  lines.push('');
-
-  // auth.users
-  lines.push('-- Auth user');
-  lines.push(`INSERT INTO auth.users (
-  id, instance_id, aud, role, email, encrypted_password,
-  email_confirmed_at, created_at, updated_at,
-  confirmation_token, recovery_token,
-  email_change, email_change_token_new, email_change_token_current,
-  phone_change, phone_change_token,
-  reauthentication_token,
-  raw_app_meta_data, raw_user_meta_data
-) VALUES (
-  '${USER_ID}',
-  '00000000-0000-0000-0000-000000000000',
-  'authenticated', 'authenticated',
-  '${USER_EMAIL}',
-  crypt('${TEST_CREDENTIAL}', gen_salt('bf')),
-  now(), now(), now(),
-  '', '', '', '', '', '', '', '',
-  '{"provider": "email", "providers": ["email"]}',
-  '{"display_name": "${USER_DISPLAY_NAME}"}'
-);`);
-  lines.push('');
-
-  // auth.identities
-  lines.push('-- Auth identity');
-  lines.push(`INSERT INTO auth.identities (
-  id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at
-) VALUES (
-  '${USER_ID}',
-  '${USER_ID}',
-  '${USER_ID}',
-  'email',
-  jsonb_build_object('sub', '${USER_ID}', 'email', '${USER_EMAIL}'),
-  now(), now(), now()
-);`);
   lines.push('');
 
   // public.users (admin + debugger)
   lines.push('-- App user (admin + debugger)');
-  lines.push(`INSERT INTO public.users (id, email, display_name, is_admin, is_debugger)
-VALUES ('${USER_ID}', '${USER_EMAIL}', '${USER_DISPLAY_NAME}', true, true);`);
+  lines.push(`INSERT INTO public.users (id, email, display_name, password_hash, is_admin, is_debugger)
+VALUES ('${USER_ID}', '${USER_EMAIL}', '${USER_DISPLAY_NAME}', crypt('${TEST_CREDENTIAL}', gen_salt('bf')), true, true);`);
   lines.push('');
 
   return lines;

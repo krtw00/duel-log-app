@@ -35,14 +35,14 @@ flowchart TB
     Web --> API[Hono API]
     Popup --> API
     API --> DB[(PostgreSQL)]
-    API --> Auth[Supabase Auth]
+    API --> Auth[Application Auth]
 ```
 
 | カテゴリ | 技術 |
 |---------|------|
 | フロントエンド | React 19 / TypeScript / shadcn/ui / TanStack Router / TanStack Query / Zustand |
 | バックエンド | Hono / TypeScript / Drizzle ORM / Zod |
-| インフラ | Vercel Functions / Supabase (Auth + PostgreSQL) |
+| インフラ | Vercel Functions / Cloud Run / Cloud SQL |
 | テスト | Vitest / Testing Library / Playwright |
 | モノレポ | pnpm workspaces |
 
@@ -59,7 +59,7 @@ duel-log-app/
 ├── packages/
 │   ├── api/                    # Hono API (Vercel Functions)
 │   └── shared/                 # Zod schemas + 共通型
-├── supabase/                   # Supabase設定・マイグレーション
+├── db/                         # PostgreSQL migrations / seed data
 ├── docs/                       # ドキュメント
 ├── scripts/                    # ユーティリティスクリプト
 ├── pnpm-workspace.yaml
@@ -75,7 +75,7 @@ duel-log-app/
 
 - Node.js 22.x
 - pnpm >= 10
-- Supabase CLI
+- Docker Desktop
 
 ### セットアップ
 
@@ -83,8 +83,11 @@ duel-log-app/
 # 依存関係インストール
 pnpm install
 
-# ローカルSupabase起動
-pnpm supabase:start
+# ローカルPostgreSQL起動
+pnpm db:start
+
+# スキーマ初期化 + シード投入
+pnpm db:reset
 
 # 開発サーバー起動
 pnpm dev
@@ -93,8 +96,7 @@ pnpm dev
 ### アクセス
 
 - アプリ: http://localhost:5173
-- Supabase API: http://127.0.0.1:55321
-- Supabase Studio: http://127.0.0.1:55323
+- PostgreSQL: postgresql://postgres:postgres@127.0.0.1:5432/duel_log_app
 
 ---
 
@@ -109,9 +111,11 @@ pnpm lint          # リント (Biome)
 pnpm typecheck     # 型チェック
 
 # データベース
-pnpm supabase:start     # ローカルSupabase起動
-pnpm supabase:stop      # 停止
-pnpm supabase:reset     # DBリセット（マイグレーション再適用）
+pnpm db:start           # ローカルPostgreSQL起動
+pnpm db:stop            # 停止
+pnpm db:migrate         # 未適用マイグレーションを実行
+pnpm db:seed            # ローカルシード投入
+pnpm db:reset           # DBリセット（スキーマ再作成 + シード）
 ```
 
 ---
@@ -133,13 +137,13 @@ pnpm supabase:reset     # DBリセット（マイグレーション再適用）
 | 環境 | サービス |
 |------|---------|
 | フロントエンド + API | Vercel (単一ドメイン) |
-| データベース + 認証 | Supabase Cloud |
+| データベース + 認証 | Cloud SQL + Application Auth |
 | CI/CD | GitHub Actions |
 
 ### 推奨フロー
 
-- `staging`: staging 相当の Vercel Preview + staging 用 Supabase
-- `main`: Vercel Production + Production 用 Supabase
+- `staging`: staging 相当の Vercel Preview + staging 用 Cloud SQL
+- `main`: Vercel Production + Production 用 Cloud SQL
 
 `staging` で確認後に `main` へマージして本番リリースする運用を前提にしています。
 
