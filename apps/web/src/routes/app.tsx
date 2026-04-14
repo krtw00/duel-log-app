@@ -1,4 +1,5 @@
 import { createRoute, redirect } from '@tanstack/react-router';
+import { api } from '../lib/api.js';
 import { AdminView } from '../components/admin/AdminView.js';
 import { DashboardView } from '../components/dashboard/DashboardView.js';
 import { DecksView } from '../components/decks/DecksView.js';
@@ -52,6 +53,12 @@ export const profileRoute = createRoute({
 export const adminRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/admin',
+  beforeLoad: async () => {
+    const profile = await api<{ data: { isAdmin: boolean } }>('/me');
+    if (!profile.data.isAdmin) {
+      throw redirect({ to: '/' });
+    }
+  },
   component: AdminView,
 });
 

@@ -10,26 +10,44 @@ export type CoinOcrSnapshot = {
   expiresAt: number;
 };
 
+export type SelectionPromptState = 'selfSelect' | 'opponentSelect';
+
 const COIN_OCR_INTERVAL_MS = 1500;
 const COIN_OCR_TTL_MS = 4000;
 const COIN_OCR_SCALE = 2;
 const COIN_OCR_LUMINANCE_THRESHOLD = 180;
 
-export function parseCoinText(text: string): { result: CoinResult; confidence: number } | null {
-  const cleaned = text.replace(/\s+/g, '').replace(/[|｜]/g, '');
-  const isLost =
-    /対戦相手/.test(cleaned) ||
-    /相手/.test(cleaned) ||
-    /選択してい/.test(cleaned) ||
-    /選択しています/.test(cleaned);
-  const isWon =
-    /選択してくだ/.test(cleaned) ||
-    /選択してください/.test(cleaned) ||
-    /選択して下さい/.test(cleaned);
+export function parseSelectionPromptText(
+  text: string,
+): { state: SelectionPromptState; confidence: number } | null {
+  const cleaned = text.replace(/\s+/g, '').replace(/[|\uff5c]/g, '');
+  const isOpponentSelecting =
+    /\u5bfe\u6226\u76f8\u624b\u304c\u5148\u653b\u30fb\u5f8c\u653b\u3092\u9078\u629e\u3057\u3066\u3044\u307e\u3059/.test(
+      cleaned,
+    ) ||
+    /\u5bfe\u6226\u76f8\u624b/.test(cleaned) ||
+    /\u76f8\u624b/.test(cleaned) ||
+    /\u9078\u629e\u3057\u3066\u3044/.test(cleaned) ||
+    /\u9078\u629e\u3057\u3066\u3044\u307e\u3059/.test(cleaned);
+  const isSelfSelecting =
+    /\u5148\u653b\u30fb\u5f8c\u653b\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044/.test(cleaned) ||
+    /\u9078\u629e\u3057\u3066\u304f\u3060/.test(cleaned) ||
+    /\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044/.test(cleaned) ||
+    /\u9078\u629e\u3057\u3066\u4e0b\u3055\u3044/.test(cleaned);
 
-  if (isLost) return { result: 'lost', confidence: 0.92 };
-  if (isWon) return { result: 'won', confidence: 0.92 };
+  if (isOpponentSelecting) return { state: 'opponentSelect', confidence: 0.92 };
+  if (isSelfSelecting) return { state: 'selfSelect', confidence: 0.92 };
   return null;
+}
+
+export function parseCoinText(text: string): { result: CoinResult; confidence: number } | null {
+  const parsed = parseSelectionPromptText(text);
+  if (!parsed) return null;
+
+  return {
+    result: parsed.state === 'selfSelect' ? 'won' : 'lost',
+    confidence: parsed.confidence,
+  };
 }
 
 export class CoinOcrManager {

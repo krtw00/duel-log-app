@@ -174,6 +174,7 @@ export function DuelFormDialog({
     staleTime: 1000 * 60 * 5,
     enabled: inline,
   });
+  const isAdmin = me?.data?.isAdmin ?? false;
   const isDebugger = me?.data?.isDebugger ?? false;
 
   // Auto-set first/second based on coin toss result (new duels only)
@@ -237,7 +238,7 @@ export function DuelFormDialog({
     inline &&
     !editingDuel &&
     isSupportedGameMode &&
-    (isDebugger || localStorage.getItem('duellog.screenAnalysis.enabled') === 'true');
+    isAdmin;
 
   useEffect(() => {
     if (!handtrapMenuOpen) return undefined;
