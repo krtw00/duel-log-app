@@ -2,36 +2,12 @@
 -- Test users (password: password123 for all)
 -- These UUIDs are stable for consistent local development
 
--- Create auth users first (Supabase Auth schema)
-INSERT INTO auth.users (
-  id, instance_id, aud, role, email, encrypted_password,
-  email_confirmed_at, created_at, updated_at,
-  confirmation_token, recovery_token,
-  email_change, email_change_token_new, email_change_token_current,
-  phone_change, phone_change_token,
-  reauthentication_token,
-  raw_app_meta_data, raw_user_meta_data
-)
-VALUES
-  ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'test@example.com', crypt('password123', gen_salt('bf')), now(), now(), now(), '', '', '', '', '', '', '', '', '{"provider": "email", "providers": ["email"]}', '{"display_name": "testuser"}'),
-  ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'admin@example.com', crypt('password123', gen_salt('bf')), now(), now(), now(), '', '', '', '', '', '', '', '', '{"provider": "email", "providers": ["email"]}', '{"display_name": "admin"}'),
-  ('00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'debugger@example.com', crypt('password123', gen_salt('bf')), now(), now(), now(), '', '', '', '', '', '', '', '', '{"provider": "email", "providers": ["email"]}', '{"display_name": "debugger"}')
-ON CONFLICT (id) DO NOTHING;
-
--- Create auth identities
-INSERT INTO auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
-VALUES
-  ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'email', jsonb_build_object('sub', '00000000-0000-0000-0000-000000000001', 'email', 'test@example.com'), now(), now(), now()),
-  ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000002', 'email', jsonb_build_object('sub', '00000000-0000-0000-0000-000000000002', 'email', 'admin@example.com'), now(), now(), now()),
-  ('00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000003', 'email', jsonb_build_object('sub', '00000000-0000-0000-0000-000000000003', 'email', 'debugger@example.com'), now(), now(), now())
-ON CONFLICT (id) DO NOTHING;
-
 -- Create app users
-INSERT INTO public.users (id, email, display_name, is_admin, is_debugger)
+INSERT INTO public.users (id, email, display_name, password_hash, is_admin, is_debugger)
 VALUES
-  ('00000000-0000-0000-0000-000000000001', 'test@example.com', 'testuser', true, true),
-  ('00000000-0000-0000-0000-000000000002', 'admin@example.com', 'admin', true, false),
-  ('00000000-0000-0000-0000-000000000003', 'debugger@example.com', 'debugger', false, true)
+  ('00000000-0000-0000-0000-000000000001', 'test@example.com', 'testuser', crypt('password123', gen_salt('bf')), true, true),
+  ('00000000-0000-0000-0000-000000000002', 'admin@example.com', 'admin', crypt('password123', gen_salt('bf')), true, false),
+  ('00000000-0000-0000-0000-000000000003', 'debugger@example.com', 'debugger', crypt('password123', gen_salt('bf')), false, true)
 ON CONFLICT (id) DO NOTHING;
 
 ----------------------------------------------------------------------

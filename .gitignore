@@ -49,9 +49,8 @@ firebase.hosting.generated.json
 .mcp.json
 .grepai/
 
-# Supabase
-supabase/.branches
-supabase/.temp
+# Local database workspace
+db/.temp
 packages/api/debug-logs/
 
 # API build output
