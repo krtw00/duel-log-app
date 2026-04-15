@@ -35,6 +35,7 @@ import {
 } from '../../utils/handtraps.js';
 import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
+import { RateImageOcrPanel } from './RateImageOcrPanel.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
 
 type Props = {
@@ -239,12 +240,10 @@ export function DuelFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDuel, defaultGameMode, defaultRank, defaultTurnValues.isFirst, defaultTurnValues.wonCoinToss, reset]);
 
-  const isSupportedGameMode = gameMode !== 'RATE' && gameMode !== 'DC';
-  const screenAnalysisEnabled =
-    inline &&
-    !editingDuel &&
-    isSupportedGameMode &&
-    isAdmin;
+  const analysisFeatureEnabled = inline && !editingDuel && isAdmin;
+  const screenAnalysisEnabled = analysisFeatureEnabled && (gameMode === 'RANK' || gameMode === 'RATE');
+  const autoRegisterEnabled = screenAnalysisEnabled && gameMode === 'RANK';
+  const rateImageRecognitionEnabled = analysisFeatureEnabled && gameMode === 'RATE';
 
   useEffect(() => {
     if (!handtrapMenuOpen) return undefined;
@@ -381,8 +380,9 @@ export function DuelFormDialog({
     [defaultIsFirst, setValue, handleSubmit, handleFormSubmit],
   );
 
-  const screenAnalysis = useScreenAnalysis(screenAnalysisEnabled ? handleAutoRegister : undefined, {
+  const screenAnalysis = useScreenAnalysis(autoRegisterEnabled ? handleAutoRegister : undefined, {
     debugLogEnabled: isDebugger || isAdmin,
+    valueMode: gameMode === 'RATE' ? 'RATE' : null,
   });
 
   useEffect(() => {
@@ -411,12 +411,18 @@ export function DuelFormDialog({
     if (screenAnalysis.status.detectionResult !== null) {
       setValue('result', screenAnalysis.status.detectionResult);
     }
+
+    if (gameMode === 'RATE' && screenAnalysis.status.detectedValue !== null) {
+      setValue('rateValue', screenAnalysis.status.detectedValue);
+    }
   }, [
     defaultIsFirst,
     editingDuel,
+    gameMode,
     screenAnalysis.status.coinResult,
     screenAnalysis.status.detectionResult,
     screenAnalysis.status.detectedIsFirst,
+    screenAnalysis.status.detectedValue,
     screenAnalysisEnabled,
     setValue,
   ]);
@@ -585,27 +591,37 @@ export function DuelFormDialog({
         </div>
       )}
       {gameMode === 'RATE' && (
-        <div>
-          <label
-            htmlFor="rateValue"
-            className="block text-base font-medium mb-1"
-            style={{ color: 'var(--color-on-surface-muted)' }}
-          >
-            {t('duel.rateValue')}
-          </label>
-          <input
-            id="rateValue"
-            type="text"
-            inputMode="decimal"
-            {...register('rateValue', {
-              setValueAs: (v: string) => {
-                if (v === '' || v == null) return null;
-                const n = Number(v);
-                return Number.isNaN(n) ? null : n;
-              },
-            })}
-            className="themed-input"
-          />
+        <div className="space-y-3">
+          <div>
+            <label
+              htmlFor="rateValue"
+              className="block text-base font-medium mb-1"
+              style={{ color: 'var(--color-on-surface-muted)' }}
+            >
+              {t('duel.rateValue')}
+            </label>
+            <input
+              id="rateValue"
+              type="text"
+              inputMode="decimal"
+              {...register('rateValue', {
+                setValueAs: (v: string) => {
+                  if (v === '' || v == null) return null;
+                  const n = Number(v);
+                  return Number.isNaN(n) ? null : n;
+                },
+              })}
+              className="themed-input"
+            />
+          </div>
+          {!screenAnalysisEnabled && rateImageRecognitionEnabled && (
+            <RateImageOcrPanel
+              mode="RATE"
+              onValueDetected={(value) => {
+                setValue('rateValue', value, { shouldDirty: true, shouldTouch: true });
+              }}
+            />
+          )}
         </div>
       )}
       {gameMode === 'DC' && (
@@ -883,7 +899,13 @@ export function DuelFormDialog({
   if (inline) {
     return (
       <div className="glass-card p-4 space-y-4">
-        {screenAnalysisEnabled && <ScreenAnalysisPanel analysis={screenAnalysis} />}
+        {screenAnalysisEnabled && (
+          <ScreenAnalysisPanel
+            analysis={screenAnalysis}
+            autoRegisterAvailable={autoRegisterEnabled}
+            valueDetectionLabel={gameMode === 'RATE' ? t('screenAnalysis.rateDetected') : null}
+          />
+        )}
         {formContent}
       </div>
     );

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api.js';
+import { recognizeRateValueFromVideoFrame } from '../utils/rateImageOcr.js';
 import { ScreenCapture } from '../utils/screenAnalysis/capture.js';
 import {
   COIN_OCR_CONFIRM_ROI,
@@ -32,12 +33,25 @@ type AutoRegisterCallback = (data: {
 type ScreenAnalysisOptions = {
   debugLogEnabled?: boolean;
   debugLogIntervalMs?: number;
+  valueMode?: 'RATE' | 'DC' | null;
 };
 
 const REPLAY_LOOKBACK_MS = 2_500;
 const AUTO_REPLAY_LOOKBACK_MS = 1_800;
 const AUTO_REPLAY_INTERVAL_MS = 1_500;
 const AUTO_REPLAY_POLL_MS = 600;
+const VALUE_SCAN_INTERVAL_MS = 700;
+const VALUE_SCAN_WINDOW_MS = 20000;
+
+function deriveCoinResultFromOcrSnapshot(snapshot: CoinOcrSnapshot): CoinResult {
+  if (snapshot.result) return snapshot.result;
+  if (snapshot.detectedIsFirst == null) return null;
+  return snapshot.detectedIsFirst ? 'won' : 'lost';
+}
+
+function deriveCoinConfidenceFromOcrSnapshot(snapshot: CoinOcrSnapshot): number {
+  return Math.max(snapshot.confidence, snapshot.turnOrderConfidence);
+}
 
 function captureVideoRegion(video: HTMLVideoElement, roi: ROI): string | null {
   const width = video.videoWidth;
@@ -113,8 +127,9 @@ export function useScreenAnalysis(
   const [fsmContext, setFsmContext] = useState<FSMContext>(createInitialContext);
   const [lastFrame, setLastFrame] = useState<AnalysisFrame | null>(null);
   const [detectedIsFirst, setDetectedIsFirst] = useState<boolean | null>(null);
+  const [detectedValue, setDetectedValue] = useState<number | null>(null);
   const lastFrameRef = useRef<AnalysisFrame | null>(null);
-  const { debugLogEnabled = false, debugLogIntervalMs = 2000 } = options;
+  const { debugLogEnabled = false, debugLogIntervalMs = 2000, valueMode = null } = options;
 
   const captureRef = useRef(new ScreenCapture());
   const ocrRef = useRef(new CoinOcrManager());
@@ -126,6 +141,11 @@ export function useScreenAnalysis(
   const captureTokenRef = useRef(0);
   const lastLoggedPreviewAtRef = useRef<number | null>(null);
   const detectedIsFirstRef = useRef<boolean | null>(null);
+  const detectedValueRef = useRef<number | null>(null);
+  const lastResultDetectedAtRef = useRef(0);
+  const valueScanRunningRef = useRef(false);
+  const lastValueScanAtRef = useRef(0);
+  const pendingValueRef = useRef<{ value: number | null; hits: number }>({ value: null, hits: 0 });
   const replayRunningRef = useRef(false);
   const lastReplayAtRef = useRef(0);
   const debugSessionIdRef = useRef(
@@ -179,6 +199,67 @@ export function useScreenAnalysis(
     lastReplayAtRef.current = 0;
   }, []);
 
+  const resetDetectedValue = useCallback(() => {
+    detectedValueRef.current = null;
+    pendingValueRef.current = { value: null, hits: 0 };
+    lastValueScanAtRef.current = 0;
+    lastResultDetectedAtRef.current = 0;
+    setDetectedValue(null);
+  }, []);
+
+  const maybeRunValueDetection = useCallback(() => {
+    if (!valueMode || valueMode !== 'RATE') return;
+    if (!captureRef.current.video) return;
+    if (!isCapturingRef.current) return;
+    if (detectedValueRef.current !== null) return;
+    if (valueScanRunningRef.current) return;
+    if (lastResultDetectedAtRef.current <= 0) return;
+
+    const now = Date.now();
+    if (now - lastResultDetectedAtRef.current > VALUE_SCAN_WINDOW_MS) return;
+    if (now - lastValueScanAtRef.current < VALUE_SCAN_INTERVAL_MS) return;
+
+    lastValueScanAtRef.current = now;
+    valueScanRunningRef.current = true;
+
+    queueMicrotask(() => {
+      try {
+        const result = recognizeRateValueFromVideoFrame(captureRef.current.video as HTMLVideoElement);
+        const nextValue = result.value;
+
+        if (nextValue == null) return;
+
+        if (pendingValueRef.current.value === nextValue) {
+          pendingValueRef.current = { value: nextValue, hits: pendingValueRef.current.hits + 1 };
+        } else {
+          pendingValueRef.current = { value: nextValue, hits: 1 };
+        }
+
+        if (pendingValueRef.current.hits >= 2) {
+          detectedValueRef.current = nextValue;
+          setDetectedValue(nextValue);
+          logDebugEvent({
+            type: 'value_detected',
+            eventAt: Date.now(),
+            valueMode,
+            detectedValue: nextValue,
+            rawText: result.rawText,
+            attemptLabel: result.attemptLabel,
+          });
+        }
+      } catch (error) {
+        logDebugEvent({
+          type: 'value_detection_error',
+          eventAt: Date.now(),
+          valueMode,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      } finally {
+        valueScanRunningRef.current = false;
+      }
+    });
+  }, [logDebugEvent, valueMode]);
+
   const replayRecentClip = useCallback(async ({
     reason,
     lookbackMs = REPLAY_LOOKBACK_MS,
@@ -219,10 +300,7 @@ export function useScreenAnalysis(
           continue;
         }
 
-        const confidence = Math.max(
-          snapshot.confidence,
-          snapshot.detectedIsFirst == null ? 0 : 0.9,
-        );
+        const confidence = deriveCoinConfidenceFromOcrSnapshot(snapshot);
 
         if (
           !bestMatch ||
@@ -266,18 +344,16 @@ export function useScreenAnalysis(
         setDetectedIsFirst(snapshot.detectedIsFirst);
       }
 
-      const replayCoinResult =
-        snapshot.result ??
-        (snapshot.detectedIsFirst == null ? null : snapshot.detectedIsFirst ? 'won' : 'lost');
+      const replayCoinResult = deriveCoinResultFromOcrSnapshot(snapshot);
 
       if (replayCoinResult) {
         ocrRef.current.snapshot = snapshot;
-        const replayFrame: AnalysisFrame = {
-          coin: replayCoinResult,
-          coinConfidence: Math.max(snapshot.confidence, totalConfidence / hits),
-          coinWinScore: 0,
-          coinLossScore: 0,
-          result: null,
+          const replayFrame: AnalysisFrame = {
+            coin: replayCoinResult,
+            coinConfidence: Math.max(deriveCoinConfidenceFromOcrSnapshot(snapshot), totalConfidence / hits),
+            coinWinScore: 0,
+            coinLossScore: 0,
+            result: null,
           resultConfidence: 0,
           resultWinScore: 0,
           resultLossScore: 0,
@@ -328,11 +404,15 @@ export function useScreenAnalysis(
           detectedIsFirstRef.current = freshOcrSnapshot.detectedIsFirst;
           setDetectedIsFirst(freshOcrSnapshot.detectedIsFirst);
         }
-        if (freshOcrSnapshot && freshOcrSnapshot.result) {
+        const ocrCoinResult = freshOcrSnapshot ? deriveCoinResultFromOcrSnapshot(freshOcrSnapshot) : null;
+        const ocrCoinConfidence = freshOcrSnapshot
+          ? deriveCoinConfidenceFromOcrSnapshot(freshOcrSnapshot)
+          : 0;
+        if (ocrCoinResult) {
           frame = {
             ...frame,
-            coin: freshOcrSnapshot.result,
-            coinConfidence: Math.max(frame.coinConfidence, freshOcrSnapshot.confidence),
+            coin: ocrCoinResult,
+            coinConfidence: Math.max(frame.coinConfidence, ocrCoinConfidence),
           };
         }
         if (freshOcrSnapshot?.detectionResult) {
@@ -347,6 +427,9 @@ export function useScreenAnalysis(
         }
         const prevContext = fsmRef.current;
         const newContext = transition(prevContext, frame);
+        if (newContext.state === 'resultDetected') {
+          lastResultDetectedAtRef.current = frame.timestamp;
+        }
         const ocrDiagnostics = ocrRef.current.getDiagnostics();
         if (
           debugLogEnabled &&
@@ -405,6 +488,7 @@ export function useScreenAnalysis(
     captureTokenRef.current += 1;
     detectedIsFirstRef.current = null;
     setDetectedIsFirst(null);
+    resetDetectedValue();
     replaceOcrManagers();
     fsmRef.current = createInitialContext();
     setFsmContext(createInitialContext());
@@ -417,7 +501,7 @@ export function useScreenAnalysis(
       eventAt: Date.now(),
     });
     await replayRecentClip({ reason: 'manual_reset' });
-  }, [logDebugEvent, replaceOcrManagers, replayRecentClip]);
+  }, [logDebugEvent, replaceOcrManagers, replayRecentClip, resetDetectedValue]);
 
   const stopCapture = useCallback(() => {
     const finalContext = fsmRef.current;
@@ -451,6 +535,7 @@ export function useScreenAnalysis(
     isCapturingRef.current = false;
     detectedIsFirstRef.current = null;
     setDetectedIsFirst(null);
+    resetDetectedValue();
 
     captureRef.current.stop();
     replaceOcrManagers();
@@ -465,7 +550,7 @@ export function useScreenAnalysis(
     setLastFrame(null);
     lastFrameRef.current = null;
     setIsCapturing(false);
-  }, [logDebugEvent, replaceOcrManagers]);
+  }, [logDebugEvent, replaceOcrManagers, resetDetectedValue]);
 
   const startCapture = useCallback(async () => {
     const capture = captureRef.current;
@@ -481,6 +566,7 @@ export function useScreenAnalysis(
     isCapturingRef.current = true;
     detectedIsFirstRef.current = null;
     setDetectedIsFirst(null);
+    resetDetectedValue();
     replaceOcrManagers();
     lastLoggedPreviewAtRef.current = null;
 
@@ -496,6 +582,7 @@ export function useScreenAnalysis(
             () => captureTokenRef.current,
             () => isCapturingRef.current,
           );
+          maybeRunValueDetection();
         }
       },
       () => stopCapture(),
@@ -519,7 +606,7 @@ export function useScreenAnalysis(
       captureHeight: capture.video?.videoHeight ?? null,
     });
     setIsCapturing(true);
-  }, [handleWorkerMessage, logDebugEvent, replaceOcrManagers, stopCapture]);
+  }, [handleWorkerMessage, logDebugEvent, maybeRunValueDetection, replaceOcrManagers, resetDetectedValue, stopCapture]);
 
   useEffect(() => {
     if (!isCapturing) return;
@@ -637,6 +724,7 @@ export function useScreenAnalysis(
     state: fsmContext.state,
     coinResult: fsmContext.coinResult,
     detectedIsFirst,
+    detectedValue,
     detectionResult: fsmContext.detectionResult,
     isCapturing,
     autoRegister,

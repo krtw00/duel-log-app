@@ -43,6 +43,7 @@ export type ScreenAnalysisStatus = {
   state: FSMState;
   coinResult: CoinResult;
   detectedIsFirst: boolean | null;
+  detectedValue: number | null;
   detectionResult: DetectionResult;
   isCapturing: boolean;
   autoRegister: boolean;

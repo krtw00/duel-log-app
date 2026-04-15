@@ -3,6 +3,8 @@ import type { useScreenAnalysis } from '../../hooks/useScreenAnalysis.js';
 
 type Props = {
   analysis: ReturnType<typeof useScreenAnalysis>;
+  autoRegisterAvailable?: boolean;
+  valueDetectionLabel?: string | null;
 };
 
 function StateChip({ label, active, color }: { label: string; active: boolean; color: string }) {
@@ -20,13 +22,27 @@ function StateChip({ label, active, color }: { label: string; active: boolean; c
   );
 }
 
-export function ScreenAnalysisPanel({ analysis }: Props) {
+function detectionMark(detected: boolean): string {
+  return detected ? 'OK' : '-';
+}
+
+export function ScreenAnalysisPanel({
+  analysis,
+  autoRegisterAvailable = true,
+  valueDetectionLabel = null,
+}: Props) {
   const { t } = useTranslation();
   const { status, startCapture, stopCapture, resetAnalysis, autoRegister, setAutoRegister } =
     analysis;
 
   const isCoinActive = status.state === 'coinDetecting' || status.state === 'coinDetected';
   const isResultActive = status.state === 'resultDetecting' || status.state === 'resultDetected';
+  const isValueActive =
+    valueDetectionLabel !== null &&
+    (status.detectedValue !== null ||
+      status.state === 'resultDetected' ||
+      status.state === 'cooldown');
+
   const formatScore = (value: number | null | undefined) =>
     value === null || value === undefined ? '-' : value.toFixed(3);
 
@@ -36,7 +52,6 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
       style={{ border: '1px solid var(--color-border)', background: 'rgba(128,128,128,0.03)' }}
     >
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Start/Stop Button */}
         <button
           type="button"
           onClick={status.isCapturing ? stopCapture : startCapture}
@@ -84,24 +99,24 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
               <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
               <path d="M3 3v5h5" />
             </svg>
-            {t('screenAnalysis.reset', { defaultValue: '判定リセット' })}
+            {t('screenAnalysis.reset', { defaultValue: 'リセット' })}
           </button>
         )}
 
-        {/* Auto Register Toggle */}
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={autoRegister}
-            onChange={(e) => setAutoRegister(e.target.checked)}
-            className="accent-[var(--color-primary)]"
-          />
-          <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
-            {t('screenAnalysis.autoRegister')}
-          </span>
-        </label>
+        {autoRegisterAvailable && (
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoRegister}
+              onChange={(e) => setAutoRegister(e.target.checked)}
+              className="accent-[var(--color-primary)]"
+            />
+            <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
+              {t('screenAnalysis.autoRegister')}
+            </span>
+          </label>
+        )}
 
-        {/* Status Badge */}
         <span
           className="text-sm px-2 py-0.5 rounded"
           style={{
@@ -119,12 +134,11 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
         </span>
       </div>
 
-      {/* Detection state chips */}
       {status.isCapturing && (
         <>
           <div className="flex items-center gap-2 flex-wrap">
             <StateChip
-              label={`${t('screenAnalysis.coinDetected')}: ${status.coinResult === 'won' ? '✓' : status.coinResult === 'lost' ? '✗' : '-'}`}
+              label={`${t('screenAnalysis.coinDetected')}: ${detectionMark(status.coinResult !== null)}`}
               active={isCoinActive}
               color={
                 status.coinResult === 'won'
@@ -133,7 +147,7 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
               }
             />
             <StateChip
-              label={`${t('screenAnalysis.resultDetected')}: ${status.detectionResult === 'win' ? '✓' : status.detectionResult === 'loss' ? '✗' : '-'}`}
+              label={`${t('screenAnalysis.resultDetected')}: ${detectionMark(status.detectionResult !== null)}`}
               active={isResultActive}
               color={
                 status.detectionResult === 'win'
@@ -143,12 +157,20 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
                     : 'var(--color-on-surface-muted)'
               }
             />
+            {valueDetectionLabel && (
+              <StateChip
+                label={`${valueDetectionLabel}: ${detectionMark(status.detectedValue !== null)}`}
+                active={isValueActive}
+                color="var(--color-primary)"
+              />
+            )}
             {status.state === 'cooldown' && (
               <span className="text-sm" style={{ color: 'var(--color-on-surface-muted)' }}>
                 {t('screenAnalysis.waiting')}
               </span>
             )}
           </div>
+
           <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
             {t('duel.firstSecond')}:
             {` ${
@@ -159,6 +181,13 @@ export function ScreenAnalysisPanel({ analysis }: Props) {
                   : t('duel.second')
             }`}
           </div>
+
+          {status.detectedValue !== null && valueDetectionLabel && (
+            <div className="text-xs" style={{ color: 'var(--color-on-surface-muted)' }}>
+              {valueDetectionLabel}: {status.detectedValue}
+            </div>
+          )}
+
           {status.lastFrame && (
             <div className="text-xs space-y-1" style={{ color: 'var(--color-on-surface-muted)' }}>
               <div>

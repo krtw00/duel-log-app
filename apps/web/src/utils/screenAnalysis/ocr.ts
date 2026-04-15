@@ -7,6 +7,7 @@ export type CoinOcrSnapshot = {
   result: CoinResult | null;
   confidence: number;
   detectedIsFirst: boolean | null;
+  turnOrderConfidence: number;
   detectionResult: DetectionResult;
   detectionConfidence: number;
   detectionText: string;
@@ -460,6 +461,7 @@ export class CoinOcrManager {
         result: bestCoinAttempt?.parsed?.result ?? null,
         confidence: bestCoinAttempt?.parsed?.confidence ?? 0,
         detectedIsFirst: bestCoinAttempt?.turnOrder?.isFirst ?? null,
+        turnOrderConfidence: bestCoinAttempt?.turnOrder?.confidence ?? 0,
         detectionResult: bestResultAttempt?.detection?.result ?? null,
         detectionConfidence: bestResultAttempt?.detection?.confidence ?? 0,
         detectionText: bestResultAttempt?.text ?? '',
