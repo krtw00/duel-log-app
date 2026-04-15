@@ -6,6 +6,7 @@ import {
   COIN_OCR_ROI,
   COIN_OCR_SELECTION_ROI,
   COIN_ROI,
+  RESULT_MESSAGE_OCR_ROI,
   RESULT_CENTER_ROI,
   RESULT_ROI,
   RESULT_TEXT_ROI,
@@ -334,6 +335,16 @@ export function useScreenAnalysis(
             coinConfidence: Math.max(frame.coinConfidence, freshOcrSnapshot.confidence),
           };
         }
+        if (freshOcrSnapshot?.detectionResult) {
+          frame = {
+            ...frame,
+            result: freshOcrSnapshot.detectionResult,
+            resultConfidence: Math.max(
+              frame.resultConfidence,
+              freshOcrSnapshot.detectionConfidence,
+            ),
+          };
+        }
         const prevContext = fsmRef.current;
         const newContext = transition(prevContext, frame);
         const ocrDiagnostics = ocrRef.current.getDiagnostics();
@@ -365,6 +376,9 @@ export function useScreenAnalysis(
             coinOcrConfidence: ocrSnapshot?.confidence,
             coinOcrIsFirst: ocrSnapshot?.detectedIsFirst ?? null,
             coinOcrAt: ocrSnapshot?.updatedAt,
+            resultOcrText: ocrSnapshot?.detectionText?.slice(0, 120) ?? null,
+            resultOcrResult: ocrSnapshot?.detectionResult ?? null,
+            resultOcrConfidence: ocrSnapshot?.detectionConfidence ?? null,
             ocrLastSkipReason: ocrDiagnostics.lastSkipReason,
             ocrLastAttemptAt: ocrDiagnostics.lastAttemptAt,
             ocrLastCompletedAt: ocrDiagnostics.lastCompletedAt,
@@ -373,6 +387,8 @@ export function useScreenAnalysis(
             ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
             ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
             ocrLastParsedIsFirst: ocrDiagnostics.lastParsedIsFirst,
+            ocrLastParsedDetectionResult: ocrDiagnostics.lastParsedDetectionResult,
+            ocrLastParsedDetectionConfidence: ocrDiagnostics.lastParsedDetectionConfidence,
             ocrRoi: ocrDiagnostics.roi,
           });
         }
@@ -427,6 +443,8 @@ export function useScreenAnalysis(
       ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
       ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
       ocrLastParsedIsFirst: ocrDiagnostics.lastParsedIsFirst,
+      ocrLastParsedDetectionResult: ocrDiagnostics.lastParsedDetectionResult,
+      ocrLastParsedDetectionConfidence: ocrDiagnostics.lastParsedDetectionConfidence,
       ocrRoi: ocrDiagnostics.roi,
     });
     captureTokenRef.current += 1;
@@ -561,6 +579,9 @@ export function useScreenAnalysis(
         coinOcrConfidence: ocrSnapshot?.confidence,
         coinOcrIsFirst: ocrSnapshot?.detectedIsFirst ?? null,
         coinOcrAt: ocrSnapshot?.updatedAt,
+        resultOcrText: ocrSnapshot?.detectionText?.slice(0, 120) ?? null,
+        resultOcrResult: ocrSnapshot?.detectionResult ?? null,
+        resultOcrConfidence: ocrSnapshot?.detectionConfidence ?? null,
         ocrLastSkipReason: ocrDiagnostics.lastSkipReason,
         ocrLastAttemptAt: ocrDiagnostics.lastAttemptAt,
         ocrLastCompletedAt: ocrDiagnostics.lastCompletedAt,
@@ -569,6 +590,8 @@ export function useScreenAnalysis(
         ocrLastParsedResult: ocrDiagnostics.lastParsedResult,
         ocrLastParsedConfidence: ocrDiagnostics.lastParsedConfidence,
         ocrLastParsedIsFirst: ocrDiagnostics.lastParsedIsFirst,
+        ocrLastParsedDetectionResult: ocrDiagnostics.lastParsedDetectionResult,
+        ocrLastParsedDetectionConfidence: ocrDiagnostics.lastParsedDetectionConfidence,
         ocrRoi: ocrDiagnostics.roi,
         resultImageDataUrl: captureRef.current.video
           ? captureVideoRegion(captureRef.current.video, RESULT_ROI)
@@ -580,6 +603,7 @@ export function useScreenAnalysis(
               { roi: COIN_OCR_CONFIRM_ROI, color: '#06b6d4', label: 'ocr-confirm' },
               { roi: COIN_OCR_ROI, color: '#a855f7', label: 'ocr-legacy' },
               { roi: RESULT_TEXT_ROI, color: '#ef4444', label: 'result-text' },
+              { roi: RESULT_MESSAGE_OCR_ROI, color: '#facc15', label: 'result-msg' },
               { roi: RESULT_CENTER_ROI, color: '#f97316', label: 'result-center' },
               { roi: RESULT_ROI, color: '#fb7185', label: 'result-legacy' },
             ])

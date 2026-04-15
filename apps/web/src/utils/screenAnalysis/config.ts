@@ -55,6 +55,17 @@ export const RESULT_CENTER_ROI: ROI = {
   height: 0.28,
 };
 
+export const RESULT_MESSAGE_OCR_ROI: ROI = {
+  left: 0.18,
+  top: 0.47,
+  width: 0.64,
+  height: 0.12,
+};
+
+export const RESULT_MESSAGE_OCR_ROIS: Array<{ label: string; roi: ROI }> = [
+  { label: 'result-message', roi: RESULT_MESSAGE_OCR_ROI },
+];
+
 export const RESULT_ROIS: Array<{ label: string; roi: ROI }> = [
   { label: 'text', roi: RESULT_TEXT_ROI },
   { label: 'center', roi: RESULT_CENTER_ROI },

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { parseCoinText, parseSelectionPromptText, parseTurnOrderText } from '../ocr.js';
+import {
+  parseCoinText,
+  parseResultMessageText,
+  parseSelectionPromptText,
+  parseTurnOrderText,
+} from '../ocr.js';
 
 const SELF_SELECT_PROMPT =
   '\u5148\u653b\u30fb\u5f8c\u653b\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044';
@@ -11,6 +16,12 @@ const GO_FIRST_SHORT_PROMPT = '\u5148\u653b\u3067\u3059';
 const GO_SECOND_SHORT_PROMPT = '\u5f8c\u653b\u3067\u3059';
 const FALSE_POSITIVE_PROMPT =
   '\u79fb\u884c\u3059\u308b\u30d5\u30a7\u30a4\u30b9\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044';
+const OPPONENT_NOISY_PROMPT_1 =
+  '\u751f\u307e \u6709 \u30fb \u5f8c\u653b \u3092 \u9078\u629e \u3057 \u3066 \u3044\u307e \u3059';
+const OPPONENT_NOISY_PROMPT_2 =
+  '\u3057 \u9593 \u76f8 \u624b \u304c \u5b8c \u5974 \u30fb \u5f8c\u653b \u3092 \u9078\u629e \u3057 \u3066 \u304d\u307e \u3059';
+const RESULT_WIN_MESSAGE = '\u76f8\u624b\u304c\u964d\u53c2\u3057\u307e\u3057\u305f';
+const RESULT_LOSS_MESSAGE = '\u964d\u53c2\u3057\u307e\u3057\u305f';
 
 describe('parseSelectionPromptText', () => {
   it('detects the self-select prompt', () => {
@@ -40,6 +51,17 @@ describe('parseSelectionPromptText', () => {
 
   it('does not treat unrelated selection prompts as coin selection', () => {
     expect(parseSelectionPromptText(FALSE_POSITIVE_PROMPT)).toBeNull();
+  });
+
+  it('treats noisy in-progress opponent prompts as opponent selection', () => {
+    expect(parseSelectionPromptText(OPPONENT_NOISY_PROMPT_1)).toEqual({
+      state: 'opponentSelect',
+      confidence: 0.92,
+    });
+    expect(parseSelectionPromptText(OPPONENT_NOISY_PROMPT_2)).toEqual({
+      state: 'opponentSelect',
+      confidence: 0.92,
+    });
   });
 });
 
@@ -74,6 +96,17 @@ describe('parseCoinText', () => {
 
   it('does not map unrelated prompts to a coin result', () => {
     expect(parseCoinText(FALSE_POSITIVE_PROMPT)).toBeNull();
+  });
+
+  it('maps noisy opponent selection prompts to coin lost', () => {
+    expect(parseCoinText(OPPONENT_NOISY_PROMPT_1)).toEqual({
+      result: 'lost',
+      confidence: 0.92,
+    });
+    expect(parseCoinText(OPPONENT_NOISY_PROMPT_2)).toEqual({
+      result: 'lost',
+      confidence: 0.92,
+    });
   });
 });
 
@@ -116,5 +149,21 @@ describe('parseTurnOrderText', () => {
   it('ignores selection prompts that do not settle turn order yet', () => {
     expect(parseTurnOrderText(SELF_SELECT_PROMPT)).toBeNull();
     expect(parseTurnOrderText(OPPONENT_SELECT_PROMPT)).toBeNull();
+  });
+});
+
+describe('parseResultMessageText', () => {
+  it('detects opponent surrender as a win', () => {
+    expect(parseResultMessageText(RESULT_WIN_MESSAGE)).toEqual({
+      result: 'win',
+      confidence: 0.94,
+    });
+  });
+
+  it('detects self surrender as a loss', () => {
+    expect(parseResultMessageText(RESULT_LOSS_MESSAGE)).toEqual({
+      result: 'loss',
+      confidence: 0.94,
+    });
   });
 });
