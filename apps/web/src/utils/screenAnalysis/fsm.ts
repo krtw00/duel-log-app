@@ -2,6 +2,8 @@ import {
   COIN_STREAK_THRESHOLD,
   CONFIDENCE_THRESHOLD,
   COOLDOWN_MS,
+  IMMEDIATE_DETECTION_CONFIDENCE,
+  NEW_MATCH_REARM_MS,
   RESULT_STREAK_THRESHOLD,
   STREAK_CHANGE_PENALTY,
   STREAK_DECREASE_RATE,
@@ -27,6 +29,35 @@ type StreakState = {
   candidate: CoinResult | DetectionResult;
 };
 
+function createCoinDetectedContext(frame: AnalysisFrame): FSMContext {
+  return {
+    ...createInitialContext(),
+    state: 'coinDetected',
+    coinStreak: COIN_STREAK_THRESHOLD,
+    coinResult: frame.coin,
+    coinDetectedAt: frame.timestamp,
+  };
+}
+
+function hasImmediateCoinSignal(frame: AnalysisFrame): boolean {
+  return frame.coin !== null && frame.coinConfidence >= IMMEDIATE_DETECTION_CONFIDENCE;
+}
+
+function shouldRearmForNewMatch(ctx: FSMContext, frame: AnalysisFrame): boolean {
+  const hasStrongCoinSignal = hasImmediateCoinSignal(frame);
+  if (!hasStrongCoinSignal) return false;
+
+  if (ctx.state === 'resultDetected' || ctx.state === 'cooldown') {
+    return true;
+  }
+
+  if (ctx.state === 'coinDetected' || ctx.state === 'resultDetecting') {
+    return frame.timestamp - ctx.coinDetectedAt >= NEW_MATCH_REARM_MS;
+  }
+
+  return false;
+}
+
 function updateStreak(
   current: StreakState,
   newCandidate: CoinResult | DetectionResult,
@@ -48,6 +79,10 @@ function updateStreak(
 export function transition(ctx: FSMContext, frame: AnalysisFrame): FSMContext {
   const now = frame.timestamp;
 
+  if (shouldRearmForNewMatch(ctx, frame)) {
+    return createCoinDetectedContext(frame);
+  }
+
   // Check cooldown
   if (ctx.state === 'cooldown') {
     if (now >= ctx.cooldownUntil) {
@@ -67,6 +102,10 @@ export function transition(ctx: FSMContext, frame: AnalysisFrame): FSMContext {
 
   // idle → coinDetecting
   if (ctx.state === 'idle') {
+    if (hasImmediateCoinSignal(frame)) {
+      return createCoinDetectedContext(frame);
+    }
+
     if (frame.coin && frame.coinConfidence >= CONFIDENCE_THRESHOLD) {
       return {
         ...ctx,
@@ -80,6 +119,10 @@ export function transition(ctx: FSMContext, frame: AnalysisFrame): FSMContext {
 
   // coinDetecting → coinDetected
   if (ctx.state === 'coinDetecting') {
+    if (hasImmediateCoinSignal(frame)) {
+      return createCoinDetectedContext(frame);
+    }
+
     const coinState = updateStreak(
       { streak: ctx.coinStreak, candidate: ctx.coinResult },
       frame.coin,

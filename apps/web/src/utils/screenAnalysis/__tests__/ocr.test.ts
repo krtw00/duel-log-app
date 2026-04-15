@@ -7,6 +7,8 @@ const OPPONENT_SELECT_PROMPT =
   '\u5bfe\u6226\u76f8\u624b\u304c\u5148\u653b\u30fb\u5f8c\u653b\u3092\u9078\u629e\u3057\u3066\u3044\u307e\u3059';
 const YOU_GO_FIRST_PROMPT = '\u3042\u306a\u305f\u304c\u5148\u653b\u3067\u3059\u3002';
 const YOU_GO_SECOND_PROMPT = '\u3042\u306a\u305f\u304c\u5f8c\u653b\u3067\u3059\u3002';
+const GO_FIRST_SHORT_PROMPT = '\u5148\u653b\u3067\u3059';
+const GO_SECOND_SHORT_PROMPT = '\u5f8c\u653b\u3067\u3059';
 const FALSE_POSITIVE_PROMPT =
   '\u79fb\u884c\u3059\u308b\u30d5\u30a7\u30a4\u30b9\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044';
 
@@ -92,6 +94,20 @@ describe('parseTurnOrderText', () => {
 
   it('detects a second-player confirmation prompt', () => {
     expect(parseTurnOrderText(YOU_GO_SECOND_PROMPT)).toEqual({
+      isFirst: false,
+      confidence: 0.96,
+    });
+  });
+
+  it('detects a short first-player confirmation prompt without self reference', () => {
+    expect(parseTurnOrderText(GO_FIRST_SHORT_PROMPT)).toEqual({
+      isFirst: true,
+      confidence: 0.96,
+    });
+  });
+
+  it('detects a short second-player confirmation prompt without self reference', () => {
+    expect(parseTurnOrderText(GO_SECOND_SHORT_PROMPT)).toEqual({
       isFirst: false,
       confidence: 0.96,
     });

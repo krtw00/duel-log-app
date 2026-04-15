@@ -12,6 +12,7 @@ import {
 } from '../utils/screenAnalysis/config.js';
 import { createInitialContext, transition } from '../utils/screenAnalysis/fsm.js';
 import { CoinOcrManager } from '../utils/screenAnalysis/ocr.js';
+import type { CoinOcrSnapshot } from '../utils/screenAnalysis/ocr.js';
 import type {
   AnalysisFrame,
   CoinResult,
@@ -31,6 +32,11 @@ type ScreenAnalysisOptions = {
   debugLogEnabled?: boolean;
   debugLogIntervalMs?: number;
 };
+
+const REPLAY_LOOKBACK_MS = 2_500;
+const AUTO_REPLAY_LOOKBACK_MS = 1_800;
+const AUTO_REPLAY_INTERVAL_MS = 1_500;
+const AUTO_REPLAY_POLL_MS = 600;
 
 function captureVideoRegion(video: HTMLVideoElement, roi: ROI): string | null {
   const width = video.videoWidth;
@@ -111,6 +117,7 @@ export function useScreenAnalysis(
 
   const captureRef = useRef(new ScreenCapture());
   const ocrRef = useRef(new CoinOcrManager());
+  const replayOcrRef = useRef(new CoinOcrManager());
   const workerRef = useRef<Worker | null>(null);
   const fsmRef = useRef<FSMContext>(createInitialContext());
   const autoRegisterRef = useRef(autoRegister);
@@ -118,6 +125,8 @@ export function useScreenAnalysis(
   const captureTokenRef = useRef(0);
   const lastLoggedPreviewAtRef = useRef<number | null>(null);
   const detectedIsFirstRef = useRef<boolean | null>(null);
+  const replayRunningRef = useRef(false);
+  const lastReplayAtRef = useRef(0);
   const debugSessionIdRef = useRef(
     globalThis.crypto?.randomUUID?.() ?? `screen-analysis-${Date.now().toString(36)}`,
   );
@@ -159,6 +168,153 @@ export function useScreenAnalysis(
     },
     [debugLogEnabled],
   );
+
+  const replaceOcrManagers = useCallback(() => {
+    ocrRef.current.dispose();
+    ocrRef.current = new CoinOcrManager();
+    replayOcrRef.current.dispose();
+    replayOcrRef.current = new CoinOcrManager();
+    replayRunningRef.current = false;
+    lastReplayAtRef.current = 0;
+  }, []);
+
+  const replayRecentClip = useCallback(async ({
+    reason,
+    lookbackMs = REPLAY_LOOKBACK_MS,
+  }: {
+    reason: 'manual_reset' | 'auto_backfill';
+    lookbackMs?: number;
+  }) => {
+    if (replayRunningRef.current) return;
+
+    replayRunningRef.current = true;
+    lastReplayAtRef.current = Date.now();
+    const frames = await captureRef.current.exportRecentFrames();
+    if (frames.length === 0) {
+      logDebugEvent({
+        type: 'analysis_replay_miss',
+        eventAt: Date.now(),
+        replayReason: reason,
+        reason: 'no_frames',
+      });
+      replayRunningRef.current = false;
+      return;
+    }
+
+    try {
+      const lastCapturedAt = frames[frames.length - 1]?.capturedAt ?? Date.now();
+      const startMs = Math.max(0, lastCapturedAt - lookbackMs);
+      const replayFrames = frames.filter((frame) => frame.capturedAt >= startMs).reverse();
+      let bestMatch: {
+        snapshot: CoinOcrSnapshot;
+        replayAtMs: number | null;
+        totalConfidence: number;
+        hits: number;
+      } | null = null;
+
+      for (const frame of replayFrames) {
+        const snapshot = await replayOcrRef.current.analyzeBitmapFrame(frame);
+        if (!snapshot || (snapshot.result == null && snapshot.detectedIsFirst == null)) {
+          continue;
+        }
+
+        const confidence = Math.max(
+          snapshot.confidence,
+          snapshot.detectedIsFirst == null ? 0 : 0.9,
+        );
+
+        if (
+          !bestMatch ||
+          confidence > bestMatch.totalConfidence ||
+          (confidence === bestMatch.totalConfidence &&
+            (bestMatch.replayAtMs == null || frame.capturedAt > bestMatch.replayAtMs))
+        ) {
+          bestMatch = {
+            snapshot,
+            replayAtMs: frame.capturedAt,
+            totalConfidence: confidence,
+            hits: 1,
+          };
+        } else if (
+          bestMatch &&
+          bestMatch.snapshot.result === snapshot.result &&
+          bestMatch.snapshot.detectedIsFirst === snapshot.detectedIsFirst
+        ) {
+          bestMatch = {
+            snapshot: bestMatch.snapshot,
+            replayAtMs: bestMatch.replayAtMs,
+            totalConfidence: bestMatch.totalConfidence + confidence,
+            hits: bestMatch.hits + 1,
+          };
+        }
+      }
+
+      if (!bestMatch?.snapshot) {
+        logDebugEvent({
+          type: 'analysis_replay_miss',
+          eventAt: Date.now(),
+          replayReason: reason,
+          replayFrameCount: replayFrames.length,
+        });
+        return;
+      }
+
+      const { snapshot, replayAtMs, totalConfidence, hits } = bestMatch;
+      if (snapshot.detectedIsFirst != null) {
+        detectedIsFirstRef.current = snapshot.detectedIsFirst;
+        setDetectedIsFirst(snapshot.detectedIsFirst);
+      }
+
+      const replayCoinResult =
+        snapshot.result ??
+        (snapshot.detectedIsFirst == null ? null : snapshot.detectedIsFirst ? 'won' : 'lost');
+
+      if (replayCoinResult) {
+        ocrRef.current.snapshot = snapshot;
+        const replayFrame: AnalysisFrame = {
+          coin: replayCoinResult,
+          coinConfidence: Math.max(snapshot.confidence, totalConfidence / hits),
+          coinWinScore: 0,
+          coinLossScore: 0,
+          result: null,
+          resultConfidence: 0,
+          resultWinScore: 0,
+          resultLossScore: 0,
+          timestamp: Date.now(),
+        };
+        const nextContext = transition(fsmRef.current, replayFrame);
+        fsmRef.current = nextContext;
+        setFsmContext(nextContext);
+        setLastFrame(replayFrame);
+        lastFrameRef.current = replayFrame;
+      }
+
+      logDebugEvent({
+        type: 'analysis_replay_hit',
+        eventAt: Date.now(),
+        replayReason: reason,
+        replayAtMs,
+        replayFrameCount: replayFrames.length,
+        replayHits: hits,
+        coinOcrText: snapshot.text.slice(0, 120),
+        coinOcrResult: snapshot.result ?? null,
+        coinOcrConfidence: snapshot.confidence,
+        coinOcrIsFirst: snapshot.detectedIsFirst,
+      });
+    } catch (error) {
+      logDebugEvent({
+        type: 'analysis_replay_error',
+        eventAt: Date.now(),
+        replayReason: reason,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      for (const frame of frames) {
+        frame.bitmap.close();
+      }
+      replayRunningRef.current = false;
+    }
+  }, [logDebugEvent]);
 
   const handleWorkerMessage = useCallback(
     (event: MessageEvent) => {
@@ -229,6 +385,24 @@ export function useScreenAnalysis(
     [debugLogEnabled, logDebugEvent],
   );
 
+  const resetAnalysis = useCallback(async () => {
+    captureTokenRef.current += 1;
+    detectedIsFirstRef.current = null;
+    setDetectedIsFirst(null);
+    replaceOcrManagers();
+    fsmRef.current = createInitialContext();
+    setFsmContext(createInitialContext());
+    setLastFrame(null);
+    lastFrameRef.current = null;
+    lastLoggedPreviewAtRef.current = null;
+
+    logDebugEvent({
+      type: 'analysis_reset',
+      eventAt: Date.now(),
+    });
+    await replayRecentClip({ reason: 'manual_reset' });
+  }, [logDebugEvent, replaceOcrManagers, replayRecentClip]);
+
   const stopCapture = useCallback(() => {
     const finalContext = fsmRef.current;
     const finalFrame = lastFrameRef.current;
@@ -261,7 +435,7 @@ export function useScreenAnalysis(
     setDetectedIsFirst(null);
 
     captureRef.current.stop();
-    ocrRef.current.dispose();
+    replaceOcrManagers();
 
     if (workerRef.current) {
       workerRef.current.terminate();
@@ -273,11 +447,10 @@ export function useScreenAnalysis(
     setLastFrame(null);
     lastFrameRef.current = null;
     setIsCapturing(false);
-  }, [logDebugEvent]);
+  }, [logDebugEvent, replaceOcrManagers]);
 
   const startCapture = useCallback(async () => {
     const capture = captureRef.current;
-    const ocr = ocrRef.current;
 
     // Create worker
     const worker = new Worker(new URL('../workers/screenAnalysis.worker.ts', import.meta.url), {
@@ -287,11 +460,10 @@ export function useScreenAnalysis(
     workerRef.current = worker;
 
     captureTokenRef.current += 1;
-    const token = captureTokenRef.current;
     isCapturingRef.current = true;
     detectedIsFirstRef.current = null;
     setDetectedIsFirst(null);
-    ocr.reset();
+    replaceOcrManagers();
     lastLoggedPreviewAtRef.current = null;
 
     const started = await capture.start(
@@ -299,10 +471,10 @@ export function useScreenAnalysis(
         if (!workerRef.current) return;
         workerRef.current.postMessage({ type: 'analyze', imageData }, [imageData.data.buffer]);
         if (capture.video) {
-          ocr.maybeRun(
+          ocrRef.current.maybeRun(
             capture.video,
             fsmRef.current.state,
-            token,
+            captureTokenRef.current,
             () => captureTokenRef.current,
             () => isCapturingRef.current,
           );
@@ -329,7 +501,34 @@ export function useScreenAnalysis(
       captureHeight: capture.video?.videoHeight ?? null,
     });
     setIsCapturing(true);
-  }, [handleWorkerMessage, logDebugEvent, stopCapture]);
+  }, [handleWorkerMessage, logDebugEvent, replaceOcrManagers, stopCapture]);
+
+  useEffect(() => {
+    if (!isCapturing) return;
+
+    const intervalId = window.setInterval(() => {
+      if (replayRunningRef.current) return;
+      if (Date.now() - lastReplayAtRef.current < AUTO_REPLAY_INTERVAL_MS) return;
+
+      const state = fsmRef.current.state;
+      if (state !== 'idle' && state !== 'coinDetecting') return;
+      if (fsmRef.current.coinResult != null || detectedIsFirstRef.current != null) return;
+
+      const diagnostics = ocrRef.current.getDiagnostics();
+      const hasRecentMiss =
+        diagnostics.lastAttemptAt != null && Date.now() - diagnostics.lastAttemptAt <= 2_500;
+      if (!hasRecentMiss) return;
+
+      void replayRecentClip({
+        reason: 'auto_backfill',
+        lookbackMs: AUTO_REPLAY_LOOKBACK_MS,
+      });
+    }, AUTO_REPLAY_POLL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isCapturing, replayRecentClip]);
 
   useEffect(() => {
     if (!debugLogEnabled || !isCapturing) return;
@@ -424,6 +623,7 @@ export function useScreenAnalysis(
     status,
     startCapture,
     stopCapture,
+    resetAnalysis,
     autoRegister,
     setAutoRegister,
   };
