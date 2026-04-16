@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       hono:
-        specifier: ^4.12.7
-        version: 4.12.7
+        specifier: ^4.12.14
+        version: 4.12.14
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.3)
@@ -114,10 +114,10 @@ importers:
         version: link:../shared
       '@hono/zod-openapi':
         specifier: 0.19.10
-        version: 0.19.10(hono@4.12.7)(zod@3.25.76)
+        version: 0.19.10(hono@4.12.14)(zod@3.25.76)
       hono:
-        specifier: ^4.12.7
-        version: 4.12.7
+        specifier: ^4.12.14
+        version: 4.12.14
       jose:
         specifier: ^6.1.3
         version: 6.1.3
@@ -130,7 +130,7 @@ importers:
     devDependencies:
       '@hono/vite-dev-server':
         specifier: ^0.24.1
-        version: 0.24.1(hono@4.12.7)
+        version: 0.24.1(hono@4.12.14)
       '@types/node':
         specifier: ^25.0.10
         version: 25.0.10
@@ -255,6 +255,10 @@ packages:
 
   '@babel/runtime@7.28.6':
     resolution: {integrity: sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/runtime@7.29.2':
+    resolution: {integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.28.6':
@@ -1312,8 +1316,8 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  hono@4.12.7:
-    resolution: {integrity: sha512-jq9l1DM0zVIvsm3lv9Nw9nlJnMNPOcAtsbsgiUhWcFzPE99Gvo6yRTlszSLLYacMeQ6quHD6hMfId8crVHvexw==}
+  hono@4.12.14:
+    resolution: {integrity: sha512-am5zfg3yu6sqn5yjKBNqhnTX7Cv+m00ox+7jbaKkrLMRJ4rAdldd1xPd/JzbBWspqaQv6RSTrgFN95EsfhC+7w==}
     engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@6.0.0:
@@ -2085,6 +2089,8 @@ snapshots:
 
   '@babel/runtime@7.28.6': {}
 
+  '@babel/runtime@7.29.2': {}
+
   '@babel/template@7.28.6':
     dependencies:
       '@babel/code-frame': 7.28.6
@@ -2257,27 +2263,27 @@ snapshots:
 
   '@exodus/bytes@1.9.0': {}
 
-  '@hono/node-server@1.19.9(hono@4.12.7)':
+  '@hono/node-server@1.19.9(hono@4.12.14)':
     dependencies:
-      hono: 4.12.7
+      hono: 4.12.14
 
-  '@hono/vite-dev-server@0.24.1(hono@4.12.7)':
+  '@hono/vite-dev-server@0.24.1(hono@4.12.14)':
     dependencies:
-      '@hono/node-server': 1.19.9(hono@4.12.7)
-      hono: 4.12.7
+      '@hono/node-server': 1.19.9(hono@4.12.14)
+      hono: 4.12.14
       minimatch: 9.0.5
 
-  '@hono/zod-openapi@0.19.10(hono@4.12.7)(zod@3.25.76)':
+  '@hono/zod-openapi@0.19.10(hono@4.12.14)(zod@3.25.76)':
     dependencies:
       '@asteasolutions/zod-to-openapi': 7.3.4(zod@3.25.76)
-      '@hono/zod-validator': 0.7.6(hono@4.12.7)(zod@3.25.76)
-      hono: 4.12.7
+      '@hono/zod-validator': 0.7.6(hono@4.12.14)(zod@3.25.76)
+      hono: 4.12.14
       openapi3-ts: 4.5.0
       zod: 3.25.76
 
-  '@hono/zod-validator@0.7.6(hono@4.12.7)(zod@3.25.76)':
+  '@hono/zod-validator@0.7.6(hono@4.12.14)(zod@3.25.76)':
     dependencies:
-      hono: 4.12.7
+      hono: 4.12.14
       zod: 3.25.76
 
   '@hookform/resolvers@3.10.0(react-hook-form@7.71.1(react@19.2.3))':
@@ -2506,7 +2512,7 @@ snapshots:
   '@testing-library/dom@10.4.1':
     dependencies:
       '@babel/code-frame': 7.29.0
-      '@babel/runtime': 7.28.6
+      '@babel/runtime': 7.29.2
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
@@ -2887,7 +2893,7 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  hono@4.12.7: {}
+  hono@4.12.14: {}
 
   html-encoding-sniffer@6.0.0:
     dependencies:
