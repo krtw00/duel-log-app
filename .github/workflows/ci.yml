@@ -168,14 +168,6 @@ jobs:
             npx firebase-tools hosting:sites:create "$FIREBASE_HOSTING_SITE" --project "$GOOGLE_CLOUD_PROJECT"
           fi
 
-      - name: Deploy Cloud Run API
-        run: pnpm cloudrun:deploy-api:staging
-        env:
-          GCP_PROJECT_ID: ${{ env.GOOGLE_CLOUD_PROJECT }}
-          GCP_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
-          ARTIFACT_REGISTRY_REPO: ${{ env.ARTIFACT_REGISTRY_REPO }}
-          CLOUD_RUN_SERVICE: ${{ env.CLOUD_RUN_SERVICE }}
-
       - name: Deploy Firebase Hosting
         run: pnpm firebase:deploy:web:staging
         env:
@@ -184,19 +176,13 @@ jobs:
           FIREBASE_HOSTING_SITE: ${{ env.FIREBASE_HOSTING_SITE }}
           CLOUD_RUN_SERVICE: ${{ env.CLOUD_RUN_SERVICE }}
 
-      - name: Resolve staging API URL
-        id: staging_urls
-        run: |
-          API_URL="$(gcloud run services describe "$CLOUD_RUN_SERVICE" --project "$GOOGLE_CLOUD_PROJECT" --region "$GOOGLE_CLOUD_REGION" --format='value(status.url)')"
-          echo "api_url=$API_URL" >> "$GITHUB_OUTPUT"
-
       - name: Write summary
         run: |
           {
             echo "## Staging Deployment"
             echo
             echo "- Frontend: https://${FIREBASE_HOSTING_SITE}.web.app"
-            echo "- API: ${{ steps.staging_urls.outputs.api_url }}/api/health"
+            echo "- API: https://duel-log-api-staging.codenica.dev/api/health (codenica-vps)"
             echo "- Branch: staging"
           } >> "$GITHUB_STEP_SUMMARY"
 

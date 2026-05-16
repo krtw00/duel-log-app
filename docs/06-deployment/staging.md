@@ -27,8 +27,9 @@ ai_summary: "staging ブランチを staging として運用する手順"
 |---------|---------|------------|
 | Git ブランチ | `staging` | `main` |
 | Frontend | Firebase Hosting `duel-log-staging` | Firebase Hosting `duel-log` |
-| API | Cloud Run `duel-log-api-staging` | Cloud Run `duel-log-api` |
-| Supabase | staging 用プロジェクト | production 用プロジェクト |
+| API | codenica-vps `https://duel-log-api-staging.codenica.dev` | Cloud Run `duel-log-api` |
+| DB | codenica-vps Postgres 17 `duellog_staging` | Cloud SQL (Phase 3 で VPS 移行予定) |
+| Supabase | (廃止、自前認証へ移行済) | production 用プロジェクト |
 
 > [!IMPORTANT]
 > staging で production の Supabase を共有しないでください。
