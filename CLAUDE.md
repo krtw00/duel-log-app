@@ -2,7 +2,5 @@
 
 ## Plane (Issue 管理)
 
-- Plane project: `codenica/DLA` — https://plane.codenica.dev/codenica/projects/49dd781f-c9df-4a48-84a5-efe04122d65f/issues/
-- Issue 起票は Plane で `DLA-NN` として行う (GitHub Issues / Forgejo Issues は使わない)
-- commit msg は `DLA-12 fix login error` のように Issue ID を先頭に書いて連携する
-- 状況確認は Web UI、 または Claude code セッション内の plane MCP tool (`mcp__plane__list_work_items` 等)
+- identifier: `DLA` — https://plane.codenica.dev/codenica/projects/49dd781f-c9df-4a48-84a5-efe04122d65f/issues/
+- 共通運用 (Issue 起票 / commit msg / 状況確認) は global `~/.claude/CLAUDE.md` 「プロジェクト管理 (Plane)」 参照
