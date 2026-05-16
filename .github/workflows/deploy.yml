@@ -1,0 +1,100 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: duel-log-app-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+      GOOGLE_CLOUD_REGION: ${{ vars.GOOGLE_CLOUD_REGION }}
+      ARTIFACT_REGISTRY_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY }}
+      IMAGE_NAME: api
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
+
+      - uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+
+      - name: Build & push API image to Artifact Registry
+        id: build_api
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          IMAGE_TAG="${GOOGLE_CLOUD_REGION}-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/${ARTIFACT_REGISTRY_REPOSITORY}/${IMAGE_NAME}:production-${SHORT_SHA}"
+          gcloud builds submit --project "$GOOGLE_CLOUD_PROJECT" --config deploy/google/cloudbuild.api.yaml --substitutions=_IMAGE="$IMAGE_TAG"
+          DIGEST=$(gcloud artifacts docker images describe "$IMAGE_TAG" --format='value(image_summary.digest)')
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @duel-log/shared build
+
+      - name: Build web frontend
+        env:
+          VITE_API_BASE_URL: /api
+          VITE_PRIMARY_WEB_URL: https://duel-log.codenica.dev
+        run: pnpm --filter @duel-log/web build
+
+      - name: Upload SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 "${{ vars.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Rsync frontend dist to VPS
+        run: |
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_ed25519" \
+            apps/web/dist/ "${{ vars.VPS_USER }}@${{ vars.VPS_HOST }}:/var/www/duel-log/"
+
+      - name: Deploy API container to codenica-vps
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          GCLOUD_TOKEN: ${{ steps.auth.outputs.access_token }}
+          IMAGE_DIGEST: ${{ steps.build_api.outputs.digest }}
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: GCLOUD_TOKEN,IMAGE_DIGEST
+          script: |
+            set -euo pipefail
+            cd /opt/duel-log-api
+            echo "$GCLOUD_TOKEN" | docker login -u oauth2accesstoken --password-stdin https://asia-northeast1-docker.pkg.dev
+            sed -i.bak -E "s|apps/api@sha256:[a-f0-9]+|apps/api@${IMAGE_DIGEST}|" docker-compose.yml
+            docker compose pull
+            ./up.sh
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -fsS http://127.0.0.1:8011/api/health >/dev/null 2>&1; then echo "deploy OK (attempt $i)"; exit 0; fi
+              sleep 3
+            done
+            echo "health check failed after 30s"; docker logs duel-log-api --tail 50; exit 1
