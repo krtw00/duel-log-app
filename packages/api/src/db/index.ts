@@ -12,10 +12,11 @@ const socketMatch = connectionString.match(/[?&]host=([^&]+)/);
 const socketPath = socketMatch?.[1];
 
 const isLocal = /127\.0\.0\.1|localhost/.test(connectionString);
+const sslDisabled = process.env.DATABASE_SSL === 'disable';
 
 const options: Parameters<typeof postgres>[1] = {
   transform: postgres.camel,
-  ssl: isLocal || socketPath ? false : { rejectUnauthorized: false },
+  ssl: sslDisabled || isLocal || socketPath ? false : { rejectUnauthorized: false },
   prepare: false,
   idle_timeout: 20,
   max: 10,
