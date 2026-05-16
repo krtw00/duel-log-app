@@ -129,7 +129,6 @@ jobs:
       GOOGLE_CLOUD_REGION: ${{ vars.GOOGLE_CLOUD_REGION || 'asia-northeast1' }}
       ARTIFACT_REGISTRY_REPO: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'apps' }}
       FIREBASE_HOSTING_SITE: ${{ vars.STAGING_FIREBASE_HOSTING_SITE || 'duel-log-staging' }}
-      CLOUD_RUN_SERVICE: ${{ vars.STAGING_CLOUD_RUN_SERVICE || 'duel-log-api-staging' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -174,7 +173,6 @@ jobs:
           GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_CLOUD_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
           FIREBASE_HOSTING_SITE: ${{ env.FIREBASE_HOSTING_SITE }}
-          CLOUD_RUN_SERVICE: ${{ env.CLOUD_RUN_SERVICE }}
 
       - name: Write summary
         run: |

@@ -36,7 +36,7 @@ flowchart TD
     lint --> build["Build<br/>(pnpm build)"]
     typecheck --> build
     test --> build
-    build -->|staging branch| staging["Deploy Staging<br/>(Cloud Run + Firebase)"]
+    build -->|staging branch| staging["Deploy Staging<br/>(Firebase Hosting only; API は codenica-vps)"]
     build -->|main branch only| deploy["Deploy Production<br/>(Cloud Run + Firebase)"]
 ```
 
@@ -64,7 +64,7 @@ flowchart TD
 
 | ジョブ | 実行条件 | デプロイ先 |
 |-------|----------|-----------|
-| `deploy-staging` | `staging` push / manual | Firebase Hosting `duel-log-staging` + Cloud Run `duel-log-api-staging` |
+| `deploy-staging` | `staging` push / manual | Firebase Hosting `duel-log-staging` (API は codenica-vps 経由) |
 | `deploy-production` | `main` push / manual | Firebase Hosting `duel-log` + Cloud Run `duel-log-api` |
 
 | ブランチ | 役割 | URL |
@@ -100,7 +100,6 @@ flowchart TD
 | `FIREBASE_HOSTING_SITE` | production Hosting site |
 | `CLOUD_RUN_SERVICE` | production API service |
 | `STAGING_FIREBASE_HOSTING_SITE` | staging Hosting site |
-| `STAGING_CLOUD_RUN_SERVICE` | staging API service |
 
 ---
 
