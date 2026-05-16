@@ -1,13 +1,13 @@
 ---
 depends_on: []
-tags: [deployment, staging, google, firebase, cloud-run, supabase]
+tags: [deployment, staging, google, firebase, codenica-vps]
 ai_summary: "staging ブランチを staging として運用する手順"
 ---
 
 # Staging環境
 
 > Status: Active
-> 最終更新: 2026-03-19
+> 最終更新: 2026-05-16
 
 `staging` ブランチを staging 環境として運用するための手順。
 
@@ -38,53 +38,28 @@ ai_summary: "staging ブランチを staging として運用する手順"
 
 ## セットアップ
 
-### 1. Supabase プロジェクトを分離する
-
-- production とは別に staging 用 Supabase プロジェクトを作成
-- `DATABASE_URL`
-- `SUPABASE_URL`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-必要な値のひな形は `.env.staging.example` を参照。
-
-### 2. Google staging リソースを分離する
+### 1. staging リソース
 
 - Firebase Hosting site: `duel-log-staging`
-- Cloud Run service: `duel-log-api-staging`
-- どちらも production とは別名にする
-- API / DB / Auth は production と分離する
+- API: codenica-vps の `/opt/duel-log-api-staging/` (docker compose, image は Artifact Registry の `apps/api:staging-*`)
+- DB: codenica-vps Postgres 17 の `duellog_staging`
+- 認証は自前 (Supabase 廃止済)
 
-### 3. `staging` 向けの staging 環境変数を設定する
+### 2. 環境変数
 
-- `.vercel/.env.preview.local` に staging 用の Supabase / DB / secret を保存する
-- CI では `DUEL_LOG_STAGING_ENV_FILE` secret に同じ内容を複数行で保存する
-- ローカルで既存の preview env を使う場合:
+- ローカル: `.env/staging` に staging 用 secret を配置
+- CI: `DUEL_LOG_STAGING_ENV_FILE` secret に同じ内容を複数行で保存
+- API 側 secret (DB 接続情報等) は VPS の `/opt/duel-log-api-staging/secrets.enc.env` で sops 管理
 
-```bash
-pnpm staging:pull
-```
+### 3. staging へデプロイ
 
-### 4. staging 用ビルド確認
-
-```bash
-pnpm staging:build
-```
-
-### 5. staging へデプロイ
-
-```bash
-pnpm staging:deploy
-```
-
-`staging` へ push した場合は GitHub Actions でも Google staging deploy が走る。
+`staging` branch に push すると GitHub Actions の `deploy-staging` job が Firebase Hosting に新 bundle を配置する。 API 側は VPS で個別に image を更新する (`./up.sh`)。
 
 | 項目 | 値 |
 |------|----|
 | Workflow | `.github/workflows/ci.yml` の `deploy-staging` job |
 | Frontend | `https://duel-log-staging.web.app` |
-| API | `https://duel-log-api-staging-<hash>.asia-northeast1.run.app/api/health` |
+| API | `https://duel-log-api-staging.codenica.dev/api/health` |
 
 ---
 
@@ -100,4 +75,4 @@ pnpm staging:deploy
 ## 補足
 
 - staging の URL は `https://duel-log-staging.web.app`
-- ローカル確認は `pnpm supabase:start` と `pnpm dev`
+- ローカル確認は `pnpm dev`
