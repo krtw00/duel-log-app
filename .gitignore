@@ -56,5 +56,3 @@ packages/api/debug-logs/
 
 # API build output
 api/*.js
-
-CLAUDE.md
