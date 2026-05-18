@@ -78,6 +78,7 @@
     "noData": "듀얼 데이터 없음",
     "defaultSettings": "신규 기록 시 초기값",
     "tabRecord": "기록",
+    "tabStats": "통계",
     "tabHistory": "기록 목록",
     "receivingStats": "메인 윈도우에서 통계 수신 중...",
     "downloadStatsImage": "전적 이미지",

@@ -78,6 +78,7 @@
     "noData": "No duel data",
     "defaultSettings": "Default Settings",
     "tabRecord": "Record",
+    "tabStats": "Stats",
     "tabHistory": "History",
     "receivingStats": "Receiving stats from main window...",
     "downloadStatsImage": "Stats Image",

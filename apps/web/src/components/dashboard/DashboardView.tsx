@@ -29,7 +29,7 @@ import { StreamerSection } from './StreamerSection.js';
 export function DashboardView() {
   const { t } = useTranslation();
   const currentSeason = getCurrentSeason();
-  const [activeTab, setActiveTab] = useState<'record' | 'history'>('record');
+  const [activeTab, setActiveTab] = useState<'record' | 'history' | 'stats'>('record');
   const [gameMode, setGameMode] = useState<GameMode>('RANK');
   const [year, setYear] = useState(currentSeason.year);
   const [month, setMonth] = useState(currentSeason.month);
@@ -381,6 +381,13 @@ export function DashboardView() {
             </button>
             <button
               type="button"
+              className={`tab-item ${activeTab === 'stats' ? 'tab-item-active' : ''}`}
+              onClick={() => setActiveTab('stats')}
+            >
+              {t('dashboard.tabStats')}
+            </button>
+            <button
+              type="button"
               className={`tab-item ${activeTab === 'history' ? 'tab-item-active' : ''}`}
               onClick={() => setActiveTab('history')}
             >
@@ -389,7 +396,15 @@ export function DashboardView() {
           </div>
         </div>
         <div className="space-y-6">
-          {activeTab === 'record' ? renderRecordContent() : renderHistoryContent()}
+          {activeTab === 'record' && renderRecordContent()}
+          {activeTab === 'stats' && (
+            <StatsDisplayCards
+              stats={overviewData?.data}
+              loading={statsLoading}
+              showPlayMistakeStats={showPlayMistake}
+            />
+          )}
+          {activeTab === 'history' && renderHistoryContent()}
         </div>
       </div>
 
