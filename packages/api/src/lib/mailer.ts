@@ -1,27 +1,6 @@
-import nodemailer, { type Transporter } from 'nodemailer';
-
-const SMTP_HOST = process.env.SMTP_HOST ?? 'smtp-relay.brevo.com';
-const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
-const SMTP_USERNAME = process.env.SMTP_USERNAME;
-const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
-const MAIL_FROM = process.env.MAIL_FROM ?? 'Duel Log <no-reply@duel-log.codenica.dev>';
-
-let transporter: Transporter | null = null;
-
-function getTransporter(): Transporter {
-  if (!transporter) {
-    if (!SMTP_USERNAME || !SMTP_PASSWORD) {
-      throw new Error('SMTP_USERNAME / SMTP_PASSWORD env not configured');
-    }
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: false,
-      auth: { user: SMTP_USERNAME, pass: SMTP_PASSWORD },
-    });
-  }
-  return transporter;
-}
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME ?? 'Duel Log';
+const MAIL_FROM_EMAIL = process.env.MAIL_FROM_EMAIL ?? 'no-reply@duel-log.codenica.dev';
 
 export interface SendMailOptions {
   to: string;
@@ -31,10 +10,32 @@ export interface SendMailOptions {
 }
 
 export async function sendMail({ to, subject, text, html }: SendMailOptions): Promise<void> {
-  const tx = getTransporter();
-  await tx.sendMail({ from: MAIL_FROM, to, subject, text, html });
+  if (!BREVO_API_KEY) {
+    throw new Error('BREVO_API_KEY env not configured');
+  }
+
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': BREVO_API_KEY,
+      accept: 'application/json',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { name: MAIL_FROM_NAME, email: MAIL_FROM_EMAIL },
+      to: [{ email: to }],
+      subject,
+      textContent: text,
+      ...(html ? { htmlContent: html } : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text().catch(() => '');
+    throw new Error(`Brevo API error ${response.status}: ${errorBody}`);
+  }
 }
 
 export function isMailerConfigured(): boolean {
-  return Boolean(SMTP_USERNAME && SMTP_PASSWORD);
+  return Boolean(BREVO_API_KEY);
 }
