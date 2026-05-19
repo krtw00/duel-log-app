@@ -855,8 +855,11 @@ export function DuelFormDialog({
     <div
       className="dialog-overlay"
       onClick={(e) => {
-        // iOS Safari fires click events that can bypass stopPropagation on child elements.
-        // Guard: only close when the overlay itself (not any child) was the tap target.
+        // iOS Safari は input/select/button などをタップした際、 子で stopPropagation していても
+        // overlay 自身を target とする synthetic click を別途発火することがある。
+        // e.target === e.currentTarget ガードでも誤閉じが残るため、 タッチ環境では外側タップで
+        // 閉じない (= 編集中の入力ロストを防ぐ)。 close は X / Cancel / Escape のみ。
+        if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) return;
         if (e.target === e.currentTarget) onClose();
       }}
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
