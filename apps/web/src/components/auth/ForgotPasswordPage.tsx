@@ -40,7 +40,8 @@ export function ForgotPasswordPage() {
           <div className="p-4 bg-emerald-900/20 border border-emerald-500/30 text-emerald-200 text-sm rounded-lg space-y-2">
             <p className="font-semibold text-emerald-300">受け付けました</p>
             <p>
-              入力されたメールアドレスが登録されている場合、 パスワード再設定リンクをお送りしました。
+              入力されたメールアドレスが登録されている場合、
+              パスワード再設定リンクをお送りしました。
             </p>
             <p className="text-emerald-200/80 text-xs">
               メールが届かない場合は迷惑メールフォルダもご確認ください (リンク有効期限: 1 時間)。
@@ -77,10 +78,7 @@ export function ForgotPasswordPage() {
         )}
 
         <div className="mt-6 text-center">
-          <Link
-            to="/login"
-            className="text-brand-cyan hover:underline text-sm transition-colors"
-          >
+          <Link to="/login" className="text-brand-cyan hover:underline text-sm transition-colors">
             ← ログインに戻る
           </Link>
         </div>

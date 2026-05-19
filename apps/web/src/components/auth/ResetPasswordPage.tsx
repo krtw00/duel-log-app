@@ -73,7 +73,8 @@ export function ResetPasswordPage() {
             <p className="font-semibold text-emerald-300">パスワードを更新しました</p>
             <p>3 秒後にログイン画面へ移動します。</p>
             <p className="text-emerald-200/80 text-xs">
-              セキュリティのため、 他のセッションは自動的にログアウトされました。 新しいパスワードでログインしてください。
+              セキュリティのため、 他のセッションは自動的にログアウトされました。
+              新しいパスワードでログインしてください。
             </p>
           </div>
         ) : (
@@ -124,10 +125,7 @@ export function ResetPasswordPage() {
         )}
 
         <div className="mt-6 text-center">
-          <Link
-            to="/login"
-            className="text-brand-cyan hover:underline text-sm transition-colors"
-          >
+          <Link to="/login" className="text-brand-cyan hover:underline text-sm transition-colors">
             ← ログインに戻る
           </Link>
         </div>
