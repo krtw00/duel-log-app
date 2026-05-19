@@ -13,6 +13,7 @@ function parseArgs(argv) {
     site: 'duel-log',
     service: 'duel-log-api',
     region: 'asia-northeast1',
+    apiRewrite: 'cloud-run',
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -23,6 +24,7 @@ function parseArgs(argv) {
     if (arg === '--site') args.site = argv[i + 1];
     if (arg === '--service') args.service = argv[i + 1];
     if (arg === '--region') args.region = argv[i + 1];
+    if (arg === '--api-rewrite') args.apiRewrite = argv[i + 1];
   }
 
   return args;
@@ -32,15 +34,12 @@ const args = parseArgs(process.argv.slice(2));
 const outputPath = path.resolve(args.output);
 const publicDir = path.relative(path.dirname(outputPath), path.resolve(args.publicDir)) || '.';
 
-const rewrites =
-  args.mode === 'proxy'
+const spaRewrites =
+  args.apiRewrite === 'none'
     ? [
         {
           source: '**',
-          run: {
-            serviceId: args.service,
-            region: args.region,
-          },
+          destination: '/index.html',
         },
       ]
     : [
@@ -56,6 +55,19 @@ const rewrites =
           destination: '/index.html',
         },
       ];
+
+const rewrites =
+  args.mode === 'proxy'
+    ? [
+        {
+          source: '**',
+          run: {
+            serviceId: args.service,
+            region: args.region,
+          },
+        },
+      ]
+    : spaRewrites;
 
 const config = {
   hosting: {

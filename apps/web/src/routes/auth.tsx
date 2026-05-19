@@ -1,7 +1,9 @@
 import { Outlet, createRoute, redirect } from '@tanstack/react-router';
 import { AuthCallbackPage } from '../components/auth/AuthCallbackPage.js';
+import { ForgotPasswordPage } from '../components/auth/ForgotPasswordPage.js';
 import { LoginPage } from '../components/auth/LoginPage.js';
 import { RegisterPage } from '../components/auth/RegisterPage.js';
+import { ResetPasswordPage } from '../components/auth/ResetPasswordPage.js';
 import { getAccessToken } from '../lib/auth.js';
 import { rootRoute } from './__root.js';
 
@@ -38,4 +40,16 @@ export const callbackRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: '/auth/callback',
   component: AuthCallbackPage,
+});
+
+export const forgotPasswordRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/forgot-password',
+  component: ForgotPasswordPage,
+});
+
+export const resetPasswordRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/reset-password',
+  component: ResetPasswordPage,
 });

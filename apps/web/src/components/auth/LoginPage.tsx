@@ -238,6 +238,15 @@ export function LoginPage() {
             </button>
           </form>
 
+          <div className="mt-3 text-center">
+            <Link
+              to="/forgot-password"
+              className="text-white/60 hover:text-brand-cyan text-sm transition-colors"
+            >
+              パスワードを忘れた方はこちら
+            </Link>
+          </div>
+
           {/* OAuth divider */}
           <div className="flex items-center gap-4 my-5">
             <div className="flex-1 h-px bg-white/20" />

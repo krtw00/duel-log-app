@@ -18,6 +18,7 @@ CONFIG_FILE="${FIREBASE_CONFIG_FILE:-$ROOT_DIR/firebase.hosting.generated.json}"
 MODE="${FIREBASE_HOSTING_MODE:-spa}"
 PUBLIC_DIR="${FIREBASE_HOSTING_PUBLIC_DIR:-$ROOT_DIR/apps/web/dist}"
 API_BASE_URL="${FIREBASE_WEB_API_BASE_URL:-/api}"
+API_REWRITE_MODE="${FIREBASE_API_REWRITE_MODE:-cloud-run}"
 PRIMARY_WEB_URL="${FIREBASE_WEB_PRIMARY_URL:-https://duel-log.codenica.dev}"
 LEGACY_WEB_HOSTS="${FIREBASE_WEB_LEGACY_HOSTS:-}"
 
@@ -49,7 +50,8 @@ node scripts/generate-firebase-hosting-config.mjs \
   --public-dir "$PUBLIC_DIR" \
   --site "$SITE_ID" \
   --service "$SERVICE_NAME" \
-  --region "$REGION"
+  --region "$REGION" \
+  --api-rewrite "$API_REWRITE_MODE"
 
 if [[ "$MODE" == "spa" ]]; then
   pnpm --filter @duel-log/shared build
