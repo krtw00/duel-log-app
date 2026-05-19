@@ -148,6 +148,26 @@ export function getOAuthUrl(provider: 'google' | 'discord' | 'github'): string {
   return `${API_BASE_URL}/auth/oauth/${provider}`;
 }
 
+export async function requestPasswordReset(email: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/auth/password/forgot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  const body = await response.json();
+  if (!response.ok) throw body;
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/auth/password/reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  });
+  const body = await response.json();
+  if (!response.ok) throw body;
+}
+
 export async function signOut(): Promise<void> {
   const tokens = getTokens();
 

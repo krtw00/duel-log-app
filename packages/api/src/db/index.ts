@@ -70,4 +70,38 @@ export function ensureOAuthStateTable() {
   return oauthStateTablePromise;
 }
 
+let passwordResetsTablePromise: Promise<void> | null = null;
+
+export function ensurePasswordResetsTable() {
+  if (!passwordResetsTablePromise) {
+    passwordResetsTablePromise = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS password_resets (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          token_hash TEXT NOT NULL UNIQUE,
+          expires_at TIMESTAMPTZ NOT NULL,
+          used_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_password_resets_user_id
+        ON password_resets (user_id)
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_password_resets_token_hash
+        ON password_resets (token_hash)
+      `;
+    })().catch((error) => {
+      passwordResetsTablePromise = null;
+      throw error;
+    });
+  }
+
+  return passwordResetsTablePromise;
+}
+
 export { sql };

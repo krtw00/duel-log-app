@@ -12,11 +12,24 @@ import {
   streamerPopupRoute,
   streamerRoute,
 } from './app.js';
-import { authLayoutRoute, callbackRoute, loginRoute, registerRoute } from './auth.js';
+import {
+  authLayoutRoute,
+  callbackRoute,
+  forgotPasswordRoute,
+  loginRoute,
+  registerRoute,
+  resetPasswordRoute,
+} from './auth.js';
 import { sharedStatsRoute } from './public.js';
 
 const routeTree = rootRoute.addChildren([
-  authLayoutRoute.addChildren([loginRoute, registerRoute, callbackRoute]),
+  authLayoutRoute.addChildren([
+    loginRoute,
+    registerRoute,
+    callbackRoute,
+    forgotPasswordRoute,
+    resetPasswordRoute,
+  ]),
   appLayoutRoute.addChildren([
     dashboardRoute,
     decksRoute,

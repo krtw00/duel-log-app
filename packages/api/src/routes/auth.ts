@@ -17,12 +17,17 @@ import {
   isGitHubConfigured,
   isGoogleConfigured,
 } from '../lib/oauth.js';
+import { sendMail } from '../lib/mailer.js';
 import { hashPassword, passwordMatches } from '../lib/password.js';
 import {
   cleanupExpiredOAuthStates,
   consumeOAuthState,
   createOAuthState,
 } from '../services/oauthState.js';
+import {
+  consumePasswordResetToken,
+  createPasswordResetToken,
+} from '../services/passwordReset.js';
 
 const WEB_URL = process.env.WEB_URL || 'http://localhost:5173';
 
@@ -42,6 +47,60 @@ const refreshSchema = z.object({
 const signOutSchema = z.object({
   refreshToken: z.string().min(1).optional(),
 });
+const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(6).max(72),
+});
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      default:
+        return '&#39;';
+    }
+  });
+}
+
+function passwordResetMailText(name: string, url: string): string {
+  return `${name} 様
+
+Duel Log のパスワード再設定リクエストを受け付けました。
+以下のリンクから新しいパスワードを設定してください (1 時間有効):
+
+${url}
+
+このメールに心当たりがない場合は無視してください。
+リクエストしていない場合、アカウントへの不正アクセスの可能性があります。`;
+}
+
+function passwordResetMailHtml(name: string, url: string): string {
+  const safeName = escapeHtml(name);
+  const safeUrl = escapeHtml(url);
+  return `<!doctype html>
+<html lang="ja"><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1a1a1a; background: #fafafa;">
+  <h2 style="color: #00a8cc; margin-bottom: 16px;">Duel Log パスワード再設定</h2>
+  <p>${safeName} 様</p>
+  <p>Duel Log のパスワード再設定リクエストを受け付けました。<br>以下のボタンから新しいパスワードを設定してください (1 時間有効)。</p>
+  <p style="margin: 28px 0;">
+    <a href="${safeUrl}" style="display: inline-block; padding: 12px 28px; background: #00a8cc; color: #ffffff; text-decoration: none; font-weight: 600; border-radius: 6px;">パスワードを再設定</a>
+  </p>
+  <p style="font-size: 13px; color: #666;">ボタンが押せない場合は以下の URL を直接ブラウザに貼り付けてください:<br>
+  <a href="${safeUrl}" style="color: #00a8cc; word-break: break-all;">${safeUrl}</a></p>
+  <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e5e5;">
+  <p style="font-size: 12px; color: #999;">このメールに心当たりがない場合は無視してください。リクエストしていない場合、アカウントへの不正アクセスの可能性があります。</p>
+</body></html>`;
+}
 
 function hashRefreshToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -201,6 +260,56 @@ export const authRoutes = new Hono()
     }
 
     return c.json({ data: { message: 'Signed out' } });
+  })
+  .post('/password/forgot', async (c) => {
+    const { email } = forgotPasswordSchema.parse(await c.req.json());
+
+    const [user] = await sql<UserRow[]>`
+      SELECT * FROM users WHERE email = ${email}
+    `;
+
+    if (user?.passwordHash && user.status === 'active') {
+      try {
+        const token = await createPasswordResetToken(user.id);
+        const resetUrl = new URL('/reset-password', WEB_URL);
+        resetUrl.searchParams.set('token', token);
+
+        await sendMail({
+          to: user.email,
+          subject: 'Duel Log パスワード再設定のご案内',
+          text: passwordResetMailText(user.displayName, resetUrl.toString()),
+          html: passwordResetMailHtml(user.displayName, resetUrl.toString()),
+        });
+      } catch (err) {
+        console.error('[auth/password/forgot] mail send failed', err);
+      }
+    }
+
+    return c.json({
+      data: { message: 'If the email is registered, a reset link has been sent.' },
+    });
+  })
+  .post('/password/reset', async (c) => {
+    const { token, password } = resetPasswordSchema.parse(await c.req.json());
+
+    const userId = await consumePasswordResetToken(token);
+    if (!userId) {
+      return c.json(
+        { error: { code: 'INVALID_TOKEN', message: 'Invalid or expired reset token' } },
+        400,
+      );
+    }
+
+    const passwordHash = await hashPassword(password);
+    await sql`
+      UPDATE users
+      SET password_hash = ${passwordHash}, updated_at = now()
+      WHERE id = ${userId}
+    `;
+
+    await sql`DELETE FROM refresh_tokens WHERE user_id = ${userId}`;
+
+    return c.json({ data: { message: 'Password updated successfully' } });
   })
   .get('/oauth/google', async (c) => {
     if (!isGoogleConfigured()) {
