@@ -1,9 +1,16 @@
 import { Hono } from 'hono';
+import { getCookie } from 'hono/cookie';
 import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { sql } from '../db/index.js';
 import type { UserRow } from '../db/types.js';
 import { signAccessToken } from '../lib/jwt.js';
+import {
+  clearAuthCookies,
+  COOKIE_NAMES,
+  generateCsrfToken,
+  setAuthCookies,
+} from '../lib/cookies.js';
 import {
   createDiscordAuthorizationUrl,
   createGitHubAuthorizationUrl,
@@ -40,12 +47,6 @@ const registerSchema = z.object({
   email: emailSchema,
   password: z.string().min(6).max(72),
   displayName: z.string().trim().min(1).max(50),
-});
-const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
-});
-const signOutSchema = z.object({
-  refreshToken: z.string().min(1).optional(),
 });
 const forgotPasswordSchema = z.object({
   email: emailSchema,
@@ -104,13 +105,6 @@ function passwordResetMailHtml(name: string, url: string): string {
 
 function hashRefreshToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
-}
-
-function buildFrontendCallbackUrl(tokens: { accessToken: string; refreshToken: string }): string {
-  const redirectUrl = new URL('/auth/callback', WEB_URL);
-  redirectUrl.searchParams.set('access_token', tokens.accessToken);
-  redirectUrl.searchParams.set('refresh_token', tokens.refreshToken);
-  return redirectUrl.toString();
 }
 
 async function createTokens(user: Pick<UserRow, 'id' | 'email'>) {
@@ -193,8 +187,10 @@ export const authRoutes = new Hono()
       return c.json({ error: { code: 'FORBIDDEN', message: `Account is ${user.status}` } }, 403);
     }
 
-    const tokens = await createTokens(user);
-    return c.json({ data: { ...tokens, user: toAuthUser(user) } });
+    const { accessToken, refreshToken } = await createTokens(user);
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(c, { accessToken, refreshToken, csrfToken });
+    return c.json({ data: { user: toAuthUser(user) } });
   })
   .post('/register', async (c) => {
     const { email, password, displayName } = registerSchema.parse(await c.req.json());
@@ -219,11 +215,20 @@ export const authRoutes = new Hono()
       throw new Error('Failed to create user');
     }
 
-    const tokens = await createTokens(user);
-    return c.json({ data: { ...tokens, user: toAuthUser(user) } });
+    const { accessToken, refreshToken } = await createTokens(user);
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(c, { accessToken, refreshToken, csrfToken });
+    return c.json({ data: { user: toAuthUser(user) } });
   })
   .post('/refresh', async (c) => {
-    const { refreshToken } = refreshSchema.parse(await c.req.json());
+    const refreshToken = getCookie(c, COOKIE_NAMES.refresh);
+    if (!refreshToken) {
+      return c.json(
+        { error: { code: 'UNAUTHORIZED', message: 'Missing refresh token' } },
+        401,
+      );
+    }
+
     const tokenHash = hashRefreshToken(refreshToken);
 
     const [row] = await sql<UserRow[]>`
@@ -248,17 +253,19 @@ export const authRoutes = new Hono()
     await sql`DELETE FROM refresh_tokens WHERE token_hash = ${tokenHash}`;
 
     const tokens = await createTokens(row);
-    return c.json({ data: { ...tokens, user: toAuthUser(row) } });
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(c, { ...tokens, csrfToken });
+    return c.json({ data: { user: toAuthUser(row) } });
   })
   .post('/signout', async (c) => {
-    const parsed = signOutSchema.safeParse(await c.req.json().catch(() => ({})));
-    const refreshToken = parsed.success ? parsed.data.refreshToken : undefined;
+    const refreshToken = getCookie(c, COOKIE_NAMES.refresh);
 
     if (refreshToken) {
       const tokenHash = hashRefreshToken(refreshToken);
       await sql`DELETE FROM refresh_tokens WHERE token_hash = ${tokenHash}`.catch(() => {});
     }
 
+    clearAuthCookies(c);
     return c.json({ data: { message: 'Signed out' } });
   })
   .post('/password/forgot', async (c) => {
@@ -387,8 +394,10 @@ export const authRoutes = new Hono()
       googleUser.name || email,
     );
     const appTokens = await createTokens(user);
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(c, { ...appTokens, csrfToken });
 
-    return c.redirect(buildFrontendCallbackUrl(appTokens));
+    return c.redirect(new URL('/auth/callback', WEB_URL).toString());
   })
   .get('/oauth/callback/discord', async (c) => {
     if (!isDiscordConfigured()) return c.text('Not configured', 500);
@@ -425,8 +434,10 @@ export const authRoutes = new Hono()
       discordUser.global_name || discordUser.username,
     );
     const appTokens = await createTokens(user);
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(c, { ...appTokens, csrfToken });
 
-    return c.redirect(buildFrontendCallbackUrl(appTokens));
+    return c.redirect(new URL('/auth/callback', WEB_URL).toString());
   })
   .get('/oauth/callback/github', async (c) => {
     if (!isGitHubConfigured()) return c.text('Not configured', 500);
@@ -482,6 +493,8 @@ export const authRoutes = new Hono()
       githubUser.name || githubUser.login,
     );
     const appTokens = await createTokens(user);
+    const csrfToken = generateCsrfToken();
+    setAuthCookies(c, { ...appTokens, csrfToken });
 
-    return c.redirect(buildFrontendCallbackUrl(appTokens));
+    return c.redirect(new URL('/auth/callback', WEB_URL).toString());
   });

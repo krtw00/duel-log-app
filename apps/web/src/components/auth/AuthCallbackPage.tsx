@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getUserFromAccessToken, handleOAuthCallback } from '../../lib/auth.js';
+import { fetchCurrentUser } from '../../lib/auth.js';
 import { useAuthStore } from '../../stores/auth.js';
 
 export function AuthCallbackPage() {
@@ -15,16 +15,10 @@ export function AuthCallbackPage() {
     const handleCallback = async () => {
       try {
         setStatus(t('auth.processing'));
-        const tokens = handleOAuthCallback();
+        const user = await fetchCurrentUser();
 
-        if (!tokens) {
-          setError('Authentication tokens were not returned');
-          return;
-        }
-
-        const user = getUserFromAccessToken(tokens.accessToken);
         if (!user) {
-          setError('Authentication token is invalid');
+          setError('Authentication failed: could not retrieve user');
           return;
         }
 

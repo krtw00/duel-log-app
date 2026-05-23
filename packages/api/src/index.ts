@@ -4,6 +4,7 @@ import { logger } from 'hono/logger';
 import { sql } from './db/index.js';
 import { adminMiddleware } from './middleware/admin.js';
 import { authMiddleware } from './middleware/auth.js';
+import { csrfMiddleware } from './middleware/csrf.js';
 import { errorMiddleware } from './middleware/error.js';
 import { maintenanceMiddleware } from './middleware/maintenance.js';
 import { adminRoutes } from './routes/admin.js';
@@ -17,6 +18,17 @@ import { meRoutes } from './routes/me.js';
 import { obsRoutes } from './routes/obs.js';
 import { sharedStatisticsRoutes } from './routes/sharedStatistics.js';
 import { statisticsRoutes } from './routes/statistics.js';
+
+// cookie 認証は credentials 付きリクエストになるため、許可 origin を明示する
+// （`origin: *` + credentials はブラウザ仕様で不可）。本番/staging/dev を env で列挙。
+const ALLOWED_ORIGINS = (
+  process.env.CORS_ALLOWED_ORIGINS ||
+  process.env.WEB_URL ||
+  'http://localhost:5173'
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const app = new Hono().basePath('/api');
 
@@ -40,9 +52,10 @@ app.get('/health/db', async (c) => {
 
 // グローバルミドルウェア
 app.use('*', logger());
-app.use('*', cors());
+app.use('*', cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use('*', errorMiddleware);
 app.use('*', maintenanceMiddleware);
+app.use('*', csrfMiddleware);
 
 // 認証不要ルート（sharedStatisticsRoutesが内部でauth制御）
 app.route('/shared-statistics', sharedStatisticsRoutes);

@@ -1,7 +1,9 @@
+import { getCookie } from 'hono/cookie';
 import { createMiddleware } from 'hono/factory';
 import { sql } from '../db/index.js';
-import type { UserRow } from '../db/types.js';
+import { COOKIE_NAMES } from '../lib/cookies.js';
 import { verifyToken } from '../lib/jwt.js';
+import type { UserRow } from '../db/types.js';
 
 export type AuthUser = {
   id: string;
@@ -40,12 +42,10 @@ function setCachedUser(userId: string, user: UserRow): void {
 export const authMiddleware = createMiddleware<Env>(async (c, next) => {
   const startTime = Date.now();
 
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
+  const token = getCookie(c, COOKIE_NAMES.access);
+  if (!token) {
     return c.json({ error: { code: 'UNAUTHORIZED', message: 'Missing or invalid token' } }, 401);
   }
-
-  const token = authHeader.slice(7);
 
   // JWTをJWKSで検証（Supabase Auth APIを呼ばない）
   let payload: Awaited<ReturnType<typeof verifyToken>>;

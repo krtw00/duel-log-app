@@ -4,7 +4,7 @@ import { ForgotPasswordPage } from '../components/auth/ForgotPasswordPage.js';
 import { LoginPage } from '../components/auth/LoginPage.js';
 import { RegisterPage } from '../components/auth/RegisterPage.js';
 import { ResetPasswordPage } from '../components/auth/ResetPasswordPage.js';
-import { getAccessToken } from '../lib/auth.js';
+import { fetchCurrentUser } from '../lib/auth.js';
 import { rootRoute } from './__root.js';
 
 /** 認証レイアウト: 認証済みならダッシュボードへリダイレクト */
@@ -12,8 +12,8 @@ export const authLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'auth-layout',
   beforeLoad: async () => {
-    const token = await getAccessToken();
-    if (token) {
+    const user = await fetchCurrentUser();
+    if (user) {
       throw redirect({ to: '/' });
     }
   },
