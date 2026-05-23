@@ -18,29 +18,19 @@ const feedbackSchema = z.object({
   language: z.string().optional(),
 });
 
-const typeToPriority = (type: z.infer<typeof feedbackSchema>['type']): 'high' | 'medium' =>
-  type === 'bug' ? 'high' : 'medium';
-
-const escapeHtml = (s: string): string =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-const nl2br = (s: string): string => escapeHtml(s).replace(/\n/g, '<br>');
-
 export const feedbackRoutes = new Hono<Env>().post('/', async (c) => {
   try {
     const { id } = c.get('user');
     const rawBody = await c.req.json();
     const data = feedbackSchema.parse(rawBody);
 
-    const planeToken = process.env.PLANE_API_TOKEN;
-    const planeProjectId = process.env.PLANE_PROJECT_ID;
-    const planeWorkspace = process.env.PLANE_WORKSPACE_SLUG ?? 'codenica';
-    const planeBaseUrl = process.env.PLANE_BASE_URL ?? 'https://plane.codenica.dev';
+    const githubToken = process.env.GITHUB_TOKEN;
+    const githubRepo = process.env.GITHUB_FEEDBACK_REPO;
 
-    if (!planeToken || !planeProjectId) {
+    if (!githubToken || !githubRepo) {
       console.error('Feedback config missing:', {
-        hasToken: !!planeToken,
-        hasProject: !!planeProjectId,
+        hasToken: !!githubToken,
+        hasRepo: !!githubRepo,
       });
       return c.json(
         { error: { code: 'INTERNAL_ERROR', message: 'Feedback system not configured' } },
@@ -48,59 +38,55 @@ export const feedbackRoutes = new Hono<Env>().post('/', async (c) => {
       );
     }
 
-    const envItems = [
-      data.userAgent && `<li><strong>User Agent:</strong> ${escapeHtml(data.userAgent)}</li>`,
-      data.platform && `<li><strong>Platform:</strong> ${escapeHtml(data.platform)}</li>`,
-      data.screenSize && `<li><strong>Screen:</strong> ${escapeHtml(data.screenSize)}</li>`,
-      data.language && `<li><strong>Language:</strong> ${escapeHtml(data.language)}</li>`,
+    // 環境情報セクションを構築（メールは含めない）
+    const envInfo = [
+      data.userAgent && `**User Agent:** ${data.userAgent}`,
+      data.platform && `**Platform:** ${data.platform}`,
+      data.screenSize && `**Screen:** ${data.screenSize}`,
+      data.language && `**Language:** ${data.language}`,
     ]
       .filter(Boolean)
-      .join('');
+      .join('\n');
 
     const extraSections = [
-      data.steps && `<h3>Reproduction Steps</h3><p>${nl2br(data.steps)}</p>`,
-      data.expected && `<h3>Expected</h3><p>${nl2br(data.expected)}</p>`,
-      data.actual && `<h3>Actual</h3><p>${nl2br(data.actual)}</p>`,
-      data.useCase && `<h3>Use Case</h3><p>${nl2br(data.useCase)}</p>`,
+      data.steps && `### Reproduction Steps\n${data.steps}`,
+      data.expected && `### Expected\n${data.expected}`,
+      data.actual && `### Actual\n${data.actual}`,
+      data.useCase && `### Use Case\n${data.useCase}`,
     ]
       .filter(Boolean)
-      .join('');
+      .join('\n\n');
 
-    const descriptionHtml =
-      `<p><strong>Type:</strong> ${escapeHtml(data.type)}<br>` +
-      `<strong>User ID:</strong> ${escapeHtml(id)}</p>` +
-      `<p>${nl2br(data.body)}</p>` +
-      extraSections +
-      (envItems ? `<hr><h3>Environment</h3><ul>${envItems}</ul>` : '');
+    const issueBody = `**Type:** ${data.type}\n**User ID:** ${id}\n\n${data.body}${extraSections ? `\n\n${extraSections}` : ''}${envInfo ? `\n\n---\n### Environment\n${envInfo}` : ''}`;
 
-    const response = await fetch(
-      `${planeBaseUrl}/api/v1/workspaces/${planeWorkspace}/projects/${planeProjectId}/intake-issues/`,
-      {
-        method: 'POST',
-        headers: {
-          'X-API-Key': planeToken,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          issue: {
-            name: `[${data.type}] ${data.title}`,
-            description_html: descriptionHtml,
-            priority: typeToPriority(data.type),
-          },
-        }),
+    const response = await fetch(`https://api.github.com/repos/${githubRepo}/issues`, {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${githubToken}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'duel-log-app-feedback',
+        'Content-Type': 'application/json',
       },
-    );
+      body: JSON.stringify({
+        title: `[${data.type}] ${data.title}`,
+        body: issueBody,
+        labels: ['user-feedback', data.type],
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Plane intake API error:', response.status, errorText);
+      console.error('GitHub API error:', response.status, errorText);
       return c.json(
         { error: { code: 'INTERNAL_ERROR', message: 'Failed to submit feedback' } },
         500,
       );
     }
 
-    return c.json({ data: { message: 'Feedback submitted' } }, 201);
+    const issue = (await response.json()) as { html_url?: string };
+
+    return c.json({ data: { message: 'Feedback submitted', issueUrl: issue.html_url } }, 201);
   } catch (error) {
     console.error('Feedback error:', error);
     return c.json(
