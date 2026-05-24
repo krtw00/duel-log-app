@@ -11,6 +11,23 @@ services:
       - duel_log_api_node_modules:/app/packages/api/node_modules
       - duel_log_shared_node_modules:/app/packages/shared/node_modules
 
+  db:
+    image: postgres:16-alpine
+    container_name: duel-log-db
+    environment:
+      POSTGRES_DB: duel_log_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - duel_log_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d duel_log_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   web:
     build: .
     container_name: duel-log-web
@@ -29,13 +46,12 @@ services:
     depends_on:
       install:
         condition: service_completed_successfully
+      db:
+        condition: service_healthy
       api:
         condition: service_started
     ports:
       - "5173:5173"
-    networks:
-      - supabase
-      - default
 
   api:
     build: .
@@ -52,24 +68,19 @@ services:
       - .env
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_duel-log-app:5432/postgres
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/duel_log_app
       - JWT_SECRET=dev-jwt-secret
       - AUTH_CALLBACK_URL=http://localhost:3000/api/auth/oauth/callback
       - WEB_URL=http://localhost:5173
     depends_on:
       install:
         condition: service_completed_successfully
-    networks:
-      - supabase
-      - default
+      db:
+        condition: service_healthy
 
 volumes:
   duel_log_node_modules:
   duel_log_web_node_modules:
   duel_log_api_node_modules:
   duel_log_shared_node_modules:
-
-networks:
-  supabase:
-    external: true
-    name: supabase_network_duel-log-app
+  duel_log_pgdata:

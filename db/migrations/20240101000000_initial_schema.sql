@@ -1,6 +1,8 @@
 -- Initial schema for duel-log-app
 
--- Users table (synced with Supabase Auth via JIT provisioning)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Users table
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
@@ -86,77 +88,3 @@ CREATE TRIGGER update_decks_updated_at
 CREATE TRIGGER update_duels_updated_at
   BEFORE UPDATE ON duels
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Enable Row Level Security
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE decks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE duels ENABLE ROW LEVEL SECURITY;
-ALTER TABLE shared_statistics ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies: users
-CREATE POLICY "Users can read own data"
-  ON users FOR SELECT
-  USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own data"
-  ON users FOR UPDATE
-  USING (auth.uid() = id);
-
-CREATE POLICY "Users can insert own data"
-  ON users FOR INSERT
-  WITH CHECK (auth.uid() = id);
-
-CREATE POLICY "Admins can read all users"
-  ON users FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM users u WHERE u.id = auth.uid() AND u.is_admin = true
-    )
-  );
-
--- RLS Policies: decks
-CREATE POLICY "Users can read own decks"
-  ON decks FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own decks"
-  ON decks FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own decks"
-  ON decks FOR UPDATE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own decks"
-  ON decks FOR DELETE
-  USING (auth.uid() = user_id);
-
--- RLS Policies: duels
-CREATE POLICY "Users can read own duels"
-  ON duels FOR SELECT
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own duels"
-  ON duels FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own duels"
-  ON duels FOR UPDATE
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own duels"
-  ON duels FOR DELETE
-  USING (auth.uid() = user_id);
-
--- RLS Policies: shared_statistics
-CREATE POLICY "Users can manage own shared statistics"
-  ON shared_statistics FOR ALL
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Anyone can read shared statistics by token"
-  ON shared_statistics FOR SELECT
-  USING (true);
-
--- Service role bypass (for API server using service_role key)
--- The API server uses service_role key which bypasses RLS,
--- so these policies are for direct Supabase client access.

@@ -25,8 +25,16 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/compose.js
+// packages/api/src/node-adapter.ts
+var node_adapter_exports = {};
+__export(node_adapter_exports, {
+  handleNodeRequest: () => handleNodeRequest
+});
+module.exports = __toCommonJS(node_adapter_exports);
+
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
   return (context, next) => {
     let index = -1;
@@ -38,16 +46,16 @@ var compose = (middleware, onError, onNotFound) => {
       index = i;
       let res;
       let isError = false;
-      let handler2;
+      let handler;
       if (middleware[i]) {
-        handler2 = middleware[i][0][0];
+        handler = middleware[i][0][0];
         context.req.routeIndex = i;
       } else {
-        handler2 = i === middleware.length && next || void 0;
+        handler = i === middleware.length && next || void 0;
       }
-      if (handler2) {
+      if (handler) {
         try {
-          res = await handler2(context, () => dispatch(i + 1));
+          res = await handler(context, () => dispatch(i + 1));
         } catch (err) {
           if (err instanceof Error && onError) {
             context.error = err;
@@ -70,12 +78,12 @@ var compose = (middleware, onError, onNotFound) => {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/request/constants.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/request/constants.js
 var GET_MATCH_RESULT = /* @__PURE__ */ Symbol();
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/body.js
-var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) => {
-  const { all = false, dot = false } = options;
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/body.js
+var parseBody = async (request, options2 = /* @__PURE__ */ Object.create(null)) => {
+  const { all = false, dot = false } = options2;
   const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
   const contentType = headers.get("Content-Type");
   if (contentType?.startsWith("multipart/form-data") || contentType?.startsWith("application/x-www-form-urlencoded")) {
@@ -83,24 +91,24 @@ var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) =
   }
   return {};
 };
-async function parseFormData(request, options) {
+async function parseFormData(request, options2) {
   const formData = await request.formData();
   if (formData) {
-    return convertFormDataToBodyData(formData, options);
+    return convertFormDataToBodyData(formData, options2);
   }
   return {};
 }
-function convertFormDataToBodyData(formData, options) {
+function convertFormDataToBodyData(formData, options2) {
   const form = /* @__PURE__ */ Object.create(null);
   formData.forEach((value, key) => {
-    const shouldParseAllValues = options.all || key.endsWith("[]");
+    const shouldParseAllValues = options2.all || key.endsWith("[]");
     if (!shouldParseAllValues) {
       form[key] = value;
     } else {
       handleParsingAllValues(form, key, value);
     }
   });
-  if (options.dot) {
+  if (options2.dot) {
     Object.entries(form).forEach(([key, value]) => {
       const shouldParseDotValues = key.includes(".");
       if (shouldParseDotValues) {
@@ -128,6 +136,9 @@ var handleParsingAllValues = (form, key, value) => {
   }
 };
 var handleParsingNestedValues = (form, key, value) => {
+  if (/(?:^|\.)__proto__\./.test(key)) {
+    return;
+  }
   let nestedForm = form;
   const keys = key.split(".");
   keys.forEach((key2, index) => {
@@ -142,7 +153,7 @@ var handleParsingNestedValues = (form, key, value) => {
   });
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/url.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/url.js
 var splitPath = (path2) => {
   const paths = path2.split("/");
   if (paths[0] === "") {
@@ -217,9 +228,11 @@ var getPath = (request) => {
     const charCode = url.charCodeAt(i);
     if (charCode === 37) {
       const queryIndex = url.indexOf("?", i);
-      const path2 = url.slice(start, queryIndex === -1 ? void 0 : queryIndex);
+      const hashIndex = url.indexOf("#", i);
+      const end = queryIndex === -1 ? hashIndex === -1 ? void 0 : hashIndex : hashIndex === -1 ? queryIndex : Math.min(queryIndex, hashIndex);
+      const path2 = url.slice(start, end);
       return tryDecodeURI(path2.includes("%25") ? path2.replace(/%25/g, "%2525") : path2);
-    } else if (charCode === 63) {
+    } else if (charCode === 63 || charCode === 35) {
       break;
     }
   }
@@ -344,7 +357,7 @@ var getQueryParams = (url, key) => {
 };
 var decodeURIComponent_ = decodeURIComponent;
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/request.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/request.js
 var tryDecodeURIComponent = (str) => tryDecode(str, decodeURIComponent_);
 var HonoRequest = class {
   /**
@@ -424,8 +437,8 @@ var HonoRequest = class {
     });
     return headerData;
   }
-  async parseBody(options) {
-    return this.bodyCache.parsedBody ??= await parseBody(this, options);
+  async parseBody(options2) {
+    return this.bodyCache.parsedBody ??= await parseBody(this, options2);
   }
   #cachedBody = (key) => {
     const { bodyCache, raw: raw2 } = this;
@@ -612,7 +625,7 @@ var HonoRequest = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/html.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/html.js
 var HtmlEscapedCallbackPhase = {
   Stringify: 1,
   BeforeStream: 2,
@@ -654,7 +667,7 @@ var resolveCallback = async (str, phase, preserveCallbacks, context, buffer2) =>
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/context.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/context.js
 var TEXT_PLAIN = "text/plain; charset=UTF-8";
 var setDefaultContentType = (contentType, headers) => {
   return {
@@ -662,6 +675,7 @@ var setDefaultContentType = (contentType, headers) => {
     ...headers
   };
 };
+var createResponseInstance = (body, init) => new Response(body, init);
 var Context = class {
   #rawRequest;
   #req;
@@ -712,14 +726,14 @@ var Context = class {
    * @param req - The Request object.
    * @param options - Optional configuration options for the context.
    */
-  constructor(req, options) {
+  constructor(req, options2) {
     this.#rawRequest = req;
-    if (options) {
-      this.#executionCtx = options.executionCtx;
-      this.env = options.env;
-      this.#notFoundHandler = options.notFoundHandler;
-      this.#path = options.path;
-      this.#matchResult = options.matchResult;
+    if (options2) {
+      this.#executionCtx = options2.executionCtx;
+      this.env = options2.env;
+      this.#notFoundHandler = options2.notFoundHandler;
+      this.#path = options2.path;
+      this.#matchResult = options2.matchResult;
     }
   }
   /**
@@ -760,7 +774,7 @@ var Context = class {
    * The Response object for the current request.
    */
   get res() {
-    return this.#res ||= new Response(null, {
+    return this.#res ||= createResponseInstance(null, {
       headers: this.#preparedHeaders ??= new Headers()
     });
   }
@@ -771,7 +785,7 @@ var Context = class {
    */
   set res(_res) {
     if (this.#res && _res) {
-      _res = new Response(_res.body, _res);
+      _res = createResponseInstance(_res.body, _res);
       for (const [k, v] of this.#res.headers.entries()) {
         if (k === "content-type") {
           continue;
@@ -859,14 +873,14 @@ var Context = class {
    * })
    * ```
    */
-  header = (name, value, options) => {
+  header = (name, value, options2) => {
     if (this.finalized) {
-      this.#res = new Response(this.#res.body, this.#res);
+      this.#res = createResponseInstance(this.#res.body, this.#res);
     }
     const headers = this.#res ? this.#res.headers : this.#preparedHeaders ??= new Headers();
     if (value === void 0) {
       headers.delete(name);
-    } else if (options?.append) {
+    } else if (options2?.append) {
       headers.append(name, value);
     } else {
       headers.set(name, value);
@@ -950,7 +964,7 @@ var Context = class {
       }
     }
     const status = typeof arg === "number" ? arg : arg?.status ?? this.#status;
-    return new Response(data, { status, headers: responseHeaders });
+    return createResponseInstance(data, { status, headers: responseHeaders });
   }
   newResponse = (...args) => this.#newResponse(...args);
   /**
@@ -1055,12 +1069,12 @@ var Context = class {
    * ```
    */
   notFound = () => {
-    this.#notFoundHandler ??= () => new Response();
+    this.#notFoundHandler ??= () => createResponseInstance();
     return this.#notFoundHandler(this);
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router.js
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
@@ -1068,10 +1082,10 @@ var MESSAGE_MATCHER_IS_ALREADY_BUILT = "Can not add a route since the matcher is
 var UnsupportedPathError = class extends Error {
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/constants.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/constants.js
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/hono-base.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/hono-base.js
 var notFoundHandler = (c) => {
   return c.text("404 Not Found", 404);
 };
@@ -1103,7 +1117,7 @@ var Hono = class _Hono {
   _basePath = "/";
   #path = "/";
   routes = [];
-  constructor(options = {}) {
+  constructor(options2 = {}) {
     const allMethods = [...METHODS, METHOD_NAME_ALL_LOWERCASE];
     allMethods.forEach((method) => {
       this[method] = (args1, ...args) => {
@@ -1112,8 +1126,8 @@ var Hono = class _Hono {
         } else {
           this.#addRoute(method, this.#path, args1);
         }
-        args.forEach((handler2) => {
-          this.#addRoute(method, this.#path, handler2);
+        args.forEach((handler) => {
+          this.#addRoute(method, this.#path, handler);
         });
         return this;
       };
@@ -1122,8 +1136,8 @@ var Hono = class _Hono {
       for (const p of [path2].flat()) {
         this.#path = p;
         for (const m of [method].flat()) {
-          handlers.map((handler2) => {
-            this.#addRoute(m.toUpperCase(), this.#path, handler2);
+          handlers.map((handler) => {
+            this.#addRoute(m.toUpperCase(), this.#path, handler);
           });
         }
       }
@@ -1136,14 +1150,14 @@ var Hono = class _Hono {
         this.#path = "*";
         handlers.unshift(arg1);
       }
-      handlers.forEach((handler2) => {
-        this.#addRoute(METHOD_NAME_ALL, this.#path, handler2);
+      handlers.forEach((handler) => {
+        this.#addRoute(METHOD_NAME_ALL, this.#path, handler);
       });
       return this;
     };
-    const { strict, ...optionsWithoutStrict } = options;
+    const { strict, ...optionsWithoutStrict } = options2;
     Object.assign(this, optionsWithoutStrict);
-    this.getPath = strict ?? true ? options.getPath ?? getPath : getPathNoStrict;
+    this.getPath = strict ?? true ? options2.getPath ?? getPath : getPathNoStrict;
   }
   #clone() {
     const clone = new _Hono({
@@ -1179,14 +1193,14 @@ var Hono = class _Hono {
   route(path2, app2) {
     const subApp = this.basePath(path2);
     app2.routes.map((r) => {
-      let handler2;
+      let handler;
       if (app2.errorHandler === errorHandler) {
-        handler2 = r.handler;
+        handler = r.handler;
       } else {
-        handler2 = async (c, next) => (await compose([], app2.errorHandler)(c, () => r.handler(c, next))).res;
-        handler2[COMPOSED_HANDLER] = r.handler;
+        handler = async (c, next) => (await compose([], app2.errorHandler)(c, () => r.handler(c, next))).res;
+        handler[COMPOSED_HANDLER] = r.handler;
       }
-      subApp.#addRoute(r.method, r.path, handler2);
+      subApp.#addRoute(r.method, r.path, handler);
     });
     return this;
   }
@@ -1224,8 +1238,8 @@ var Hono = class _Hono {
    * })
    * ```
    */
-  onError = (handler2) => {
-    this.errorHandler = handler2;
+  onError = (handler) => {
+    this.errorHandler = handler;
     return this;
   };
   /**
@@ -1243,8 +1257,8 @@ var Hono = class _Hono {
    * })
    * ```
    */
-  notFound = (handler2) => {
-    this.#notFoundHandler = handler2;
+  notFound = (handler) => {
+    this.#notFoundHandler = handler;
     return this;
   };
   /**
@@ -1279,24 +1293,24 @@ var Hono = class _Hono {
    * })
    * ```
    */
-  mount(path2, applicationHandler, options) {
+  mount(path2, applicationHandler, options2) {
     let replaceRequest;
     let optionHandler;
-    if (options) {
-      if (typeof options === "function") {
-        optionHandler = options;
+    if (options2) {
+      if (typeof options2 === "function") {
+        optionHandler = options2;
       } else {
-        optionHandler = options.optionHandler;
-        if (options.replaceRequest === false) {
+        optionHandler = options2.optionHandler;
+        if (options2.replaceRequest === false) {
           replaceRequest = (request) => request;
         } else {
-          replaceRequest = options.replaceRequest;
+          replaceRequest = options2.replaceRequest;
         }
       }
     }
     const getOptions = optionHandler ? (c) => {
-      const options2 = optionHandler(c);
-      return Array.isArray(options2) ? options2 : [options2];
+      const options22 = optionHandler(c);
+      return Array.isArray(options22) ? options22 : [options22];
     } : (c) => {
       let executionContext = void 0;
       try {
@@ -1314,21 +1328,21 @@ var Hono = class _Hono {
         return new Request(url, request);
       };
     })();
-    const handler2 = async (c, next) => {
+    const handler = async (c, next) => {
       const res = await applicationHandler(replaceRequest(c.req.raw), ...getOptions(c));
       if (res) {
         return res;
       }
       await next();
     };
-    this.#addRoute(METHOD_NAME_ALL, mergePath(path2, "*"), handler2);
+    this.#addRoute(METHOD_NAME_ALL, mergePath(path2, "*"), handler);
     return this;
   }
-  #addRoute(method, path2, handler2) {
+  #addRoute(method, path2, handler) {
     method = method.toUpperCase();
     path2 = mergePath(this._basePath, path2);
-    const r = { basePath: this._basePath, path: path2, method, handler: handler2 };
-    this.router.add(method, path2, [handler2, r]);
+    const r = { basePath: this._basePath, path: path2, method, handler };
+    this.router.add(method, path2, [handler, r]);
     this.routes.push(r);
   }
   #handleError(err, c) {
@@ -1442,7 +1456,7 @@ var Hono = class _Hono {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/matcher.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router/reg-exp-router/matcher.js
 var emptyParam = [];
 function match(method, path2) {
   const matchers = this.buildAllMatchers();
@@ -1463,7 +1477,7 @@ function match(method, path2) {
   return match2(method, path2);
 }
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/node.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router/reg-exp-router/node.js
 var LABEL_REG_EXP_STR = "[^/]+";
 var ONLY_WILDCARD_REG_EXP_STR = ".*";
 var TAIL_WILDCARD_REG_EXP_STR = "(?:|/.*)";
@@ -1571,7 +1585,7 @@ var Node = class _Node {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/trie.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router/reg-exp-router/trie.js
 var Trie = class {
   #context = { varIndex: 0 };
   #root = new Node();
@@ -1627,7 +1641,7 @@ var Trie = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/reg-exp-router/router.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router/reg-exp-router/router.js
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path2) {
@@ -1717,7 +1731,7 @@ var RegExpRouter = class {
     this.#middleware = { [METHOD_NAME_ALL]: /* @__PURE__ */ Object.create(null) };
     this.#routes = { [METHOD_NAME_ALL]: /* @__PURE__ */ Object.create(null) };
   }
-  add(method, path2, handler2) {
+  add(method, path2, handler) {
     const middleware = this.#middleware;
     const routes = this.#routes;
     if (!middleware || !routes) {
@@ -1748,14 +1762,14 @@ var RegExpRouter = class {
       Object.keys(middleware).forEach((m) => {
         if (method === METHOD_NAME_ALL || method === m) {
           Object.keys(middleware[m]).forEach((p) => {
-            re.test(p) && middleware[m][p].push([handler2, paramCount]);
+            re.test(p) && middleware[m][p].push([handler, paramCount]);
           });
         }
       });
       Object.keys(routes).forEach((m) => {
         if (method === METHOD_NAME_ALL || method === m) {
           Object.keys(routes[m]).forEach(
-            (p) => re.test(p) && routes[m][p].push([handler2, paramCount])
+            (p) => re.test(p) && routes[m][p].push([handler, paramCount])
           );
         }
       });
@@ -1769,7 +1783,7 @@ var RegExpRouter = class {
           routes[m][path22] ||= [
             ...findMiddleware(middleware[m], path22) || findMiddleware(middleware[METHOD_NAME_ALL], path22) || []
           ];
-          routes[m][path22].push([handler2, paramCount - len + i + 1]);
+          routes[m][path22].push([handler, paramCount - len + i + 1]);
         }
       });
     }
@@ -1806,7 +1820,7 @@ var RegExpRouter = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/smart-router/router.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router/smart-router/router.js
 var SmartRouter = class {
   name = "SmartRouter";
   #routers = [];
@@ -1814,11 +1828,11 @@ var SmartRouter = class {
   constructor(init) {
     this.#routers = init.routers;
   }
-  add(method, path2, handler2) {
+  add(method, path2, handler) {
     if (!this.#routes) {
       throw new Error(MESSAGE_MATCHER_IS_ALREADY_BUILT);
     }
-    this.#routes.push([method, path2, handler2]);
+    this.#routes.push([method, path2, handler]);
   }
   match(method, path2) {
     if (!this.#routes) {
@@ -1861,25 +1875,31 @@ var SmartRouter = class {
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/trie-router/node.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router/trie-router/node.js
 var emptyParams = /* @__PURE__ */ Object.create(null);
+var hasChildren = (children) => {
+  for (const _ in children) {
+    return true;
+  }
+  return false;
+};
 var Node2 = class _Node2 {
   #methods;
   #children;
   #patterns;
   #order = 0;
   #params = emptyParams;
-  constructor(method, handler2, children) {
+  constructor(method, handler, children) {
     this.#children = children || /* @__PURE__ */ Object.create(null);
     this.#methods = [];
-    if (method && handler2) {
+    if (method && handler) {
       const m = /* @__PURE__ */ Object.create(null);
-      m[method] = { handler: handler2, possibleKeys: [], score: 0 };
+      m[method] = { handler, possibleKeys: [], score: 0 };
       this.#methods = [m];
     }
     this.#patterns = [];
   }
-  insert(method, path2, handler2) {
+  insert(method, path2, handler) {
     this.#order = ++this.#order;
     let curNode = this;
     const parts = splitRoutingPath(path2);
@@ -1905,15 +1925,14 @@ var Node2 = class _Node2 {
     }
     curNode.#methods.push({
       [method]: {
-        handler: handler2,
+        handler,
         possibleKeys: possibleKeys.filter((v, i, a) => a.indexOf(v) === i),
         score: this.#order
       }
     });
     return curNode;
   }
-  #getHandlerSets(node, method, nodeParams, params) {
-    const handlerSets = [];
+  #pushHandlerSets(handlerSets, node, method, nodeParams, params) {
     for (let i = 0, len = node.#methods.length; i < len; i++) {
       const m = node.#methods[i];
       const handlerSet = m[method] || m[METHOD_NAME_ALL];
@@ -1931,7 +1950,6 @@ var Node2 = class _Node2 {
         }
       }
     }
-    return handlerSets;
   }
   search(method, path2) {
     const handlerSets = [];
@@ -1940,7 +1958,9 @@ var Node2 = class _Node2 {
     let curNodes = [curNode];
     const parts = splitPath(path2);
     const curNodesQueue = [];
-    for (let i = 0, len = parts.length; i < len; i++) {
+    const len = parts.length;
+    let partOffsets = null;
+    for (let i = 0; i < len; i++) {
       const part = parts[i];
       const isLast = i === len - 1;
       const tempNodes = [];
@@ -1951,11 +1971,9 @@ var Node2 = class _Node2 {
           nextNode.#params = node.#params;
           if (isLast) {
             if (nextNode.#children["*"]) {
-              handlerSets.push(
-                ...this.#getHandlerSets(nextNode.#children["*"], method, node.#params)
-              );
+              this.#pushHandlerSets(handlerSets, nextNode.#children["*"], method, node.#params);
             }
-            handlerSets.push(...this.#getHandlerSets(nextNode, method, node.#params));
+            this.#pushHandlerSets(handlerSets, nextNode, method, node.#params);
           } else {
             tempNodes.push(nextNode);
           }
@@ -1966,7 +1984,7 @@ var Node2 = class _Node2 {
           if (pattern === "*") {
             const astNode = node.#children["*"];
             if (astNode) {
-              handlerSets.push(...this.#getHandlerSets(astNode, method, node.#params));
+              this.#pushHandlerSets(handlerSets, astNode, method, node.#params);
               astNode.#params = params;
               tempNodes.push(astNode);
             }
@@ -1977,13 +1995,21 @@ var Node2 = class _Node2 {
             continue;
           }
           const child = node.#children[key];
-          const restPathString = parts.slice(i).join("/");
           if (matcher instanceof RegExp) {
+            if (partOffsets === null) {
+              partOffsets = new Array(len);
+              let offset = path2[0] === "/" ? 1 : 0;
+              for (let p = 0; p < len; p++) {
+                partOffsets[p] = offset;
+                offset += parts[p].length + 1;
+              }
+            }
+            const restPathString = path2.substring(partOffsets[i]);
             const m = matcher.exec(restPathString);
             if (m) {
               params[name] = m[0];
-              handlerSets.push(...this.#getHandlerSets(child, method, node.#params, params));
-              if (Object.keys(child.#children).length) {
+              this.#pushHandlerSets(handlerSets, child, method, node.#params, params);
+              if (hasChildren(child.#children)) {
                 child.#params = params;
                 const componentCount = m[0].match(/\//)?.length ?? 0;
                 const targetCurNodes = curNodesQueue[componentCount] ||= [];
@@ -1995,10 +2021,14 @@ var Node2 = class _Node2 {
           if (matcher === true || matcher.test(part)) {
             params[name] = part;
             if (isLast) {
-              handlerSets.push(...this.#getHandlerSets(child, method, params, node.#params));
+              this.#pushHandlerSets(handlerSets, child, method, params, node.#params);
               if (child.#children["*"]) {
-                handlerSets.push(
-                  ...this.#getHandlerSets(child.#children["*"], method, params, node.#params)
+                this.#pushHandlerSets(
+                  handlerSets,
+                  child.#children["*"],
+                  method,
+                  params,
+                  node.#params
                 );
               }
             } else {
@@ -2008,56 +2038,57 @@ var Node2 = class _Node2 {
           }
         }
       }
-      curNodes = tempNodes.concat(curNodesQueue.shift() ?? []);
+      const shifted = curNodesQueue.shift();
+      curNodes = shifted ? tempNodes.concat(shifted) : tempNodes;
     }
     if (handlerSets.length > 1) {
       handlerSets.sort((a, b2) => {
         return a.score - b2.score;
       });
     }
-    return [handlerSets.map(({ handler: handler2, params }) => [handler2, params])];
+    return [handlerSets.map(({ handler, params }) => [handler, params])];
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/router/trie-router/router.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/router/trie-router/router.js
 var TrieRouter = class {
   name = "TrieRouter";
   #node;
   constructor() {
     this.#node = new Node2();
   }
-  add(method, path2, handler2) {
+  add(method, path2, handler) {
     const results = checkOptionalParameter(path2);
     if (results) {
       for (let i = 0, len = results.length; i < len; i++) {
-        this.#node.insert(method, results[i], handler2);
+        this.#node.insert(method, results[i], handler);
       }
       return;
     }
-    this.#node.insert(method, path2, handler2);
+    this.#node.insert(method, path2, handler);
   }
   match(method, path2) {
     return this.#node.search(method, path2);
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/hono.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/hono.js
 var Hono2 = class extends Hono {
   /**
    * Creates an instance of the Hono class.
    *
    * @param options - Optional configuration options for the Hono instance.
    */
-  constructor(options = {}) {
-    super(options);
-    this.router = options.router ?? new SmartRouter({
+  constructor(options2 = {}) {
+    super(options2);
+    this.router = options2.router ?? new SmartRouter({
       routers: [new RegExpRouter(), new TrieRouter()]
     });
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/middleware/cors/index.js
-var cors = (options) => {
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/middleware/cors/index.js
+var cors = (options2) => {
   const defaults = {
     origin: "*",
     allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
@@ -2066,7 +2097,7 @@ var cors = (options) => {
   };
   const opts = {
     ...defaults,
-    ...options
+    ...options2
   };
   const findAllowOrigin = ((optsOrigin) => {
     if (typeof optsOrigin === "string") {
@@ -2141,7 +2172,7 @@ var cors = (options) => {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/color.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/color.js
 function getColorEnabled() {
   const { process: process2, Deno: Deno2 } = globalThis;
   const isNoColor = typeof Deno2?.noColor === "boolean" ? Deno2.noColor : process2 !== void 0 ? (
@@ -2163,7 +2194,7 @@ async function getColorEnabledAsync() {
   return !isNoColor;
 }
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/middleware/logger/index.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/middleware/logger/index.js
 var humanize = (times) => {
   const [delimiter, separator] = [",", "."];
   const orderTimes = times.map((v) => v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1" + delimiter));
@@ -2204,10 +2235,2188 @@ var logger = (fn = console.log) => {
   };
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/helper/factory/index.js
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js
+var import_os = __toESM(require("os"), 1);
+var import_fs = __toESM(require("fs"), 1);
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/query.js
+var originCache = /* @__PURE__ */ new Map();
+var originStackCache = /* @__PURE__ */ new Map();
+var originError = /* @__PURE__ */ Symbol("OriginError");
+var CLOSE = {};
+var Query = class extends Promise {
+  constructor(strings, args, handler, canceller, options2 = {}) {
+    let resolve, reject;
+    super((a, b2) => {
+      resolve = a;
+      reject = b2;
+    });
+    this.tagged = Array.isArray(strings.raw);
+    this.strings = strings;
+    this.args = args;
+    this.handler = handler;
+    this.canceller = canceller;
+    this.options = options2;
+    this.state = null;
+    this.statement = null;
+    this.resolve = (x) => (this.active = false, resolve(x));
+    this.reject = (x) => (this.active = false, reject(x));
+    this.active = false;
+    this.cancelled = null;
+    this.executed = false;
+    this.signature = "";
+    this[originError] = this.handler.debug ? new Error() : this.tagged && cachedError(this.strings);
+  }
+  get origin() {
+    return (this.handler.debug ? this[originError].stack : this.tagged && originStackCache.has(this.strings) ? originStackCache.get(this.strings) : originStackCache.set(this.strings, this[originError].stack).get(this.strings)) || "";
+  }
+  static get [Symbol.species]() {
+    return Promise;
+  }
+  cancel() {
+    return this.canceller && (this.canceller(this), this.canceller = null);
+  }
+  simple() {
+    this.options.simple = true;
+    this.options.prepare = false;
+    return this;
+  }
+  async readable() {
+    this.simple();
+    this.streaming = true;
+    return this;
+  }
+  async writable() {
+    this.simple();
+    this.streaming = true;
+    return this;
+  }
+  cursor(rows = 1, fn) {
+    this.options.simple = false;
+    if (typeof rows === "function") {
+      fn = rows;
+      rows = 1;
+    }
+    this.cursorRows = rows;
+    if (typeof fn === "function")
+      return this.cursorFn = fn, this;
+    let prev;
+    return {
+      [Symbol.asyncIterator]: () => ({
+        next: () => {
+          if (this.executed && !this.active)
+            return { done: true };
+          prev && prev();
+          const promise = new Promise((resolve, reject) => {
+            this.cursorFn = (value) => {
+              resolve({ value, done: false });
+              return new Promise((r) => prev = r);
+            };
+            this.resolve = () => (this.active = false, resolve({ done: true }));
+            this.reject = (x) => (this.active = false, reject(x));
+          });
+          this.execute();
+          return promise;
+        },
+        return() {
+          prev && prev(CLOSE);
+          return { done: true };
+        }
+      })
+    };
+  }
+  describe() {
+    this.options.simple = false;
+    this.onlyDescribe = this.options.prepare = true;
+    return this;
+  }
+  stream() {
+    throw new Error(".stream has been renamed to .forEach");
+  }
+  forEach(fn) {
+    this.forEachFn = fn;
+    this.handle();
+    return this;
+  }
+  raw() {
+    this.isRaw = true;
+    return this;
+  }
+  values() {
+    this.isRaw = "values";
+    return this;
+  }
+  async handle() {
+    !this.executed && (this.executed = true) && await 1 && this.handler(this);
+  }
+  execute() {
+    this.handle();
+    return this;
+  }
+  then() {
+    this.handle();
+    return super.then.apply(this, arguments);
+  }
+  catch() {
+    this.handle();
+    return super.catch.apply(this, arguments);
+  }
+  finally() {
+    this.handle();
+    return super.finally.apply(this, arguments);
+  }
+};
+function cachedError(xs) {
+  if (originCache.has(xs))
+    return originCache.get(xs);
+  const x = Error.stackTraceLimit;
+  Error.stackTraceLimit = 4;
+  originCache.set(xs, new Error());
+  Error.stackTraceLimit = x;
+  return originCache.get(xs);
+}
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/errors.js
+var PostgresError = class extends Error {
+  constructor(x) {
+    super(x.message);
+    this.name = this.constructor.name;
+    Object.assign(this, x);
+  }
+};
+var Errors = {
+  connection,
+  postgres,
+  generic,
+  notSupported
+};
+function connection(x, options2, socket) {
+  const { host, port } = socket || options2;
+  const error = Object.assign(
+    new Error("write " + x + " " + (options2.path || host + ":" + port)),
+    {
+      code: x,
+      errno: x,
+      address: options2.path || host
+    },
+    options2.path ? {} : { port }
+  );
+  Error.captureStackTrace(error, connection);
+  return error;
+}
+function postgres(x) {
+  const error = new PostgresError(x);
+  Error.captureStackTrace(error, postgres);
+  return error;
+}
+function generic(code, message2) {
+  const error = Object.assign(new Error(code + ": " + message2), { code });
+  Error.captureStackTrace(error, generic);
+  return error;
+}
+function notSupported(x) {
+  const error = Object.assign(
+    new Error(x + " (B) is not supported"),
+    {
+      code: "MESSAGE_NOT_SUPPORTED",
+      name: x
+    }
+  );
+  Error.captureStackTrace(error, notSupported);
+  return error;
+}
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/types.js
+var types = {
+  string: {
+    to: 25,
+    from: null,
+    // defaults to string
+    serialize: (x) => "" + x
+  },
+  number: {
+    to: 0,
+    from: [21, 23, 26, 700, 701],
+    serialize: (x) => "" + x,
+    parse: (x) => +x
+  },
+  json: {
+    to: 114,
+    from: [114, 3802],
+    serialize: (x) => JSON.stringify(x),
+    parse: (x) => JSON.parse(x)
+  },
+  boolean: {
+    to: 16,
+    from: 16,
+    serialize: (x) => x === true ? "t" : "f",
+    parse: (x) => x === "t"
+  },
+  date: {
+    to: 1184,
+    from: [1082, 1114, 1184],
+    serialize: (x) => (x instanceof Date ? x : new Date(x)).toISOString(),
+    parse: (x) => new Date(x)
+  },
+  bytea: {
+    to: 17,
+    from: 17,
+    serialize: (x) => "\\x" + Buffer.from(x).toString("hex"),
+    parse: (x) => Buffer.from(x.slice(2), "hex")
+  }
+};
+var NotTagged = class {
+  then() {
+    notTagged();
+  }
+  catch() {
+    notTagged();
+  }
+  finally() {
+    notTagged();
+  }
+};
+var Identifier = class extends NotTagged {
+  constructor(value) {
+    super();
+    this.value = escapeIdentifier(value);
+  }
+};
+var Parameter = class extends NotTagged {
+  constructor(value, type, array) {
+    super();
+    this.value = value;
+    this.type = type;
+    this.array = array;
+  }
+};
+var Builder = class extends NotTagged {
+  constructor(first, rest) {
+    super();
+    this.first = first;
+    this.rest = rest;
+  }
+  build(before, parameters, types2, options2) {
+    const keyword = builders.map(([x, fn]) => ({ fn, i: before.search(x) })).sort((a, b2) => a.i - b2.i).pop();
+    return keyword.i === -1 ? escapeIdentifiers(this.first, options2) : keyword.fn(this.first, this.rest, parameters, types2, options2);
+  }
+};
+function handleValue(x, parameters, types2, options2) {
+  let value = x instanceof Parameter ? x.value : x;
+  if (value === void 0) {
+    x instanceof Parameter ? x.value = options2.transform.undefined : value = x = options2.transform.undefined;
+    if (value === void 0)
+      throw Errors.generic("UNDEFINED_VALUE", "Undefined values are not allowed");
+  }
+  return "$" + types2.push(
+    x instanceof Parameter ? (parameters.push(x.value), x.array ? x.array[x.type || inferType(x.value)] || x.type || firstIsString(x.value) : x.type) : (parameters.push(x), inferType(x))
+  );
+}
+var defaultHandlers = typeHandlers(types);
+function stringify(q, string, value, parameters, types2, options2) {
+  for (let i = 1; i < q.strings.length; i++) {
+    string += stringifyValue(string, value, parameters, types2, options2) + q.strings[i];
+    value = q.args[i];
+  }
+  return string;
+}
+function stringifyValue(string, value, parameters, types2, o) {
+  return value instanceof Builder ? value.build(string, parameters, types2, o) : value instanceof Query ? fragment(value, parameters, types2, o) : value instanceof Identifier ? value.value : value && value[0] instanceof Query ? value.reduce((acc, x) => acc + " " + fragment(x, parameters, types2, o), "") : handleValue(value, parameters, types2, o);
+}
+function fragment(q, parameters, types2, options2) {
+  q.fragment = true;
+  return stringify(q, q.strings[0], q.args[0], parameters, types2, options2);
+}
+function valuesBuilder(first, parameters, types2, columns, options2) {
+  return first.map(
+    (row) => "(" + columns.map(
+      (column) => stringifyValue("values", row[column], parameters, types2, options2)
+    ).join(",") + ")"
+  ).join(",");
+}
+function values(first, rest, parameters, types2, options2) {
+  const multi = Array.isArray(first[0]);
+  const columns = rest.length ? rest.flat() : Object.keys(multi ? first[0] : first);
+  return valuesBuilder(multi ? first : [first], parameters, types2, columns, options2);
+}
+function select(first, rest, parameters, types2, options2) {
+  typeof first === "string" && (first = [first].concat(rest));
+  if (Array.isArray(first))
+    return escapeIdentifiers(first, options2);
+  let value;
+  const columns = rest.length ? rest.flat() : Object.keys(first);
+  return columns.map((x) => {
+    value = first[x];
+    return (value instanceof Query ? fragment(value, parameters, types2, options2) : value instanceof Identifier ? value.value : handleValue(value, parameters, types2, options2)) + " as " + escapeIdentifier(options2.transform.column.to ? options2.transform.column.to(x) : x);
+  }).join(",");
+}
+var builders = Object.entries({
+  values,
+  in: (...xs) => {
+    const x = values(...xs);
+    return x === "()" ? "(null)" : x;
+  },
+  select,
+  as: select,
+  returning: select,
+  "\\(": select,
+  update(first, rest, parameters, types2, options2) {
+    return (rest.length ? rest.flat() : Object.keys(first)).map(
+      (x) => escapeIdentifier(options2.transform.column.to ? options2.transform.column.to(x) : x) + "=" + stringifyValue("values", first[x], parameters, types2, options2)
+    );
+  },
+  insert(first, rest, parameters, types2, options2) {
+    const columns = rest.length ? rest.flat() : Object.keys(Array.isArray(first) ? first[0] : first);
+    return "(" + escapeIdentifiers(columns, options2) + ")values" + valuesBuilder(Array.isArray(first) ? first : [first], parameters, types2, columns, options2);
+  }
+}).map(([x, fn]) => [new RegExp("((?:^|[\\s(])" + x + "(?:$|[\\s(]))(?![\\s\\S]*\\1)", "i"), fn]);
+function notTagged() {
+  throw Errors.generic("NOT_TAGGED_CALL", "Query not called as a tagged template literal");
+}
+var serializers = defaultHandlers.serializers;
+var parsers = defaultHandlers.parsers;
+function firstIsString(x) {
+  if (Array.isArray(x))
+    return firstIsString(x[0]);
+  return typeof x === "string" ? 1009 : 0;
+}
+var mergeUserTypes = function(types2) {
+  const user = typeHandlers(types2 || {});
+  return {
+    serializers: Object.assign({}, serializers, user.serializers),
+    parsers: Object.assign({}, parsers, user.parsers)
+  };
+};
+function typeHandlers(types2) {
+  return Object.keys(types2).reduce((acc, k) => {
+    types2[k].from && [].concat(types2[k].from).forEach((x) => acc.parsers[x] = types2[k].parse);
+    if (types2[k].serialize) {
+      acc.serializers[types2[k].to] = types2[k].serialize;
+      types2[k].from && [].concat(types2[k].from).forEach((x) => acc.serializers[x] = types2[k].serialize);
+    }
+    return acc;
+  }, { parsers: {}, serializers: {} });
+}
+function escapeIdentifiers(xs, { transform: { column } }) {
+  return xs.map((x) => escapeIdentifier(column.to ? column.to(x) : x)).join(",");
+}
+var escapeIdentifier = function escape(str) {
+  return '"' + str.replace(/"/g, '""').replace(/\./g, '"."') + '"';
+};
+var inferType = function inferType2(x) {
+  return x instanceof Parameter ? x.type : x instanceof Date ? 1184 : x instanceof Uint8Array ? 17 : x === true || x === false ? 16 : typeof x === "bigint" ? 20 : Array.isArray(x) ? inferType2(x[0]) : 0;
+};
+var escapeBackslash = /\\/g;
+var escapeQuote = /"/g;
+function arrayEscape(x) {
+  return x.replace(escapeBackslash, "\\\\").replace(escapeQuote, '\\"');
+}
+var arraySerializer = function arraySerializer2(xs, serializer, options2, typarray) {
+  if (Array.isArray(xs) === false)
+    return xs;
+  if (!xs.length)
+    return "{}";
+  const first = xs[0];
+  const delimiter = typarray === 1020 ? ";" : ",";
+  if (Array.isArray(first) && !first.type)
+    return "{" + xs.map((x) => arraySerializer2(x, serializer, options2, typarray)).join(delimiter) + "}";
+  return "{" + xs.map((x) => {
+    if (x === void 0) {
+      x = options2.transform.undefined;
+      if (x === void 0)
+        throw Errors.generic("UNDEFINED_VALUE", "Undefined values are not allowed");
+    }
+    return x === null ? "null" : '"' + arrayEscape(serializer ? serializer(x.type ? x.value : x) : "" + x) + '"';
+  }).join(delimiter) + "}";
+};
+var arrayParserState = {
+  i: 0,
+  char: null,
+  str: "",
+  quoted: false,
+  last: 0
+};
+var arrayParser = function arrayParser2(x, parser, typarray) {
+  arrayParserState.i = arrayParserState.last = 0;
+  return arrayParserLoop(arrayParserState, x, parser, typarray);
+};
+function arrayParserLoop(s, x, parser, typarray) {
+  const xs = [];
+  const delimiter = typarray === 1020 ? ";" : ",";
+  for (; s.i < x.length; s.i++) {
+    s.char = x[s.i];
+    if (s.quoted) {
+      if (s.char === "\\") {
+        s.str += x[++s.i];
+      } else if (s.char === '"') {
+        xs.push(parser ? parser(s.str) : s.str);
+        s.str = "";
+        s.quoted = x[s.i + 1] === '"';
+        s.last = s.i + 2;
+      } else {
+        s.str += s.char;
+      }
+    } else if (s.char === '"') {
+      s.quoted = true;
+    } else if (s.char === "{") {
+      s.last = ++s.i;
+      xs.push(arrayParserLoop(s, x, parser, typarray));
+    } else if (s.char === "}") {
+      s.quoted = false;
+      s.last < s.i && xs.push(parser ? parser(x.slice(s.last, s.i)) : x.slice(s.last, s.i));
+      s.last = s.i + 1;
+      break;
+    } else if (s.char === delimiter && s.p !== "}" && s.p !== '"') {
+      xs.push(parser ? parser(x.slice(s.last, s.i)) : x.slice(s.last, s.i));
+      s.last = s.i + 1;
+    }
+    s.p = s.char;
+  }
+  s.last < s.i && xs.push(parser ? parser(x.slice(s.last, s.i + 1)) : x.slice(s.last, s.i + 1));
+  return xs;
+}
+var toCamel = (x) => {
+  let str = x[0];
+  for (let i = 1; i < x.length; i++)
+    str += x[i] === "_" ? x[++i].toUpperCase() : x[i];
+  return str;
+};
+var toPascal = (x) => {
+  let str = x[0].toUpperCase();
+  for (let i = 1; i < x.length; i++)
+    str += x[i] === "_" ? x[++i].toUpperCase() : x[i];
+  return str;
+};
+var toKebab = (x) => x.replace(/_/g, "-");
+var fromCamel = (x) => x.replace(/([A-Z])/g, "_$1").toLowerCase();
+var fromPascal = (x) => (x.slice(0, 1) + x.slice(1).replace(/([A-Z])/g, "_$1")).toLowerCase();
+var fromKebab = (x) => x.replace(/-/g, "_");
+function createJsonTransform(fn) {
+  return function jsonTransform(x, column) {
+    return typeof x === "object" && x !== null && (column.type === 114 || column.type === 3802) ? Array.isArray(x) ? x.map((x2) => jsonTransform(x2, column)) : Object.entries(x).reduce((acc, [k, v]) => Object.assign(acc, { [fn(k)]: jsonTransform(v, column) }), {}) : x;
+  };
+}
+toCamel.column = { from: toCamel };
+toCamel.value = { from: createJsonTransform(toCamel) };
+fromCamel.column = { to: fromCamel };
+var camel = { ...toCamel };
+camel.column.to = fromCamel;
+toPascal.column = { from: toPascal };
+toPascal.value = { from: createJsonTransform(toPascal) };
+fromPascal.column = { to: fromPascal };
+var pascal = { ...toPascal };
+pascal.column.to = fromPascal;
+toKebab.column = { from: toKebab };
+toKebab.value = { from: createJsonTransform(toKebab) };
+fromKebab.column = { to: fromKebab };
+var kebab = { ...toKebab };
+kebab.column.to = fromKebab;
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js
+var import_net = __toESM(require("net"), 1);
+var import_tls = __toESM(require("tls"), 1);
+var import_crypto = __toESM(require("crypto"), 1);
+var import_stream = __toESM(require("stream"), 1);
+var import_perf_hooks = require("perf_hooks");
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/result.js
+var Result = class extends Array {
+  constructor() {
+    super();
+    Object.defineProperties(this, {
+      count: { value: null, writable: true },
+      state: { value: null, writable: true },
+      command: { value: null, writable: true },
+      columns: { value: null, writable: true },
+      statement: { value: null, writable: true }
+    });
+  }
+  static get [Symbol.species]() {
+    return Array;
+  }
+};
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/queue.js
+var queue_default = Queue;
+function Queue(initial = []) {
+  let xs = initial.slice();
+  let index = 0;
+  return {
+    get length() {
+      return xs.length - index;
+    },
+    remove: (x) => {
+      const index2 = xs.indexOf(x);
+      return index2 === -1 ? null : (xs.splice(index2, 1), x);
+    },
+    push: (x) => (xs.push(x), x),
+    shift: () => {
+      const out = xs[index++];
+      if (index === xs.length) {
+        index = 0;
+        xs = [];
+      } else {
+        xs[index - 1] = void 0;
+      }
+      return out;
+    }
+  };
+}
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/bytes.js
+var size = 256;
+var buffer = Buffer.allocUnsafe(size);
+var messages = "BCcDdEFfHPpQSX".split("").reduce((acc, x) => {
+  const v = x.charCodeAt(0);
+  acc[x] = () => {
+    buffer[0] = v;
+    b.i = 5;
+    return b;
+  };
+  return acc;
+}, {});
+var b = Object.assign(reset, messages, {
+  N: String.fromCharCode(0),
+  i: 0,
+  inc(x) {
+    b.i += x;
+    return b;
+  },
+  str(x) {
+    const length = Buffer.byteLength(x);
+    fit(length);
+    b.i += buffer.write(x, b.i, length, "utf8");
+    return b;
+  },
+  i16(x) {
+    fit(2);
+    buffer.writeUInt16BE(x, b.i);
+    b.i += 2;
+    return b;
+  },
+  i32(x, i) {
+    if (i || i === 0) {
+      buffer.writeUInt32BE(x, i);
+      return b;
+    }
+    fit(4);
+    buffer.writeUInt32BE(x, b.i);
+    b.i += 4;
+    return b;
+  },
+  z(x) {
+    fit(x);
+    buffer.fill(0, b.i, b.i + x);
+    b.i += x;
+    return b;
+  },
+  raw(x) {
+    buffer = Buffer.concat([buffer.subarray(0, b.i), x]);
+    b.i = buffer.length;
+    return b;
+  },
+  end(at = 1) {
+    buffer.writeUInt32BE(b.i - at, at);
+    const out = buffer.subarray(0, b.i);
+    b.i = 0;
+    buffer = Buffer.allocUnsafe(size);
+    return out;
+  }
+});
+var bytes_default = b;
+function fit(x) {
+  if (buffer.length - b.i < x) {
+    const prev = buffer, length = prev.length;
+    buffer = Buffer.allocUnsafe(length + (length >> 1) + x);
+    prev.copy(buffer);
+  }
+}
+function reset() {
+  b.i = 0;
+  return b;
+}
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js
+var connection_default = Connection;
+var uid = 1;
+var Sync = bytes_default().S().end();
+var Flush = bytes_default().H().end();
+var SSLRequest = bytes_default().i32(8).i32(80877103).end(8);
+var ExecuteUnnamed = Buffer.concat([bytes_default().E().str(bytes_default.N).i32(0).end(), Sync]);
+var DescribeUnnamed = bytes_default().D().str("S").str(bytes_default.N).end();
+var noop = () => {
+};
+var retryRoutines = /* @__PURE__ */ new Set([
+  "FetchPreparedStatement",
+  "RevalidateCachedQuery",
+  "transformAssignedExpr"
+]);
+var errorFields = {
+  83: "severity_local",
+  // S
+  86: "severity",
+  // V
+  67: "code",
+  // C
+  77: "message",
+  // M
+  68: "detail",
+  // D
+  72: "hint",
+  // H
+  80: "position",
+  // P
+  112: "internal_position",
+  // p
+  113: "internal_query",
+  // q
+  87: "where",
+  // W
+  115: "schema_name",
+  // s
+  116: "table_name",
+  // t
+  99: "column_name",
+  // c
+  100: "data type_name",
+  // d
+  110: "constraint_name",
+  // n
+  70: "file",
+  // F
+  76: "line",
+  // L
+  82: "routine"
+  // R
+};
+function Connection(options2, queues = {}, { onopen = noop, onend = noop, onclose = noop } = {}) {
+  const {
+    sslnegotiation,
+    ssl,
+    max,
+    user,
+    host,
+    port,
+    database,
+    parsers: parsers2,
+    transform,
+    onnotice,
+    onnotify,
+    onparameter,
+    max_pipeline,
+    keep_alive,
+    backoff: backoff2,
+    target_session_attrs
+  } = options2;
+  const sent = queue_default(), id = uid++, backend = { pid: null, secret: null }, idleTimer = timer(end, options2.idle_timeout), lifeTimer = timer(end, options2.max_lifetime), connectTimer = timer(connectTimedOut, options2.connect_timeout);
+  let socket = null, cancelMessage, errorResponse = null, result = new Result(), incoming = Buffer.alloc(0), needsTypes = options2.fetch_types, backendParameters = {}, statements = {}, statementId = Math.random().toString(36).slice(2), statementCount = 1, closedTime = 0, remaining = 0, hostIndex = 0, retries = 0, length = 0, delay = 0, rows = 0, serverSignature = null, nextWriteTimer = null, terminated = false, incomings = null, results = null, initial = null, ending = null, stream = null, chunk = null, ended = null, nonce = null, query = null, final = null;
+  const connection2 = {
+    queue: queues.closed,
+    idleTimer,
+    connect(query2) {
+      initial = query2;
+      reconnect();
+    },
+    terminate,
+    execute,
+    cancel,
+    end,
+    count: 0,
+    id
+  };
+  queues.closed && queues.closed.push(connection2);
+  return connection2;
+  async function createSocket() {
+    let x;
+    try {
+      x = options2.socket ? await Promise.resolve(options2.socket(options2)) : new import_net.default.Socket();
+    } catch (e) {
+      error(e);
+      return;
+    }
+    x.on("error", error);
+    x.on("close", closed);
+    x.on("drain", drain);
+    return x;
+  }
+  async function cancel({ pid, secret: secret2 }, resolve, reject) {
+    try {
+      cancelMessage = bytes_default().i32(16).i32(80877102).i32(pid).i32(secret2).end(16);
+      await connect();
+      socket.once("error", reject);
+      socket.once("close", resolve);
+    } catch (error2) {
+      reject(error2);
+    }
+  }
+  function execute(q) {
+    if (terminated)
+      return queryError(q, Errors.connection("CONNECTION_DESTROYED", options2));
+    if (stream)
+      return queryError(q, Errors.generic("COPY_IN_PROGRESS", "You cannot execute queries during copy"));
+    if (q.cancelled)
+      return;
+    try {
+      q.state = backend;
+      query ? sent.push(q) : (query = q, query.active = true);
+      build(q);
+      return write(toBuffer(q)) && !q.describeFirst && !q.cursorFn && sent.length < max_pipeline && (!q.options.onexecute || q.options.onexecute(connection2));
+    } catch (error2) {
+      sent.length === 0 && write(Sync);
+      errored(error2);
+      return true;
+    }
+  }
+  function toBuffer(q) {
+    if (q.parameters.length >= 65534)
+      throw Errors.generic("MAX_PARAMETERS_EXCEEDED", "Max number of parameters (65534) exceeded");
+    return q.options.simple ? bytes_default().Q().str(q.statement.string + bytes_default.N).end() : q.describeFirst ? Buffer.concat([describe(q), Flush]) : q.prepare ? q.prepared ? prepared(q) : Buffer.concat([describe(q), prepared(q)]) : unnamed(q);
+  }
+  function describe(q) {
+    return Buffer.concat([
+      Parse(q.statement.string, q.parameters, q.statement.types, q.statement.name),
+      Describe("S", q.statement.name)
+    ]);
+  }
+  function prepared(q) {
+    return Buffer.concat([
+      Bind(q.parameters, q.statement.types, q.statement.name, q.cursorName),
+      q.cursorFn ? Execute("", q.cursorRows) : ExecuteUnnamed
+    ]);
+  }
+  function unnamed(q) {
+    return Buffer.concat([
+      Parse(q.statement.string, q.parameters, q.statement.types),
+      DescribeUnnamed,
+      prepared(q)
+    ]);
+  }
+  function build(q) {
+    const parameters = [], types2 = [];
+    const string = stringify(q, q.strings[0], q.args[0], parameters, types2, options2);
+    !q.tagged && q.args.forEach((x) => handleValue(x, parameters, types2, options2));
+    q.prepare = options2.prepare && ("prepare" in q.options ? q.options.prepare : true);
+    q.string = string;
+    q.signature = q.prepare && types2 + string;
+    q.onlyDescribe && delete statements[q.signature];
+    q.parameters = q.parameters || parameters;
+    q.prepared = q.prepare && q.signature in statements;
+    q.describeFirst = q.onlyDescribe || parameters.length && !q.prepared;
+    q.statement = q.prepared ? statements[q.signature] : { string, types: types2, name: q.prepare ? statementId + statementCount++ : "" };
+    typeof options2.debug === "function" && options2.debug(id, string, parameters, types2);
+  }
+  function write(x, fn) {
+    chunk = chunk ? Buffer.concat([chunk, x]) : Buffer.from(x);
+    if (fn || chunk.length >= 1024)
+      return nextWrite(fn);
+    nextWriteTimer === null && (nextWriteTimer = setImmediate(nextWrite));
+    return true;
+  }
+  function nextWrite(fn) {
+    const x = socket.write(chunk, fn);
+    nextWriteTimer !== null && clearImmediate(nextWriteTimer);
+    chunk = nextWriteTimer = null;
+    return x;
+  }
+  function connectTimedOut() {
+    errored(Errors.connection("CONNECT_TIMEOUT", options2, socket));
+    socket.destroy();
+  }
+  async function secure() {
+    if (sslnegotiation !== "direct") {
+      write(SSLRequest);
+      const canSSL = await new Promise((r) => socket.once("data", (x) => r(x[0] === 83)));
+      if (!canSSL && ssl === "prefer")
+        return connected();
+    }
+    const options3 = {
+      socket,
+      servername: import_net.default.isIP(socket.host) ? void 0 : socket.host
+    };
+    if (sslnegotiation === "direct")
+      options3.ALPNProtocols = ["postgresql"];
+    if (ssl === "require" || ssl === "allow" || ssl === "prefer")
+      options3.rejectUnauthorized = false;
+    else if (typeof ssl === "object")
+      Object.assign(options3, ssl);
+    socket.removeAllListeners();
+    socket = import_tls.default.connect(options3);
+    socket.on("secureConnect", connected);
+    socket.on("error", error);
+    socket.on("close", closed);
+    socket.on("drain", drain);
+  }
+  function drain() {
+    !query && onopen(connection2);
+  }
+  function data(x) {
+    if (incomings) {
+      incomings.push(x);
+      remaining -= x.length;
+      if (remaining > 0)
+        return;
+    }
+    incoming = incomings ? Buffer.concat(incomings, length - remaining) : incoming.length === 0 ? x : Buffer.concat([incoming, x], incoming.length + x.length);
+    while (incoming.length > 4) {
+      length = incoming.readUInt32BE(1);
+      if (length >= incoming.length) {
+        remaining = length - incoming.length;
+        incomings = [incoming];
+        break;
+      }
+      try {
+        handle(incoming.subarray(0, length + 1));
+      } catch (e) {
+        query && (query.cursorFn || query.describeFirst) && write(Sync);
+        errored(e);
+      }
+      incoming = incoming.subarray(length + 1);
+      remaining = 0;
+      incomings = null;
+    }
+  }
+  async function connect() {
+    terminated = false;
+    backendParameters = {};
+    socket || (socket = await createSocket());
+    if (!socket)
+      return;
+    connectTimer.start();
+    if (options2.socket)
+      return ssl ? secure() : connected();
+    socket.on("connect", ssl ? secure : connected);
+    if (options2.path)
+      return socket.connect(options2.path);
+    socket.ssl = ssl;
+    socket.connect(port[hostIndex], host[hostIndex]);
+    socket.host = host[hostIndex];
+    socket.port = port[hostIndex];
+    hostIndex = (hostIndex + 1) % port.length;
+  }
+  function reconnect() {
+    setTimeout(connect, closedTime ? Math.max(0, closedTime + delay - import_perf_hooks.performance.now()) : 0);
+  }
+  function connected() {
+    try {
+      statements = {};
+      needsTypes = options2.fetch_types;
+      statementId = Math.random().toString(36).slice(2);
+      statementCount = 1;
+      lifeTimer.start();
+      socket.on("data", data);
+      keep_alive && socket.setKeepAlive && socket.setKeepAlive(true, 1e3 * keep_alive);
+      const s = StartupMessage();
+      write(s);
+    } catch (err) {
+      error(err);
+    }
+  }
+  function error(err) {
+    if (connection2.queue === queues.connecting && options2.host[retries + 1])
+      return;
+    errored(err);
+    while (sent.length)
+      queryError(sent.shift(), err);
+  }
+  function errored(err) {
+    stream && (stream.destroy(err), stream = null);
+    query && queryError(query, err);
+    initial && (queryError(initial, err), initial = null);
+  }
+  function queryError(query2, err) {
+    if (query2.reserve)
+      return query2.reject(err);
+    if (!err || typeof err !== "object")
+      err = new Error(err);
+    "query" in err || "parameters" in err || Object.defineProperties(err, {
+      stack: { value: err.stack + query2.origin.replace(/.*\n/, "\n"), enumerable: options2.debug },
+      query: { value: query2.string, enumerable: options2.debug },
+      parameters: { value: query2.parameters, enumerable: options2.debug },
+      args: { value: query2.args, enumerable: options2.debug },
+      types: { value: query2.statement && query2.statement.types, enumerable: options2.debug }
+    });
+    query2.reject(err);
+  }
+  function end() {
+    return ending || (!connection2.reserved && onend(connection2), !connection2.reserved && !initial && !query && sent.length === 0 ? (terminate(), new Promise((r) => socket && socket.readyState !== "closed" ? socket.once("close", r) : r())) : ending = new Promise((r) => ended = r));
+  }
+  function terminate() {
+    terminated = true;
+    if (stream || query || initial || sent.length)
+      error(Errors.connection("CONNECTION_DESTROYED", options2));
+    clearImmediate(nextWriteTimer);
+    if (socket) {
+      socket.removeListener("data", data);
+      socket.removeListener("connect", connected);
+      socket.readyState === "open" && socket.end(bytes_default().X().end());
+    }
+    ended && (ended(), ending = ended = null);
+  }
+  async function closed(hadError) {
+    incoming = Buffer.alloc(0);
+    remaining = 0;
+    incomings = null;
+    clearImmediate(nextWriteTimer);
+    socket.removeListener("data", data);
+    socket.removeListener("connect", connected);
+    idleTimer.cancel();
+    lifeTimer.cancel();
+    connectTimer.cancel();
+    socket.removeAllListeners();
+    socket = null;
+    if (initial)
+      return reconnect();
+    !hadError && (query || sent.length) && error(Errors.connection("CONNECTION_CLOSED", options2, socket));
+    closedTime = import_perf_hooks.performance.now();
+    hadError && options2.shared.retries++;
+    delay = (typeof backoff2 === "function" ? backoff2(options2.shared.retries) : backoff2) * 1e3;
+    onclose(connection2, Errors.connection("CONNECTION_CLOSED", options2, socket));
+  }
+  function handle(xs, x = xs[0]) {
+    (x === 68 ? DataRow : (
+      // D
+      x === 100 ? CopyData : (
+        // d
+        x === 65 ? NotificationResponse : (
+          // A
+          x === 83 ? ParameterStatus : (
+            // S
+            x === 90 ? ReadyForQuery : (
+              // Z
+              x === 67 ? CommandComplete : (
+                // C
+                x === 50 ? BindComplete : (
+                  // 2
+                  x === 49 ? ParseComplete : (
+                    // 1
+                    x === 116 ? ParameterDescription : (
+                      // t
+                      x === 84 ? RowDescription : (
+                        // T
+                        x === 82 ? Authentication : (
+                          // R
+                          x === 110 ? NoData : (
+                            // n
+                            x === 75 ? BackendKeyData : (
+                              // K
+                              x === 69 ? ErrorResponse : (
+                                // E
+                                x === 115 ? PortalSuspended : (
+                                  // s
+                                  x === 51 ? CloseComplete : (
+                                    // 3
+                                    x === 71 ? CopyInResponse : (
+                                      // G
+                                      x === 78 ? NoticeResponse : (
+                                        // N
+                                        x === 72 ? CopyOutResponse : (
+                                          // H
+                                          x === 99 ? CopyDone : (
+                                            // c
+                                            x === 73 ? EmptyQueryResponse : (
+                                              // I
+                                              x === 86 ? FunctionCallResponse : (
+                                                // V
+                                                x === 118 ? NegotiateProtocolVersion : (
+                                                  // v
+                                                  x === 87 ? CopyBothResponse : (
+                                                    // W
+                                                    /* c8 ignore next */
+                                                    UnknownMessage
+                                                  )
+                                                )
+                                              )
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    ))(xs);
+  }
+  function DataRow(x) {
+    let index = 7;
+    let length2;
+    let column;
+    let value;
+    const row = query.isRaw ? new Array(query.statement.columns.length) : {};
+    for (let i = 0; i < query.statement.columns.length; i++) {
+      column = query.statement.columns[i];
+      length2 = x.readInt32BE(index);
+      index += 4;
+      value = length2 === -1 ? null : query.isRaw === true ? x.subarray(index, index += length2) : column.parser === void 0 ? x.toString("utf8", index, index += length2) : column.parser.array === true ? column.parser(x.toString("utf8", index + 1, index += length2)) : column.parser(x.toString("utf8", index, index += length2));
+      query.isRaw ? row[i] = query.isRaw === true ? value : transform.value.from ? transform.value.from(value, column) : value : row[column.name] = transform.value.from ? transform.value.from(value, column) : value;
+    }
+    query.forEachFn ? query.forEachFn(transform.row.from ? transform.row.from(row) : row, result) : result[rows++] = transform.row.from ? transform.row.from(row) : row;
+  }
+  function ParameterStatus(x) {
+    const [k, v] = x.toString("utf8", 5, x.length - 1).split(bytes_default.N);
+    backendParameters[k] = v;
+    if (options2.parameters[k] !== v) {
+      options2.parameters[k] = v;
+      onparameter && onparameter(k, v);
+    }
+  }
+  function ReadyForQuery(x) {
+    if (query) {
+      if (errorResponse) {
+        query.retried ? errored(query.retried) : query.prepared && retryRoutines.has(errorResponse.routine) ? retry(query, errorResponse) : errored(errorResponse);
+      } else {
+        query.resolve(results || result);
+      }
+    } else if (errorResponse) {
+      errored(errorResponse);
+    }
+    query = results = errorResponse = null;
+    result = new Result();
+    connectTimer.cancel();
+    if (initial) {
+      if (target_session_attrs) {
+        if (!backendParameters.in_hot_standby || !backendParameters.default_transaction_read_only)
+          return fetchState();
+        else if (tryNext(target_session_attrs, backendParameters))
+          return terminate();
+      }
+      if (needsTypes) {
+        initial.reserve && (initial = null);
+        return fetchArrayTypes();
+      }
+      initial && !initial.reserve && execute(initial);
+      options2.shared.retries = retries = 0;
+      initial = null;
+      return;
+    }
+    while (sent.length && (query = sent.shift()) && (query.active = true, query.cancelled))
+      Connection(options2).cancel(query.state, query.cancelled.resolve, query.cancelled.reject);
+    if (query)
+      return;
+    connection2.reserved ? !connection2.reserved.release && x[5] === 73 ? ending ? terminate() : (connection2.reserved = null, onopen(connection2)) : connection2.reserved() : ending ? terminate() : onopen(connection2);
+  }
+  function CommandComplete(x) {
+    rows = 0;
+    for (let i = x.length - 1; i > 0; i--) {
+      if (x[i] === 32 && x[i + 1] < 58 && result.count === null)
+        result.count = +x.toString("utf8", i + 1, x.length - 1);
+      if (x[i - 1] >= 65) {
+        result.command = x.toString("utf8", 5, i);
+        result.state = backend;
+        break;
+      }
+    }
+    final && (final(), final = null);
+    if (result.command === "BEGIN" && max !== 1 && !connection2.reserved)
+      return errored(Errors.generic("UNSAFE_TRANSACTION", "Only use sql.begin, sql.reserved or max: 1"));
+    if (query.options.simple)
+      return BindComplete();
+    if (query.cursorFn) {
+      result.count && query.cursorFn(result);
+      write(Sync);
+    }
+  }
+  function ParseComplete() {
+    query.parsing = false;
+  }
+  function BindComplete() {
+    !result.statement && (result.statement = query.statement);
+    result.columns = query.statement.columns;
+  }
+  function ParameterDescription(x) {
+    const length2 = x.readUInt16BE(5);
+    for (let i = 0; i < length2; ++i)
+      !query.statement.types[i] && (query.statement.types[i] = x.readUInt32BE(7 + i * 4));
+    query.prepare && (statements[query.signature] = query.statement);
+    query.describeFirst && !query.onlyDescribe && (write(prepared(query)), query.describeFirst = false);
+  }
+  function RowDescription(x) {
+    if (result.command) {
+      results = results || [result];
+      results.push(result = new Result());
+      result.count = null;
+      query.statement.columns = null;
+    }
+    const length2 = x.readUInt16BE(5);
+    let index = 7;
+    let start;
+    query.statement.columns = Array(length2);
+    for (let i = 0; i < length2; ++i) {
+      start = index;
+      while (x[index++] !== 0) ;
+      const table = x.readUInt32BE(index);
+      const number = x.readUInt16BE(index + 4);
+      const type = x.readUInt32BE(index + 6);
+      query.statement.columns[i] = {
+        name: transform.column.from ? transform.column.from(x.toString("utf8", start, index - 1)) : x.toString("utf8", start, index - 1),
+        parser: parsers2[type],
+        table,
+        number,
+        type
+      };
+      index += 18;
+    }
+    result.statement = query.statement;
+    if (query.onlyDescribe)
+      return query.resolve(query.statement), write(Sync);
+  }
+  async function Authentication(x, type = x.readUInt32BE(5)) {
+    (type === 3 ? AuthenticationCleartextPassword : type === 5 ? AuthenticationMD5Password : type === 10 ? SASL : type === 11 ? SASLContinue : type === 12 ? SASLFinal : type !== 0 ? UnknownAuth : noop)(x, type);
+  }
+  async function AuthenticationCleartextPassword() {
+    const payload = await Pass();
+    write(
+      bytes_default().p().str(payload).z(1).end()
+    );
+  }
+  async function AuthenticationMD5Password(x) {
+    const payload = "md5" + await md5(
+      Buffer.concat([
+        Buffer.from(await md5(await Pass() + user)),
+        x.subarray(9)
+      ])
+    );
+    write(
+      bytes_default().p().str(payload).z(1).end()
+    );
+  }
+  async function SASL() {
+    nonce = (await import_crypto.default.randomBytes(18)).toString("base64");
+    bytes_default().p().str("SCRAM-SHA-256" + bytes_default.N);
+    const i = bytes_default.i;
+    write(bytes_default.inc(4).str("n,,n=*,r=" + nonce).i32(bytes_default.i - i - 4, i).end());
+  }
+  async function SASLContinue(x) {
+    const res = x.toString("utf8", 9).split(",").reduce((acc, x2) => (acc[x2[0]] = x2.slice(2), acc), {});
+    const saltedPassword = await import_crypto.default.pbkdf2Sync(
+      await Pass(),
+      Buffer.from(res.s, "base64"),
+      parseInt(res.i),
+      32,
+      "sha256"
+    );
+    const clientKey = await hmac(saltedPassword, "Client Key");
+    const auth = "n=*,r=" + nonce + ",r=" + res.r + ",s=" + res.s + ",i=" + res.i + ",c=biws,r=" + res.r;
+    serverSignature = (await hmac(await hmac(saltedPassword, "Server Key"), auth)).toString("base64");
+    const payload = "c=biws,r=" + res.r + ",p=" + xor(
+      clientKey,
+      Buffer.from(await hmac(await sha256(clientKey), auth))
+    ).toString("base64");
+    write(
+      bytes_default().p().str(payload).end()
+    );
+  }
+  function SASLFinal(x) {
+    if (x.toString("utf8", 9).split(bytes_default.N, 1)[0].slice(2) === serverSignature)
+      return;
+    errored(Errors.generic("SASL_SIGNATURE_MISMATCH", "The server did not return the correct signature"));
+    socket.destroy();
+  }
+  function Pass() {
+    return Promise.resolve(
+      typeof options2.pass === "function" ? options2.pass() : options2.pass
+    );
+  }
+  function NoData() {
+    result.statement = query.statement;
+    result.statement.columns = [];
+    if (query.onlyDescribe)
+      return query.resolve(query.statement), write(Sync);
+  }
+  function BackendKeyData(x) {
+    backend.pid = x.readUInt32BE(5);
+    backend.secret = x.readUInt32BE(9);
+  }
+  async function fetchArrayTypes() {
+    needsTypes = false;
+    const types2 = await new Query([`
+      select b.oid, b.typarray
+      from pg_catalog.pg_type a
+      left join pg_catalog.pg_type b on b.oid = a.typelem
+      where a.typcategory = 'A'
+      group by b.oid, b.typarray
+      order by b.oid
+    `], [], execute);
+    types2.forEach(({ oid, typarray }) => addArrayType(oid, typarray));
+  }
+  function addArrayType(oid, typarray) {
+    if (!!options2.parsers[typarray] && !!options2.serializers[typarray]) return;
+    const parser = options2.parsers[oid];
+    options2.shared.typeArrayMap[oid] = typarray;
+    options2.parsers[typarray] = (xs) => arrayParser(xs, parser, typarray);
+    options2.parsers[typarray].array = true;
+    options2.serializers[typarray] = (xs) => arraySerializer(xs, options2.serializers[oid], options2, typarray);
+  }
+  function tryNext(x, xs) {
+    return x === "read-write" && xs.default_transaction_read_only === "on" || x === "read-only" && xs.default_transaction_read_only === "off" || x === "primary" && xs.in_hot_standby === "on" || x === "standby" && xs.in_hot_standby === "off" || x === "prefer-standby" && xs.in_hot_standby === "off" && options2.host[retries];
+  }
+  function fetchState() {
+    const query2 = new Query([`
+      show transaction_read_only;
+      select pg_catalog.pg_is_in_recovery()
+    `], [], execute, null, { simple: true });
+    query2.resolve = ([[a], [b2]]) => {
+      backendParameters.default_transaction_read_only = a.transaction_read_only;
+      backendParameters.in_hot_standby = b2.pg_is_in_recovery ? "on" : "off";
+    };
+    query2.execute();
+  }
+  function ErrorResponse(x) {
+    if (query) {
+      (query.cursorFn || query.describeFirst) && write(Sync);
+      errorResponse = Errors.postgres(parseError(x));
+    } else {
+      errored(Errors.postgres(parseError(x)));
+    }
+  }
+  function retry(q, error2) {
+    delete statements[q.signature];
+    q.retried = error2;
+    execute(q);
+  }
+  function NotificationResponse(x) {
+    if (!onnotify)
+      return;
+    let index = 9;
+    while (x[index++] !== 0) ;
+    onnotify(
+      x.toString("utf8", 9, index - 1),
+      x.toString("utf8", index, x.length - 1)
+    );
+  }
+  async function PortalSuspended() {
+    try {
+      const x = await Promise.resolve(query.cursorFn(result));
+      rows = 0;
+      x === CLOSE ? write(Close(query.portal)) : (result = new Result(), write(Execute("", query.cursorRows)));
+    } catch (err) {
+      write(Sync);
+      query.reject(err);
+    }
+  }
+  function CloseComplete() {
+    result.count && query.cursorFn(result);
+    query.resolve(result);
+  }
+  function CopyInResponse() {
+    stream = new import_stream.default.Writable({
+      autoDestroy: true,
+      write(chunk2, encoding, callback) {
+        socket.write(bytes_default().d().raw(chunk2).end(), callback);
+      },
+      destroy(error2, callback) {
+        callback(error2);
+        socket.write(bytes_default().f().str(error2 + bytes_default.N).end());
+        stream = null;
+      },
+      final(callback) {
+        socket.write(bytes_default().c().end());
+        final = callback;
+        stream = null;
+      }
+    });
+    query.resolve(stream);
+  }
+  function CopyOutResponse() {
+    stream = new import_stream.default.Readable({
+      read() {
+        socket.resume();
+      }
+    });
+    query.resolve(stream);
+  }
+  function CopyBothResponse() {
+    stream = new import_stream.default.Duplex({
+      autoDestroy: true,
+      read() {
+        socket.resume();
+      },
+      /* c8 ignore next 11 */
+      write(chunk2, encoding, callback) {
+        socket.write(bytes_default().d().raw(chunk2).end(), callback);
+      },
+      destroy(error2, callback) {
+        callback(error2);
+        socket.write(bytes_default().f().str(error2 + bytes_default.N).end());
+        stream = null;
+      },
+      final(callback) {
+        socket.write(bytes_default().c().end());
+        final = callback;
+      }
+    });
+    query.resolve(stream);
+  }
+  function CopyData(x) {
+    stream && (stream.push(x.subarray(5)) || socket.pause());
+  }
+  function CopyDone() {
+    stream && stream.push(null);
+    stream = null;
+  }
+  function NoticeResponse(x) {
+    onnotice ? onnotice(parseError(x)) : console.log(parseError(x));
+  }
+  function EmptyQueryResponse() {
+  }
+  function FunctionCallResponse() {
+    errored(Errors.notSupported("FunctionCallResponse"));
+  }
+  function NegotiateProtocolVersion() {
+    errored(Errors.notSupported("NegotiateProtocolVersion"));
+  }
+  function UnknownMessage(x) {
+    console.error("Postgres.js : Unknown Message:", x[0]);
+  }
+  function UnknownAuth(x, type) {
+    console.error("Postgres.js : Unknown Auth:", type);
+  }
+  function Bind(parameters, types2, statement = "", portal = "") {
+    let prev, type;
+    bytes_default().B().str(portal + bytes_default.N).str(statement + bytes_default.N).i16(0).i16(parameters.length);
+    parameters.forEach((x, i) => {
+      if (x === null)
+        return bytes_default.i32(4294967295);
+      type = types2[i];
+      parameters[i] = x = type in options2.serializers ? options2.serializers[type](x) : "" + x;
+      prev = bytes_default.i;
+      bytes_default.inc(4).str(x).i32(bytes_default.i - prev - 4, prev);
+    });
+    bytes_default.i16(0);
+    return bytes_default.end();
+  }
+  function Parse(str, parameters, types2, name = "") {
+    bytes_default().P().str(name + bytes_default.N).str(str + bytes_default.N).i16(parameters.length);
+    parameters.forEach((x, i) => bytes_default.i32(types2[i] || 0));
+    return bytes_default.end();
+  }
+  function Describe(x, name = "") {
+    return bytes_default().D().str(x).str(name + bytes_default.N).end();
+  }
+  function Execute(portal = "", rows2 = 0) {
+    return Buffer.concat([
+      bytes_default().E().str(portal + bytes_default.N).i32(rows2).end(),
+      Flush
+    ]);
+  }
+  function Close(portal = "") {
+    return Buffer.concat([
+      bytes_default().C().str("P").str(portal + bytes_default.N).end(),
+      bytes_default().S().end()
+    ]);
+  }
+  function StartupMessage() {
+    return cancelMessage || bytes_default().inc(4).i16(3).z(2).str(
+      Object.entries(Object.assign(
+        {
+          user,
+          database,
+          client_encoding: "UTF8"
+        },
+        options2.connection
+      )).filter(([, v]) => v).map(([k, v]) => k + bytes_default.N + v).join(bytes_default.N)
+    ).z(2).end(0);
+  }
+}
+function parseError(x) {
+  const error = {};
+  let start = 5;
+  for (let i = 5; i < x.length - 1; i++) {
+    if (x[i] === 0) {
+      error[errorFields[x[start]]] = x.toString("utf8", start + 1, i);
+      start = i + 1;
+    }
+  }
+  return error;
+}
+function md5(x) {
+  return import_crypto.default.createHash("md5").update(x).digest("hex");
+}
+function hmac(key, x) {
+  return import_crypto.default.createHmac("sha256", key).update(x).digest();
+}
+function sha256(x) {
+  return import_crypto.default.createHash("sha256").update(x).digest();
+}
+function xor(a, b2) {
+  const length = Math.max(a.length, b2.length);
+  const buffer2 = Buffer.allocUnsafe(length);
+  for (let i = 0; i < length; i++)
+    buffer2[i] = a[i] ^ b2[i];
+  return buffer2;
+}
+function timer(fn, seconds) {
+  seconds = typeof seconds === "function" ? seconds() : seconds;
+  if (!seconds)
+    return { cancel: noop, start: noop };
+  let timer2;
+  return {
+    cancel() {
+      timer2 && (clearTimeout(timer2), timer2 = null);
+    },
+    start() {
+      timer2 && clearTimeout(timer2);
+      timer2 = setTimeout(done, seconds * 1e3, arguments);
+    }
+  };
+  function done(args) {
+    fn.apply(null, args);
+    timer2 = null;
+  }
+}
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/subscribe.js
+var noop2 = () => {
+};
+function Subscribe(postgres2, options2) {
+  const subscribers = /* @__PURE__ */ new Map(), slot = "postgresjs_" + Math.random().toString(36).slice(2), state = {};
+  let connection2, stream, ended = false;
+  const sql2 = subscribe.sql = postgres2({
+    ...options2,
+    transform: { column: {}, value: {}, row: {} },
+    max: 1,
+    fetch_types: false,
+    idle_timeout: null,
+    max_lifetime: null,
+    connection: {
+      ...options2.connection,
+      replication: "database"
+    },
+    onclose: async function() {
+      if (ended)
+        return;
+      stream = null;
+      state.pid = state.secret = void 0;
+      connected(await init(sql2, slot, options2.publications));
+      subscribers.forEach((event) => event.forEach(({ onsubscribe }) => onsubscribe()));
+    },
+    no_subscribe: true
+  });
+  const end = sql2.end, close = sql2.close;
+  sql2.end = async () => {
+    ended = true;
+    stream && await new Promise((r) => (stream.once("close", r), stream.end()));
+    return end();
+  };
+  sql2.close = async () => {
+    stream && await new Promise((r) => (stream.once("close", r), stream.end()));
+    return close();
+  };
+  return subscribe;
+  async function subscribe(event, fn, onsubscribe = noop2, onerror = noop2) {
+    event = parseEvent(event);
+    if (!connection2)
+      connection2 = init(sql2, slot, options2.publications);
+    const subscriber = { fn, onsubscribe };
+    const fns = subscribers.has(event) ? subscribers.get(event).add(subscriber) : subscribers.set(event, /* @__PURE__ */ new Set([subscriber])).get(event);
+    const unsubscribe = () => {
+      fns.delete(subscriber);
+      fns.size === 0 && subscribers.delete(event);
+    };
+    return connection2.then((x) => {
+      connected(x);
+      onsubscribe();
+      stream && stream.on("error", onerror);
+      return { unsubscribe, state, sql: sql2 };
+    });
+  }
+  function connected(x) {
+    stream = x.stream;
+    state.pid = x.state.pid;
+    state.secret = x.state.secret;
+  }
+  async function init(sql3, slot2, publications) {
+    if (!publications)
+      throw new Error("Missing publication names");
+    const xs = await sql3.unsafe(
+      `CREATE_REPLICATION_SLOT ${slot2} TEMPORARY LOGICAL pgoutput NOEXPORT_SNAPSHOT`
+    );
+    const [x] = xs;
+    const stream2 = await sql3.unsafe(
+      `START_REPLICATION SLOT ${slot2} LOGICAL ${x.consistent_point} (proto_version '1', publication_names '${publications}')`
+    ).writable();
+    const state2 = {
+      lsn: Buffer.concat(x.consistent_point.split("/").map((x2) => Buffer.from(("00000000" + x2).slice(-8), "hex")))
+    };
+    stream2.on("data", data);
+    stream2.on("error", error);
+    stream2.on("close", sql3.close);
+    return { stream: stream2, state: xs.state };
+    function error(e) {
+      console.error("Unexpected error during logical streaming - reconnecting", e);
+    }
+    function data(x2) {
+      if (x2[0] === 119) {
+        parse(x2.subarray(25), state2, sql3.options.parsers, handle, options2.transform);
+      } else if (x2[0] === 107 && x2[17]) {
+        state2.lsn = x2.subarray(1, 9);
+        pong();
+      }
+    }
+    function handle(a, b2) {
+      const path2 = b2.relation.schema + "." + b2.relation.table;
+      call("*", a, b2);
+      call("*:" + path2, a, b2);
+      b2.relation.keys.length && call("*:" + path2 + "=" + b2.relation.keys.map((x2) => a[x2.name]), a, b2);
+      call(b2.command, a, b2);
+      call(b2.command + ":" + path2, a, b2);
+      b2.relation.keys.length && call(b2.command + ":" + path2 + "=" + b2.relation.keys.map((x2) => a[x2.name]), a, b2);
+    }
+    function pong() {
+      const x2 = Buffer.alloc(34);
+      x2[0] = "r".charCodeAt(0);
+      x2.fill(state2.lsn, 1);
+      x2.writeBigInt64BE(BigInt(Date.now() - Date.UTC(2e3, 0, 1)) * BigInt(1e3), 25);
+      stream2.write(x2);
+    }
+  }
+  function call(x, a, b2) {
+    subscribers.has(x) && subscribers.get(x).forEach(({ fn }) => fn(a, b2, x));
+  }
+}
+function Time(x) {
+  return new Date(Date.UTC(2e3, 0, 1) + Number(x / BigInt(1e3)));
+}
+function parse(x, state, parsers2, handle, transform) {
+  const char = (acc, [k, v]) => (acc[k.charCodeAt(0)] = v, acc);
+  Object.entries({
+    R: (x2) => {
+      let i = 1;
+      const r = state[x2.readUInt32BE(i)] = {
+        schema: x2.toString("utf8", i += 4, i = x2.indexOf(0, i)) || "pg_catalog",
+        table: x2.toString("utf8", i + 1, i = x2.indexOf(0, i + 1)),
+        columns: Array(x2.readUInt16BE(i += 2)),
+        keys: []
+      };
+      i += 2;
+      let columnIndex = 0, column;
+      while (i < x2.length) {
+        column = r.columns[columnIndex++] = {
+          key: x2[i++],
+          name: transform.column.from ? transform.column.from(x2.toString("utf8", i, i = x2.indexOf(0, i))) : x2.toString("utf8", i, i = x2.indexOf(0, i)),
+          type: x2.readUInt32BE(i += 1),
+          parser: parsers2[x2.readUInt32BE(i)],
+          atttypmod: x2.readUInt32BE(i += 4)
+        };
+        column.key && r.keys.push(column);
+        i += 4;
+      }
+    },
+    Y: () => {
+    },
+    // Type
+    O: () => {
+    },
+    // Origin
+    B: (x2) => {
+      state.date = Time(x2.readBigInt64BE(9));
+      state.lsn = x2.subarray(1, 9);
+    },
+    I: (x2) => {
+      let i = 1;
+      const relation = state[x2.readUInt32BE(i)];
+      const { row } = tuples(x2, relation.columns, i += 7, transform);
+      handle(row, {
+        command: "insert",
+        relation
+      });
+    },
+    D: (x2) => {
+      let i = 1;
+      const relation = state[x2.readUInt32BE(i)];
+      i += 4;
+      const key = x2[i] === 75;
+      handle(
+        key || x2[i] === 79 ? tuples(x2, relation.columns, i += 3, transform).row : null,
+        {
+          command: "delete",
+          relation,
+          key
+        }
+      );
+    },
+    U: (x2) => {
+      let i = 1;
+      const relation = state[x2.readUInt32BE(i)];
+      i += 4;
+      const key = x2[i] === 75;
+      const xs = key || x2[i] === 79 ? tuples(x2, relation.columns, i += 3, transform) : null;
+      xs && (i = xs.i);
+      const { row } = tuples(x2, relation.columns, i + 3, transform);
+      handle(row, {
+        command: "update",
+        relation,
+        key,
+        old: xs && xs.row
+      });
+    },
+    T: () => {
+    },
+    // Truncate,
+    C: () => {
+    }
+    // Commit
+  }).reduce(char, {})[x[0]](x);
+}
+function tuples(x, columns, xi, transform) {
+  let type, column, value;
+  const row = transform.raw ? new Array(columns.length) : {};
+  for (let i = 0; i < columns.length; i++) {
+    type = x[xi++];
+    column = columns[i];
+    value = type === 110 ? null : type === 117 ? void 0 : column.parser === void 0 ? x.toString("utf8", xi + 4, xi += 4 + x.readUInt32BE(xi)) : column.parser.array === true ? column.parser(x.toString("utf8", xi + 5, xi += 4 + x.readUInt32BE(xi))) : column.parser(x.toString("utf8", xi + 4, xi += 4 + x.readUInt32BE(xi)));
+    transform.raw ? row[i] = transform.raw === true ? value : transform.value.from ? transform.value.from(value, column) : value : row[column.name] = transform.value.from ? transform.value.from(value, column) : value;
+  }
+  return { i: xi, row: transform.row.from ? transform.row.from(row) : row };
+}
+function parseEvent(x) {
+  const xs = x.match(/^(\*|insert|update|delete)?:?([^.]+?\.?[^=]+)?=?(.+)?/i) || [];
+  if (!xs)
+    throw new Error("Malformed subscribe pattern: " + x);
+  const [, command, path2, key] = xs;
+  return (command || "*") + (path2 ? ":" + (path2.indexOf(".") === -1 ? "public." + path2 : path2) : "") + (key ? "=" + key : "");
+}
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/large.js
+var import_stream2 = __toESM(require("stream"), 1);
+function largeObject(sql2, oid, mode = 131072 | 262144) {
+  return new Promise(async (resolve, reject) => {
+    await sql2.begin(async (sql3) => {
+      let finish;
+      !oid && ([{ oid }] = await sql3`select lo_creat(-1) as oid`);
+      const [{ fd }] = await sql3`select lo_open(${oid}, ${mode}) as fd`;
+      const lo = {
+        writable,
+        readable,
+        close: () => sql3`select lo_close(${fd})`.then(finish),
+        tell: () => sql3`select lo_tell64(${fd})`,
+        read: (x) => sql3`select loread(${fd}, ${x}) as data`,
+        write: (x) => sql3`select lowrite(${fd}, ${x})`,
+        truncate: (x) => sql3`select lo_truncate64(${fd}, ${x})`,
+        seek: (x, whence = 0) => sql3`select lo_lseek64(${fd}, ${x}, ${whence})`,
+        size: () => sql3`
+          select
+            lo_lseek64(${fd}, location, 0) as position,
+            seek.size
+          from (
+            select
+              lo_lseek64($1, 0, 2) as size,
+              tell.location
+            from (select lo_tell64($1) as location) tell
+          ) seek
+        `
+      };
+      resolve(lo);
+      return new Promise(async (r) => finish = r);
+      async function readable({
+        highWaterMark = 2048 * 8,
+        start = 0,
+        end = Infinity
+      } = {}) {
+        let max = end - start;
+        start && await lo.seek(start);
+        return new import_stream2.default.Readable({
+          highWaterMark,
+          async read(size2) {
+            const l = size2 > max ? size2 - max : size2;
+            max -= size2;
+            const [{ data }] = await lo.read(l);
+            this.push(data);
+            if (data.length < size2)
+              this.push(null);
+          }
+        });
+      }
+      async function writable({
+        highWaterMark = 2048 * 8,
+        start = 0
+      } = {}) {
+        start && await lo.seek(start);
+        return new import_stream2.default.Writable({
+          highWaterMark,
+          write(chunk, encoding, callback) {
+            lo.write(chunk).then(() => callback(), callback);
+          }
+        });
+      }
+    }).catch(reject);
+  });
+}
+
+// node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js
+Object.assign(Postgres, {
+  PostgresError,
+  toPascal,
+  pascal,
+  toCamel,
+  camel,
+  toKebab,
+  kebab,
+  fromPascal,
+  fromCamel,
+  fromKebab,
+  BigInt: {
+    to: 20,
+    from: [20],
+    parse: (x) => BigInt(x),
+    // eslint-disable-line
+    serialize: (x) => x.toString()
+  }
+});
+var src_default = Postgres;
+function Postgres(a, b2) {
+  const options2 = parseOptions(a, b2), subscribe = options2.no_subscribe || Subscribe(Postgres, { ...options2 });
+  let ending = false;
+  const queries = queue_default(), connecting = queue_default(), reserved = queue_default(), closed = queue_default(), ended = queue_default(), open = queue_default(), busy = queue_default(), full = queue_default(), queues = { connecting, reserved, closed, ended, open, busy, full };
+  const connections = [...Array(options2.max)].map(() => connection_default(options2, queues, { onopen, onend, onclose }));
+  const sql2 = Sql(handler);
+  Object.assign(sql2, {
+    get parameters() {
+      return options2.parameters;
+    },
+    largeObject: largeObject.bind(null, sql2),
+    subscribe,
+    CLOSE,
+    END: CLOSE,
+    PostgresError,
+    options: options2,
+    reserve,
+    listen,
+    begin,
+    close,
+    end
+  });
+  return sql2;
+  function Sql(handler2) {
+    handler2.debug = options2.debug;
+    Object.entries(options2.types).reduce((acc, [name, type]) => {
+      acc[name] = (x) => new Parameter(x, type.to);
+      return acc;
+    }, typed);
+    Object.assign(sql3, {
+      types: typed,
+      typed,
+      unsafe,
+      notify,
+      array,
+      json,
+      file
+    });
+    return sql3;
+    function typed(value, type) {
+      return new Parameter(value, type);
+    }
+    function sql3(strings, ...args) {
+      const query = strings && Array.isArray(strings.raw) ? new Query(strings, args, handler2, cancel) : typeof strings === "string" && !args.length ? new Identifier(options2.transform.column.to ? options2.transform.column.to(strings) : strings) : new Builder(strings, args);
+      return query;
+    }
+    function unsafe(string, args = [], options3 = {}) {
+      arguments.length === 2 && !Array.isArray(args) && (options3 = args, args = []);
+      const query = new Query([string], args, handler2, cancel, {
+        prepare: false,
+        ...options3,
+        simple: "simple" in options3 ? options3.simple : args.length === 0
+      });
+      return query;
+    }
+    function file(path2, args = [], options3 = {}) {
+      arguments.length === 2 && !Array.isArray(args) && (options3 = args, args = []);
+      const query = new Query([], args, (query2) => {
+        import_fs.default.readFile(path2, "utf8", (err, string) => {
+          if (err)
+            return query2.reject(err);
+          query2.strings = [string];
+          handler2(query2);
+        });
+      }, cancel, {
+        ...options3,
+        simple: "simple" in options3 ? options3.simple : args.length === 0
+      });
+      return query;
+    }
+  }
+  async function listen(name, fn, onlisten) {
+    const listener = { fn, onlisten };
+    const sql3 = listen.sql || (listen.sql = Postgres({
+      ...options2,
+      max: 1,
+      idle_timeout: null,
+      max_lifetime: null,
+      fetch_types: false,
+      onclose() {
+        Object.entries(listen.channels).forEach(([name2, { listeners }]) => {
+          delete listen.channels[name2];
+          Promise.all(listeners.map((l) => listen(name2, l.fn, l.onlisten).catch(() => {
+          })));
+        });
+      },
+      onnotify(c, x) {
+        c in listen.channels && listen.channels[c].listeners.forEach((l) => l.fn(x));
+      }
+    }));
+    const channels = listen.channels || (listen.channels = {}), exists = name in channels;
+    if (exists) {
+      channels[name].listeners.push(listener);
+      const result2 = await channels[name].result;
+      listener.onlisten && listener.onlisten();
+      return { state: result2.state, unlisten };
+    }
+    channels[name] = { result: sql3`listen ${sql3.unsafe('"' + name.replace(/"/g, '""') + '"')}`, listeners: [listener] };
+    const result = await channels[name].result;
+    listener.onlisten && listener.onlisten();
+    return { state: result.state, unlisten };
+    async function unlisten() {
+      if (name in channels === false)
+        return;
+      channels[name].listeners = channels[name].listeners.filter((x) => x !== listener);
+      if (channels[name].listeners.length)
+        return;
+      delete channels[name];
+      return sql3`unlisten ${sql3.unsafe('"' + name.replace(/"/g, '""') + '"')}`;
+    }
+  }
+  async function notify(channel, payload) {
+    return await sql2`select pg_notify(${channel}, ${"" + payload})`;
+  }
+  async function reserve() {
+    const queue = queue_default();
+    const c = open.length ? open.shift() : await new Promise((resolve, reject) => {
+      const query = { reserve: resolve, reject };
+      queries.push(query);
+      closed.length && connect(closed.shift(), query);
+    });
+    move(c, reserved);
+    c.reserved = () => queue.length ? c.execute(queue.shift()) : move(c, reserved);
+    c.reserved.release = true;
+    const sql3 = Sql(handler2);
+    sql3.release = () => {
+      c.reserved = null;
+      onopen(c);
+    };
+    return sql3;
+    function handler2(q) {
+      c.queue === full ? queue.push(q) : c.execute(q) || move(c, full);
+    }
+  }
+  async function begin(options3, fn) {
+    !fn && (fn = options3, options3 = "");
+    const queries2 = queue_default();
+    let savepoints = 0, connection2, prepare = null;
+    try {
+      await sql2.unsafe("begin " + options3.replace(/[^a-z ]/ig, ""), [], { onexecute }).execute();
+      return await Promise.race([
+        scope(connection2, fn),
+        new Promise((_, reject) => connection2.onclose = reject)
+      ]);
+    } catch (error) {
+      throw error;
+    }
+    async function scope(c, fn2, name) {
+      const sql3 = Sql(handler2);
+      sql3.savepoint = savepoint;
+      sql3.prepare = (x) => prepare = x.replace(/[^a-z0-9$-_. ]/gi);
+      let uncaughtError, result;
+      name && await sql3`savepoint ${sql3(name)}`;
+      try {
+        result = await new Promise((resolve, reject) => {
+          const x = fn2(sql3);
+          Promise.resolve(Array.isArray(x) ? Promise.all(x) : x).then(resolve, reject);
+        });
+        if (uncaughtError)
+          throw uncaughtError;
+      } catch (e) {
+        await (name ? sql3`rollback to ${sql3(name)}` : sql3`rollback`);
+        throw e instanceof PostgresError && e.code === "25P02" && uncaughtError || e;
+      }
+      if (!name) {
+        prepare ? await sql3`prepare transaction '${sql3.unsafe(prepare)}'` : await sql3`commit`;
+      }
+      return result;
+      function savepoint(name2, fn3) {
+        if (name2 && Array.isArray(name2.raw))
+          return savepoint((sql4) => sql4.apply(sql4, arguments));
+        arguments.length === 1 && (fn3 = name2, name2 = null);
+        return scope(c, fn3, "s" + savepoints++ + (name2 ? "_" + name2 : ""));
+      }
+      function handler2(q) {
+        q.catch((e) => uncaughtError || (uncaughtError = e));
+        c.queue === full ? queries2.push(q) : c.execute(q) || move(c, full);
+      }
+    }
+    function onexecute(c) {
+      connection2 = c;
+      move(c, reserved);
+      c.reserved = () => queries2.length ? c.execute(queries2.shift()) : move(c, reserved);
+    }
+  }
+  function move(c, queue) {
+    c.queue.remove(c);
+    queue.push(c);
+    c.queue = queue;
+    queue === open ? c.idleTimer.start() : c.idleTimer.cancel();
+    return c;
+  }
+  function json(x) {
+    return new Parameter(x, 3802);
+  }
+  function array(x, type) {
+    if (!Array.isArray(x))
+      return array(Array.from(arguments));
+    return new Parameter(x, type || (x.length ? inferType(x) || 25 : 0), options2.shared.typeArrayMap);
+  }
+  function handler(query) {
+    if (ending)
+      return query.reject(Errors.connection("CONNECTION_ENDED", options2, options2));
+    if (open.length)
+      return go(open.shift(), query);
+    if (closed.length)
+      return connect(closed.shift(), query);
+    busy.length ? go(busy.shift(), query) : queries.push(query);
+  }
+  function go(c, query) {
+    return c.execute(query) ? move(c, busy) : move(c, full);
+  }
+  function cancel(query) {
+    return new Promise((resolve, reject) => {
+      query.state ? query.active ? connection_default(options2).cancel(query.state, resolve, reject) : query.cancelled = { resolve, reject } : (queries.remove(query), query.cancelled = true, query.reject(Errors.generic("57014", "canceling statement due to user request")), resolve());
+    });
+  }
+  async function end({ timeout = null } = {}) {
+    if (ending)
+      return ending;
+    await 1;
+    let timer2;
+    return ending = Promise.race([
+      new Promise((r) => timeout !== null && (timer2 = setTimeout(destroy, timeout * 1e3, r))),
+      Promise.all(connections.map((c) => c.end()).concat(
+        listen.sql ? listen.sql.end({ timeout: 0 }) : [],
+        subscribe.sql ? subscribe.sql.end({ timeout: 0 }) : []
+      ))
+    ]).then(() => clearTimeout(timer2));
+  }
+  async function close() {
+    await Promise.all(connections.map((c) => c.end()));
+  }
+  async function destroy(resolve) {
+    await Promise.all(connections.map((c) => c.terminate()));
+    while (queries.length)
+      queries.shift().reject(Errors.connection("CONNECTION_DESTROYED", options2));
+    resolve();
+  }
+  function connect(c, query) {
+    move(c, connecting);
+    c.connect(query);
+    return c;
+  }
+  function onend(c) {
+    move(c, ended);
+  }
+  function onopen(c) {
+    if (queries.length === 0)
+      return move(c, open);
+    let max = Math.ceil(queries.length / (connecting.length + 1)), ready = true;
+    while (ready && queries.length && max-- > 0) {
+      const query = queries.shift();
+      if (query.reserve)
+        return query.reserve(c);
+      ready = c.execute(query);
+    }
+    ready ? move(c, busy) : move(c, full);
+  }
+  function onclose(c, e) {
+    move(c, closed);
+    c.reserved = null;
+    c.onclose && (c.onclose(e), c.onclose = null);
+    options2.onclose && options2.onclose(c.id);
+    queries.length && connect(c, queries.shift());
+  }
+}
+function parseOptions(a, b2) {
+  if (a && a.shared)
+    return a;
+  const env = process.env, o = (!a || typeof a === "string" ? b2 : a) || {}, { url, multihost } = parseUrl(a), query = [...url.searchParams].reduce((a2, [b3, c]) => (a2[b3] = c, a2), {}), host = o.hostname || o.host || multihost || url.hostname || env.PGHOST || "localhost", port = o.port || url.port || env.PGPORT || 5432, user = o.user || o.username || url.username || env.PGUSERNAME || env.PGUSER || osUsername();
+  o.no_prepare && (o.prepare = false);
+  query.sslmode && (query.ssl = query.sslmode, delete query.sslmode);
+  "timeout" in o && (console.log("The timeout option is deprecated, use idle_timeout instead"), o.idle_timeout = o.timeout);
+  query.sslrootcert === "system" && (query.ssl = "verify-full");
+  const ints = ["idle_timeout", "connect_timeout", "max_lifetime", "max_pipeline", "backoff", "keep_alive"];
+  const defaults = {
+    max: globalThis.Cloudflare ? 3 : 10,
+    ssl: false,
+    sslnegotiation: null,
+    idle_timeout: null,
+    connect_timeout: 30,
+    max_lifetime,
+    max_pipeline: 100,
+    backoff,
+    keep_alive: 60,
+    prepare: true,
+    debug: false,
+    fetch_types: true,
+    publications: "alltables",
+    target_session_attrs: null
+  };
+  return {
+    host: Array.isArray(host) ? host : host.split(",").map((x) => x.split(":")[0]),
+    port: Array.isArray(port) ? port : host.split(",").map((x) => parseInt(x.split(":")[1] || port)),
+    path: o.path || host.indexOf("/") > -1 && host + "/.s.PGSQL." + port,
+    database: o.database || o.db || (url.pathname || "").slice(1) || env.PGDATABASE || user,
+    user,
+    pass: o.pass || o.password || url.password || env.PGPASSWORD || "",
+    ...Object.entries(defaults).reduce(
+      (acc, [k, d]) => {
+        const value = k in o ? o[k] : k in query ? query[k] === "disable" || query[k] === "false" ? false : query[k] : env["PG" + k.toUpperCase()] || d;
+        acc[k] = typeof value === "string" && ints.includes(k) ? +value : value;
+        return acc;
+      },
+      {}
+    ),
+    connection: {
+      application_name: env.PGAPPNAME || "postgres.js",
+      ...o.connection,
+      ...Object.entries(query).reduce((acc, [k, v]) => (k in defaults || (acc[k] = v), acc), {})
+    },
+    types: o.types || {},
+    target_session_attrs: tsa(o, url, env),
+    onnotice: o.onnotice,
+    onnotify: o.onnotify,
+    onclose: o.onclose,
+    onparameter: o.onparameter,
+    socket: o.socket,
+    transform: parseTransform(o.transform || { undefined: void 0 }),
+    parameters: {},
+    shared: { retries: 0, typeArrayMap: {} },
+    ...mergeUserTypes(o.types)
+  };
+}
+function tsa(o, url, env) {
+  const x = o.target_session_attrs || url.searchParams.get("target_session_attrs") || env.PGTARGETSESSIONATTRS;
+  if (!x || ["read-write", "read-only", "primary", "standby", "prefer-standby"].includes(x))
+    return x;
+  throw new Error("target_session_attrs " + x + " is not supported");
+}
+function backoff(retries) {
+  return (0.5 + Math.random() / 2) * Math.min(3 ** retries / 100, 20);
+}
+function max_lifetime() {
+  return 60 * (30 + Math.random() * 30);
+}
+function parseTransform(x) {
+  return {
+    undefined: x.undefined,
+    column: {
+      from: typeof x.column === "function" ? x.column : x.column && x.column.from,
+      to: x.column && x.column.to
+    },
+    value: {
+      from: typeof x.value === "function" ? x.value : x.value && x.value.from,
+      to: x.value && x.value.to
+    },
+    row: {
+      from: typeof x.row === "function" ? x.row : x.row && x.row.from,
+      to: x.row && x.row.to
+    }
+  };
+}
+function parseUrl(url) {
+  if (!url || typeof url !== "string")
+    return { url: { searchParams: /* @__PURE__ */ new Map() } };
+  let host = url;
+  host = host.slice(host.indexOf("://") + 3).split(/[?/]/)[0];
+  host = decodeURIComponent(host.slice(host.indexOf("@") + 1));
+  const urlObj = new URL(url.replace(host, host.split(",")[0]));
+  return {
+    url: {
+      username: decodeURIComponent(urlObj.username),
+      password: decodeURIComponent(urlObj.password),
+      host: urlObj.host,
+      hostname: urlObj.hostname,
+      port: urlObj.port,
+      pathname: urlObj.pathname,
+      searchParams: urlObj.searchParams
+    },
+    multihost: host.indexOf(",") > -1 && host
+  };
+}
+function osUsername() {
+  try {
+    return import_os.default.userInfo().username;
+  } catch (_) {
+    return process.env.USERNAME || process.env.USER || process.env.LOGNAME;
+  }
+}
+
+// packages/api/src/db/index.ts
+var connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is required");
+}
+var socketMatch = connectionString.match(/[?&]host=([^&]+)/);
+var socketPath = socketMatch?.[1];
+var isLocal = /127\.0\.0\.1|localhost/.test(connectionString);
+var options = {
+  transform: src_default.camel,
+  ssl: isLocal || socketPath ? false : { rejectUnauthorized: false },
+  prepare: false,
+  idle_timeout: 20,
+  max: 10
+};
+var sql;
+if (socketPath) {
+  const urlWithoutHost = connectionString.replace(/[?&]host=[^&]+/, "").replace(/\?$/, "");
+  const parsed = new URL(urlWithoutHost.replace("@/", "@localhost/"));
+  sql = src_default({
+    ...options,
+    host: socketPath,
+    port: 5432,
+    database: parsed.pathname.slice(1) || "postgres",
+    username: decodeURIComponent(parsed.username),
+    password: decodeURIComponent(parsed.password)
+  });
+} else {
+  sql = src_default(connectionString, options);
+}
+var oauthStateTablePromise = null;
+function ensureOAuthStateTable() {
+  if (!oauthStateTablePromise) {
+    oauthStateTablePromise = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS oauth_states (
+          id UUID PRIMARY KEY,
+          state TEXT NOT NULL UNIQUE,
+          code_verifier TEXT,
+          provider TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          expires_at TIMESTAMPTZ NOT NULL
+        )
+      `;
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_oauth_states_expires_at
+        ON oauth_states (expires_at)
+      `;
+    })().catch((error) => {
+      oauthStateTablePromise = null;
+      throw error;
+    });
+  }
+  return oauthStateTablePromise;
+}
+
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/helper/factory/index.js
 var createMiddleware = (middleware) => middleware;
 
-// src/middleware/admin.ts
+// packages/api/src/middleware/admin.ts
 var adminMiddleware = createMiddleware(async (c, next) => {
   const user = c.get("user");
   if (!user.isAdmin) {
@@ -2216,7 +4425,7 @@ var adminMiddleware = createMiddleware(async (c, next) => {
   await next();
 });
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/buffer_utils.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/buffer_utils.js
 var encoder = new TextEncoder();
 var decoder = new TextDecoder();
 var MAX_INT32 = 2 ** 32;
@@ -2242,7 +4451,18 @@ function encode(string) {
   return bytes;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/base64.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/base64.js
+function encodeBase64(input) {
+  if (Uint8Array.prototype.toBase64) {
+    return input.toBase64();
+  }
+  const CHUNK_SIZE = 32768;
+  const arr = [];
+  for (let i = 0; i < input.length; i += CHUNK_SIZE) {
+    arr.push(String.fromCharCode.apply(null, input.subarray(i, i + CHUNK_SIZE)));
+  }
+  return btoa(arr.join(""));
+}
 function decodeBase64(encoded) {
   if (Uint8Array.fromBase64) {
     return Uint8Array.fromBase64(encoded);
@@ -2255,7 +4475,7 @@ function decodeBase64(encoded) {
   return bytes;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/util/base64url.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/util/base64url.js
 function decode(input) {
   if (Uint8Array.fromBase64) {
     return Uint8Array.fromBase64(typeof input === "string" ? input : decoder.decode(input), {
@@ -2273,13 +4493,23 @@ function decode(input) {
     throw new TypeError("The input to be decoded is not correctly encoded.");
   }
 }
+function encode2(input) {
+  let unencoded = input;
+  if (typeof unencoded === "string") {
+    unencoded = encoder.encode(unencoded);
+  }
+  if (Uint8Array.prototype.toBase64) {
+    return unencoded.toBase64({ alphabet: "base64url", omitPadding: true });
+  }
+  return encodeBase64(unencoded).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/util/errors.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/util/errors.js
 var JOSEError = class extends Error {
   static code = "ERR_JOSE_GENERIC";
   code = "ERR_JOSE_GENERIC";
-  constructor(message2, options) {
-    super(message2, options);
+  constructor(message2, options2) {
+    super(message2, options2);
     this.name = this.constructor.name;
     Error.captureStackTrace?.(this, this.constructor);
   }
@@ -2326,41 +4556,15 @@ var JWTInvalid = class extends JOSEError {
   static code = "ERR_JWT_INVALID";
   code = "ERR_JWT_INVALID";
 };
-var JWKSInvalid = class extends JOSEError {
-  static code = "ERR_JWKS_INVALID";
-  code = "ERR_JWKS_INVALID";
-};
-var JWKSNoMatchingKey = class extends JOSEError {
-  static code = "ERR_JWKS_NO_MATCHING_KEY";
-  code = "ERR_JWKS_NO_MATCHING_KEY";
-  constructor(message2 = "no applicable key found in the JSON Web Key Set", options) {
-    super(message2, options);
-  }
-};
-var JWKSMultipleMatchingKeys = class extends JOSEError {
-  [Symbol.asyncIterator];
-  static code = "ERR_JWKS_MULTIPLE_MATCHING_KEYS";
-  code = "ERR_JWKS_MULTIPLE_MATCHING_KEYS";
-  constructor(message2 = "multiple matching keys found in the JSON Web Key Set", options) {
-    super(message2, options);
-  }
-};
-var JWKSTimeout = class extends JOSEError {
-  static code = "ERR_JWKS_TIMEOUT";
-  code = "ERR_JWKS_TIMEOUT";
-  constructor(message2 = "request timed out", options) {
-    super(message2, options);
-  }
-};
 var JWSSignatureVerificationFailed = class extends JOSEError {
   static code = "ERR_JWS_SIGNATURE_VERIFICATION_FAILED";
   code = "ERR_JWS_SIGNATURE_VERIFICATION_FAILED";
-  constructor(message2 = "signature verification failed", options) {
-    super(message2, options);
+  constructor(message2 = "signature verification failed", options2) {
+    super(message2, options2);
   }
 };
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/crypto_key.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/crypto_key.js
 var unusable = (name, prop = "algorithm.name") => new TypeError(`CryptoKey does not support this operation, its ${prop} must be ${name}`);
 var isAlgorithm = (algorithm, name) => algorithm.name === name;
 function getHashLength(hash) {
@@ -2448,7 +4652,7 @@ function checkSigCryptoKey(key, alg, usage) {
   checkUsage(key, usage);
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/invalid_key_input.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/invalid_key_input.js
 function message(msg, actual, ...types2) {
   types2 = types2.filter(Boolean);
   if (types2.length > 2) {
@@ -2473,7 +4677,7 @@ function message(msg, actual, ...types2) {
 var invalidKeyInput = (actual, ...types2) => message("Key must be ", actual, ...types2);
 var withAlg = (alg, actual, ...types2) => message(`Key for the ${alg} algorithm must be `, actual, ...types2);
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_key_like.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_key_like.js
 var isCryptoKey = (key) => {
   if (key?.[Symbol.toStringTag] === "CryptoKey")
     return true;
@@ -2486,7 +4690,7 @@ var isCryptoKey = (key) => {
 var isKeyObject = (key) => key?.[Symbol.toStringTag] === "KeyObject";
 var isKeyLike = (key) => isCryptoKey(key) || isKeyObject(key);
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_disjoint.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_disjoint.js
 function isDisjoint(...headers) {
   const sources = headers.filter(Boolean);
   if (sources.length === 0 || sources.length === 1) {
@@ -2509,7 +4713,7 @@ function isDisjoint(...headers) {
   return true;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_object.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_object.js
 var isObjectLike = (value) => typeof value === "object" && value !== null;
 function isObject(input) {
   if (!isObjectLike(input) || Object.prototype.toString.call(input) !== "[object Object]") {
@@ -2525,7 +4729,7 @@ function isObject(input) {
   return Object.getPrototypeOf(input) === proto;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/check_key_length.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/check_key_length.js
 function checkKeyLength(alg, key) {
   if (alg.startsWith("RS") || alg.startsWith("PS")) {
     const { modulusLength } = key.algorithm;
@@ -2535,7 +4739,7 @@ function checkKeyLength(alg, key) {
   }
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/jwk_to_key.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/jwk_to_key.js
 function subtleMapping(jwk) {
   let algorithm;
   let keyUsages;
@@ -2645,43 +4849,7 @@ async function jwkToKey(jwk) {
   return crypto.subtle.importKey("jwk", keyData, algorithm, jwk.ext ?? (jwk.d || jwk.priv ? false : true), jwk.key_ops ?? keyUsages);
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/key/import.js
-async function importJWK(jwk, alg, options) {
-  if (!isObject(jwk)) {
-    throw new TypeError("JWK must be an object");
-  }
-  let ext;
-  alg ??= jwk.alg;
-  ext ??= options?.extractable ?? jwk.ext;
-  switch (jwk.kty) {
-    case "oct":
-      if (typeof jwk.k !== "string" || !jwk.k) {
-        throw new TypeError('missing "k" (Key Value) Parameter value');
-      }
-      return decode(jwk.k);
-    case "RSA":
-      if ("oth" in jwk && jwk.oth !== void 0) {
-        throw new JOSENotSupported('RSA JWK "oth" (Other Primes Info) Parameter value is not supported');
-      }
-      return jwkToKey({ ...jwk, alg, ext });
-    case "AKP": {
-      if (typeof jwk.alg !== "string" || !jwk.alg) {
-        throw new TypeError('missing "alg" (Algorithm) Parameter value');
-      }
-      if (alg !== void 0 && alg !== jwk.alg) {
-        throw new TypeError("JWK alg and alg option value mismatch");
-      }
-      return jwkToKey({ ...jwk, ext });
-    }
-    case "EC":
-    case "OKP":
-      return jwkToKey({ ...jwk, alg, ext });
-    default:
-      throw new JOSENotSupported('Unsupported "kty" (Key Type) Parameter value');
-  }
-}
-
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/validate_crit.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/validate_crit.js
 function validateCrit(Err, recognizedDefault, recognizedOption, protectedHeader, joseHeader) {
   if (joseHeader.crit !== void 0 && protectedHeader?.crit === void 0) {
     throw new Err('"crit" (Critical) Header Parameter MUST be integrity protected');
@@ -2712,7 +4880,7 @@ function validateCrit(Err, recognizedDefault, recognizedOption, protectedHeader,
   return new Set(protectedHeader.crit);
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/validate_algorithms.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/validate_algorithms.js
 function validateAlgorithms(option, algorithms) {
   if (algorithms !== void 0 && (!Array.isArray(algorithms) || algorithms.some((s) => typeof s !== "string"))) {
     throw new TypeError(`"${option}" option must be an array of strings`);
@@ -2723,13 +4891,13 @@ function validateAlgorithms(option, algorithms) {
   return new Set(algorithms);
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_jwk.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/is_jwk.js
 var isJWK = (key) => isObject(key) && typeof key.kty === "string";
 var isPrivateJWK = (key) => key.kty !== "oct" && (key.kty === "AKP" && typeof key.priv === "string" || typeof key.d === "string");
 var isPublicJWK = (key) => key.kty !== "oct" && key.d === void 0 && key.priv === void 0;
 var isSecretJWK = (key) => key.kty === "oct" && typeof key.k === "string";
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/normalize_key.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/normalize_key.js
 var cache;
 var handleJWK = async (key, jwk, alg, freeze = false) => {
   cache ||= /* @__PURE__ */ new WeakMap();
@@ -2900,7 +5068,7 @@ async function normalizeKey(key, alg) {
   throw new Error("unreachable");
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/check_key_type.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/check_key_type.js
 var tag = (key) => key?.[Symbol.toStringTag];
 var jwkMatchesOp = (alg, key, usage) => {
   if (key.use !== void 0) {
@@ -3020,7 +5188,7 @@ function checkKeyType(alg, key, usage) {
   }
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/subtle_dsa.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/subtle_dsa.js
 function subtleAlgorithm(alg, algorithm) {
   const hash = `SHA-${alg.slice(-3)}`;
   switch (alg) {
@@ -3052,7 +5220,7 @@ function subtleAlgorithm(alg, algorithm) {
   }
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/get_sign_verify_key.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/get_sign_verify_key.js
 async function getSigKey(alg, key, usage) {
   if (key instanceof Uint8Array) {
     if (!alg.startsWith("HS")) {
@@ -3064,7 +5232,7 @@ async function getSigKey(alg, key, usage) {
   return key;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/verify.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/verify.js
 async function verify(alg, key, signature, data) {
   const cryptoKey = await getSigKey(alg, key, "verify");
   checkKeyLength(alg, cryptoKey);
@@ -3076,8 +5244,8 @@ async function verify(alg, key, signature, data) {
   }
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jws/flattened/verify.js
-async function flattenedVerify(jws, key, options) {
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jws/flattened/verify.js
+async function flattenedVerify(jws, key, options2) {
   if (!isObject(jws)) {
     throw new JWSInvalid("Flattened JWS must be an object");
   }
@@ -3112,7 +5280,7 @@ async function flattenedVerify(jws, key, options) {
     ...parsedProt,
     ...jws.header
   };
-  const extensions = validateCrit(JWSInvalid, /* @__PURE__ */ new Map([["b64", true]]), options?.crit, parsedProt, joseHeader);
+  const extensions = validateCrit(JWSInvalid, /* @__PURE__ */ new Map([["b64", true]]), options2?.crit, parsedProt, joseHeader);
   let b64 = true;
   if (extensions.has("b64")) {
     b64 = parsedProt.b64;
@@ -3124,7 +5292,7 @@ async function flattenedVerify(jws, key, options) {
   if (typeof alg !== "string" || !alg) {
     throw new JWSInvalid('JWS "alg" (Algorithm) Header Parameter missing or invalid');
   }
-  const algorithms = options && validateAlgorithms("algorithms", options.algorithms);
+  const algorithms = options2 && validateAlgorithms("algorithms", options2.algorithms);
   if (algorithms && !algorithms.has(alg)) {
     throw new JOSEAlgNotAllowed('"alg" (Algorithm) Header Parameter value not allowed');
   }
@@ -3178,8 +5346,8 @@ async function flattenedVerify(jws, key, options) {
   return result;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jws/compact/verify.js
-async function compactVerify(jws, key, options) {
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jws/compact/verify.js
+async function compactVerify(jws, key, options2) {
   if (jws instanceof Uint8Array) {
     jws = decoder.decode(jws);
   }
@@ -3190,7 +5358,7 @@ async function compactVerify(jws, key, options) {
   if (length !== 3) {
     throw new JWSInvalid("Invalid Compact JWS");
   }
-  const verified = await flattenedVerify({ payload, protected: protectedHeader, signature }, key, options);
+  const verified = await flattenedVerify({ payload, protected: protectedHeader, signature }, key, options2);
   const result = { payload: verified.payload, protectedHeader: verified.protectedHeader };
   if (typeof key === "function") {
     return { ...result, key: verified.key };
@@ -3198,7 +5366,7 @@ async function compactVerify(jws, key, options) {
   return result;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/jwt_claims_set.js
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/jwt_claims_set.js
 var epoch = (date) => Math.floor(date.getTime() / 1e3);
 var minute = 60;
 var hour = minute * 60;
@@ -3255,6 +5423,12 @@ function secs(str) {
   }
   return numericDate;
 }
+function validateInput(label, input) {
+  if (!Number.isFinite(input)) {
+    throw new TypeError(`Invalid ${label} input`);
+  }
+  return input;
+}
 var normalizeTyp = (value) => {
   if (value.includes("/")) {
     return value.toLowerCase();
@@ -3270,7 +5444,7 @@ var checkAudiencePresence = (audPayload, audOption) => {
   }
   return false;
 };
-function validateClaimsSet(protectedHeader, encodedPayload, options = {}) {
+function validateClaimsSet(protectedHeader, encodedPayload, options2 = {}) {
   let payload;
   try {
     payload = JSON.parse(decoder.decode(encodedPayload));
@@ -3279,11 +5453,11 @@ function validateClaimsSet(protectedHeader, encodedPayload, options = {}) {
   if (!isObject(payload)) {
     throw new JWTInvalid("JWT Claims Set must be a top-level JSON object");
   }
-  const { typ } = options;
+  const { typ } = options2;
   if (typ && (typeof protectedHeader.typ !== "string" || normalizeTyp(protectedHeader.typ) !== normalizeTyp(typ))) {
     throw new JWTClaimValidationFailed('unexpected "typ" JWT header value', payload, "typ", "check_failed");
   }
-  const { requiredClaims = [], issuer, subject, audience, maxTokenAge } = options;
+  const { requiredClaims = [], issuer, subject, audience, maxTokenAge } = options2;
   const presenceCheck = [...requiredClaims];
   if (maxTokenAge !== void 0)
     presenceCheck.push("iat");
@@ -3308,12 +5482,12 @@ function validateClaimsSet(protectedHeader, encodedPayload, options = {}) {
     throw new JWTClaimValidationFailed('unexpected "aud" claim value', payload, "aud", "check_failed");
   }
   let tolerance;
-  switch (typeof options.clockTolerance) {
+  switch (typeof options2.clockTolerance) {
     case "string":
-      tolerance = secs(options.clockTolerance);
+      tolerance = secs(options2.clockTolerance);
       break;
     case "number":
-      tolerance = options.clockTolerance;
+      tolerance = options2.clockTolerance;
       break;
     case "undefined":
       tolerance = 0;
@@ -3321,7 +5495,7 @@ function validateClaimsSet(protectedHeader, encodedPayload, options = {}) {
     default:
       throw new TypeError("Invalid clockTolerance option type");
   }
-  const { currentDate } = options;
+  const { currentDate } = options2;
   const now = epoch(currentDate || /* @__PURE__ */ new Date());
   if ((payload.iat !== void 0 || maxTokenAge) && typeof payload.iat !== "number") {
     throw new JWTClaimValidationFailed('"iat" claim must be a number', payload, "iat", "invalid");
@@ -3354,14 +5528,76 @@ function validateClaimsSet(protectedHeader, encodedPayload, options = {}) {
   }
   return payload;
 }
+var JWTClaimsBuilder = class {
+  #payload;
+  constructor(payload) {
+    if (!isObject(payload)) {
+      throw new TypeError("JWT Claims Set MUST be an object");
+    }
+    this.#payload = structuredClone(payload);
+  }
+  data() {
+    return encoder.encode(JSON.stringify(this.#payload));
+  }
+  get iss() {
+    return this.#payload.iss;
+  }
+  set iss(value) {
+    this.#payload.iss = value;
+  }
+  get sub() {
+    return this.#payload.sub;
+  }
+  set sub(value) {
+    this.#payload.sub = value;
+  }
+  get aud() {
+    return this.#payload.aud;
+  }
+  set aud(value) {
+    this.#payload.aud = value;
+  }
+  set jti(value) {
+    this.#payload.jti = value;
+  }
+  set nbf(value) {
+    if (typeof value === "number") {
+      this.#payload.nbf = validateInput("setNotBefore", value);
+    } else if (value instanceof Date) {
+      this.#payload.nbf = validateInput("setNotBefore", epoch(value));
+    } else {
+      this.#payload.nbf = epoch(/* @__PURE__ */ new Date()) + secs(value);
+    }
+  }
+  set exp(value) {
+    if (typeof value === "number") {
+      this.#payload.exp = validateInput("setExpirationTime", value);
+    } else if (value instanceof Date) {
+      this.#payload.exp = validateInput("setExpirationTime", epoch(value));
+    } else {
+      this.#payload.exp = epoch(/* @__PURE__ */ new Date()) + secs(value);
+    }
+  }
+  set iat(value) {
+    if (value === void 0) {
+      this.#payload.iat = epoch(/* @__PURE__ */ new Date());
+    } else if (value instanceof Date) {
+      this.#payload.iat = validateInput("setIssuedAt", epoch(value));
+    } else if (typeof value === "string") {
+      this.#payload.iat = validateInput("setIssuedAt", epoch(/* @__PURE__ */ new Date()) + secs(value));
+    } else {
+      this.#payload.iat = validateInput("setIssuedAt", value);
+    }
+  }
+};
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jwt/verify.js
-async function jwtVerify(jwt2, key, options) {
-  const verified = await compactVerify(jwt2, key, options);
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jwt/verify.js
+async function jwtVerify(jwt2, key, options2) {
+  const verified = await compactVerify(jwt2, key, options2);
   if (verified.protectedHeader.crit?.includes("b64") && verified.protectedHeader.b64 === false) {
     throw new JWTInvalid("JWTs MUST NOT use unencoded payload");
   }
-  const payload = validateClaimsSet(verified.protectedHeader, verified.payload, options);
+  const payload = validateClaimsSet(verified.protectedHeader, verified.payload, options2);
   const result = { payload, protectedHeader: verified.protectedHeader };
   if (typeof key === "function") {
     return { ...result, key: verified.key };
@@ -3369,2451 +5605,182 @@ async function jwtVerify(jwt2, key, options) {
   return result;
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jwks/local.js
-function getKtyFromAlg(alg) {
-  switch (typeof alg === "string" && alg.slice(0, 2)) {
-    case "RS":
-    case "PS":
-      return "RSA";
-    case "ES":
-      return "EC";
-    case "Ed":
-      return "OKP";
-    case "ML":
-      return "AKP";
-    default:
-      throw new JOSENotSupported('Unsupported "alg" value for a JSON Web Key Set');
-  }
-}
-function isJWKSLike(jwks2) {
-  return jwks2 && typeof jwks2 === "object" && Array.isArray(jwks2.keys) && jwks2.keys.every(isJWKLike);
-}
-function isJWKLike(key) {
-  return isObject(key);
-}
-var LocalJWKSet = class {
-  #jwks;
-  #cached = /* @__PURE__ */ new WeakMap();
-  constructor(jwks2) {
-    if (!isJWKSLike(jwks2)) {
-      throw new JWKSInvalid("JSON Web Key Set malformed");
-    }
-    this.#jwks = structuredClone(jwks2);
-  }
-  jwks() {
-    return this.#jwks;
-  }
-  async getKey(protectedHeader, token) {
-    const { alg, kid } = { ...protectedHeader, ...token?.header };
-    const kty = getKtyFromAlg(alg);
-    const candidates = this.#jwks.keys.filter((jwk2) => {
-      let candidate = kty === jwk2.kty;
-      if (candidate && typeof kid === "string") {
-        candidate = kid === jwk2.kid;
-      }
-      if (candidate && (typeof jwk2.alg === "string" || kty === "AKP")) {
-        candidate = alg === jwk2.alg;
-      }
-      if (candidate && typeof jwk2.use === "string") {
-        candidate = jwk2.use === "sig";
-      }
-      if (candidate && Array.isArray(jwk2.key_ops)) {
-        candidate = jwk2.key_ops.includes("verify");
-      }
-      if (candidate) {
-        switch (alg) {
-          case "ES256":
-            candidate = jwk2.crv === "P-256";
-            break;
-          case "ES384":
-            candidate = jwk2.crv === "P-384";
-            break;
-          case "ES512":
-            candidate = jwk2.crv === "P-521";
-            break;
-          case "Ed25519":
-          case "EdDSA":
-            candidate = jwk2.crv === "Ed25519";
-            break;
-        }
-      }
-      return candidate;
-    });
-    const { 0: jwk, length } = candidates;
-    if (length === 0) {
-      throw new JWKSNoMatchingKey();
-    }
-    if (length !== 1) {
-      const error = new JWKSMultipleMatchingKeys();
-      const _cached = this.#cached;
-      error[Symbol.asyncIterator] = async function* () {
-        for (const jwk2 of candidates) {
-          try {
-            yield await importWithAlgCache(_cached, jwk2, alg);
-          } catch {
-          }
-        }
-      };
-      throw error;
-    }
-    return importWithAlgCache(this.#cached, jwk, alg);
-  }
-};
-async function importWithAlgCache(cache2, jwk, alg) {
-  const cached = cache2.get(jwk) || cache2.set(jwk, {}).get(jwk);
-  if (cached[alg] === void 0) {
-    const key = await importJWK({ ...jwk, ext: true }, alg);
-    if (key instanceof Uint8Array || key.type !== "public") {
-      throw new JWKSInvalid("JSON Web Key Set members must be public keys");
-    }
-    cached[alg] = key;
-  }
-  return cached[alg];
-}
-function createLocalJWKSet(jwks2) {
-  const set = new LocalJWKSet(jwks2);
-  const localJWKSet = async (protectedHeader, token) => set.getKey(protectedHeader, token);
-  Object.defineProperties(localJWKSet, {
-    jwks: {
-      value: () => structuredClone(set.jwks()),
-      enumerable: false,
-      configurable: false,
-      writable: false
-    }
-  });
-  return localJWKSet;
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/lib/sign.js
+async function sign(alg, key, data) {
+  const cryptoKey = await getSigKey(alg, key, "sign");
+  checkKeyLength(alg, cryptoKey);
+  const signature = await crypto.subtle.sign(subtleAlgorithm(alg, cryptoKey.algorithm), cryptoKey, data);
+  return new Uint8Array(signature);
 }
 
-// ../../node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jwks/remote.js
-function isCloudflareWorkers() {
-  return typeof WebSocketPair !== "undefined" || typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers" || typeof EdgeRuntime !== "undefined" && EdgeRuntime === "vercel";
-}
-var USER_AGENT;
-if (typeof navigator === "undefined" || !navigator.userAgent?.startsWith?.("Mozilla/5.0 ")) {
-  const NAME = "jose";
-  const VERSION = "v6.1.3";
-  USER_AGENT = `${NAME}/${VERSION}`;
-}
-var customFetch = /* @__PURE__ */ Symbol();
-async function fetchJwks(url, headers, signal, fetchImpl = fetch) {
-  const response = await fetchImpl(url, {
-    method: "GET",
-    signal,
-    redirect: "manual",
-    headers
-  }).catch((err) => {
-    if (err.name === "TimeoutError") {
-      throw new JWKSTimeout();
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jws/flattened/sign.js
+var FlattenedSign = class {
+  #payload;
+  #protectedHeader;
+  #unprotectedHeader;
+  constructor(payload) {
+    if (!(payload instanceof Uint8Array)) {
+      throw new TypeError("payload must be an instance of Uint8Array");
     }
-    throw err;
-  });
-  if (response.status !== 200) {
-    throw new JOSEError("Expected 200 OK from the JSON Web Key Set HTTP response");
+    this.#payload = payload;
   }
-  try {
-    return await response.json();
-  } catch {
-    throw new JOSEError("Failed to parse the JSON Web Key Set HTTP response as JSON");
-  }
-}
-var jwksCache = /* @__PURE__ */ Symbol();
-function isFreshJwksCache(input, cacheMaxAge) {
-  if (typeof input !== "object" || input === null) {
-    return false;
-  }
-  if (!("uat" in input) || typeof input.uat !== "number" || Date.now() - input.uat >= cacheMaxAge) {
-    return false;
-  }
-  if (!("jwks" in input) || !isObject(input.jwks) || !Array.isArray(input.jwks.keys) || !Array.prototype.every.call(input.jwks.keys, isObject)) {
-    return false;
-  }
-  return true;
-}
-var RemoteJWKSet = class {
-  #url;
-  #timeoutDuration;
-  #cooldownDuration;
-  #cacheMaxAge;
-  #jwksTimestamp;
-  #pendingFetch;
-  #headers;
-  #customFetch;
-  #local;
-  #cache;
-  constructor(url, options) {
-    if (!(url instanceof URL)) {
-      throw new TypeError("url must be an instance of URL");
+  setProtectedHeader(protectedHeader) {
+    if (this.#protectedHeader) {
+      throw new TypeError("setProtectedHeader can only be called once");
     }
-    this.#url = new URL(url.href);
-    this.#timeoutDuration = typeof options?.timeoutDuration === "number" ? options?.timeoutDuration : 5e3;
-    this.#cooldownDuration = typeof options?.cooldownDuration === "number" ? options?.cooldownDuration : 3e4;
-    this.#cacheMaxAge = typeof options?.cacheMaxAge === "number" ? options?.cacheMaxAge : 6e5;
-    this.#headers = new Headers(options?.headers);
-    if (USER_AGENT && !this.#headers.has("User-Agent")) {
-      this.#headers.set("User-Agent", USER_AGENT);
-    }
-    if (!this.#headers.has("accept")) {
-      this.#headers.set("accept", "application/json");
-      this.#headers.append("accept", "application/jwk-set+json");
-    }
-    this.#customFetch = options?.[customFetch];
-    if (options?.[jwksCache] !== void 0) {
-      this.#cache = options?.[jwksCache];
-      if (isFreshJwksCache(options?.[jwksCache], this.#cacheMaxAge)) {
-        this.#jwksTimestamp = this.#cache.uat;
-        this.#local = createLocalJWKSet(this.#cache.jwks);
-      }
-    }
-  }
-  pendingFetch() {
-    return !!this.#pendingFetch;
-  }
-  coolingDown() {
-    return typeof this.#jwksTimestamp === "number" ? Date.now() < this.#jwksTimestamp + this.#cooldownDuration : false;
-  }
-  fresh() {
-    return typeof this.#jwksTimestamp === "number" ? Date.now() < this.#jwksTimestamp + this.#cacheMaxAge : false;
-  }
-  jwks() {
-    return this.#local?.jwks();
-  }
-  async getKey(protectedHeader, token) {
-    if (!this.#local || !this.fresh()) {
-      await this.reload();
-    }
-    try {
-      return await this.#local(protectedHeader, token);
-    } catch (err) {
-      if (err instanceof JWKSNoMatchingKey) {
-        if (this.coolingDown() === false) {
-          await this.reload();
-          return this.#local(protectedHeader, token);
-        }
-      }
-      throw err;
-    }
-  }
-  async reload() {
-    if (this.#pendingFetch && isCloudflareWorkers()) {
-      this.#pendingFetch = void 0;
-    }
-    this.#pendingFetch ||= fetchJwks(this.#url.href, this.#headers, AbortSignal.timeout(this.#timeoutDuration), this.#customFetch).then((json) => {
-      this.#local = createLocalJWKSet(json);
-      if (this.#cache) {
-        this.#cache.uat = Date.now();
-        this.#cache.jwks = json;
-      }
-      this.#jwksTimestamp = Date.now();
-      this.#pendingFetch = void 0;
-    }).catch((err) => {
-      this.#pendingFetch = void 0;
-      throw err;
-    });
-    await this.#pendingFetch;
-  }
-};
-function createRemoteJWKSet(url, options) {
-  const set = new RemoteJWKSet(url, options);
-  const remoteJWKSet = async (protectedHeader, token) => set.getKey(protectedHeader, token);
-  Object.defineProperties(remoteJWKSet, {
-    coolingDown: {
-      get: () => set.coolingDown(),
-      enumerable: true,
-      configurable: false
-    },
-    fresh: {
-      get: () => set.fresh(),
-      enumerable: true,
-      configurable: false
-    },
-    reload: {
-      value: () => set.reload(),
-      enumerable: true,
-      configurable: false,
-      writable: false
-    },
-    reloading: {
-      get: () => set.pendingFetch(),
-      enumerable: true,
-      configurable: false
-    },
-    jwks: {
-      value: () => set.jwks(),
-      enumerable: true,
-      configurable: false,
-      writable: false
-    }
-  });
-  return remoteJWKSet;
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js
-var import_os = __toESM(require("os"), 1);
-var import_fs = __toESM(require("fs"), 1);
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/query.js
-var originCache = /* @__PURE__ */ new Map();
-var originStackCache = /* @__PURE__ */ new Map();
-var originError = /* @__PURE__ */ Symbol("OriginError");
-var CLOSE = {};
-var Query = class extends Promise {
-  constructor(strings, args, handler2, canceller, options = {}) {
-    let resolve, reject;
-    super((a, b2) => {
-      resolve = a;
-      reject = b2;
-    });
-    this.tagged = Array.isArray(strings.raw);
-    this.strings = strings;
-    this.args = args;
-    this.handler = handler2;
-    this.canceller = canceller;
-    this.options = options;
-    this.state = null;
-    this.statement = null;
-    this.resolve = (x) => (this.active = false, resolve(x));
-    this.reject = (x) => (this.active = false, reject(x));
-    this.active = false;
-    this.cancelled = null;
-    this.executed = false;
-    this.signature = "";
-    this[originError] = this.handler.debug ? new Error() : this.tagged && cachedError(this.strings);
-  }
-  get origin() {
-    return (this.handler.debug ? this[originError].stack : this.tagged && originStackCache.has(this.strings) ? originStackCache.get(this.strings) : originStackCache.set(this.strings, this[originError].stack).get(this.strings)) || "";
-  }
-  static get [Symbol.species]() {
-    return Promise;
-  }
-  cancel() {
-    return this.canceller && (this.canceller(this), this.canceller = null);
-  }
-  simple() {
-    this.options.simple = true;
-    this.options.prepare = false;
+    this.#protectedHeader = protectedHeader;
     return this;
   }
-  async readable() {
-    this.simple();
-    this.streaming = true;
-    return this;
-  }
-  async writable() {
-    this.simple();
-    this.streaming = true;
-    return this;
-  }
-  cursor(rows = 1, fn) {
-    this.options.simple = false;
-    if (typeof rows === "function") {
-      fn = rows;
-      rows = 1;
+  setUnprotectedHeader(unprotectedHeader) {
+    if (this.#unprotectedHeader) {
+      throw new TypeError("setUnprotectedHeader can only be called once");
     }
-    this.cursorRows = rows;
-    if (typeof fn === "function")
-      return this.cursorFn = fn, this;
-    let prev;
-    return {
-      [Symbol.asyncIterator]: () => ({
-        next: () => {
-          if (this.executed && !this.active)
-            return { done: true };
-          prev && prev();
-          const promise = new Promise((resolve, reject) => {
-            this.cursorFn = (value) => {
-              resolve({ value, done: false });
-              return new Promise((r) => prev = r);
-            };
-            this.resolve = () => (this.active = false, resolve({ done: true }));
-            this.reject = (x) => (this.active = false, reject(x));
-          });
-          this.execute();
-          return promise;
-        },
-        return() {
-          prev && prev(CLOSE);
-          return { done: true };
-        }
-      })
+    this.#unprotectedHeader = unprotectedHeader;
+    return this;
+  }
+  async sign(key, options2) {
+    if (!this.#protectedHeader && !this.#unprotectedHeader) {
+      throw new JWSInvalid("either setProtectedHeader or setUnprotectedHeader must be called before #sign()");
+    }
+    if (!isDisjoint(this.#protectedHeader, this.#unprotectedHeader)) {
+      throw new JWSInvalid("JWS Protected and JWS Unprotected Header Parameter names must be disjoint");
+    }
+    const joseHeader = {
+      ...this.#protectedHeader,
+      ...this.#unprotectedHeader
     };
-  }
-  describe() {
-    this.options.simple = false;
-    this.onlyDescribe = this.options.prepare = true;
-    return this;
-  }
-  stream() {
-    throw new Error(".stream has been renamed to .forEach");
-  }
-  forEach(fn) {
-    this.forEachFn = fn;
-    this.handle();
-    return this;
-  }
-  raw() {
-    this.isRaw = true;
-    return this;
-  }
-  values() {
-    this.isRaw = "values";
-    return this;
-  }
-  async handle() {
-    !this.executed && (this.executed = true) && await 1 && this.handler(this);
-  }
-  execute() {
-    this.handle();
-    return this;
-  }
-  then() {
-    this.handle();
-    return super.then.apply(this, arguments);
-  }
-  catch() {
-    this.handle();
-    return super.catch.apply(this, arguments);
-  }
-  finally() {
-    this.handle();
-    return super.finally.apply(this, arguments);
-  }
-};
-function cachedError(xs) {
-  if (originCache.has(xs))
-    return originCache.get(xs);
-  const x = Error.stackTraceLimit;
-  Error.stackTraceLimit = 4;
-  originCache.set(xs, new Error());
-  Error.stackTraceLimit = x;
-  return originCache.get(xs);
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/errors.js
-var PostgresError = class extends Error {
-  constructor(x) {
-    super(x.message);
-    this.name = this.constructor.name;
-    Object.assign(this, x);
-  }
-};
-var Errors = {
-  connection,
-  postgres,
-  generic,
-  notSupported
-};
-function connection(x, options, socket) {
-  const { host, port } = socket || options;
-  const error = Object.assign(
-    new Error("write " + x + " " + (options.path || host + ":" + port)),
-    {
-      code: x,
-      errno: x,
-      address: options.path || host
-    },
-    options.path ? {} : { port }
-  );
-  Error.captureStackTrace(error, connection);
-  return error;
-}
-function postgres(x) {
-  const error = new PostgresError(x);
-  Error.captureStackTrace(error, postgres);
-  return error;
-}
-function generic(code, message2) {
-  const error = Object.assign(new Error(code + ": " + message2), { code });
-  Error.captureStackTrace(error, generic);
-  return error;
-}
-function notSupported(x) {
-  const error = Object.assign(
-    new Error(x + " (B) is not supported"),
-    {
-      code: "MESSAGE_NOT_SUPPORTED",
-      name: x
-    }
-  );
-  Error.captureStackTrace(error, notSupported);
-  return error;
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/types.js
-var types = {
-  string: {
-    to: 25,
-    from: null,
-    // defaults to string
-    serialize: (x) => "" + x
-  },
-  number: {
-    to: 0,
-    from: [21, 23, 26, 700, 701],
-    serialize: (x) => "" + x,
-    parse: (x) => +x
-  },
-  json: {
-    to: 114,
-    from: [114, 3802],
-    serialize: (x) => JSON.stringify(x),
-    parse: (x) => JSON.parse(x)
-  },
-  boolean: {
-    to: 16,
-    from: 16,
-    serialize: (x) => x === true ? "t" : "f",
-    parse: (x) => x === "t"
-  },
-  date: {
-    to: 1184,
-    from: [1082, 1114, 1184],
-    serialize: (x) => (x instanceof Date ? x : new Date(x)).toISOString(),
-    parse: (x) => new Date(x)
-  },
-  bytea: {
-    to: 17,
-    from: 17,
-    serialize: (x) => "\\x" + Buffer.from(x).toString("hex"),
-    parse: (x) => Buffer.from(x.slice(2), "hex")
-  }
-};
-var NotTagged = class {
-  then() {
-    notTagged();
-  }
-  catch() {
-    notTagged();
-  }
-  finally() {
-    notTagged();
-  }
-};
-var Identifier = class extends NotTagged {
-  constructor(value) {
-    super();
-    this.value = escapeIdentifier(value);
-  }
-};
-var Parameter = class extends NotTagged {
-  constructor(value, type, array) {
-    super();
-    this.value = value;
-    this.type = type;
-    this.array = array;
-  }
-};
-var Builder = class extends NotTagged {
-  constructor(first, rest) {
-    super();
-    this.first = first;
-    this.rest = rest;
-  }
-  build(before, parameters, types2, options) {
-    const keyword = builders.map(([x, fn]) => ({ fn, i: before.search(x) })).sort((a, b2) => a.i - b2.i).pop();
-    return keyword.i === -1 ? escapeIdentifiers(this.first, options) : keyword.fn(this.first, this.rest, parameters, types2, options);
-  }
-};
-function handleValue(x, parameters, types2, options) {
-  let value = x instanceof Parameter ? x.value : x;
-  if (value === void 0) {
-    x instanceof Parameter ? x.value = options.transform.undefined : value = x = options.transform.undefined;
-    if (value === void 0)
-      throw Errors.generic("UNDEFINED_VALUE", "Undefined values are not allowed");
-  }
-  return "$" + types2.push(
-    x instanceof Parameter ? (parameters.push(x.value), x.array ? x.array[x.type || inferType(x.value)] || x.type || firstIsString(x.value) : x.type) : (parameters.push(x), inferType(x))
-  );
-}
-var defaultHandlers = typeHandlers(types);
-function stringify(q, string, value, parameters, types2, options) {
-  for (let i = 1; i < q.strings.length; i++) {
-    string += stringifyValue(string, value, parameters, types2, options) + q.strings[i];
-    value = q.args[i];
-  }
-  return string;
-}
-function stringifyValue(string, value, parameters, types2, o) {
-  return value instanceof Builder ? value.build(string, parameters, types2, o) : value instanceof Query ? fragment(value, parameters, types2, o) : value instanceof Identifier ? value.value : value && value[0] instanceof Query ? value.reduce((acc, x) => acc + " " + fragment(x, parameters, types2, o), "") : handleValue(value, parameters, types2, o);
-}
-function fragment(q, parameters, types2, options) {
-  q.fragment = true;
-  return stringify(q, q.strings[0], q.args[0], parameters, types2, options);
-}
-function valuesBuilder(first, parameters, types2, columns, options) {
-  return first.map(
-    (row) => "(" + columns.map(
-      (column) => stringifyValue("values", row[column], parameters, types2, options)
-    ).join(",") + ")"
-  ).join(",");
-}
-function values(first, rest, parameters, types2, options) {
-  const multi = Array.isArray(first[0]);
-  const columns = rest.length ? rest.flat() : Object.keys(multi ? first[0] : first);
-  return valuesBuilder(multi ? first : [first], parameters, types2, columns, options);
-}
-function select(first, rest, parameters, types2, options) {
-  typeof first === "string" && (first = [first].concat(rest));
-  if (Array.isArray(first))
-    return escapeIdentifiers(first, options);
-  let value;
-  const columns = rest.length ? rest.flat() : Object.keys(first);
-  return columns.map((x) => {
-    value = first[x];
-    return (value instanceof Query ? fragment(value, parameters, types2, options) : value instanceof Identifier ? value.value : handleValue(value, parameters, types2, options)) + " as " + escapeIdentifier(options.transform.column.to ? options.transform.column.to(x) : x);
-  }).join(",");
-}
-var builders = Object.entries({
-  values,
-  in: (...xs) => {
-    const x = values(...xs);
-    return x === "()" ? "(null)" : x;
-  },
-  select,
-  as: select,
-  returning: select,
-  "\\(": select,
-  update(first, rest, parameters, types2, options) {
-    return (rest.length ? rest.flat() : Object.keys(first)).map(
-      (x) => escapeIdentifier(options.transform.column.to ? options.transform.column.to(x) : x) + "=" + stringifyValue("values", first[x], parameters, types2, options)
-    );
-  },
-  insert(first, rest, parameters, types2, options) {
-    const columns = rest.length ? rest.flat() : Object.keys(Array.isArray(first) ? first[0] : first);
-    return "(" + escapeIdentifiers(columns, options) + ")values" + valuesBuilder(Array.isArray(first) ? first : [first], parameters, types2, columns, options);
-  }
-}).map(([x, fn]) => [new RegExp("((?:^|[\\s(])" + x + "(?:$|[\\s(]))(?![\\s\\S]*\\1)", "i"), fn]);
-function notTagged() {
-  throw Errors.generic("NOT_TAGGED_CALL", "Query not called as a tagged template literal");
-}
-var serializers = defaultHandlers.serializers;
-var parsers = defaultHandlers.parsers;
-function firstIsString(x) {
-  if (Array.isArray(x))
-    return firstIsString(x[0]);
-  return typeof x === "string" ? 1009 : 0;
-}
-var mergeUserTypes = function(types2) {
-  const user = typeHandlers(types2 || {});
-  return {
-    serializers: Object.assign({}, serializers, user.serializers),
-    parsers: Object.assign({}, parsers, user.parsers)
-  };
-};
-function typeHandlers(types2) {
-  return Object.keys(types2).reduce((acc, k) => {
-    types2[k].from && [].concat(types2[k].from).forEach((x) => acc.parsers[x] = types2[k].parse);
-    if (types2[k].serialize) {
-      acc.serializers[types2[k].to] = types2[k].serialize;
-      types2[k].from && [].concat(types2[k].from).forEach((x) => acc.serializers[x] = types2[k].serialize);
-    }
-    return acc;
-  }, { parsers: {}, serializers: {} });
-}
-function escapeIdentifiers(xs, { transform: { column } }) {
-  return xs.map((x) => escapeIdentifier(column.to ? column.to(x) : x)).join(",");
-}
-var escapeIdentifier = function escape(str) {
-  return '"' + str.replace(/"/g, '""').replace(/\./g, '"."') + '"';
-};
-var inferType = function inferType2(x) {
-  return x instanceof Parameter ? x.type : x instanceof Date ? 1184 : x instanceof Uint8Array ? 17 : x === true || x === false ? 16 : typeof x === "bigint" ? 20 : Array.isArray(x) ? inferType2(x[0]) : 0;
-};
-var escapeBackslash = /\\/g;
-var escapeQuote = /"/g;
-function arrayEscape(x) {
-  return x.replace(escapeBackslash, "\\\\").replace(escapeQuote, '\\"');
-}
-var arraySerializer = function arraySerializer2(xs, serializer, options, typarray) {
-  if (Array.isArray(xs) === false)
-    return xs;
-  if (!xs.length)
-    return "{}";
-  const first = xs[0];
-  const delimiter = typarray === 1020 ? ";" : ",";
-  if (Array.isArray(first) && !first.type)
-    return "{" + xs.map((x) => arraySerializer2(x, serializer, options, typarray)).join(delimiter) + "}";
-  return "{" + xs.map((x) => {
-    if (x === void 0) {
-      x = options.transform.undefined;
-      if (x === void 0)
-        throw Errors.generic("UNDEFINED_VALUE", "Undefined values are not allowed");
-    }
-    return x === null ? "null" : '"' + arrayEscape(serializer ? serializer(x.type ? x.value : x) : "" + x) + '"';
-  }).join(delimiter) + "}";
-};
-var arrayParserState = {
-  i: 0,
-  char: null,
-  str: "",
-  quoted: false,
-  last: 0
-};
-var arrayParser = function arrayParser2(x, parser, typarray) {
-  arrayParserState.i = arrayParserState.last = 0;
-  return arrayParserLoop(arrayParserState, x, parser, typarray);
-};
-function arrayParserLoop(s, x, parser, typarray) {
-  const xs = [];
-  const delimiter = typarray === 1020 ? ";" : ",";
-  for (; s.i < x.length; s.i++) {
-    s.char = x[s.i];
-    if (s.quoted) {
-      if (s.char === "\\") {
-        s.str += x[++s.i];
-      } else if (s.char === '"') {
-        xs.push(parser ? parser(s.str) : s.str);
-        s.str = "";
-        s.quoted = x[s.i + 1] === '"';
-        s.last = s.i + 2;
-      } else {
-        s.str += s.char;
-      }
-    } else if (s.char === '"') {
-      s.quoted = true;
-    } else if (s.char === "{") {
-      s.last = ++s.i;
-      xs.push(arrayParserLoop(s, x, parser, typarray));
-    } else if (s.char === "}") {
-      s.quoted = false;
-      s.last < s.i && xs.push(parser ? parser(x.slice(s.last, s.i)) : x.slice(s.last, s.i));
-      s.last = s.i + 1;
-      break;
-    } else if (s.char === delimiter && s.p !== "}" && s.p !== '"') {
-      xs.push(parser ? parser(x.slice(s.last, s.i)) : x.slice(s.last, s.i));
-      s.last = s.i + 1;
-    }
-    s.p = s.char;
-  }
-  s.last < s.i && xs.push(parser ? parser(x.slice(s.last, s.i + 1)) : x.slice(s.last, s.i + 1));
-  return xs;
-}
-var toCamel = (x) => {
-  let str = x[0];
-  for (let i = 1; i < x.length; i++)
-    str += x[i] === "_" ? x[++i].toUpperCase() : x[i];
-  return str;
-};
-var toPascal = (x) => {
-  let str = x[0].toUpperCase();
-  for (let i = 1; i < x.length; i++)
-    str += x[i] === "_" ? x[++i].toUpperCase() : x[i];
-  return str;
-};
-var toKebab = (x) => x.replace(/_/g, "-");
-var fromCamel = (x) => x.replace(/([A-Z])/g, "_$1").toLowerCase();
-var fromPascal = (x) => (x.slice(0, 1) + x.slice(1).replace(/([A-Z])/g, "_$1")).toLowerCase();
-var fromKebab = (x) => x.replace(/-/g, "_");
-function createJsonTransform(fn) {
-  return function jsonTransform(x, column) {
-    return typeof x === "object" && x !== null && (column.type === 114 || column.type === 3802) ? Array.isArray(x) ? x.map((x2) => jsonTransform(x2, column)) : Object.entries(x).reduce((acc, [k, v]) => Object.assign(acc, { [fn(k)]: jsonTransform(v, column) }), {}) : x;
-  };
-}
-toCamel.column = { from: toCamel };
-toCamel.value = { from: createJsonTransform(toCamel) };
-fromCamel.column = { to: fromCamel };
-var camel = { ...toCamel };
-camel.column.to = fromCamel;
-toPascal.column = { from: toPascal };
-toPascal.value = { from: createJsonTransform(toPascal) };
-fromPascal.column = { to: fromPascal };
-var pascal = { ...toPascal };
-pascal.column.to = fromPascal;
-toKebab.column = { from: toKebab };
-toKebab.value = { from: createJsonTransform(toKebab) };
-fromKebab.column = { to: fromKebab };
-var kebab = { ...toKebab };
-kebab.column.to = fromKebab;
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js
-var import_net = __toESM(require("net"), 1);
-var import_tls = __toESM(require("tls"), 1);
-var import_crypto = __toESM(require("crypto"), 1);
-var import_stream = __toESM(require("stream"), 1);
-var import_perf_hooks = require("perf_hooks");
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/result.js
-var Result = class extends Array {
-  constructor() {
-    super();
-    Object.defineProperties(this, {
-      count: { value: null, writable: true },
-      state: { value: null, writable: true },
-      command: { value: null, writable: true },
-      columns: { value: null, writable: true },
-      statement: { value: null, writable: true }
-    });
-  }
-  static get [Symbol.species]() {
-    return Array;
-  }
-};
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/queue.js
-var queue_default = Queue;
-function Queue(initial = []) {
-  let xs = initial.slice();
-  let index = 0;
-  return {
-    get length() {
-      return xs.length - index;
-    },
-    remove: (x) => {
-      const index2 = xs.indexOf(x);
-      return index2 === -1 ? null : (xs.splice(index2, 1), x);
-    },
-    push: (x) => (xs.push(x), x),
-    shift: () => {
-      const out = xs[index++];
-      if (index === xs.length) {
-        index = 0;
-        xs = [];
-      } else {
-        xs[index - 1] = void 0;
-      }
-      return out;
-    }
-  };
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/bytes.js
-var size = 256;
-var buffer = Buffer.allocUnsafe(size);
-var messages = "BCcDdEFfHPpQSX".split("").reduce((acc, x) => {
-  const v = x.charCodeAt(0);
-  acc[x] = () => {
-    buffer[0] = v;
-    b.i = 5;
-    return b;
-  };
-  return acc;
-}, {});
-var b = Object.assign(reset, messages, {
-  N: String.fromCharCode(0),
-  i: 0,
-  inc(x) {
-    b.i += x;
-    return b;
-  },
-  str(x) {
-    const length = Buffer.byteLength(x);
-    fit(length);
-    b.i += buffer.write(x, b.i, length, "utf8");
-    return b;
-  },
-  i16(x) {
-    fit(2);
-    buffer.writeUInt16BE(x, b.i);
-    b.i += 2;
-    return b;
-  },
-  i32(x, i) {
-    if (i || i === 0) {
-      buffer.writeUInt32BE(x, i);
-      return b;
-    }
-    fit(4);
-    buffer.writeUInt32BE(x, b.i);
-    b.i += 4;
-    return b;
-  },
-  z(x) {
-    fit(x);
-    buffer.fill(0, b.i, b.i + x);
-    b.i += x;
-    return b;
-  },
-  raw(x) {
-    buffer = Buffer.concat([buffer.subarray(0, b.i), x]);
-    b.i = buffer.length;
-    return b;
-  },
-  end(at = 1) {
-    buffer.writeUInt32BE(b.i - at, at);
-    const out = buffer.subarray(0, b.i);
-    b.i = 0;
-    buffer = Buffer.allocUnsafe(size);
-    return out;
-  }
-});
-var bytes_default = b;
-function fit(x) {
-  if (buffer.length - b.i < x) {
-    const prev = buffer, length = prev.length;
-    buffer = Buffer.allocUnsafe(length + (length >> 1) + x);
-    prev.copy(buffer);
-  }
-}
-function reset() {
-  b.i = 0;
-  return b;
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js
-var connection_default = Connection;
-var uid = 1;
-var Sync = bytes_default().S().end();
-var Flush = bytes_default().H().end();
-var SSLRequest = bytes_default().i32(8).i32(80877103).end(8);
-var ExecuteUnnamed = Buffer.concat([bytes_default().E().str(bytes_default.N).i32(0).end(), Sync]);
-var DescribeUnnamed = bytes_default().D().str("S").str(bytes_default.N).end();
-var noop = () => {
-};
-var retryRoutines = /* @__PURE__ */ new Set([
-  "FetchPreparedStatement",
-  "RevalidateCachedQuery",
-  "transformAssignedExpr"
-]);
-var errorFields = {
-  83: "severity_local",
-  // S
-  86: "severity",
-  // V
-  67: "code",
-  // C
-  77: "message",
-  // M
-  68: "detail",
-  // D
-  72: "hint",
-  // H
-  80: "position",
-  // P
-  112: "internal_position",
-  // p
-  113: "internal_query",
-  // q
-  87: "where",
-  // W
-  115: "schema_name",
-  // s
-  116: "table_name",
-  // t
-  99: "column_name",
-  // c
-  100: "data type_name",
-  // d
-  110: "constraint_name",
-  // n
-  70: "file",
-  // F
-  76: "line",
-  // L
-  82: "routine"
-  // R
-};
-function Connection(options, queues = {}, { onopen = noop, onend = noop, onclose = noop } = {}) {
-  const {
-    sslnegotiation,
-    ssl,
-    max,
-    user,
-    host,
-    port,
-    database,
-    parsers: parsers2,
-    transform,
-    onnotice,
-    onnotify,
-    onparameter,
-    max_pipeline,
-    keep_alive,
-    backoff: backoff2,
-    target_session_attrs
-  } = options;
-  const sent = queue_default(), id = uid++, backend = { pid: null, secret: null }, idleTimer = timer(end, options.idle_timeout), lifeTimer = timer(end, options.max_lifetime), connectTimer = timer(connectTimedOut, options.connect_timeout);
-  let socket = null, cancelMessage, errorResponse = null, result = new Result(), incoming = Buffer.alloc(0), needsTypes = options.fetch_types, backendParameters = {}, statements = {}, statementId = Math.random().toString(36).slice(2), statementCount = 1, closedTime = 0, remaining = 0, hostIndex = 0, retries = 0, length = 0, delay = 0, rows = 0, serverSignature = null, nextWriteTimer = null, terminated = false, incomings = null, results = null, initial = null, ending = null, stream = null, chunk = null, ended = null, nonce = null, query = null, final = null;
-  const connection2 = {
-    queue: queues.closed,
-    idleTimer,
-    connect(query2) {
-      initial = query2;
-      reconnect();
-    },
-    terminate,
-    execute,
-    cancel,
-    end,
-    count: 0,
-    id
-  };
-  queues.closed && queues.closed.push(connection2);
-  return connection2;
-  async function createSocket() {
-    let x;
-    try {
-      x = options.socket ? await Promise.resolve(options.socket(options)) : new import_net.default.Socket();
-    } catch (e) {
-      error(e);
-      return;
-    }
-    x.on("error", error);
-    x.on("close", closed);
-    x.on("drain", drain);
-    return x;
-  }
-  async function cancel({ pid, secret }, resolve, reject) {
-    try {
-      cancelMessage = bytes_default().i32(16).i32(80877102).i32(pid).i32(secret).end(16);
-      await connect();
-      socket.once("error", reject);
-      socket.once("close", resolve);
-    } catch (error2) {
-      reject(error2);
-    }
-  }
-  function execute(q) {
-    if (terminated)
-      return queryError(q, Errors.connection("CONNECTION_DESTROYED", options));
-    if (stream)
-      return queryError(q, Errors.generic("COPY_IN_PROGRESS", "You cannot execute queries during copy"));
-    if (q.cancelled)
-      return;
-    try {
-      q.state = backend;
-      query ? sent.push(q) : (query = q, query.active = true);
-      build(q);
-      return write(toBuffer(q)) && !q.describeFirst && !q.cursorFn && sent.length < max_pipeline && (!q.options.onexecute || q.options.onexecute(connection2));
-    } catch (error2) {
-      sent.length === 0 && write(Sync);
-      errored(error2);
-      return true;
-    }
-  }
-  function toBuffer(q) {
-    if (q.parameters.length >= 65534)
-      throw Errors.generic("MAX_PARAMETERS_EXCEEDED", "Max number of parameters (65534) exceeded");
-    return q.options.simple ? bytes_default().Q().str(q.statement.string + bytes_default.N).end() : q.describeFirst ? Buffer.concat([describe(q), Flush]) : q.prepare ? q.prepared ? prepared(q) : Buffer.concat([describe(q), prepared(q)]) : unnamed(q);
-  }
-  function describe(q) {
-    return Buffer.concat([
-      Parse(q.statement.string, q.parameters, q.statement.types, q.statement.name),
-      Describe("S", q.statement.name)
-    ]);
-  }
-  function prepared(q) {
-    return Buffer.concat([
-      Bind(q.parameters, q.statement.types, q.statement.name, q.cursorName),
-      q.cursorFn ? Execute("", q.cursorRows) : ExecuteUnnamed
-    ]);
-  }
-  function unnamed(q) {
-    return Buffer.concat([
-      Parse(q.statement.string, q.parameters, q.statement.types),
-      DescribeUnnamed,
-      prepared(q)
-    ]);
-  }
-  function build(q) {
-    const parameters = [], types2 = [];
-    const string = stringify(q, q.strings[0], q.args[0], parameters, types2, options);
-    !q.tagged && q.args.forEach((x) => handleValue(x, parameters, types2, options));
-    q.prepare = options.prepare && ("prepare" in q.options ? q.options.prepare : true);
-    q.string = string;
-    q.signature = q.prepare && types2 + string;
-    q.onlyDescribe && delete statements[q.signature];
-    q.parameters = q.parameters || parameters;
-    q.prepared = q.prepare && q.signature in statements;
-    q.describeFirst = q.onlyDescribe || parameters.length && !q.prepared;
-    q.statement = q.prepared ? statements[q.signature] : { string, types: types2, name: q.prepare ? statementId + statementCount++ : "" };
-    typeof options.debug === "function" && options.debug(id, string, parameters, types2);
-  }
-  function write(x, fn) {
-    chunk = chunk ? Buffer.concat([chunk, x]) : Buffer.from(x);
-    if (fn || chunk.length >= 1024)
-      return nextWrite(fn);
-    nextWriteTimer === null && (nextWriteTimer = setImmediate(nextWrite));
-    return true;
-  }
-  function nextWrite(fn) {
-    const x = socket.write(chunk, fn);
-    nextWriteTimer !== null && clearImmediate(nextWriteTimer);
-    chunk = nextWriteTimer = null;
-    return x;
-  }
-  function connectTimedOut() {
-    errored(Errors.connection("CONNECT_TIMEOUT", options, socket));
-    socket.destroy();
-  }
-  async function secure() {
-    if (sslnegotiation !== "direct") {
-      write(SSLRequest);
-      const canSSL = await new Promise((r) => socket.once("data", (x) => r(x[0] === 83)));
-      if (!canSSL && ssl === "prefer")
-        return connected();
-    }
-    const options2 = {
-      socket,
-      servername: import_net.default.isIP(socket.host) ? void 0 : socket.host
-    };
-    if (sslnegotiation === "direct")
-      options2.ALPNProtocols = ["postgresql"];
-    if (ssl === "require" || ssl === "allow" || ssl === "prefer")
-      options2.rejectUnauthorized = false;
-    else if (typeof ssl === "object")
-      Object.assign(options2, ssl);
-    socket.removeAllListeners();
-    socket = import_tls.default.connect(options2);
-    socket.on("secureConnect", connected);
-    socket.on("error", error);
-    socket.on("close", closed);
-    socket.on("drain", drain);
-  }
-  function drain() {
-    !query && onopen(connection2);
-  }
-  function data(x) {
-    if (incomings) {
-      incomings.push(x);
-      remaining -= x.length;
-      if (remaining > 0)
-        return;
-    }
-    incoming = incomings ? Buffer.concat(incomings, length - remaining) : incoming.length === 0 ? x : Buffer.concat([incoming, x], incoming.length + x.length);
-    while (incoming.length > 4) {
-      length = incoming.readUInt32BE(1);
-      if (length >= incoming.length) {
-        remaining = length - incoming.length;
-        incomings = [incoming];
-        break;
-      }
-      try {
-        handle(incoming.subarray(0, length + 1));
-      } catch (e) {
-        query && (query.cursorFn || query.describeFirst) && write(Sync);
-        errored(e);
-      }
-      incoming = incoming.subarray(length + 1);
-      remaining = 0;
-      incomings = null;
-    }
-  }
-  async function connect() {
-    terminated = false;
-    backendParameters = {};
-    socket || (socket = await createSocket());
-    if (!socket)
-      return;
-    connectTimer.start();
-    if (options.socket)
-      return ssl ? secure() : connected();
-    socket.on("connect", ssl ? secure : connected);
-    if (options.path)
-      return socket.connect(options.path);
-    socket.ssl = ssl;
-    socket.connect(port[hostIndex], host[hostIndex]);
-    socket.host = host[hostIndex];
-    socket.port = port[hostIndex];
-    hostIndex = (hostIndex + 1) % port.length;
-  }
-  function reconnect() {
-    setTimeout(connect, closedTime ? Math.max(0, closedTime + delay - import_perf_hooks.performance.now()) : 0);
-  }
-  function connected() {
-    try {
-      statements = {};
-      needsTypes = options.fetch_types;
-      statementId = Math.random().toString(36).slice(2);
-      statementCount = 1;
-      lifeTimer.start();
-      socket.on("data", data);
-      keep_alive && socket.setKeepAlive && socket.setKeepAlive(true, 1e3 * keep_alive);
-      const s = StartupMessage();
-      write(s);
-    } catch (err) {
-      error(err);
-    }
-  }
-  function error(err) {
-    if (connection2.queue === queues.connecting && options.host[retries + 1])
-      return;
-    errored(err);
-    while (sent.length)
-      queryError(sent.shift(), err);
-  }
-  function errored(err) {
-    stream && (stream.destroy(err), stream = null);
-    query && queryError(query, err);
-    initial && (queryError(initial, err), initial = null);
-  }
-  function queryError(query2, err) {
-    if (query2.reserve)
-      return query2.reject(err);
-    if (!err || typeof err !== "object")
-      err = new Error(err);
-    "query" in err || "parameters" in err || Object.defineProperties(err, {
-      stack: { value: err.stack + query2.origin.replace(/.*\n/, "\n"), enumerable: options.debug },
-      query: { value: query2.string, enumerable: options.debug },
-      parameters: { value: query2.parameters, enumerable: options.debug },
-      args: { value: query2.args, enumerable: options.debug },
-      types: { value: query2.statement && query2.statement.types, enumerable: options.debug }
-    });
-    query2.reject(err);
-  }
-  function end() {
-    return ending || (!connection2.reserved && onend(connection2), !connection2.reserved && !initial && !query && sent.length === 0 ? (terminate(), new Promise((r) => socket && socket.readyState !== "closed" ? socket.once("close", r) : r())) : ending = new Promise((r) => ended = r));
-  }
-  function terminate() {
-    terminated = true;
-    if (stream || query || initial || sent.length)
-      error(Errors.connection("CONNECTION_DESTROYED", options));
-    clearImmediate(nextWriteTimer);
-    if (socket) {
-      socket.removeListener("data", data);
-      socket.removeListener("connect", connected);
-      socket.readyState === "open" && socket.end(bytes_default().X().end());
-    }
-    ended && (ended(), ending = ended = null);
-  }
-  async function closed(hadError) {
-    incoming = Buffer.alloc(0);
-    remaining = 0;
-    incomings = null;
-    clearImmediate(nextWriteTimer);
-    socket.removeListener("data", data);
-    socket.removeListener("connect", connected);
-    idleTimer.cancel();
-    lifeTimer.cancel();
-    connectTimer.cancel();
-    socket.removeAllListeners();
-    socket = null;
-    if (initial)
-      return reconnect();
-    !hadError && (query || sent.length) && error(Errors.connection("CONNECTION_CLOSED", options, socket));
-    closedTime = import_perf_hooks.performance.now();
-    hadError && options.shared.retries++;
-    delay = (typeof backoff2 === "function" ? backoff2(options.shared.retries) : backoff2) * 1e3;
-    onclose(connection2, Errors.connection("CONNECTION_CLOSED", options, socket));
-  }
-  function handle(xs, x = xs[0]) {
-    (x === 68 ? DataRow : (
-      // D
-      x === 100 ? CopyData : (
-        // d
-        x === 65 ? NotificationResponse : (
-          // A
-          x === 83 ? ParameterStatus : (
-            // S
-            x === 90 ? ReadyForQuery : (
-              // Z
-              x === 67 ? CommandComplete : (
-                // C
-                x === 50 ? BindComplete : (
-                  // 2
-                  x === 49 ? ParseComplete : (
-                    // 1
-                    x === 116 ? ParameterDescription : (
-                      // t
-                      x === 84 ? RowDescription : (
-                        // T
-                        x === 82 ? Authentication : (
-                          // R
-                          x === 110 ? NoData : (
-                            // n
-                            x === 75 ? BackendKeyData : (
-                              // K
-                              x === 69 ? ErrorResponse : (
-                                // E
-                                x === 115 ? PortalSuspended : (
-                                  // s
-                                  x === 51 ? CloseComplete : (
-                                    // 3
-                                    x === 71 ? CopyInResponse : (
-                                      // G
-                                      x === 78 ? NoticeResponse : (
-                                        // N
-                                        x === 72 ? CopyOutResponse : (
-                                          // H
-                                          x === 99 ? CopyDone : (
-                                            // c
-                                            x === 73 ? EmptyQueryResponse : (
-                                              // I
-                                              x === 86 ? FunctionCallResponse : (
-                                                // V
-                                                x === 118 ? NegotiateProtocolVersion : (
-                                                  // v
-                                                  x === 87 ? CopyBothResponse : (
-                                                    // W
-                                                    /* c8 ignore next */
-                                                    UnknownMessage
-                                                  )
-                                                )
-                                              )
-                                            )
-                                          )
-                                        )
-                                      )
-                                    )
-                                  )
-                                )
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    ))(xs);
-  }
-  function DataRow(x) {
-    let index = 7;
-    let length2;
-    let column;
-    let value;
-    const row = query.isRaw ? new Array(query.statement.columns.length) : {};
-    for (let i = 0; i < query.statement.columns.length; i++) {
-      column = query.statement.columns[i];
-      length2 = x.readInt32BE(index);
-      index += 4;
-      value = length2 === -1 ? null : query.isRaw === true ? x.subarray(index, index += length2) : column.parser === void 0 ? x.toString("utf8", index, index += length2) : column.parser.array === true ? column.parser(x.toString("utf8", index + 1, index += length2)) : column.parser(x.toString("utf8", index, index += length2));
-      query.isRaw ? row[i] = query.isRaw === true ? value : transform.value.from ? transform.value.from(value, column) : value : row[column.name] = transform.value.from ? transform.value.from(value, column) : value;
-    }
-    query.forEachFn ? query.forEachFn(transform.row.from ? transform.row.from(row) : row, result) : result[rows++] = transform.row.from ? transform.row.from(row) : row;
-  }
-  function ParameterStatus(x) {
-    const [k, v] = x.toString("utf8", 5, x.length - 1).split(bytes_default.N);
-    backendParameters[k] = v;
-    if (options.parameters[k] !== v) {
-      options.parameters[k] = v;
-      onparameter && onparameter(k, v);
-    }
-  }
-  function ReadyForQuery(x) {
-    if (query) {
-      if (errorResponse) {
-        query.retried ? errored(query.retried) : query.prepared && retryRoutines.has(errorResponse.routine) ? retry(query, errorResponse) : errored(errorResponse);
-      } else {
-        query.resolve(results || result);
-      }
-    } else if (errorResponse) {
-      errored(errorResponse);
-    }
-    query = results = errorResponse = null;
-    result = new Result();
-    connectTimer.cancel();
-    if (initial) {
-      if (target_session_attrs) {
-        if (!backendParameters.in_hot_standby || !backendParameters.default_transaction_read_only)
-          return fetchState();
-        else if (tryNext(target_session_attrs, backendParameters))
-          return terminate();
-      }
-      if (needsTypes) {
-        initial.reserve && (initial = null);
-        return fetchArrayTypes();
-      }
-      initial && !initial.reserve && execute(initial);
-      options.shared.retries = retries = 0;
-      initial = null;
-      return;
-    }
-    while (sent.length && (query = sent.shift()) && (query.active = true, query.cancelled))
-      Connection(options).cancel(query.state, query.cancelled.resolve, query.cancelled.reject);
-    if (query)
-      return;
-    connection2.reserved ? !connection2.reserved.release && x[5] === 73 ? ending ? terminate() : (connection2.reserved = null, onopen(connection2)) : connection2.reserved() : ending ? terminate() : onopen(connection2);
-  }
-  function CommandComplete(x) {
-    rows = 0;
-    for (let i = x.length - 1; i > 0; i--) {
-      if (x[i] === 32 && x[i + 1] < 58 && result.count === null)
-        result.count = +x.toString("utf8", i + 1, x.length - 1);
-      if (x[i - 1] >= 65) {
-        result.command = x.toString("utf8", 5, i);
-        result.state = backend;
-        break;
+    const extensions = validateCrit(JWSInvalid, /* @__PURE__ */ new Map([["b64", true]]), options2?.crit, this.#protectedHeader, joseHeader);
+    let b64 = true;
+    if (extensions.has("b64")) {
+      b64 = this.#protectedHeader.b64;
+      if (typeof b64 !== "boolean") {
+        throw new JWSInvalid('The "b64" (base64url-encode payload) Header Parameter must be a boolean');
       }
     }
-    final && (final(), final = null);
-    if (result.command === "BEGIN" && max !== 1 && !connection2.reserved)
-      return errored(Errors.generic("UNSAFE_TRANSACTION", "Only use sql.begin, sql.reserved or max: 1"));
-    if (query.options.simple)
-      return BindComplete();
-    if (query.cursorFn) {
-      result.count && query.cursorFn(result);
-      write(Sync);
+    const { alg } = joseHeader;
+    if (typeof alg !== "string" || !alg) {
+      throw new JWSInvalid('JWS "alg" (Algorithm) Header Parameter missing or invalid');
     }
-  }
-  function ParseComplete() {
-    query.parsing = false;
-  }
-  function BindComplete() {
-    !result.statement && (result.statement = query.statement);
-    result.columns = query.statement.columns;
-  }
-  function ParameterDescription(x) {
-    const length2 = x.readUInt16BE(5);
-    for (let i = 0; i < length2; ++i)
-      !query.statement.types[i] && (query.statement.types[i] = x.readUInt32BE(7 + i * 4));
-    query.prepare && (statements[query.signature] = query.statement);
-    query.describeFirst && !query.onlyDescribe && (write(prepared(query)), query.describeFirst = false);
-  }
-  function RowDescription(x) {
-    if (result.command) {
-      results = results || [result];
-      results.push(result = new Result());
-      result.count = null;
-      query.statement.columns = null;
-    }
-    const length2 = x.readUInt16BE(5);
-    let index = 7;
-    let start;
-    query.statement.columns = Array(length2);
-    for (let i = 0; i < length2; ++i) {
-      start = index;
-      while (x[index++] !== 0) ;
-      const table = x.readUInt32BE(index);
-      const number = x.readUInt16BE(index + 4);
-      const type = x.readUInt32BE(index + 6);
-      query.statement.columns[i] = {
-        name: transform.column.from ? transform.column.from(x.toString("utf8", start, index - 1)) : x.toString("utf8", start, index - 1),
-        parser: parsers2[type],
-        table,
-        number,
-        type
-      };
-      index += 18;
-    }
-    result.statement = query.statement;
-    if (query.onlyDescribe)
-      return query.resolve(query.statement), write(Sync);
-  }
-  async function Authentication(x, type = x.readUInt32BE(5)) {
-    (type === 3 ? AuthenticationCleartextPassword : type === 5 ? AuthenticationMD5Password : type === 10 ? SASL : type === 11 ? SASLContinue : type === 12 ? SASLFinal : type !== 0 ? UnknownAuth : noop)(x, type);
-  }
-  async function AuthenticationCleartextPassword() {
-    const payload = await Pass();
-    write(
-      bytes_default().p().str(payload).z(1).end()
-    );
-  }
-  async function AuthenticationMD5Password(x) {
-    const payload = "md5" + await md5(
-      Buffer.concat([
-        Buffer.from(await md5(await Pass() + user)),
-        x.subarray(9)
-      ])
-    );
-    write(
-      bytes_default().p().str(payload).z(1).end()
-    );
-  }
-  async function SASL() {
-    nonce = (await import_crypto.default.randomBytes(18)).toString("base64");
-    bytes_default().p().str("SCRAM-SHA-256" + bytes_default.N);
-    const i = bytes_default.i;
-    write(bytes_default.inc(4).str("n,,n=*,r=" + nonce).i32(bytes_default.i - i - 4, i).end());
-  }
-  async function SASLContinue(x) {
-    const res = x.toString("utf8", 9).split(",").reduce((acc, x2) => (acc[x2[0]] = x2.slice(2), acc), {});
-    const saltedPassword = await import_crypto.default.pbkdf2Sync(
-      await Pass(),
-      Buffer.from(res.s, "base64"),
-      parseInt(res.i),
-      32,
-      "sha256"
-    );
-    const clientKey = await hmac(saltedPassword, "Client Key");
-    const auth = "n=*,r=" + nonce + ",r=" + res.r + ",s=" + res.s + ",i=" + res.i + ",c=biws,r=" + res.r;
-    serverSignature = (await hmac(await hmac(saltedPassword, "Server Key"), auth)).toString("base64");
-    const payload = "c=biws,r=" + res.r + ",p=" + xor(
-      clientKey,
-      Buffer.from(await hmac(await sha256(clientKey), auth))
-    ).toString("base64");
-    write(
-      bytes_default().p().str(payload).end()
-    );
-  }
-  function SASLFinal(x) {
-    if (x.toString("utf8", 9).split(bytes_default.N, 1)[0].slice(2) === serverSignature)
-      return;
-    errored(Errors.generic("SASL_SIGNATURE_MISMATCH", "The server did not return the correct signature"));
-    socket.destroy();
-  }
-  function Pass() {
-    return Promise.resolve(
-      typeof options.pass === "function" ? options.pass() : options.pass
-    );
-  }
-  function NoData() {
-    result.statement = query.statement;
-    result.statement.columns = [];
-    if (query.onlyDescribe)
-      return query.resolve(query.statement), write(Sync);
-  }
-  function BackendKeyData(x) {
-    backend.pid = x.readUInt32BE(5);
-    backend.secret = x.readUInt32BE(9);
-  }
-  async function fetchArrayTypes() {
-    needsTypes = false;
-    const types2 = await new Query([`
-      select b.oid, b.typarray
-      from pg_catalog.pg_type a
-      left join pg_catalog.pg_type b on b.oid = a.typelem
-      where a.typcategory = 'A'
-      group by b.oid, b.typarray
-      order by b.oid
-    `], [], execute);
-    types2.forEach(({ oid, typarray }) => addArrayType(oid, typarray));
-  }
-  function addArrayType(oid, typarray) {
-    if (!!options.parsers[typarray] && !!options.serializers[typarray]) return;
-    const parser = options.parsers[oid];
-    options.shared.typeArrayMap[oid] = typarray;
-    options.parsers[typarray] = (xs) => arrayParser(xs, parser, typarray);
-    options.parsers[typarray].array = true;
-    options.serializers[typarray] = (xs) => arraySerializer(xs, options.serializers[oid], options, typarray);
-  }
-  function tryNext(x, xs) {
-    return x === "read-write" && xs.default_transaction_read_only === "on" || x === "read-only" && xs.default_transaction_read_only === "off" || x === "primary" && xs.in_hot_standby === "on" || x === "standby" && xs.in_hot_standby === "off" || x === "prefer-standby" && xs.in_hot_standby === "off" && options.host[retries];
-  }
-  function fetchState() {
-    const query2 = new Query([`
-      show transaction_read_only;
-      select pg_catalog.pg_is_in_recovery()
-    `], [], execute, null, { simple: true });
-    query2.resolve = ([[a], [b2]]) => {
-      backendParameters.default_transaction_read_only = a.transaction_read_only;
-      backendParameters.in_hot_standby = b2.pg_is_in_recovery ? "on" : "off";
-    };
-    query2.execute();
-  }
-  function ErrorResponse(x) {
-    if (query) {
-      (query.cursorFn || query.describeFirst) && write(Sync);
-      errorResponse = Errors.postgres(parseError(x));
+    checkKeyType(alg, key, "sign");
+    let payloadS;
+    let payloadB;
+    if (b64) {
+      payloadS = encode2(this.#payload);
+      payloadB = encode(payloadS);
     } else {
-      errored(Errors.postgres(parseError(x)));
+      payloadB = this.#payload;
+      payloadS = "";
     }
-  }
-  function retry(q, error2) {
-    delete statements[q.signature];
-    q.retried = error2;
-    execute(q);
-  }
-  function NotificationResponse(x) {
-    if (!onnotify)
-      return;
-    let index = 9;
-    while (x[index++] !== 0) ;
-    onnotify(
-      x.toString("utf8", 9, index - 1),
-      x.toString("utf8", index, x.length - 1)
-    );
-  }
-  async function PortalSuspended() {
-    try {
-      const x = await Promise.resolve(query.cursorFn(result));
-      rows = 0;
-      x === CLOSE ? write(Close(query.portal)) : (result = new Result(), write(Execute("", query.cursorRows)));
-    } catch (err) {
-      write(Sync);
-      query.reject(err);
+    let protectedHeaderString;
+    let protectedHeaderBytes;
+    if (this.#protectedHeader) {
+      protectedHeaderString = encode2(JSON.stringify(this.#protectedHeader));
+      protectedHeaderBytes = encode(protectedHeaderString);
+    } else {
+      protectedHeaderString = "";
+      protectedHeaderBytes = new Uint8Array();
     }
-  }
-  function CloseComplete() {
-    result.count && query.cursorFn(result);
-    query.resolve(result);
-  }
-  function CopyInResponse() {
-    stream = new import_stream.default.Writable({
-      autoDestroy: true,
-      write(chunk2, encoding, callback) {
-        socket.write(bytes_default().d().raw(chunk2).end(), callback);
-      },
-      destroy(error2, callback) {
-        callback(error2);
-        socket.write(bytes_default().f().str(error2 + bytes_default.N).end());
-        stream = null;
-      },
-      final(callback) {
-        socket.write(bytes_default().c().end());
-        final = callback;
-        stream = null;
-      }
-    });
-    query.resolve(stream);
-  }
-  function CopyOutResponse() {
-    stream = new import_stream.default.Readable({
-      read() {
-        socket.resume();
-      }
-    });
-    query.resolve(stream);
-  }
-  function CopyBothResponse() {
-    stream = new import_stream.default.Duplex({
-      autoDestroy: true,
-      read() {
-        socket.resume();
-      },
-      /* c8 ignore next 11 */
-      write(chunk2, encoding, callback) {
-        socket.write(bytes_default().d().raw(chunk2).end(), callback);
-      },
-      destroy(error2, callback) {
-        callback(error2);
-        socket.write(bytes_default().f().str(error2 + bytes_default.N).end());
-        stream = null;
-      },
-      final(callback) {
-        socket.write(bytes_default().c().end());
-        final = callback;
-      }
-    });
-    query.resolve(stream);
-  }
-  function CopyData(x) {
-    stream && (stream.push(x.subarray(5)) || socket.pause());
-  }
-  function CopyDone() {
-    stream && stream.push(null);
-    stream = null;
-  }
-  function NoticeResponse(x) {
-    onnotice ? onnotice(parseError(x)) : console.log(parseError(x));
-  }
-  function EmptyQueryResponse() {
-  }
-  function FunctionCallResponse() {
-    errored(Errors.notSupported("FunctionCallResponse"));
-  }
-  function NegotiateProtocolVersion() {
-    errored(Errors.notSupported("NegotiateProtocolVersion"));
-  }
-  function UnknownMessage(x) {
-    console.error("Postgres.js : Unknown Message:", x[0]);
-  }
-  function UnknownAuth(x, type) {
-    console.error("Postgres.js : Unknown Auth:", type);
-  }
-  function Bind(parameters, types2, statement = "", portal = "") {
-    let prev, type;
-    bytes_default().B().str(portal + bytes_default.N).str(statement + bytes_default.N).i16(0).i16(parameters.length);
-    parameters.forEach((x, i) => {
-      if (x === null)
-        return bytes_default.i32(4294967295);
-      type = types2[i];
-      parameters[i] = x = type in options.serializers ? options.serializers[type](x) : "" + x;
-      prev = bytes_default.i;
-      bytes_default.inc(4).str(x).i32(bytes_default.i - prev - 4, prev);
-    });
-    bytes_default.i16(0);
-    return bytes_default.end();
-  }
-  function Parse(str, parameters, types2, name = "") {
-    bytes_default().P().str(name + bytes_default.N).str(str + bytes_default.N).i16(parameters.length);
-    parameters.forEach((x, i) => bytes_default.i32(types2[i] || 0));
-    return bytes_default.end();
-  }
-  function Describe(x, name = "") {
-    return bytes_default().D().str(x).str(name + bytes_default.N).end();
-  }
-  function Execute(portal = "", rows2 = 0) {
-    return Buffer.concat([
-      bytes_default().E().str(portal + bytes_default.N).i32(rows2).end(),
-      Flush
-    ]);
-  }
-  function Close(portal = "") {
-    return Buffer.concat([
-      bytes_default().C().str("P").str(portal + bytes_default.N).end(),
-      bytes_default().S().end()
-    ]);
-  }
-  function StartupMessage() {
-    return cancelMessage || bytes_default().inc(4).i16(3).z(2).str(
-      Object.entries(Object.assign(
-        {
-          user,
-          database,
-          client_encoding: "UTF8"
-        },
-        options.connection
-      )).filter(([, v]) => v).map(([k, v]) => k + bytes_default.N + v).join(bytes_default.N)
-    ).z(2).end(0);
-  }
-}
-function parseError(x) {
-  const error = {};
-  let start = 5;
-  for (let i = 5; i < x.length - 1; i++) {
-    if (x[i] === 0) {
-      error[errorFields[x[start]]] = x.toString("utf8", start + 1, i);
-      start = i + 1;
-    }
-  }
-  return error;
-}
-function md5(x) {
-  return import_crypto.default.createHash("md5").update(x).digest("hex");
-}
-function hmac(key, x) {
-  return import_crypto.default.createHmac("sha256", key).update(x).digest();
-}
-function sha256(x) {
-  return import_crypto.default.createHash("sha256").update(x).digest();
-}
-function xor(a, b2) {
-  const length = Math.max(a.length, b2.length);
-  const buffer2 = Buffer.allocUnsafe(length);
-  for (let i = 0; i < length; i++)
-    buffer2[i] = a[i] ^ b2[i];
-  return buffer2;
-}
-function timer(fn, seconds) {
-  seconds = typeof seconds === "function" ? seconds() : seconds;
-  if (!seconds)
-    return { cancel: noop, start: noop };
-  let timer2;
-  return {
-    cancel() {
-      timer2 && (clearTimeout(timer2), timer2 = null);
-    },
-    start() {
-      timer2 && clearTimeout(timer2);
-      timer2 = setTimeout(done, seconds * 1e3, arguments);
-    }
-  };
-  function done(args) {
-    fn.apply(null, args);
-    timer2 = null;
-  }
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/subscribe.js
-var noop2 = () => {
-};
-function Subscribe(postgres2, options) {
-  const subscribers = /* @__PURE__ */ new Map(), slot = "postgresjs_" + Math.random().toString(36).slice(2), state = {};
-  let connection2, stream, ended = false;
-  const sql2 = subscribe.sql = postgres2({
-    ...options,
-    transform: { column: {}, value: {}, row: {} },
-    max: 1,
-    fetch_types: false,
-    idle_timeout: null,
-    max_lifetime: null,
-    connection: {
-      ...options.connection,
-      replication: "database"
-    },
-    onclose: async function() {
-      if (ended)
-        return;
-      stream = null;
-      state.pid = state.secret = void 0;
-      connected(await init(sql2, slot, options.publications));
-      subscribers.forEach((event) => event.forEach(({ onsubscribe }) => onsubscribe()));
-    },
-    no_subscribe: true
-  });
-  const end = sql2.end, close = sql2.close;
-  sql2.end = async () => {
-    ended = true;
-    stream && await new Promise((r) => (stream.once("close", r), stream.end()));
-    return end();
-  };
-  sql2.close = async () => {
-    stream && await new Promise((r) => (stream.once("close", r), stream.end()));
-    return close();
-  };
-  return subscribe;
-  async function subscribe(event, fn, onsubscribe = noop2, onerror = noop2) {
-    event = parseEvent(event);
-    if (!connection2)
-      connection2 = init(sql2, slot, options.publications);
-    const subscriber = { fn, onsubscribe };
-    const fns = subscribers.has(event) ? subscribers.get(event).add(subscriber) : subscribers.set(event, /* @__PURE__ */ new Set([subscriber])).get(event);
-    const unsubscribe = () => {
-      fns.delete(subscriber);
-      fns.size === 0 && subscribers.delete(event);
+    const data = concat(protectedHeaderBytes, encode("."), payloadB);
+    const k = await normalizeKey(key, alg);
+    const signature = await sign(alg, k, data);
+    const jws = {
+      signature: encode2(signature),
+      payload: payloadS
     };
-    return connection2.then((x) => {
-      connected(x);
-      onsubscribe();
-      stream && stream.on("error", onerror);
-      return { unsubscribe, state, sql: sql2 };
-    });
-  }
-  function connected(x) {
-    stream = x.stream;
-    state.pid = x.state.pid;
-    state.secret = x.state.secret;
-  }
-  async function init(sql3, slot2, publications) {
-    if (!publications)
-      throw new Error("Missing publication names");
-    const xs = await sql3.unsafe(
-      `CREATE_REPLICATION_SLOT ${slot2} TEMPORARY LOGICAL pgoutput NOEXPORT_SNAPSHOT`
-    );
-    const [x] = xs;
-    const stream2 = await sql3.unsafe(
-      `START_REPLICATION SLOT ${slot2} LOGICAL ${x.consistent_point} (proto_version '1', publication_names '${publications}')`
-    ).writable();
-    const state2 = {
-      lsn: Buffer.concat(x.consistent_point.split("/").map((x2) => Buffer.from(("00000000" + x2).slice(-8), "hex")))
-    };
-    stream2.on("data", data);
-    stream2.on("error", error);
-    stream2.on("close", sql3.close);
-    return { stream: stream2, state: xs.state };
-    function error(e) {
-      console.error("Unexpected error during logical streaming - reconnecting", e);
+    if (this.#unprotectedHeader) {
+      jws.header = this.#unprotectedHeader;
     }
-    function data(x2) {
-      if (x2[0] === 119) {
-        parse(x2.subarray(25), state2, sql3.options.parsers, handle, options.transform);
-      } else if (x2[0] === 107 && x2[17]) {
-        state2.lsn = x2.subarray(1, 9);
-        pong();
-      }
+    if (this.#protectedHeader) {
+      jws.protected = protectedHeaderString;
     }
-    function handle(a, b2) {
-      const path2 = b2.relation.schema + "." + b2.relation.table;
-      call("*", a, b2);
-      call("*:" + path2, a, b2);
-      b2.relation.keys.length && call("*:" + path2 + "=" + b2.relation.keys.map((x2) => a[x2.name]), a, b2);
-      call(b2.command, a, b2);
-      call(b2.command + ":" + path2, a, b2);
-      b2.relation.keys.length && call(b2.command + ":" + path2 + "=" + b2.relation.keys.map((x2) => a[x2.name]), a, b2);
-    }
-    function pong() {
-      const x2 = Buffer.alloc(34);
-      x2[0] = "r".charCodeAt(0);
-      x2.fill(state2.lsn, 1);
-      x2.writeBigInt64BE(BigInt(Date.now() - Date.UTC(2e3, 0, 1)) * BigInt(1e3), 25);
-      stream2.write(x2);
-    }
-  }
-  function call(x, a, b2) {
-    subscribers.has(x) && subscribers.get(x).forEach(({ fn }) => fn(a, b2, x));
-  }
-}
-function Time(x) {
-  return new Date(Date.UTC(2e3, 0, 1) + Number(x / BigInt(1e3)));
-}
-function parse(x, state, parsers2, handle, transform) {
-  const char = (acc, [k, v]) => (acc[k.charCodeAt(0)] = v, acc);
-  Object.entries({
-    R: (x2) => {
-      let i = 1;
-      const r = state[x2.readUInt32BE(i)] = {
-        schema: x2.toString("utf8", i += 4, i = x2.indexOf(0, i)) || "pg_catalog",
-        table: x2.toString("utf8", i + 1, i = x2.indexOf(0, i + 1)),
-        columns: Array(x2.readUInt16BE(i += 2)),
-        keys: []
-      };
-      i += 2;
-      let columnIndex = 0, column;
-      while (i < x2.length) {
-        column = r.columns[columnIndex++] = {
-          key: x2[i++],
-          name: transform.column.from ? transform.column.from(x2.toString("utf8", i, i = x2.indexOf(0, i))) : x2.toString("utf8", i, i = x2.indexOf(0, i)),
-          type: x2.readUInt32BE(i += 1),
-          parser: parsers2[x2.readUInt32BE(i)],
-          atttypmod: x2.readUInt32BE(i += 4)
-        };
-        column.key && r.keys.push(column);
-        i += 4;
-      }
-    },
-    Y: () => {
-    },
-    // Type
-    O: () => {
-    },
-    // Origin
-    B: (x2) => {
-      state.date = Time(x2.readBigInt64BE(9));
-      state.lsn = x2.subarray(1, 9);
-    },
-    I: (x2) => {
-      let i = 1;
-      const relation = state[x2.readUInt32BE(i)];
-      const { row } = tuples(x2, relation.columns, i += 7, transform);
-      handle(row, {
-        command: "insert",
-        relation
-      });
-    },
-    D: (x2) => {
-      let i = 1;
-      const relation = state[x2.readUInt32BE(i)];
-      i += 4;
-      const key = x2[i] === 75;
-      handle(
-        key || x2[i] === 79 ? tuples(x2, relation.columns, i += 3, transform).row : null,
-        {
-          command: "delete",
-          relation,
-          key
-        }
-      );
-    },
-    U: (x2) => {
-      let i = 1;
-      const relation = state[x2.readUInt32BE(i)];
-      i += 4;
-      const key = x2[i] === 75;
-      const xs = key || x2[i] === 79 ? tuples(x2, relation.columns, i += 3, transform) : null;
-      xs && (i = xs.i);
-      const { row } = tuples(x2, relation.columns, i + 3, transform);
-      handle(row, {
-        command: "update",
-        relation,
-        key,
-        old: xs && xs.row
-      });
-    },
-    T: () => {
-    },
-    // Truncate,
-    C: () => {
-    }
-    // Commit
-  }).reduce(char, {})[x[0]](x);
-}
-function tuples(x, columns, xi, transform) {
-  let type, column, value;
-  const row = transform.raw ? new Array(columns.length) : {};
-  for (let i = 0; i < columns.length; i++) {
-    type = x[xi++];
-    column = columns[i];
-    value = type === 110 ? null : type === 117 ? void 0 : column.parser === void 0 ? x.toString("utf8", xi + 4, xi += 4 + x.readUInt32BE(xi)) : column.parser.array === true ? column.parser(x.toString("utf8", xi + 5, xi += 4 + x.readUInt32BE(xi))) : column.parser(x.toString("utf8", xi + 4, xi += 4 + x.readUInt32BE(xi)));
-    transform.raw ? row[i] = transform.raw === true ? value : transform.value.from ? transform.value.from(value, column) : value : row[column.name] = transform.value.from ? transform.value.from(value, column) : value;
-  }
-  return { i: xi, row: transform.row.from ? transform.row.from(row) : row };
-}
-function parseEvent(x) {
-  const xs = x.match(/^(\*|insert|update|delete)?:?([^.]+?\.?[^=]+)?=?(.+)?/i) || [];
-  if (!xs)
-    throw new Error("Malformed subscribe pattern: " + x);
-  const [, command, path2, key] = xs;
-  return (command || "*") + (path2 ? ":" + (path2.indexOf(".") === -1 ? "public." + path2 : path2) : "") + (key ? "=" + key : "");
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/large.js
-var import_stream2 = __toESM(require("stream"), 1);
-function largeObject(sql2, oid, mode = 131072 | 262144) {
-  return new Promise(async (resolve, reject) => {
-    await sql2.begin(async (sql3) => {
-      let finish;
-      !oid && ([{ oid }] = await sql3`select lo_creat(-1) as oid`);
-      const [{ fd }] = await sql3`select lo_open(${oid}, ${mode}) as fd`;
-      const lo = {
-        writable,
-        readable,
-        close: () => sql3`select lo_close(${fd})`.then(finish),
-        tell: () => sql3`select lo_tell64(${fd})`,
-        read: (x) => sql3`select loread(${fd}, ${x}) as data`,
-        write: (x) => sql3`select lowrite(${fd}, ${x})`,
-        truncate: (x) => sql3`select lo_truncate64(${fd}, ${x})`,
-        seek: (x, whence = 0) => sql3`select lo_lseek64(${fd}, ${x}, ${whence})`,
-        size: () => sql3`
-          select
-            lo_lseek64(${fd}, location, 0) as position,
-            seek.size
-          from (
-            select
-              lo_lseek64($1, 0, 2) as size,
-              tell.location
-            from (select lo_tell64($1) as location) tell
-          ) seek
-        `
-      };
-      resolve(lo);
-      return new Promise(async (r) => finish = r);
-      async function readable({
-        highWaterMark = 2048 * 8,
-        start = 0,
-        end = Infinity
-      } = {}) {
-        let max = end - start;
-        start && await lo.seek(start);
-        return new import_stream2.default.Readable({
-          highWaterMark,
-          async read(size2) {
-            const l = size2 > max ? size2 - max : size2;
-            max -= size2;
-            const [{ data }] = await lo.read(l);
-            this.push(data);
-            if (data.length < size2)
-              this.push(null);
-          }
-        });
-      }
-      async function writable({
-        highWaterMark = 2048 * 8,
-        start = 0
-      } = {}) {
-        start && await lo.seek(start);
-        return new import_stream2.default.Writable({
-          highWaterMark,
-          write(chunk, encoding, callback) {
-            lo.write(chunk).then(() => callback(), callback);
-          }
-        });
-      }
-    }).catch(reject);
-  });
-}
-
-// ../../node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js
-Object.assign(Postgres, {
-  PostgresError,
-  toPascal,
-  pascal,
-  toCamel,
-  camel,
-  toKebab,
-  kebab,
-  fromPascal,
-  fromCamel,
-  fromKebab,
-  BigInt: {
-    to: 20,
-    from: [20],
-    parse: (x) => BigInt(x),
-    // eslint-disable-line
-    serialize: (x) => x.toString()
-  }
-});
-var src_default = Postgres;
-function Postgres(a, b2) {
-  const options = parseOptions(a, b2), subscribe = options.no_subscribe || Subscribe(Postgres, { ...options });
-  let ending = false;
-  const queries = queue_default(), connecting = queue_default(), reserved = queue_default(), closed = queue_default(), ended = queue_default(), open = queue_default(), busy = queue_default(), full = queue_default(), queues = { connecting, reserved, closed, ended, open, busy, full };
-  const connections = [...Array(options.max)].map(() => connection_default(options, queues, { onopen, onend, onclose }));
-  const sql2 = Sql(handler2);
-  Object.assign(sql2, {
-    get parameters() {
-      return options.parameters;
-    },
-    largeObject: largeObject.bind(null, sql2),
-    subscribe,
-    CLOSE,
-    END: CLOSE,
-    PostgresError,
-    options,
-    reserve,
-    listen,
-    begin,
-    close,
-    end
-  });
-  return sql2;
-  function Sql(handler3) {
-    handler3.debug = options.debug;
-    Object.entries(options.types).reduce((acc, [name, type]) => {
-      acc[name] = (x) => new Parameter(x, type.to);
-      return acc;
-    }, typed);
-    Object.assign(sql3, {
-      types: typed,
-      typed,
-      unsafe,
-      notify,
-      array,
-      json,
-      file
-    });
-    return sql3;
-    function typed(value, type) {
-      return new Parameter(value, type);
-    }
-    function sql3(strings, ...args) {
-      const query = strings && Array.isArray(strings.raw) ? new Query(strings, args, handler3, cancel) : typeof strings === "string" && !args.length ? new Identifier(options.transform.column.to ? options.transform.column.to(strings) : strings) : new Builder(strings, args);
-      return query;
-    }
-    function unsafe(string, args = [], options2 = {}) {
-      arguments.length === 2 && !Array.isArray(args) && (options2 = args, args = []);
-      const query = new Query([string], args, handler3, cancel, {
-        prepare: false,
-        ...options2,
-        simple: "simple" in options2 ? options2.simple : args.length === 0
-      });
-      return query;
-    }
-    function file(path2, args = [], options2 = {}) {
-      arguments.length === 2 && !Array.isArray(args) && (options2 = args, args = []);
-      const query = new Query([], args, (query2) => {
-        import_fs.default.readFile(path2, "utf8", (err, string) => {
-          if (err)
-            return query2.reject(err);
-          query2.strings = [string];
-          handler3(query2);
-        });
-      }, cancel, {
-        ...options2,
-        simple: "simple" in options2 ? options2.simple : args.length === 0
-      });
-      return query;
-    }
-  }
-  async function listen(name, fn, onlisten) {
-    const listener = { fn, onlisten };
-    const sql3 = listen.sql || (listen.sql = Postgres({
-      ...options,
-      max: 1,
-      idle_timeout: null,
-      max_lifetime: null,
-      fetch_types: false,
-      onclose() {
-        Object.entries(listen.channels).forEach(([name2, { listeners }]) => {
-          delete listen.channels[name2];
-          Promise.all(listeners.map((l) => listen(name2, l.fn, l.onlisten).catch(() => {
-          })));
-        });
-      },
-      onnotify(c, x) {
-        c in listen.channels && listen.channels[c].listeners.forEach((l) => l.fn(x));
-      }
-    }));
-    const channels = listen.channels || (listen.channels = {}), exists = name in channels;
-    if (exists) {
-      channels[name].listeners.push(listener);
-      const result2 = await channels[name].result;
-      listener.onlisten && listener.onlisten();
-      return { state: result2.state, unlisten };
-    }
-    channels[name] = { result: sql3`listen ${sql3.unsafe('"' + name.replace(/"/g, '""') + '"')}`, listeners: [listener] };
-    const result = await channels[name].result;
-    listener.onlisten && listener.onlisten();
-    return { state: result.state, unlisten };
-    async function unlisten() {
-      if (name in channels === false)
-        return;
-      channels[name].listeners = channels[name].listeners.filter((x) => x !== listener);
-      if (channels[name].listeners.length)
-        return;
-      delete channels[name];
-      return sql3`unlisten ${sql3.unsafe('"' + name.replace(/"/g, '""') + '"')}`;
-    }
-  }
-  async function notify(channel, payload) {
-    return await sql2`select pg_notify(${channel}, ${"" + payload})`;
-  }
-  async function reserve() {
-    const queue = queue_default();
-    const c = open.length ? open.shift() : await new Promise((resolve, reject) => {
-      const query = { reserve: resolve, reject };
-      queries.push(query);
-      closed.length && connect(closed.shift(), query);
-    });
-    move(c, reserved);
-    c.reserved = () => queue.length ? c.execute(queue.shift()) : move(c, reserved);
-    c.reserved.release = true;
-    const sql3 = Sql(handler3);
-    sql3.release = () => {
-      c.reserved = null;
-      onopen(c);
-    };
-    return sql3;
-    function handler3(q) {
-      c.queue === full ? queue.push(q) : c.execute(q) || move(c, full);
-    }
-  }
-  async function begin(options2, fn) {
-    !fn && (fn = options2, options2 = "");
-    const queries2 = queue_default();
-    let savepoints = 0, connection2, prepare = null;
-    try {
-      await sql2.unsafe("begin " + options2.replace(/[^a-z ]/ig, ""), [], { onexecute }).execute();
-      return await Promise.race([
-        scope(connection2, fn),
-        new Promise((_, reject) => connection2.onclose = reject)
-      ]);
-    } catch (error) {
-      throw error;
-    }
-    async function scope(c, fn2, name) {
-      const sql3 = Sql(handler3);
-      sql3.savepoint = savepoint;
-      sql3.prepare = (x) => prepare = x.replace(/[^a-z0-9$-_. ]/gi);
-      let uncaughtError, result;
-      name && await sql3`savepoint ${sql3(name)}`;
-      try {
-        result = await new Promise((resolve, reject) => {
-          const x = fn2(sql3);
-          Promise.resolve(Array.isArray(x) ? Promise.all(x) : x).then(resolve, reject);
-        });
-        if (uncaughtError)
-          throw uncaughtError;
-      } catch (e) {
-        await (name ? sql3`rollback to ${sql3(name)}` : sql3`rollback`);
-        throw e instanceof PostgresError && e.code === "25P02" && uncaughtError || e;
-      }
-      if (!name) {
-        prepare ? await sql3`prepare transaction '${sql3.unsafe(prepare)}'` : await sql3`commit`;
-      }
-      return result;
-      function savepoint(name2, fn3) {
-        if (name2 && Array.isArray(name2.raw))
-          return savepoint((sql4) => sql4.apply(sql4, arguments));
-        arguments.length === 1 && (fn3 = name2, name2 = null);
-        return scope(c, fn3, "s" + savepoints++ + (name2 ? "_" + name2 : ""));
-      }
-      function handler3(q) {
-        q.catch((e) => uncaughtError || (uncaughtError = e));
-        c.queue === full ? queries2.push(q) : c.execute(q) || move(c, full);
-      }
-    }
-    function onexecute(c) {
-      connection2 = c;
-      move(c, reserved);
-      c.reserved = () => queries2.length ? c.execute(queries2.shift()) : move(c, reserved);
-    }
-  }
-  function move(c, queue) {
-    c.queue.remove(c);
-    queue.push(c);
-    c.queue = queue;
-    queue === open ? c.idleTimer.start() : c.idleTimer.cancel();
-    return c;
-  }
-  function json(x) {
-    return new Parameter(x, 3802);
-  }
-  function array(x, type) {
-    if (!Array.isArray(x))
-      return array(Array.from(arguments));
-    return new Parameter(x, type || (x.length ? inferType(x) || 25 : 0), options.shared.typeArrayMap);
-  }
-  function handler2(query) {
-    if (ending)
-      return query.reject(Errors.connection("CONNECTION_ENDED", options, options));
-    if (open.length)
-      return go(open.shift(), query);
-    if (closed.length)
-      return connect(closed.shift(), query);
-    busy.length ? go(busy.shift(), query) : queries.push(query);
-  }
-  function go(c, query) {
-    return c.execute(query) ? move(c, busy) : move(c, full);
-  }
-  function cancel(query) {
-    return new Promise((resolve, reject) => {
-      query.state ? query.active ? connection_default(options).cancel(query.state, resolve, reject) : query.cancelled = { resolve, reject } : (queries.remove(query), query.cancelled = true, query.reject(Errors.generic("57014", "canceling statement due to user request")), resolve());
-    });
-  }
-  async function end({ timeout = null } = {}) {
-    if (ending)
-      return ending;
-    await 1;
-    let timer2;
-    return ending = Promise.race([
-      new Promise((r) => timeout !== null && (timer2 = setTimeout(destroy, timeout * 1e3, r))),
-      Promise.all(connections.map((c) => c.end()).concat(
-        listen.sql ? listen.sql.end({ timeout: 0 }) : [],
-        subscribe.sql ? subscribe.sql.end({ timeout: 0 }) : []
-      ))
-    ]).then(() => clearTimeout(timer2));
-  }
-  async function close() {
-    await Promise.all(connections.map((c) => c.end()));
-  }
-  async function destroy(resolve) {
-    await Promise.all(connections.map((c) => c.terminate()));
-    while (queries.length)
-      queries.shift().reject(Errors.connection("CONNECTION_DESTROYED", options));
-    resolve();
-  }
-  function connect(c, query) {
-    move(c, connecting);
-    c.connect(query);
-    return c;
-  }
-  function onend(c) {
-    move(c, ended);
-  }
-  function onopen(c) {
-    if (queries.length === 0)
-      return move(c, open);
-    let max = Math.ceil(queries.length / (connecting.length + 1)), ready = true;
-    while (ready && queries.length && max-- > 0) {
-      const query = queries.shift();
-      if (query.reserve)
-        return query.reserve(c);
-      ready = c.execute(query);
-    }
-    ready ? move(c, busy) : move(c, full);
-  }
-  function onclose(c, e) {
-    move(c, closed);
-    c.reserved = null;
-    c.onclose && (c.onclose(e), c.onclose = null);
-    options.onclose && options.onclose(c.id);
-    queries.length && connect(c, queries.shift());
-  }
-}
-function parseOptions(a, b2) {
-  if (a && a.shared)
-    return a;
-  const env = process.env, o = (!a || typeof a === "string" ? b2 : a) || {}, { url, multihost } = parseUrl(a), query = [...url.searchParams].reduce((a2, [b3, c]) => (a2[b3] = c, a2), {}), host = o.hostname || o.host || multihost || url.hostname || env.PGHOST || "localhost", port = o.port || url.port || env.PGPORT || 5432, user = o.user || o.username || url.username || env.PGUSERNAME || env.PGUSER || osUsername();
-  o.no_prepare && (o.prepare = false);
-  query.sslmode && (query.ssl = query.sslmode, delete query.sslmode);
-  "timeout" in o && (console.log("The timeout option is deprecated, use idle_timeout instead"), o.idle_timeout = o.timeout);
-  query.sslrootcert === "system" && (query.ssl = "verify-full");
-  const ints = ["idle_timeout", "connect_timeout", "max_lifetime", "max_pipeline", "backoff", "keep_alive"];
-  const defaults = {
-    max: globalThis.Cloudflare ? 3 : 10,
-    ssl: false,
-    sslnegotiation: null,
-    idle_timeout: null,
-    connect_timeout: 30,
-    max_lifetime,
-    max_pipeline: 100,
-    backoff,
-    keep_alive: 60,
-    prepare: true,
-    debug: false,
-    fetch_types: true,
-    publications: "alltables",
-    target_session_attrs: null
-  };
-  return {
-    host: Array.isArray(host) ? host : host.split(",").map((x) => x.split(":")[0]),
-    port: Array.isArray(port) ? port : host.split(",").map((x) => parseInt(x.split(":")[1] || port)),
-    path: o.path || host.indexOf("/") > -1 && host + "/.s.PGSQL." + port,
-    database: o.database || o.db || (url.pathname || "").slice(1) || env.PGDATABASE || user,
-    user,
-    pass: o.pass || o.password || url.password || env.PGPASSWORD || "",
-    ...Object.entries(defaults).reduce(
-      (acc, [k, d]) => {
-        const value = k in o ? o[k] : k in query ? query[k] === "disable" || query[k] === "false" ? false : query[k] : env["PG" + k.toUpperCase()] || d;
-        acc[k] = typeof value === "string" && ints.includes(k) ? +value : value;
-        return acc;
-      },
-      {}
-    ),
-    connection: {
-      application_name: env.PGAPPNAME || "postgres.js",
-      ...o.connection,
-      ...Object.entries(query).reduce((acc, [k, v]) => (k in defaults || (acc[k] = v), acc), {})
-    },
-    types: o.types || {},
-    target_session_attrs: tsa(o, url, env),
-    onnotice: o.onnotice,
-    onnotify: o.onnotify,
-    onclose: o.onclose,
-    onparameter: o.onparameter,
-    socket: o.socket,
-    transform: parseTransform(o.transform || { undefined: void 0 }),
-    parameters: {},
-    shared: { retries: 0, typeArrayMap: {} },
-    ...mergeUserTypes(o.types)
-  };
-}
-function tsa(o, url, env) {
-  const x = o.target_session_attrs || url.searchParams.get("target_session_attrs") || env.PGTARGETSESSIONATTRS;
-  if (!x || ["read-write", "read-only", "primary", "standby", "prefer-standby"].includes(x))
-    return x;
-  throw new Error("target_session_attrs " + x + " is not supported");
-}
-function backoff(retries) {
-  return (0.5 + Math.random() / 2) * Math.min(3 ** retries / 100, 20);
-}
-function max_lifetime() {
-  return 60 * (30 + Math.random() * 30);
-}
-function parseTransform(x) {
-  return {
-    undefined: x.undefined,
-    column: {
-      from: typeof x.column === "function" ? x.column : x.column && x.column.from,
-      to: x.column && x.column.to
-    },
-    value: {
-      from: typeof x.value === "function" ? x.value : x.value && x.value.from,
-      to: x.value && x.value.to
-    },
-    row: {
-      from: typeof x.row === "function" ? x.row : x.row && x.row.from,
-      to: x.row && x.row.to
-    }
-  };
-}
-function parseUrl(url) {
-  if (!url || typeof url !== "string")
-    return { url: { searchParams: /* @__PURE__ */ new Map() } };
-  let host = url;
-  host = host.slice(host.indexOf("://") + 3).split(/[?/]/)[0];
-  host = decodeURIComponent(host.slice(host.indexOf("@") + 1));
-  const urlObj = new URL(url.replace(host, host.split(",")[0]));
-  return {
-    url: {
-      username: decodeURIComponent(urlObj.username),
-      password: decodeURIComponent(urlObj.password),
-      host: urlObj.host,
-      hostname: urlObj.hostname,
-      port: urlObj.port,
-      pathname: urlObj.pathname,
-      searchParams: urlObj.searchParams
-    },
-    multihost: host.indexOf(",") > -1 && host
-  };
-}
-function osUsername() {
-  try {
-    return import_os.default.userInfo().username;
-  } catch (_) {
-    return process.env.USERNAME || process.env.USER || process.env.LOGNAME;
-  }
-}
-
-// src/db/index.ts
-var connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL environment variable is required");
-}
-var parseDbUrl = (url) => {
-  try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname;
-    const port = parsed.port || (parsed.protocol === "postgres:" ? "5432" : "");
-    const supabasePoolerRegex = /^aws-\d+-[a-z]+-[a-z]+-\d+\.pooler\.supabase\.com$/;
-    const isSupabasePooler2 = supabasePoolerRegex.test(hostname) && port === "5432";
-    return {
-      hostname,
-      port,
-      isLocal: hostname === "127.0.0.1" || hostname === "localhost" || hostname.startsWith("supabase_db_"),
-      isSupabasePooler: isSupabasePooler2
-    };
-  } catch {
-    return { hostname: "", port: "", isLocal: false, isSupabasePooler: false };
+    return jws;
   }
 };
-var { isLocal, isSupabasePooler } = parseDbUrl(connectionString);
-var fixedConnectionString = isSupabasePooler ? connectionString.replace(":5432/", ":6543/") : connectionString;
-var isLocalDb = isLocal;
-var sql = src_default(fixedConnectionString, {
-  transform: src_default.camel,
-  ssl: isLocalDb ? false : { rejectUnauthorized: false },
-  prepare: false,
-  idle_timeout: 20,
-  max: 10
-});
 
-// src/middleware/auth.ts
-var jwks;
-function getJwks() {
-  if (!jwks) {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    if (!supabaseUrl) {
-      throw new Error("SUPABASE_URL environment variable is required");
-    }
-    jwks = createRemoteJWKSet(new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`));
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jws/compact/sign.js
+var CompactSign = class {
+  #flattened;
+  constructor(payload) {
+    this.#flattened = new FlattenedSign(payload);
   }
-  return jwks;
+  setProtectedHeader(protectedHeader) {
+    this.#flattened.setProtectedHeader(protectedHeader);
+    return this;
+  }
+  async sign(key, options2) {
+    const jws = await this.#flattened.sign(key, options2);
+    if (jws.payload === void 0) {
+      throw new TypeError("use the flattened module for creating JWS with b64: false");
+    }
+    return `${jws.protected}.${jws.payload}.${jws.signature}`;
+  }
+};
+
+// node_modules/.pnpm/jose@6.1.3/node_modules/jose/dist/webapi/jwt/sign.js
+var SignJWT = class {
+  #protectedHeader;
+  #jwt;
+  constructor(payload = {}) {
+    this.#jwt = new JWTClaimsBuilder(payload);
+  }
+  setIssuer(issuer) {
+    this.#jwt.iss = issuer;
+    return this;
+  }
+  setSubject(subject) {
+    this.#jwt.sub = subject;
+    return this;
+  }
+  setAudience(audience) {
+    this.#jwt.aud = audience;
+    return this;
+  }
+  setJti(jwtId) {
+    this.#jwt.jti = jwtId;
+    return this;
+  }
+  setNotBefore(input) {
+    this.#jwt.nbf = input;
+    return this;
+  }
+  setExpirationTime(input) {
+    this.#jwt.exp = input;
+    return this;
+  }
+  setIssuedAt(input) {
+    this.#jwt.iat = input;
+    return this;
+  }
+  setProtectedHeader(protectedHeader) {
+    this.#protectedHeader = protectedHeader;
+    return this;
+  }
+  async sign(key, options2) {
+    const sig = new CompactSign(this.#jwt.data());
+    sig.setProtectedHeader(this.#protectedHeader);
+    if (Array.isArray(this.#protectedHeader?.crit) && this.#protectedHeader.crit.includes("b64") && this.#protectedHeader.b64 === false) {
+      throw new JWTInvalid("JWTs MUST NOT use unencoded payload");
+    }
+    return sig.sign(key, options2);
+  }
+};
+
+// packages/api/src/lib/jwt.ts
+var JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is required");
 }
+var secret = new TextEncoder().encode(JWT_SECRET);
+var ACCESS_TOKEN_TTL = "1h";
+async function signAccessToken(userId, email) {
+  return new SignJWT({ sub: userId, email, type: "access" }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(ACCESS_TOKEN_TTL).sign(secret);
+}
+async function verifyToken(token) {
+  const { payload } = await jwtVerify(token, secret);
+  return payload;
+}
+
+// packages/api/src/middleware/auth.ts
 var USER_CACHE_TTL = 5 * 60 * 1e3;
 var userCache = /* @__PURE__ */ new Map();
 function getCachedUser(userId) {
@@ -5839,7 +5806,7 @@ var authMiddleware = createMiddleware(async (c, next) => {
   let payload;
   try {
     const jwtStart = Date.now();
-    const { payload: verifiedPayload } = await jwtVerify(token, getJwks());
+    const verifiedPayload = await verifyToken(token);
     console.log(`[auth] JWT verify: ${Date.now() - jwtStart}ms`);
     payload = verifiedPayload;
   } catch {
@@ -5848,9 +5815,10 @@ var authMiddleware = createMiddleware(async (c, next) => {
       401
     );
   }
+  if (payload.type !== "access") {
+    return c.json({ error: { code: "INVALID_TOKEN", message: "Token type is invalid" } }, 401);
+  }
   const userId = payload.sub;
-  const email = payload.email ?? "";
-  const displayName = payload.user_metadata?.display_name ?? payload.user_metadata?.full_name ?? payload.user_metadata?.name ?? email;
   let dbUser = getCachedUser(userId);
   if (!dbUser) {
     const dbStart = Date.now();
@@ -5859,18 +5827,13 @@ var authMiddleware = createMiddleware(async (c, next) => {
     `;
     console.log(`[auth] DB query: ${Date.now() - dbStart}ms (cache miss)`);
     dbUser = dbUserExisting;
-    if (!dbUser) {
-      const [created] = await sql`
-        INSERT INTO users (id, email, display_name)
-        VALUES (${userId}, ${email}, ${displayName})
-        RETURNING *
-      `;
-      dbUser = created;
-    } else {
+    if (dbUser) {
       const lastLogin = dbUser.lastLoginAt;
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1e3);
       if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
-        void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`;
+        void sql`UPDATE users SET last_login_at = now() WHERE id = ${userId}`.catch((error) => {
+          console.error("[auth] Failed to update last_login_at:", error);
+        });
       }
     }
     if (dbUser) {
@@ -5880,7 +5843,7 @@ var authMiddleware = createMiddleware(async (c, next) => {
     console.log("[auth] DB query: 0ms (cache hit)");
   }
   if (!dbUser) {
-    return c.json({ error: { code: "INTERNAL_ERROR", message: "Failed to provision user" } }, 500);
+    return c.json({ error: { code: "UNAUTHORIZED", message: "User not found" } }, 401);
   }
   if (dbUser.status !== "active") {
     return c.json({ error: { code: "FORBIDDEN", message: `Account is ${dbUser.status}` } }, 403);
@@ -5895,7 +5858,7 @@ var authMiddleware = createMiddleware(async (c, next) => {
   await next();
 });
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
 var external_exports = {};
 __export(external_exports, {
   BRAND: () => BRAND,
@@ -6007,7 +5970,7 @@ __export(external_exports, {
   void: () => voidType
 });
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {
@@ -6141,7 +6104,7 @@ var getParsedType = (data) => {
   }
 };
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -6259,7 +6222,7 @@ ZodError.create = (issues) => {
   return error;
 };
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
 var errorMap = (issue, _ctx) => {
   let message2;
   switch (issue.code) {
@@ -6362,7 +6325,7 @@ var errorMap = (issue, _ctx) => {
 };
 var en_default = errorMap;
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default;
 function setErrorMap(map) {
   overrideErrorMap = map;
@@ -6371,7 +6334,7 @@ function getErrorMap() {
   return overrideErrorMap;
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path: path2, errorMaps, issueData } = params;
   const fullPath = [...path2, ...issueData.path || []];
@@ -6481,14 +6444,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message2) => typeof message2 === "string" ? { message: message2 } : message2 || {};
   errorUtil2.toString = (message2) => typeof message2 === "string" ? message2 : message2?.message;
 })(errorUtil || (errorUtil = {}));
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
+// node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
   constructor(parent, value, path2, key) {
     this._cachedPath = [];
@@ -7261,48 +7224,48 @@ var ZodString = class _ZodString extends ZodType {
       ...errorUtil.errToObj(message2)
     });
   }
-  jwt(options) {
-    return this._addCheck({ kind: "jwt", ...errorUtil.errToObj(options) });
+  jwt(options2) {
+    return this._addCheck({ kind: "jwt", ...errorUtil.errToObj(options2) });
   }
-  ip(options) {
-    return this._addCheck({ kind: "ip", ...errorUtil.errToObj(options) });
+  ip(options2) {
+    return this._addCheck({ kind: "ip", ...errorUtil.errToObj(options2) });
   }
-  cidr(options) {
-    return this._addCheck({ kind: "cidr", ...errorUtil.errToObj(options) });
+  cidr(options2) {
+    return this._addCheck({ kind: "cidr", ...errorUtil.errToObj(options2) });
   }
-  datetime(options) {
-    if (typeof options === "string") {
+  datetime(options2) {
+    if (typeof options2 === "string") {
       return this._addCheck({
         kind: "datetime",
         precision: null,
         offset: false,
         local: false,
-        message: options
+        message: options2
       });
     }
     return this._addCheck({
       kind: "datetime",
-      precision: typeof options?.precision === "undefined" ? null : options?.precision,
-      offset: options?.offset ?? false,
-      local: options?.local ?? false,
-      ...errorUtil.errToObj(options?.message)
+      precision: typeof options2?.precision === "undefined" ? null : options2?.precision,
+      offset: options2?.offset ?? false,
+      local: options2?.local ?? false,
+      ...errorUtil.errToObj(options2?.message)
     });
   }
   date(message2) {
     return this._addCheck({ kind: "date", message: message2 });
   }
-  time(options) {
-    if (typeof options === "string") {
+  time(options2) {
+    if (typeof options2 === "string") {
       return this._addCheck({
         kind: "time",
         precision: null,
-        message: options
+        message: options2
       });
     }
     return this._addCheck({
       kind: "time",
-      precision: typeof options?.precision === "undefined" ? null : options?.precision,
-      ...errorUtil.errToObj(options?.message)
+      precision: typeof options2?.precision === "undefined" ? null : options2?.precision,
+      ...errorUtil.errToObj(options2?.message)
     });
   }
   duration(message2) {
@@ -7315,12 +7278,12 @@ var ZodString = class _ZodString extends ZodType {
       ...errorUtil.errToObj(message2)
     });
   }
-  includes(value, options) {
+  includes(value, options2) {
     return this._addCheck({
       kind: "includes",
       value,
-      position: options?.position,
-      ...errorUtil.errToObj(options?.message)
+      position: options2?.position,
+      ...errorUtil.errToObj(options2?.message)
     });
   }
   startsWith(value, message2) {
@@ -8604,7 +8567,7 @@ ZodObject.lazycreate = (shape, params) => {
 var ZodUnion = class extends ZodType {
   _parse(input) {
     const { ctx } = this._processInputParams(input);
-    const options = this._def.options;
+    const options2 = this._def.options;
     function handleResults(results) {
       for (const result of results) {
         if (result.result.status === "valid") {
@@ -8625,7 +8588,7 @@ var ZodUnion = class extends ZodType {
       return INVALID;
     }
     if (ctx.common.async) {
-      return Promise.all(options.map(async (option) => {
+      return Promise.all(options2.map(async (option) => {
         const childCtx = {
           ...ctx,
           common: {
@@ -8646,7 +8609,7 @@ var ZodUnion = class extends ZodType {
     } else {
       let dirty = void 0;
       const issues = [];
-      for (const option of options) {
+      for (const option of options2) {
         const childCtx = {
           ...ctx,
           common: {
@@ -8776,9 +8739,9 @@ var ZodDiscriminatedUnion = class _ZodDiscriminatedUnion extends ZodType {
    * @param types an array of object schemas
    * @param params
    */
-  static create(discriminator, options, params) {
+  static create(discriminator, options2, params) {
     const optionsMap = /* @__PURE__ */ new Map();
-    for (const type of options) {
+    for (const type of options2) {
       const discriminatorValues = getDiscriminator(type.shape[discriminator]);
       if (!discriminatorValues.length) {
         throw new Error(`A discriminator value for key \`${discriminator}\` could not be extracted from all schema options`);
@@ -8793,7 +8756,7 @@ var ZodDiscriminatedUnion = class _ZodDiscriminatedUnion extends ZodType {
     return new _ZodDiscriminatedUnion({
       typeName: ZodFirstPartyTypeKind.ZodDiscriminatedUnion,
       discriminator,
-      options,
+      options: options2,
       optionsMap,
       ...processCreateParams(params)
     });
@@ -9936,7 +9899,7 @@ var coerce = {
 };
 var NEVER = INVALID;
 
-// src/middleware/error.ts
+// packages/api/src/middleware/error.ts
 var errorMiddleware = createMiddleware(async (c, next) => {
   try {
     await next();
@@ -9957,14 +9920,22 @@ var errorMiddleware = createMiddleware(async (c, next) => {
       );
     }
     console.error("Unhandled error:", err);
+    const isPreview = process.env.VERCEL_ENV === "preview";
+    const message2 = err instanceof Error ? err.message : "Unknown error";
     return c.json(
-      { error: { code: "INTERNAL_ERROR", message: "An unexpected error occurred" } },
+      {
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "An unexpected error occurred",
+          ...isPreview ? { detail: message2 } : {}
+        }
+      },
       500
     );
   }
 });
 
-// src/middleware/maintenance.ts
+// packages/api/src/middleware/maintenance.ts
 var MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === "true";
 var MAINTENANCE_BYPASS_KEY = process.env.MAINTENANCE_BYPASS_KEY || "";
 var maintenanceMiddleware = createMiddleware(async (c, next) => {
@@ -9987,13 +9958,13 @@ var maintenanceMiddleware = createMiddleware(async (c, next) => {
   await next();
 });
 
-// ../shared/dist/constants/index.js
+// packages/shared/dist/constants/index.js
 var GAME_MODES = ["RANK", "RATE", "EVENT", "DC"];
 var RESULTS = ["win", "loss"];
 var THEME_PREFERENCES = ["light", "dark", "system"];
 var USER_STATUSES = ["active", "banned", "suspended"];
 
-// ../shared/dist/schemas/user.js
+// packages/shared/dist/schemas/user.js
 var userSchema = external_exports.object({
   id: external_exports.string().uuid(),
   email: external_exports.string().email(),
@@ -10002,6 +9973,8 @@ var userSchema = external_exports.object({
   isDebugger: external_exports.boolean(),
   themePreference: external_exports.enum(THEME_PREFERENCES),
   streamerMode: external_exports.boolean(),
+  showPlayMistakeStats: external_exports.boolean(),
+  classicLayout: external_exports.boolean(),
   status: external_exports.enum(USER_STATUSES),
   statusReason: external_exports.string().nullable(),
   lastLoginAt: external_exports.string().datetime().nullable(),
@@ -10011,14 +9984,16 @@ var userSchema = external_exports.object({
 var updateUserSchema = external_exports.object({
   displayName: external_exports.string().min(1).max(50).optional(),
   themePreference: external_exports.enum(THEME_PREFERENCES).optional(),
-  streamerMode: external_exports.boolean().optional()
+  streamerMode: external_exports.boolean().optional(),
+  showPlayMistakeStats: external_exports.boolean().optional(),
+  classicLayout: external_exports.boolean().optional()
 });
 var updateUserStatusSchema = external_exports.object({
   status: external_exports.enum(USER_STATUSES),
   statusReason: external_exports.string().max(500).optional()
 });
 
-// ../shared/dist/schemas/deck.js
+// packages/shared/dist/schemas/deck.js
 var deckSchema = external_exports.object({
   id: external_exports.string().uuid(),
   userId: external_exports.string().uuid(),
@@ -10038,7 +10013,7 @@ var updateDeckSchema = external_exports.object({
   isGeneric: external_exports.boolean().optional()
 });
 
-// ../shared/dist/schemas/duel.js
+// packages/shared/dist/schemas/duel.js
 var RANK_MIN = 1;
 var RANK_MAX = 32;
 var duelSchema = external_exports.object({
@@ -10054,6 +10029,7 @@ var duelSchema = external_exports.object({
   rateValue: external_exports.number().nullable(),
   dcValue: external_exports.number().int().nullable(),
   memo: external_exports.string().nullable(),
+  opponentHandtraps: external_exports.array(external_exports.string()).default([]),
   playMistake: external_exports.boolean().nullable(),
   dueledAt: external_exports.string().datetime(),
   createdAt: external_exports.string().datetime(),
@@ -10070,6 +10046,7 @@ var createDuelSchema = external_exports.object({
   rateValue: external_exports.number().nullable().optional(),
   dcValue: external_exports.number().int().nullable().optional(),
   memo: external_exports.string().max(1e3).nullable().optional(),
+  opponentHandtraps: external_exports.array(external_exports.string()).default([]).optional(),
   playMistake: external_exports.boolean().nullable().optional(),
   dueledAt: external_exports.string().datetime()
 });
@@ -10084,6 +10061,7 @@ var updateDuelSchema = external_exports.object({
   rateValue: external_exports.number().nullable().optional(),
   dcValue: external_exports.number().int().nullable().optional(),
   memo: external_exports.string().max(1e3).nullable().optional(),
+  opponentHandtraps: external_exports.array(external_exports.string()).optional(),
   playMistake: external_exports.boolean().nullable().optional(),
   dueledAt: external_exports.string().datetime().optional()
 });
@@ -10099,7 +10077,7 @@ var duelFilterSchema = external_exports.object({
   offset: external_exports.coerce.number().int().min(0).default(0)
 });
 
-// ../shared/dist/schemas/sharedStatistics.js
+// packages/shared/dist/schemas/sharedStatistics.js
 var sharedStatisticsFilterSchema = external_exports.object({
   gameMode: external_exports.enum(GAME_MODES).optional(),
   from: external_exports.string().datetime().optional(),
@@ -10119,7 +10097,7 @@ var createSharedStatisticsSchema = external_exports.object({
   expiresAt: external_exports.string().datetime().nullable().optional()
 });
 
-// ../shared/dist/schemas/statistics.js
+// packages/shared/dist/schemas/statistics.js
 var statisticsFilterSchema = external_exports.object({
   gameMode: external_exports.enum(GAME_MODES).optional(),
   from: external_exports.string().datetime().optional(),
@@ -10173,8 +10151,15 @@ var valueSequenceEntrySchema = external_exports.object({
   value: external_exports.number().nullable(),
   dueledAt: external_exports.string().datetime()
 });
+var handtrapStatsEntrySchema = external_exports.object({
+  handtrapId: external_exports.string(),
+  totalHit: external_exports.number().int(),
+  wins: external_exports.number().int(),
+  losses: external_exports.number().int(),
+  winRate: external_exports.number()
+});
 
-// ../shared/dist/schemas/api.js
+// packages/shared/dist/schemas/api.js
 var paginationSchema = external_exports.object({
   total: external_exports.number().int(),
   limit: external_exports.number().int(),
@@ -10192,7 +10177,7 @@ var errorResponseSchema = external_exports.object({
   })
 });
 
-// src/services/admin.ts
+// packages/api/src/services/admin.ts
 async function listUsers() {
   return sql`
     SELECT * FROM users ORDER BY created_at DESC
@@ -10220,7 +10205,7 @@ async function getAdminStatistics() {
   };
 }
 
-// src/services/sharedStatistics.ts
+// packages/api/src/services/sharedStatistics.ts
 var import_node_crypto = require("node:crypto");
 async function createSharedStats(userId, data) {
   const token = (0, import_node_crypto.randomBytes)(16).toString("hex");
@@ -10264,7 +10249,7 @@ async function cleanupOrphanedSharedStats() {
   return result.length;
 }
 
-// src/routes/admin.ts
+// packages/api/src/routes/admin.ts
 var adminRoutes = new Hono2().get("/users", async (c) => {
   const data = await listUsers();
   return c.json({ data });
@@ -10288,15 +10273,453 @@ var adminRoutes = new Hono2().get("/users", async (c) => {
   return c.json({ data: { deleted: count } });
 });
 
-// src/routes/auth.ts
-var authRoutes = new Hono2().post("/signout", (c) => {
+// packages/api/src/routes/auth.ts
+var import_node_crypto4 = require("node:crypto");
+
+// packages/api/src/lib/oauth.ts
+var import_node_crypto2 = require("node:crypto");
+var GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
+var GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
+var DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID ?? "";
+var DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET ?? "";
+var GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? "";
+var GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET ?? "";
+var AUTH_CALLBACK_URL = process.env.AUTH_CALLBACK_URL?.replace(/\/$/, "") ?? "";
+function encodeBase64Url(value) {
+  return value.toString("base64url");
+}
+function buildUrl(base, params) {
+  const url = new URL(base);
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+  return url;
+}
+async function exchangeToken(url, body, headers = {}) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+      ...headers
+    },
+    body: new URLSearchParams(body)
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload.access_token) {
+    throw new Error(payload.error_description || payload.error || "OAuth token exchange failed");
+  }
+  return payload.access_token;
+}
+function generateState() {
+  return encodeBase64Url((0, import_node_crypto2.randomBytes)(24));
+}
+function generateCodeVerifier() {
+  return encodeBase64Url((0, import_node_crypto2.randomBytes)(32));
+}
+function generateCodeChallenge(codeVerifier) {
+  return (0, import_node_crypto2.createHash)("sha256").update(codeVerifier).digest("base64url");
+}
+function isGoogleConfigured() {
+  return Boolean(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && AUTH_CALLBACK_URL);
+}
+function isDiscordConfigured() {
+  return Boolean(DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET && AUTH_CALLBACK_URL);
+}
+function isGitHubConfigured() {
+  return Boolean(GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET && AUTH_CALLBACK_URL);
+}
+function createGoogleAuthorizationUrl(state, codeVerifier) {
+  return buildUrl("https://accounts.google.com/o/oauth2/v2/auth", {
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: `${AUTH_CALLBACK_URL}/google`,
+    response_type: "code",
+    scope: "openid email profile",
+    state,
+    code_challenge: generateCodeChallenge(codeVerifier),
+    code_challenge_method: "S256"
+  });
+}
+async function exchangeGoogleAuthorizationCode(code, codeVerifier) {
+  return exchangeToken("https://oauth2.googleapis.com/token", {
+    client_id: GOOGLE_CLIENT_ID,
+    client_secret: GOOGLE_CLIENT_SECRET,
+    code,
+    code_verifier: codeVerifier,
+    grant_type: "authorization_code",
+    redirect_uri: `${AUTH_CALLBACK_URL}/google`
+  });
+}
+function createDiscordAuthorizationUrl(state) {
+  return buildUrl("https://discord.com/oauth2/authorize", {
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: `${AUTH_CALLBACK_URL}/discord`,
+    response_type: "code",
+    scope: "identify email",
+    state
+  });
+}
+async function exchangeDiscordAuthorizationCode(code) {
+  return exchangeToken("https://discord.com/api/oauth2/token", {
+    client_id: DISCORD_CLIENT_ID,
+    client_secret: DISCORD_CLIENT_SECRET,
+    code,
+    grant_type: "authorization_code",
+    redirect_uri: `${AUTH_CALLBACK_URL}/discord`
+  });
+}
+function createGitHubAuthorizationUrl(state) {
+  return buildUrl("https://github.com/login/oauth/authorize", {
+    client_id: GITHUB_CLIENT_ID,
+    redirect_uri: `${AUTH_CALLBACK_URL}/github`,
+    scope: "user:email",
+    state
+  });
+}
+async function exchangeGitHubAuthorizationCode(code) {
+  return exchangeToken(
+    "https://github.com/login/oauth/access_token",
+    {
+      client_id: GITHUB_CLIENT_ID,
+      client_secret: GITHUB_CLIENT_SECRET,
+      code,
+      redirect_uri: `${AUTH_CALLBACK_URL}/github`
+    },
+    {
+      "User-Agent": "duel-log-app"
+    }
+  );
+}
+
+// packages/api/src/lib/password.ts
+async function hashPassword(password) {
+  const [row] = await sql`
+    SELECT crypt(${password}, gen_salt('bf', 10)) AS password_hash
+  `;
+  if (!row?.passwordHash) {
+    throw new Error("Failed to hash password");
+  }
+  return row.passwordHash;
+}
+async function passwordMatches(password, passwordHash) {
+  const [row] = await sql`
+    SELECT crypt(${password}, ${passwordHash}) = ${passwordHash} AS matches
+  `;
+  return row?.matches ?? false;
+}
+
+// packages/api/src/services/oauthState.ts
+var import_node_crypto3 = require("node:crypto");
+async function createOAuthState({
+  state,
+  provider,
+  codeVerifier
+}) {
+  await ensureOAuthStateTable();
+  const [created] = await sql`
+    INSERT INTO oauth_states (id, state, code_verifier, provider, expires_at)
+    VALUES (
+      ${(0, import_node_crypto3.randomUUID)()},
+      ${state},
+      ${codeVerifier ?? null},
+      ${provider},
+      now() + interval '10 minutes'
+    )
+    RETURNING *
+  `;
+  return created;
+}
+async function cleanupExpiredOAuthStates() {
+  await ensureOAuthStateTable();
+  const deleted = await sql`
+    DELETE FROM oauth_states
+    WHERE expires_at <= now()
+    RETURNING id
+  `;
+  return deleted.length;
+}
+async function consumeOAuthState(state, provider) {
+  await ensureOAuthStateTable();
+  const [deleted] = await sql`
+    DELETE FROM oauth_states
+    WHERE state = ${state}
+      AND provider = ${provider}
+      AND expires_at > now()
+    RETURNING *
+  `;
+  return deleted;
+}
+
+// packages/api/src/routes/auth.ts
+var WEB_URL = process.env.WEB_URL || "http://localhost:5173";
+var emailSchema = external_exports.string().trim().email().transform((value) => value.toLowerCase());
+var loginSchema = external_exports.object({
+  email: emailSchema,
+  password: external_exports.string().min(1)
+});
+var registerSchema = external_exports.object({
+  email: emailSchema,
+  password: external_exports.string().min(6).max(72),
+  displayName: external_exports.string().trim().min(1).max(50)
+});
+var refreshSchema = external_exports.object({
+  refreshToken: external_exports.string().min(1)
+});
+var signOutSchema = external_exports.object({
+  refreshToken: external_exports.string().min(1).optional()
+});
+function hashRefreshToken(token) {
+  return (0, import_node_crypto4.createHash)("sha256").update(token).digest("hex");
+}
+function buildFrontendCallbackUrl(tokens) {
+  const redirectUrl = new URL("/auth/callback", WEB_URL);
+  redirectUrl.searchParams.set("access_token", tokens.accessToken);
+  redirectUrl.searchParams.set("refresh_token", tokens.refreshToken);
+  return redirectUrl.toString();
+}
+async function createTokens(user) {
+  const accessToken = await signAccessToken(user.id, user.email);
+  const refreshToken = (0, import_node_crypto4.randomUUID)();
+  const tokenHash = hashRefreshToken(refreshToken);
+  await sql`
+    INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+    VALUES (${user.id}, ${tokenHash}, now() + interval '30 days')
+  `;
+  return { accessToken, refreshToken };
+}
+function toAuthUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName
+  };
+}
+async function findOrCreateOAuthUser(provider, providerId, email, displayName) {
+  let [user] = await sql`
+    SELECT * FROM users
+    WHERE oauth_provider = ${provider} AND oauth_provider_id = ${providerId}
+  `;
+  if (user) return user;
+  [user] = await sql`
+    SELECT * FROM users
+    WHERE email = ${email}
+  `;
+  if (user) {
+    const [updated] = await sql`
+      UPDATE users
+      SET oauth_provider = ${provider}, oauth_provider_id = ${providerId}, updated_at = now()
+      WHERE id = ${user.id}
+      RETURNING *
+    `;
+    if (!updated) {
+      throw new Error("Failed to link OAuth user");
+    }
+    return updated;
+  }
+  const [created] = await sql`
+    INSERT INTO users (id, email, display_name, oauth_provider, oauth_provider_id)
+    VALUES (${(0, import_node_crypto4.randomUUID)()}, ${email}, ${displayName}, ${provider}, ${providerId})
+    RETURNING *
+  `;
+  if (!created) {
+    throw new Error("Failed to create OAuth user");
+  }
+  return created;
+}
+var authRoutes = new Hono2().post("/login", async (c) => {
+  const { email, password } = loginSchema.parse(await c.req.json());
+  const [user] = await sql`
+      SELECT * FROM users WHERE email = ${email}
+    `;
+  if (!user?.passwordHash || !await passwordMatches(password, user.passwordHash)) {
+    return c.json(
+      { error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password" } },
+      401
+    );
+  }
+  if (user.status !== "active") {
+    return c.json({ error: { code: "FORBIDDEN", message: `Account is ${user.status}` } }, 403);
+  }
+  const tokens = await createTokens(user);
+  return c.json({ data: { ...tokens, user: toAuthUser(user) } });
+}).post("/register", async (c) => {
+  const { email, password, displayName } = registerSchema.parse(await c.req.json());
+  const [existing] = await sql`
+      SELECT id FROM users WHERE email = ${email}
+    `;
+  if (existing) {
+    return c.json(
+      { error: { code: "EMAIL_EXISTS", message: "Email already registered" } },
+      409
+    );
+  }
+  const passwordHash = await hashPassword(password);
+  const [user] = await sql`
+      INSERT INTO users (id, email, display_name, password_hash)
+      VALUES (${(0, import_node_crypto4.randomUUID)()}, ${email}, ${displayName}, ${passwordHash})
+      RETURNING *
+    `;
+  if (!user) {
+    throw new Error("Failed to create user");
+  }
+  const tokens = await createTokens(user);
+  return c.json({ data: { ...tokens, user: toAuthUser(user) } });
+}).post("/refresh", async (c) => {
+  const { refreshToken } = refreshSchema.parse(await c.req.json());
+  const tokenHash = hashRefreshToken(refreshToken);
+  const [row] = await sql`
+      SELECT u.*
+      FROM refresh_tokens rt
+      JOIN users u ON u.id = rt.user_id
+      WHERE rt.token_hash = ${tokenHash}
+        AND rt.expires_at > now()
+    `;
+  if (!row) {
+    return c.json(
+      { error: { code: "INVALID_TOKEN", message: "Invalid or expired refresh token" } },
+      401
+    );
+  }
+  if (row.status !== "active") {
+    return c.json({ error: { code: "FORBIDDEN", message: `Account is ${row.status}` } }, 403);
+  }
+  await sql`DELETE FROM refresh_tokens WHERE token_hash = ${tokenHash}`;
+  const tokens = await createTokens(row);
+  return c.json({ data: { ...tokens, user: toAuthUser(row) } });
+}).post("/signout", async (c) => {
+  const parsed = signOutSchema.safeParse(await c.req.json().catch(() => ({})));
+  const refreshToken = parsed.success ? parsed.data.refreshToken : void 0;
+  if (refreshToken) {
+    const tokenHash = hashRefreshToken(refreshToken);
+    await sql`DELETE FROM refresh_tokens WHERE token_hash = ${tokenHash}`.catch(() => {
+    });
+  }
   return c.json({ data: { message: "Signed out" } });
-}).post("/refresh", (c) => {
-  const user = c.get("user");
-  return c.json({ data: { id: user.id, email: user.email } });
+}).get("/oauth/google", async (c) => {
+  if (!isGoogleConfigured()) {
+    return c.json(
+      { error: { code: "NOT_CONFIGURED", message: "Google OAuth not configured" } },
+      500
+    );
+  }
+  const state = generateState();
+  const codeVerifier = generateCodeVerifier();
+  const url = createGoogleAuthorizationUrl(state, codeVerifier);
+  await createOAuthState({ state, provider: "google", codeVerifier });
+  return c.redirect(url.toString());
+}).get("/oauth/discord", async (c) => {
+  if (!isDiscordConfigured()) {
+    return c.json(
+      { error: { code: "NOT_CONFIGURED", message: "Discord OAuth not configured" } },
+      500
+    );
+  }
+  const state = generateState();
+  const url = createDiscordAuthorizationUrl(state);
+  await createOAuthState({ state, provider: "discord" });
+  return c.redirect(url.toString());
+}).get("/oauth/github", async (c) => {
+  if (!isGitHubConfigured()) {
+    return c.json(
+      { error: { code: "NOT_CONFIGURED", message: "GitHub OAuth not configured" } },
+      500
+    );
+  }
+  const state = generateState();
+  const url = createGitHubAuthorizationUrl(state);
+  await createOAuthState({ state, provider: "github" });
+  return c.redirect(url.toString());
+}).get("/oauth/callback/google", async (c) => {
+  if (!isGoogleConfigured()) return c.text("Not configured", 500);
+  await cleanupExpiredOAuthStates();
+  const code = c.req.query("code");
+  const state = c.req.query("state");
+  if (!code || !state) {
+    return c.text("Invalid OAuth state", 400);
+  }
+  const oauthState = await consumeOAuthState(state, "google");
+  if (!oauthState?.codeVerifier) {
+    return c.text("Invalid OAuth state", 400);
+  }
+  const accessToken = await exchangeGoogleAuthorizationCode(code, oauthState.codeVerifier);
+  const response = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  const googleUser = await response.json();
+  const email = googleUser.email.toLowerCase();
+  const user = await findOrCreateOAuthUser(
+    "google",
+    googleUser.sub,
+    email,
+    googleUser.name || email
+  );
+  const appTokens = await createTokens(user);
+  return c.redirect(buildFrontendCallbackUrl(appTokens));
+}).get("/oauth/callback/discord", async (c) => {
+  if (!isDiscordConfigured()) return c.text("Not configured", 500);
+  await cleanupExpiredOAuthStates();
+  const code = c.req.query("code");
+  const state = c.req.query("state");
+  if (!code || !state) {
+    return c.text("Invalid OAuth state", 400);
+  }
+  const oauthState = await consumeOAuthState(state, "discord");
+  if (!oauthState) {
+    return c.text("Invalid OAuth state", 400);
+  }
+  const accessToken = await exchangeDiscordAuthorizationCode(code);
+  const response = await fetch("https://discord.com/api/users/@me", {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  const discordUser = await response.json();
+  const email = (discordUser.email || `${discordUser.id}@discord.noemail`).toLowerCase();
+  const user = await findOrCreateOAuthUser(
+    "discord",
+    discordUser.id,
+    email,
+    discordUser.global_name || discordUser.username
+  );
+  const appTokens = await createTokens(user);
+  return c.redirect(buildFrontendCallbackUrl(appTokens));
+}).get("/oauth/callback/github", async (c) => {
+  if (!isGitHubConfigured()) return c.text("Not configured", 500);
+  await cleanupExpiredOAuthStates();
+  const code = c.req.query("code");
+  const state = c.req.query("state");
+  if (!code || !state) {
+    return c.text("Invalid OAuth state", 400);
+  }
+  const oauthState = await consumeOAuthState(state, "github");
+  if (!oauthState) {
+    return c.text("Invalid OAuth state", 400);
+  }
+  const accessToken = await exchangeGitHubAuthorizationCode(code);
+  const userResponse = await fetch("https://api.github.com/user", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "User-Agent": "duel-log-app"
+    }
+  });
+  const githubUser = await userResponse.json();
+  const emailResponse = await fetch("https://api.github.com/user/emails", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "User-Agent": "duel-log-app"
+    }
+  });
+  const emails = await emailResponse.json();
+  const primaryEmail = emails.find((entry) => entry.primary && entry.verified)?.email ?? emails.find((entry) => entry.verified)?.email ?? `${githubUser.id}@github.noemail`;
+  const user = await findOrCreateOAuthUser(
+    "github",
+    String(githubUser.id),
+    primaryEmail.toLowerCase(),
+    githubUser.name || githubUser.login
+  );
+  const appTokens = await createTokens(user);
+  return c.redirect(buildFrontendCallbackUrl(appTokens));
 });
 
-// src/routes/debug.ts
+// packages/api/src/routes/debug.ts
 var import_fs2 = require("fs");
 var import_path = __toESM(require("path"), 1);
 var screenAnalysisLogSchema = external_exports.object({
@@ -10347,7 +10770,7 @@ var debugRoutes = new Hono2().post("/screen-analysis", async (c) => {
   return c.json({ data: { ok: true } });
 });
 
-// src/services/deck.ts
+// packages/api/src/services/deck.ts
 async function listDecks(userId) {
   return sql`
     SELECT * FROM decks WHERE user_id = ${userId} ORDER BY created_at DESC
@@ -10439,7 +10862,7 @@ async function getAvailableDecks(userId) {
   `;
 }
 
-// src/routes/decks.ts
+// packages/api/src/routes/decks.ts
 var deckRoutes = new Hono2().get("/", async (c) => {
   const { id } = c.get("user");
   const data = await listDecks(id);
@@ -10498,13 +10921,13 @@ var deckRoutes = new Hono2().get("/", async (c) => {
   return c.json({ data: updated });
 });
 
-// src/db/helpers.ts
+// packages/api/src/db/helpers.ts
 function andWhere(conditions) {
   if (conditions.length === 0) return sql`true`;
   return conditions.reduce((acc, cond) => sql`${acc} AND ${cond}`);
 }
 
-// src/services/duel.ts
+// packages/api/src/services/duel.ts
 function buildConditions(userId, filter) {
   const conditions = [sql`user_id = ${userId}`];
   if (filter.gameMode) conditions.push(sql`game_mode = ${filter.gameMode}`);
@@ -10558,11 +10981,12 @@ async function getDuel(userId, duelId) {
 }
 async function createDuel(userId, data) {
   const [created] = await sql`
-    INSERT INTO duels (user_id, deck_id, opponent_deck_id, result, game_mode, is_first, won_coin_toss, rank, rate_value, dc_value, memo, play_mistake, dueled_at)
+    INSERT INTO duels (user_id, deck_id, opponent_deck_id, result, game_mode, is_first, won_coin_toss, rank, rate_value, dc_value, memo, opponent_handtraps, play_mistake, dueled_at)
     VALUES (
       ${userId}, ${data.deckId}, ${data.opponentDeckId}, ${data.result}, ${data.gameMode},
       ${data.isFirst}, ${data.wonCoinToss}, ${data.rank ?? null}, ${data.rateValue ?? null},
-      ${data.dcValue ?? null}, ${data.memo ?? null}, ${data.playMistake ?? null}, ${new Date(data.dueledAt)}
+      ${data.dcValue ?? null}, ${data.memo ?? null}, ${data.opponentHandtraps ?? []},
+      ${data.playMistake ?? null}, ${new Date(data.dueledAt)}
     )
     RETURNING *
   `;
@@ -10580,6 +11004,7 @@ async function updateDuel(userId, duelId, data) {
   if (data.rateValue !== void 0) values2.rateValue = data.rateValue;
   if (data.dcValue !== void 0) values2.dcValue = data.dcValue;
   if (data.memo !== void 0) values2.memo = data.memo;
+  if (data.opponentHandtraps !== void 0) values2.opponentHandtraps = data.opponentHandtraps;
   if (data.playMistake !== void 0) values2.playMistake = data.playMistake;
   if (data.dueledAt !== void 0) values2.dueledAt = new Date(data.dueledAt);
   const [updated] = await sql`
@@ -10609,7 +11034,7 @@ async function exportDuels(userId, filter) {
   return Array.from(result);
 }
 
-// src/routes/duels.ts
+// packages/api/src/routes/duels.ts
 var duelRoutes = new Hono2().get("/", async (c) => {
   const { id } = c.get("user");
   const query = c.req.query();
@@ -10688,6 +11113,7 @@ var duelRoutes = new Hono2().get("/", async (c) => {
       const rateValueStr = getField("rate_value");
       const dcValueStr = getField("dc_value");
       const memo = getField("memo");
+      const opponentHandtraps = getField("opponent_handtraps");
       const playMistakeStr = getField("play_mistake");
       const dueledAt = getField("dueled_at");
       if (!deckName) {
@@ -10750,6 +11176,7 @@ var duelRoutes = new Hono2().get("/", async (c) => {
         rateValue: parseOptionalFloat(rateValueStr),
         dcValue: parseOptionalInt(dcValueStr),
         memo: memo || null,
+        opponentHandtraps: opponentHandtraps ? opponentHandtraps.split("|").map((handtrapId) => handtrapId.trim()).filter(Boolean) : [],
         playMistake: playMistakeStr ? parseBool(playMistakeStr) : null,
         dueledAt
       });
@@ -10803,6 +11230,7 @@ function duelsToCSV(data, hasGameModeFilter) {
     "rate_value",
     "dc_value",
     "memo",
+    "opponent_handtraps",
     "play_mistake",
     "dueled_at"
   ] : [
@@ -10816,6 +11244,7 @@ function duelsToCSV(data, hasGameModeFilter) {
     "rate_value",
     "dc_value",
     "memo",
+    "opponent_handtraps",
     "play_mistake",
     "dueled_at"
   ];
@@ -10829,6 +11258,7 @@ function duelsToCSV(data, hasGameModeFilter) {
       row.rateValue,
       row.dcValue,
       row.memo,
+      (row.opponentHandtraps ?? []).join("|"),
       row.playMistake,
       row.dueledAt instanceof Date ? row.dueledAt.toISOString() : row.dueledAt
     );
@@ -10891,7 +11321,7 @@ function parseCSV(text) {
   return rows;
 }
 
-// src/routes/feedback.ts
+// packages/api/src/routes/feedback.ts
 var feedbackSchema = external_exports.object({
   type: external_exports.enum(["bug", "feature", "improvement", "other"]),
   title: external_exports.string().min(1).max(200),
@@ -10983,7 +11413,66 @@ ${envInfo}` : ""}`;
   }
 });
 
-// src/services/user.ts
+// packages/api/src/services/handtrapCard.ts
+function normalizeHandtrapName(name) {
+  return name.trim();
+}
+function normalizeHandtrapCardId(cardId) {
+  return cardId.startsWith("custom-") ? cardId.slice("custom-".length) : cardId;
+}
+async function listUserHandtrapCards(userId) {
+  return sql`
+    SELECT * FROM user_handtrap_cards
+    WHERE user_id = ${userId}
+    ORDER BY created_at DESC, name ASC
+  `;
+}
+async function createUserHandtrapCard(userId, name) {
+  const normalizedName = normalizeHandtrapName(name);
+  const [created] = await sql`
+    INSERT INTO user_handtrap_cards (user_id, name)
+    VALUES (${userId}, ${normalizedName})
+    ON CONFLICT (user_id, name)
+    DO UPDATE SET name = EXCLUDED.name
+    RETURNING *
+  `;
+  return created;
+}
+async function deleteUserHandtrapCard(userId, cardId) {
+  const normalizedCardId = normalizeHandtrapCardId(cardId);
+  const [deleted] = await sql`
+    DELETE FROM user_handtrap_cards
+    WHERE id = ${normalizedCardId} AND user_id = ${userId}
+    RETURNING *
+  `;
+  return deleted;
+}
+
+// packages/api/src/routes/handtrapCards.ts
+var createHandtrapCardSchema = external_exports.object({
+  name: external_exports.string().trim().min(1).max(100)
+});
+var handtrapCardRoutes = new Hono2().get("/", async (c) => {
+  const { id } = c.get("user");
+  const data = await listUserHandtrapCards(id);
+  return c.json({ data });
+}).post("/", async (c) => {
+  const { id } = c.get("user");
+  const body = await c.req.json();
+  const data = createHandtrapCardSchema.parse(body);
+  const created = await createUserHandtrapCard(id, data.name);
+  return c.json({ data: created }, 201);
+}).delete("/:id", async (c) => {
+  const { id } = c.get("user");
+  const cardId = c.req.param("id");
+  const deleted = await deleteUserHandtrapCard(id, cardId);
+  if (!deleted) {
+    return c.json({ error: { code: "NOT_FOUND", message: "Hand trap card not found" } }, 404);
+  }
+  return c.json({ data: { message: "Hand trap card deleted" } });
+});
+
+// packages/api/src/services/user.ts
 async function getUser(userId) {
   const [user] = await sql`
     SELECT * FROM users WHERE id = ${userId}
@@ -10999,11 +11488,18 @@ async function updateUser(userId, data) {
   `;
   return updated;
 }
+async function updatePassword(userId, passwordHash) {
+  await sql`
+    UPDATE users
+    SET password_hash = ${passwordHash}, updated_at = now()
+    WHERE id = ${userId}
+  `;
+}
 async function deleteUser(userId) {
   await sql`DELETE FROM users WHERE id = ${userId}`;
 }
 
-// src/routes/me.ts
+// packages/api/src/routes/me.ts
 var meRoutes = new Hono2().get("/", async (c) => {
   const { id } = c.get("user");
   const user = await getUser(id);
@@ -11017,17 +11513,22 @@ var meRoutes = new Hono2().get("/", async (c) => {
   const data = updateUserSchema.parse(body);
   const updated = await updateUser(id, data);
   return c.json({ data: updated });
+}).put("/password", async (c) => {
+  const { id } = c.get("user");
+  const body = external_exports.object({ password: external_exports.string().min(6).max(72) }).parse(await c.req.json());
+  await updatePassword(id, await hashPassword(body.password));
+  return c.json({ data: { message: "Password updated" } });
 }).delete("/", async (c) => {
   const { id } = c.get("user");
   await deleteUser(id);
   return c.json({ data: { message: "Account deleted" } });
 });
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/encode.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/encode.js
 var decodeBase64Url = (str) => {
   return decodeBase642(str.replace(/_|-/g, (m) => ({ _: "/", "-": "+" })[m] ?? m));
 };
-var encodeBase64Url = (buf) => encodeBase642(buf).replace(/\/|\+/g, (m) => ({ "/": "_", "+": "-" })[m] ?? m);
+var encodeBase64Url2 = (buf) => encodeBase642(buf).replace(/\/|\+/g, (m) => ({ "/": "_", "+": "-" })[m] ?? m);
 var encodeBase642 = (buf) => {
   let binary = "";
   const bytes = new Uint8Array(buf);
@@ -11047,7 +11548,7 @@ var decodeBase642 = (str) => {
   return bytes;
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/jwa.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/jwt/jwa.js
 var AlgorithmTypes = /* @__PURE__ */ ((AlgorithmTypes2) => {
   AlgorithmTypes2["HS256"] = "HS256";
   AlgorithmTypes2["HS384"] = "HS384";
@@ -11065,7 +11566,7 @@ var AlgorithmTypes = /* @__PURE__ */ ((AlgorithmTypes2) => {
   return AlgorithmTypes2;
 })(AlgorithmTypes || {});
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/helper/adapter/index.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/helper/adapter/index.js
 var knownUserAgents = {
   deno: "Deno",
   bun: "Bun",
@@ -11098,7 +11599,7 @@ var checkUserAgentEquals = (platform) => {
   return userAgent.startsWith(platform);
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/types.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/jwt/types.js
 var JwtAlgorithmNotImplemented = class extends Error {
   constructor(alg) {
     super(`${alg} is not an implemented algorithm`);
@@ -11205,11 +11706,11 @@ var CryptoKeyUsage = /* @__PURE__ */ ((CryptoKeyUsage2) => {
   return CryptoKeyUsage2;
 })(CryptoKeyUsage || {});
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/utf8.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/jwt/utf8.js
 var utf8Encoder = new TextEncoder();
 var utf8Decoder = new TextDecoder();
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/jws.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/jwt/jws.js
 async function signing(privateKey, alg, data) {
   const algorithm = getKeyAlgorithm(alg);
   const cryptoKey = await importPrivateKey(privateKey, algorithm);
@@ -11394,9 +11895,9 @@ function isCryptoKey2(key) {
   return key instanceof CryptoKey;
 }
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/jwt.js
-var encodeJwtPart = (part) => encodeBase64Url(utf8Encoder.encode(JSON.stringify(part)).buffer).replace(/=/g, "");
-var encodeSignaturePart = (buf) => encodeBase64Url(buf).replace(/=/g, "");
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/jwt/jwt.js
+var encodeJwtPart = (part) => encodeBase64Url2(utf8Encoder.encode(JSON.stringify(part)).buffer).replace(/=/g, "");
+var encodeSignaturePart = (buf) => encodeBase64Url2(buf).replace(/=/g, "");
 var decodeJwtPart = (part) => JSON.parse(utf8Decoder.decode(decodeBase64Url(part)));
 function isTokenHeader(obj) {
   if (typeof obj === "object" && obj !== null) {
@@ -11405,7 +11906,7 @@ function isTokenHeader(obj) {
   }
   return false;
 }
-var sign = async (payload, privateKey, alg = "HS256") => {
+var sign2 = async (payload, privateKey, alg = "HS256") => {
   const encodedPayload = encodeJwtPart(payload);
   let encodedHeader;
   if (typeof privateKey === "object" && "alg" in privateKey) {
@@ -11445,7 +11946,7 @@ var verify2 = async (token, publicKey, algOrOptions) => {
   if (header.alg !== alg) {
     throw new JwtAlgorithmMismatch(alg, header.alg);
   }
-  const now = Date.now() / 1e3 | 0;
+  const now = Math.floor(Date.now() / 1e3);
   if (nbf && payload.nbf && payload.nbf > now) {
     throw new JwtTokenNotBefore(token);
   }
@@ -11495,8 +11996,8 @@ var symmetricAlgorithms = [
   AlgorithmTypes.HS384,
   AlgorithmTypes.HS512
 ];
-var verifyWithJwks = async (token, options, init) => {
-  const verifyOpts = options.verification || {};
+var verifyWithJwks = async (token, options2, init) => {
+  const verifyOpts = options2.verification || {};
   const header = decodeHeader(token);
   if (!isTokenHeader(header)) {
     throw new JwtHeaderInvalid(header);
@@ -11507,13 +12008,14 @@ var verifyWithJwks = async (token, options, init) => {
   if (symmetricAlgorithms.includes(header.alg)) {
     throw new JwtSymmetricAlgorithmNotAllowed(header.alg);
   }
-  if (!options.allowedAlgorithms.includes(header.alg)) {
-    throw new JwtAlgorithmNotAllowed(header.alg, options.allowedAlgorithms);
+  if (!options2.allowedAlgorithms.includes(header.alg)) {
+    throw new JwtAlgorithmNotAllowed(header.alg, options2.allowedAlgorithms);
   }
-  if (options.jwks_uri) {
-    const response = await fetch(options.jwks_uri, init);
+  let verifyKeys = options2.keys ? [...options2.keys] : void 0;
+  if (options2.jwks_uri) {
+    const response = await fetch(options2.jwks_uri, init);
     if (!response.ok) {
-      throw new Error(`failed to fetch JWKS from ${options.jwks_uri}`);
+      throw new Error(`failed to fetch JWKS from ${options2.jwks_uri}`);
     }
     const data = await response.json();
     if (!data.keys) {
@@ -11522,15 +12024,12 @@ var verifyWithJwks = async (token, options, init) => {
     if (!Array.isArray(data.keys)) {
       throw new Error('invalid JWKS response. "keys" field is not an array');
     }
-    if (options.keys) {
-      options.keys.push(...data.keys);
-    } else {
-      options.keys = data.keys;
-    }
-  } else if (!options.keys) {
+    verifyKeys ??= [];
+    verifyKeys.push(...data.keys);
+  } else if (!verifyKeys) {
     throw new Error('verifyWithJwks requires options for either "keys" or "jwks_uri" or both');
   }
-  const matchingKey = options.keys.find((key) => key.kid === header.kid);
+  const matchingKey = verifyKeys.find((key) => key.kid === header.kid);
   if (!matchingKey) {
     throw new JwtTokenInvalid(token);
   }
@@ -11543,10 +12042,13 @@ var verifyWithJwks = async (token, options, init) => {
   });
 };
 var decode2 = (token) => {
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    throw new JwtTokenInvalid(token);
+  }
   try {
-    const [h, p] = token.split(".");
-    const header = decodeJwtPart(h);
-    const payload = decodeJwtPart(p);
+    const header = decodeJwtPart(parts[0]);
+    const payload = decodeJwtPart(parts[1]);
     return {
       header,
       payload
@@ -11556,24 +12058,27 @@ var decode2 = (token) => {
   }
 };
 var decodeHeader = (token) => {
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    throw new JwtTokenInvalid(token);
+  }
   try {
-    const [h] = token.split(".");
-    return decodeJwtPart(h);
+    return decodeJwtPart(parts[0]);
   } catch {
     throw new JwtTokenInvalid(token);
   }
 };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/utils/jwt/index.js
-var Jwt = { sign, verify: verify2, decode: decode2, verifyWithJwks };
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/utils/jwt/index.js
+var Jwt = { sign: sign2, verify: verify2, decode: decode2, verifyWithJwks };
 
-// ../../node_modules/.pnpm/hono@4.11.7/node_modules/hono/dist/middleware/jwt/jwt.js
+// node_modules/.pnpm/hono@4.12.7/node_modules/hono/dist/middleware/jwt/jwt.js
 var verifyWithJwks2 = Jwt.verifyWithJwks;
 var verify3 = Jwt.verify;
 var decode3 = Jwt.decode;
-var sign2 = Jwt.sign;
+var sign3 = Jwt.sign;
 
-// src/services/statistics.ts
+// packages/api/src/services/statistics.ts
 function buildConditions2(userId, filter) {
   const conditions = [sql`d.user_id = ${userId}`];
   if (filter.gameMode) conditions.push(sql`d.game_mode = ${filter.gameMode}`);
@@ -11755,6 +12260,23 @@ async function getValueSequence(userId, filter) {
     ORDER BY d.dueled_at
   `;
 }
+async function getHandtrapStats(userId, filter) {
+  const where = buildConditions2(userId, filter);
+  return sql`
+    SELECT
+      ht AS handtrap_id,
+      count(*)::int AS total_hit,
+      count(*) filter (WHERE d.result = 'win')::int AS wins,
+      count(*) filter (WHERE d.result = 'loss')::int AS losses,
+      CASE WHEN count(*) = 0 THEN 0
+        ELSE round(count(*) filter (WHERE d.result = 'win')::numeric / count(*)::numeric, 4)
+      END::float AS win_rate
+    FROM duels d, unnest(d.opponent_handtraps) AS ht
+    WHERE ${where}
+    GROUP BY ht
+    ORDER BY total_hit DESC, handtrap_id ASC
+  `;
+}
 async function getDuelHistory(userId, filter, limit = 1e3) {
   const where = buildConditions2(userId, filter);
   return sql`
@@ -11827,21 +12349,21 @@ async function getUserDisplayName(userId) {
   return user?.displayName ?? "Unknown";
 }
 
-// src/routes/obs.ts
+// packages/api/src/routes/obs.ts
 var getSecret = () => {
-  const secret = process.env.OBS_TOKEN_SECRET || process.env.SUPABASE_JWT_SECRET;
-  if (!secret) {
+  const secret2 = process.env.OBS_TOKEN_SECRET || process.env.JWT_SECRET;
+  if (!secret2) {
     if (process.env.NODE_ENV !== "production") {
       return "obs-dev-secret-key-do-not-use-in-production";
     }
-    throw new Error("OBS_TOKEN_SECRET or SUPABASE_JWT_SECRET is required");
+    throw new Error("OBS_TOKEN_SECRET or JWT_SECRET is required");
   }
-  return secret;
+  return secret2;
 };
 var obsRoutes = new Hono2().post("/token", async (c) => {
   const { id } = c.get("user");
-  const secret = getSecret();
-  const token = await sign2({ sub: id, iat: Math.floor(Date.now() / 1e3) }, secret);
+  const secret2 = getSecret();
+  const token = await sign3({ sub: id, iat: Math.floor(Date.now() / 1e3) }, secret2);
   return c.json({ token });
 }).get("/stats", async (c) => {
   const token = c.req.query("token");
@@ -11850,8 +12372,8 @@ var obsRoutes = new Hono2().post("/token", async (c) => {
   }
   let userId;
   try {
-    const secret = getSecret();
-    const payload = await verify3(token, secret, { alg: "HS256", exp: false });
+    const secret2 = getSecret();
+    const payload = await verify3(token, secret2, { alg: "HS256", exp: false });
     if (!payload.sub || typeof payload.sub !== "string") {
       return c.json({ error: { code: "INVALID_TOKEN", message: "Invalid token" } }, 401);
     }
@@ -11925,7 +12447,7 @@ var obsRoutes = new Hono2().post("/token", async (c) => {
   }
 });
 
-// src/routes/sharedStatistics.ts
+// packages/api/src/routes/sharedStatistics.ts
 var sharedStatisticsRoutes = new Hono2().post("/", authMiddleware, async (c) => {
   const { id } = c.get("user");
   const body = await c.req.json();
@@ -11996,7 +12518,7 @@ var sharedStatisticsRoutes = new Hono2().post("/", authMiddleware, async (c) => 
   });
 });
 
-// src/routes/statistics.ts
+// packages/api/src/routes/statistics.ts
 var statisticsRoutes = new Hono2().get("/overview", async (c) => {
   const { id } = c.get("user");
   const query = c.req.query();
@@ -12027,6 +12549,12 @@ var statisticsRoutes = new Hono2().get("/overview", async (c) => {
   const filter = statisticsFilterSchema.parse(query);
   const data = await getValueSequence(id, filter);
   return c.json({ data });
+}).get("/handtraps", async (c) => {
+  const { id } = c.get("user");
+  const query = c.req.query();
+  const filter = statisticsFilterSchema.parse(query);
+  const data = await getHandtrapStats(id, filter);
+  return c.json({ data });
 }).get("/mode-counts", async (c) => {
   const { id } = c.get("user");
   const query = c.req.query();
@@ -12043,9 +12571,24 @@ var statisticsRoutes = new Hono2().get("/overview", async (c) => {
   return c.json({ data });
 });
 
-// src/index.ts
+// packages/api/src/index.ts
 var app = new Hono2().basePath("/api");
 app.get("/health", (c) => c.json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() }));
+app.get("/health/db", async (c) => {
+  try {
+    const [row] = await sql`SELECT 1 AS ok`;
+    return c.json({ status: "ok", db: row?.ok ?? 0, timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  } catch (err) {
+    return c.json(
+      {
+        status: "error",
+        error: err instanceof Error ? err.message : "Unknown error",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      },
+      500
+    );
+  }
+});
 app.use("*", logger());
 app.use("*", cors());
 app.use("*", errorMiddleware);
@@ -12053,7 +12596,6 @@ app.use("*", maintenanceMiddleware);
 app.route("/shared-statistics", sharedStatisticsRoutes);
 app.use("/obs/token", authMiddleware);
 app.route("/obs", obsRoutes);
-app.use("/auth/*", authMiddleware);
 app.use("/debug/*", authMiddleware);
 app.use("/me/*", authMiddleware);
 app.use("/me", authMiddleware);
@@ -12062,6 +12604,8 @@ app.use("/decks", authMiddleware);
 app.use("/duels/*", authMiddleware);
 app.use("/duels", authMiddleware);
 app.use("/statistics/*", authMiddleware);
+app.use("/handtrap-cards/*", authMiddleware);
+app.use("/handtrap-cards", authMiddleware);
 app.use("/feedback", authMiddleware);
 app.route("/auth", authRoutes);
 app.route("/debug", debugRoutes);
@@ -12069,14 +12613,15 @@ app.route("/me", meRoutes);
 app.route("/decks", deckRoutes);
 app.route("/duels", duelRoutes);
 app.route("/statistics", statisticsRoutes);
+app.route("/handtrap-cards", handtrapCardRoutes);
 app.route("/feedback", feedbackRoutes);
 app.use("/admin/*", authMiddleware);
 app.use("/admin/*", adminMiddleware);
 app.route("/admin", adminRoutes);
 var index_default = app;
 
-// src/vercel-handler.ts
-function handler(req, res) {
+// packages/api/src/node-adapter.ts
+async function handleNodeRequest(req, res) {
   const proto = req.headers["x-forwarded-proto"] || "https";
   const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost";
   const url = new URL(req.url || "/", `${proto}://${host}`);
@@ -12086,30 +12631,24 @@ function handler(req, res) {
   }
   const method = req.method || "GET";
   const hasBody = method !== "GET" && method !== "HEAD";
-  const bodyPromise = hasBody ? new Promise((resolve) => {
+  const body = hasBody ? await new Promise((resolve) => {
     const chunks = [];
     req.on("data", (chunk) => chunks.push(chunk));
     req.on("end", () => resolve(Buffer.concat(chunks)));
-  }) : Promise.resolve(null);
-  bodyPromise.then((body) => {
-    const request = new Request(url.toString(), {
-      method,
-      headers,
-      body
-    });
-    return index_default.fetch(request);
-  }).then((response) => {
-    res.statusCode = response.status;
-    response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
-    });
-    return response.arrayBuffer();
-  }).then((responseBody) => {
-    res.end(Buffer.from(responseBody));
-  }).catch((err) => {
-    res.statusCode = 500;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }));
+  }) : null;
+  const request = new Request(url.toString(), {
+    method,
+    headers,
+    body
   });
+  const response = await index_default.fetch(request);
+  res.statusCode = response.status;
+  response.headers.forEach((value, key) => {
+    res.setHeader(key, value);
+  });
+  res.end(Buffer.from(await response.arrayBuffer()));
 }
-module.exports = handler;
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  handleNodeRequest
+});

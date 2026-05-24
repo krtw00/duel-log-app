@@ -47,7 +47,7 @@ export const authMiddleware = createMiddleware<Env>(async (c, next) => {
     return c.json({ error: { code: 'UNAUTHORIZED', message: 'Missing or invalid token' } }, 401);
   }
 
-  // JWTをJWKSで検証（Supabase Auth APIを呼ばない）
+  // Signed application JWT verification
   let payload: Awaited<ReturnType<typeof verifyToken>>;
   try {
     const jwtStart = Date.now();
