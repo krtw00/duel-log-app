@@ -128,7 +128,6 @@ jobs:
       GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT || 'oauthsetting-484201' }}
       GOOGLE_CLOUD_REGION: ${{ vars.GOOGLE_CLOUD_REGION || 'asia-northeast1' }}
       ARTIFACT_REGISTRY_REPO: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'apps' }}
-      FIREBASE_HOSTING_SITE: ${{ vars.STAGING_FIREBASE_HOSTING_SITE || 'duel-log-staging' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -161,18 +160,26 @@ jobs:
         with:
           project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
 
-      - name: Ensure staging Hosting site exists
+      - name: Build web (same-origin)
         run: |
-          if ! npx firebase-tools hosting:sites:list --project "$GOOGLE_CLOUD_PROJECT" | grep -q "$FIREBASE_HOSTING_SITE"; then
-            npx firebase-tools hosting:sites:create "$FIREBASE_HOSTING_SITE" --project "$GOOGLE_CLOUD_PROJECT"
-          fi
+          set -a
+          [ -f .env/staging ] && source .env/staging
+          export VITE_API_BASE_URL=/api
+          set +a
+          pnpm --filter @duel-log/shared build
+          pnpm --filter @duel-log/web build
 
-      - name: Deploy Firebase Hosting
-        run: pnpm firebase:deploy:web:staging
-        env:
-          GOOGLE_CLOUD_PROJECT: ${{ env.GOOGLE_CLOUD_PROJECT }}
-          GOOGLE_CLOUD_REGION: ${{ env.GOOGLE_CLOUD_REGION }}
-          FIREBASE_HOSTING_SITE: ${{ env.FIREBASE_HOSTING_SITE }}
+      - name: Setup SSH for rsync
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ vars.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy web to codenica-vps
+        run: |
+          rsync -az --delete -e "ssh -i ~/.ssh/deploy_key" \
+            apps/web/dist/ "${{ vars.VPS_USER }}@${{ vars.VPS_HOST }}:/var/www/duel-log-staging/"
 
       - name: Build & push API image to Artifact Registry
         id: build_api
@@ -216,8 +223,8 @@ jobs:
           {
             echo "## Staging Deployment"
             echo
-            echo "- Frontend: https://${FIREBASE_HOSTING_SITE}.web.app"
-            echo "- API: https://duel-log-api-staging.codenica.dev/api/health (codenica-vps)"
+            echo "- Frontend: https://duel-log-staging.codenica.dev (codenica-vps)"
+            echo "- API: https://duel-log-staging.codenica.dev/api/health (same-origin)"
             echo "- Branch: staging"
           } >> "$GITHUB_STEP_SUMMARY"
 
