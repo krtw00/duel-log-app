@@ -77,7 +77,7 @@ jobs:
             apps/web/dist/ "${{ vars.VPS_USER }}@${{ vars.VPS_HOST }}:/var/www/duel-log/"
 
       - name: Deploy API container to codenica-vps
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         env:
           GCLOUD_TOKEN: ${{ steps.auth.outputs.access_token }}
           IMAGE_DIGEST: ${{ steps.build_api.outputs.digest }}
