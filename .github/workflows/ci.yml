@@ -168,7 +168,7 @@ jobs:
         run: echo "token=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
 
       - name: Deploy API container to codenica-vps (staging)
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         env:
           GCLOUD_TOKEN: ${{ steps.gcloud_token.outputs.token }}
           IMAGE_DIGEST: ${{ steps.build_api.outputs.digest }}
