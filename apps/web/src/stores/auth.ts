@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { signOut as authSignOut, getAccessToken, getUserFromAccessToken } from '../lib/auth.js';
+import { signOut as authSignOut, fetchCurrentUser } from '../lib/auth.js';
 
 type AuthUser = {
   id: string;
   email: string;
+  displayName?: string;
 };
 
 type AuthState = {
@@ -19,8 +20,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   initialize: async () => {
-    const token = await getAccessToken();
-    const user = token ? getUserFromAccessToken(token) : null;
+    const user = await fetchCurrentUser();
     set({ user, loading: false });
   },
 

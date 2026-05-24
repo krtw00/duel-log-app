@@ -1,4 +1,4 @@
-import { getAccessToken } from './auth.js';
+import { getCsrfToken, refreshSession } from './auth.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -21,13 +21,8 @@ export class ApiError extends Error {
 
 const MAINTENANCE_BYPASS_KEY = import.meta.env.VITE_MAINTENANCE_BYPASS_KEY || '';
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
+function getBaseHeaders(method: string): Record<string, string> {
   const headers: Record<string, string> = {};
-  const token = await getAccessToken();
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
 
   // メンテナンスバイパスが有効な場合、ヘッダーを追加
   const hasBypass = sessionStorage.getItem('maintenance_bypass') === 'true';
@@ -35,7 +30,29 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
     headers['X-Bypass-Key'] = MAINTENANCE_BYPASS_KEY;
   }
 
+  // 変更系メソッドには CSRF トークンを付与
+  const isStateMutating = !['GET', 'HEAD'].includes(method.toUpperCase());
+  if (isStateMutating) {
+    const csrf = getCsrfToken();
+    if (csrf) headers['X-CSRF-Token'] = csrf;
+  }
+
   return headers;
+}
+
+async function doFetch(url: string, method: string, body: unknown): Promise<Response> {
+  const headers: Record<string, string> = getBaseHeaders(method);
+
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  return fetch(url, {
+    method,
+    headers,
+    credentials: 'include',
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
 }
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -52,19 +69,15 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     if (qs) url += `?${qs}`;
   }
 
-  const headers: Record<string, string> = {
-    ...(await getAuthHeaders()),
-  };
+  let response = await doFetch(url, method, body);
 
-  if (body !== undefined) {
-    headers['Content-Type'] = 'application/json';
+  // 401 リトライ: auth エンドポイント以外で 1 回だけ refresh を試みる
+  if (response.status === 401 && !path.startsWith('/auth/')) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      response = await doFetch(url, method, body);
+    }
   }
-
-  const response = await fetch(url, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));

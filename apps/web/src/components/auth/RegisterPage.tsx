@@ -29,8 +29,8 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      const response = await register(email, password, displayName);
-      setUser({ id: response.data.user.id, email: response.data.user.email });
+      const user = await register(email, password, displayName);
+      setUser(user);
       navigate({ to: '/' });
     } catch (err) {
       const message =

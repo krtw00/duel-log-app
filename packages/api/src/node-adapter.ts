@@ -29,8 +29,15 @@ export async function handleNodeRequest(req: IncomingMessage, res: ServerRespons
 
   const response = await app.fetch(request);
   res.statusCode = response.status;
+  // Headers.forEach は複数 Set-Cookie を 1 本にカンマ結合してしまうため、
+  // Set-Cookie だけは getSetCookie() で配列のまま渡す（access/refresh/csrf の複数発行に必須）。
+  const setCookies = response.headers.getSetCookie();
   response.headers.forEach((value: string, key: string) => {
+    if (key.toLowerCase() === 'set-cookie') return;
     res.setHeader(key, value);
   });
+  if (setCookies.length > 0) {
+    res.setHeader('Set-Cookie', setCookies);
+  }
   res.end(Buffer.from(await response.arrayBuffer()));
 }

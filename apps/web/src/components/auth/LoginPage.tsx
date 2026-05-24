@@ -68,8 +68,8 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const response = await login(email, password);
-      setUser({ id: response.data.user.id, email: response.data.user.email });
+      const user = await login(email, password);
+      setUser(user);
       navigate({ to: '/' });
     } catch (err) {
       const message =

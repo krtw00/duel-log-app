@@ -2,7 +2,7 @@ import type { GameMode } from '@duel-log/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAccessToken } from '../../lib/auth.js';
+import { getCsrfToken } from '../../lib/auth.js';
 
 type Props = {
   open: boolean;
@@ -24,20 +24,18 @@ export function CsvImportDialog({ open, onClose, gameMode }: Props) {
 
   const importMutation = useMutation({
     mutationFn: async (csvFile: File) => {
-      const token = await getAccessToken();
-      if (!token) throw new Error('Not authenticated');
-
       const text = await csvFile.text();
       const params = new URLSearchParams();
       if (gameMode) params.set('gameMode', gameMode);
       const qs = params.toString();
       const url = `/api/duels/import${qs ? `?${qs}` : ''}`;
+      const headers: Record<string, string> = { 'Content-Type': 'text/csv' };
+      const csrf = getCsrfToken();
+      if (csrf) headers['X-CSRF-Token'] = csrf;
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'text/csv',
-        },
+        headers,
+        credentials: 'include',
         body: text,
       });
 
