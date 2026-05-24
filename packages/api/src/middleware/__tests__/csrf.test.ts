@@ -62,7 +62,7 @@ describe('csrfMiddleware', () => {
       const app = buildApp();
       const res = await app.request('/api/decks', { method: 'POST' });
       expect(res.status).toBe(403);
-      const body = await res.json();
+      const body = (await res.json()) as { error: { code: string } };
       expect(body.error.code).toBe('CSRF_FAILED');
     });
 
