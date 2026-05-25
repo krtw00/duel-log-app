@@ -190,42 +190,15 @@ jobs:
             done
             echo "health check failed after 30s"; docker logs duel-log-api-staging --tail 50; exit 1
 
-      - name: Build & push API image to Artifact Registry
-        id: build_api
-        run: |
-          set -euo pipefail
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-          IMAGE_TAG="${GOOGLE_CLOUD_REGION}-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/${ARTIFACT_REGISTRY_REPO}/api:staging-${SHORT_SHA}"
-          gcloud builds submit --project "$GOOGLE_CLOUD_PROJECT" --config deploy/google/cloudbuild.api.yaml --substitutions=_IMAGE="$IMAGE_TAG"
-          DIGEST=$(gcloud artifacts docker images describe "$IMAGE_TAG" --format='value(image_summary.digest)')
-          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-
-      - name: Mint Artifact Registry access token
-        id: gcloud_token
-        run: echo "token=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
-
-      - name: Deploy API container to codenica-vps (staging)
-        uses: appleboy/ssh-action@v1.2.0
+      # 認証スモーク: login → CSRF cookie 読取(path=/ 検証) → データ登録 → logout を実機で叩く。
+      # /health の GET 確認だけでは見抜けなかった CSRF/cookie 障害を検知する最終防衛線。
+      # STAGING_SMOKE_EMAIL/PASSWORD secret 未設定なら script 側で skip (デプロイは止めない)。
+      - name: Smoke test (auth + CSRF + mutation)
         env:
-          GCLOUD_TOKEN: ${{ steps.gcloud_token.outputs.token }}
-          IMAGE_DIGEST: ${{ steps.build_api.outputs.digest }}
-        with:
-          host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          envs: GCLOUD_TOKEN,IMAGE_DIGEST
-          script: |
-            set -euo pipefail
-            cd /opt/duel-log-api-staging
-            echo "$GCLOUD_TOKEN" | docker login -u oauth2accesstoken --password-stdin https://asia-northeast1-docker.pkg.dev
-            sed -i.bak -E "s|apps/api@sha256:[a-f0-9]+|apps/api@${IMAGE_DIGEST}|" docker-compose.yml
-            docker compose pull
-            ./up.sh
-            for i in 1 2 3 4 5 6 7 8 9 10; do
-              if curl -fsS http://127.0.0.1:8001/api/health >/dev/null 2>&1; then echo "staging deploy OK (attempt $i)"; exit 0; fi
-              sleep 3
-            done
-            echo "health check failed after 30s"; docker logs duel-log-api-staging --tail 50; exit 1
+          SMOKE_BASE: https://duel-log-staging.codenica.dev
+          SMOKE_EMAIL: ${{ secrets.STAGING_SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.STAGING_SMOKE_PASSWORD }}
+        run: bash .github/scripts/smoke-staging.sh
 
       - name: Write summary
         run: |
