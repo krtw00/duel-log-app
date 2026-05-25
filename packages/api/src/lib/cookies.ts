@@ -60,10 +60,15 @@ export function setAuthCookies(
     path: CSRF_PATH,
     maxAge: REFRESH_MAX_AGE,
   });
+  // 旧実装で path=/api 発行された csrf cookie が残っていると、新しい path=/ cookie と
+  // 二重に送られサーバーが旧値を拾って不一致 403 になりうる。旧 path のものを無効化する。
+  deleteCookie(c, COOKIE_NAMES.csrf, { ...baseOptions(), path: BASE_PATH });
 }
 
 export function clearAuthCookies(c: Context): void {
   deleteCookie(c, COOKIE_NAMES.access, { ...baseOptions(), path: BASE_PATH });
   deleteCookie(c, COOKIE_NAMES.refresh, { ...baseOptions(), path: REFRESH_PATH });
   deleteCookie(c, COOKIE_NAMES.csrf, { ...baseOptions(), path: CSRF_PATH });
+  // 旧 path=/api で残っている csrf cookie も無効化（移行期の取りこぼし防止）
+  deleteCookie(c, COOKIE_NAMES.csrf, { ...baseOptions(), path: BASE_PATH });
 }
