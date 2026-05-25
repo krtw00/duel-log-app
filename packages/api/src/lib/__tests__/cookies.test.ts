@@ -16,7 +16,7 @@ function buildApp() {
 }
 
 describe('setAuthCookies', () => {
-  it('3 本の Set-Cookie を返す（dlog_access, dlog_refresh, dlog_csrf）', async () => {
+  it('access / refresh / csrf(path=/) + 旧 csrf(path=/api) 無効化の 4 本を返す', async () => {
     const app = buildApp();
     const res = await app.request('/set', { method: 'POST' });
     const cookies = res.headers.getSetCookie();
@@ -24,7 +24,9 @@ describe('setAuthCookies', () => {
     expect(names).toContain(COOKIE_NAMES.access);
     expect(names).toContain(COOKIE_NAMES.refresh);
     expect(names).toContain(COOKIE_NAMES.csrf);
-    expect(cookies).toHaveLength(3);
+    // csrf は新 path=/ の set と 旧 path=/api の無効化で 2 本出る
+    expect(cookies.filter((c) => c.startsWith(`${COOKIE_NAMES.csrf}=`))).toHaveLength(2);
+    expect(cookies).toHaveLength(4);
   });
 
   it('dlog_access は HttpOnly / Path=/api / SameSite=Lax で値が AT', async () => {
@@ -50,7 +52,7 @@ describe('setAuthCookies', () => {
     expect(refreshCookie).toMatch(/Path=\/api\/auth(;|$| )/);
   });
 
-  it('dlog_csrf は HttpOnly を含まない / Path=/api で値が CT', async () => {
+  it('dlog_csrf は HttpOnly を含まない / Path=/ で値が CT', async () => {
     const app = buildApp();
     const res = await app.request('/set', { method: 'POST' });
     const cookies = res.headers.getSetCookie();
@@ -59,7 +61,8 @@ describe('setAuthCookies', () => {
     expect(csrfCookie).toContain(`${COOKIE_NAMES.csrf}=CT`);
     // HttpOnly が付いていないことを確認（フロントが読む必要があるため）
     expect(csrfCookie).not.toMatch(/HttpOnly/i);
-    expect(csrfCookie).toMatch(/Path=\/api(;|$| )/);
+    // SPA (path=/ 配下) から document.cookie で読めるよう Path=/ であること
+    expect(csrfCookie).toMatch(/Path=\/(;|$| )/);
   });
 });
 
