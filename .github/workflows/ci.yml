@@ -190,6 +190,16 @@ jobs:
             done
             echo "health check failed after 30s"; docker logs duel-log-api-staging --tail 50; exit 1
 
+      # 認証スモーク: login → CSRF cookie 読取(path=/ 検証) → データ登録 → logout を実機で叩く。
+      # /health の GET 確認だけでは見抜けなかった CSRF/cookie 障害を検知する最終防衛線。
+      # STAGING_SMOKE_EMAIL/PASSWORD secret 未設定なら script 側で skip (デプロイは止めない)。
+      - name: Smoke test (auth + CSRF + mutation)
+        env:
+          SMOKE_BASE: https://duel-log-staging.codenica.dev
+          SMOKE_EMAIL: ${{ secrets.STAGING_SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.STAGING_SMOKE_PASSWORD }}
+        run: bash .github/scripts/smoke-staging.sh
+
       - name: Write summary
         run: |
           {
