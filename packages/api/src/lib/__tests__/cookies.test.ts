@@ -50,7 +50,7 @@ describe('setAuthCookies', () => {
     expect(refreshCookie).toMatch(/Path=\/api\/auth(;|$| )/);
   });
 
-  it('dlog_csrf は HttpOnly を含まない / Path=/api で値が CT', async () => {
+  it('dlog_csrf は HttpOnly を含まない / Path=/ で値が CT', async () => {
     const app = buildApp();
     const res = await app.request('/set', { method: 'POST' });
     const cookies = res.headers.getSetCookie();
@@ -59,7 +59,8 @@ describe('setAuthCookies', () => {
     expect(csrfCookie).toContain(`${COOKIE_NAMES.csrf}=CT`);
     // HttpOnly が付いていないことを確認（フロントが読む必要があるため）
     expect(csrfCookie).not.toMatch(/HttpOnly/i);
-    expect(csrfCookie).toMatch(/Path=\/api(;|$| )/);
+    // SPA (path=/ 配下) から document.cookie で読めるよう Path=/ であること
+    expect(csrfCookie).toMatch(/Path=\/(;|$| )/);
   });
 });
 

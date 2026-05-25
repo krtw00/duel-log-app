@@ -16,9 +16,12 @@ export const CSRF_HEADER = 'X-CSRF-Token';
 const ACCESS_MAX_AGE = 60 * 60; // 1h
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 30; // 30d
 
-// access / csrf は全 API に送る。refresh は auth 系にだけ送る（最小権限）
+// access は全 API に送る。refresh は auth 系にだけ送る（最小権限）
 const BASE_PATH = '/api';
 const REFRESH_PATH = '/api/auth';
+// csrf はフロント (SPA, path=/ 配下) が document.cookie で読む必要があるため path=/。
+// path=/api だと SPA のページから読めず X-CSRF-Token を付けられない（= 全 mutation が 403）。
+const CSRF_PATH = '/';
 
 // 本番のみ Secure（dev は http localhost なので付けない）。
 // Domain 未指定なら発行ホスト限定（dev で素直に動く）。本番は `.codenica.dev` を渡して same-site 共有。
@@ -49,11 +52,12 @@ export function setAuthCookies(
     path: REFRESH_PATH,
     maxAge: REFRESH_MAX_AGE,
   });
-  // CSRF token はフロントが読んで X-CSRF-Token ヘッダに載せるため httpOnly にしない
+  // CSRF token はフロントが読んで X-CSRF-Token ヘッダに載せるため httpOnly にしない。
+  // path=/ にして SPA のどのページからも document.cookie で読めるようにする。
   setCookie(c, COOKIE_NAMES.csrf, tokens.csrfToken, {
     ...baseOptions(),
     httpOnly: false,
-    path: BASE_PATH,
+    path: CSRF_PATH,
     maxAge: REFRESH_MAX_AGE,
   });
 }
@@ -61,5 +65,5 @@ export function setAuthCookies(
 export function clearAuthCookies(c: Context): void {
   deleteCookie(c, COOKIE_NAMES.access, { ...baseOptions(), path: BASE_PATH });
   deleteCookie(c, COOKIE_NAMES.refresh, { ...baseOptions(), path: REFRESH_PATH });
-  deleteCookie(c, COOKIE_NAMES.csrf, { ...baseOptions(), path: BASE_PATH });
+  deleteCookie(c, COOKIE_NAMES.csrf, { ...baseOptions(), path: CSRF_PATH });
 }
