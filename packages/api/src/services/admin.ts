@@ -24,10 +24,18 @@ export async function getAdminStatistics() {
   const [todayDuels] = await sql<{ count: number }[]>`
     SELECT count(*)::int AS count FROM duels WHERE created_at >= current_date
   `;
+  const [deckCount] = await sql<{ count: number }[]>`
+    SELECT count(*)::int AS count FROM decks WHERE is_opponent_deck = false
+  `;
+  const [activeUsers] = await sql<{ count: number }[]>`
+    SELECT count(*)::int AS count FROM users WHERE last_login_at >= now() - interval '30 days'
+  `;
 
   return {
     totalUsers: userCount?.count ?? 0,
     totalDuels: duelCount?.count ?? 0,
     todayDuels: todayDuels?.count ?? 0,
+    totalDecks: deckCount?.count ?? 0,
+    activeUsers30d: activeUsers?.count ?? 0,
   };
 }

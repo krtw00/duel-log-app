@@ -32,7 +32,7 @@ export function AdminView() {
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin', 'stats'],
-    queryFn: () => api<{ data: AdminStats }>('/admin/stats'),
+    queryFn: () => api<{ data: AdminStats }>('/admin/statistics'),
   });
 
   const { data: users, isLoading: usersLoading } = useQuery({
@@ -81,7 +81,7 @@ export function AdminView() {
       color: 'var(--color-secondary)',
     },
     {
-      label: t('admin.activeToday'),
+      label: t('admin.active30d'),
       value: stats?.data.activeUsers30d ?? 0,
       color: 'var(--color-warning)',
     },
