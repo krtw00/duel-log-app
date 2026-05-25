@@ -57,6 +57,7 @@ function cookiesReadableAtPath(setCookieHeaders: string[], pagePath: string): Ma
 
     // 最初の要素が name=value
     const nameValue = parts[0];
+    if (nameValue === undefined) continue;
     const eqIdx = nameValue.indexOf('=');
     if (eqIdx === -1) continue;
     const name = nameValue.slice(0, eqIdx).trim();
@@ -67,7 +68,7 @@ function cookiesReadableAtPath(setCookieHeaders: string[], pagePath: string): Ma
     for (const part of parts.slice(1)) {
       const m = part.match(/^Path=(.*)$/i);
       if (m) {
-        cookiePath = m[1].trim();
+        cookiePath = (m[1] ?? '').trim();
         break;
       }
     }
