@@ -87,6 +87,8 @@ describe('admin service', () => {
       expect(result).toHaveProperty('totalUsers');
       expect(result).toHaveProperty('totalDuels');
       expect(result).toHaveProperty('todayDuels');
+      expect(result).toHaveProperty('totalDecks');
+      expect(result).toHaveProperty('activeUsers30d');
     });
 
     it('returns zero counts when no data', async () => {
@@ -98,6 +100,8 @@ describe('admin service', () => {
       expect(result.totalUsers).toBe(0);
       expect(result.totalDuels).toBe(0);
       expect(result.todayDuels).toBe(0);
+      expect(result.totalDecks).toBe(0);
+      expect(result.activeUsers30d).toBe(0);
     });
   });
 });

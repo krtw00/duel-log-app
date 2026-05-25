@@ -312,7 +312,7 @@
     "totalUsers": "総ユーザー数",
     "totalDuels": "総対戦数",
     "totalDecks": "総デッキ数",
-    "activeToday": "本日アクティブ",
+    "active30d": "アクティブ (30日)",
     "userList": "ユーザー一覧",
     "maintenance": "メンテナンス",
     "deleteExpiredLinks": "期限切れ共有リンクを削除",

@@ -312,7 +312,7 @@
     "totalUsers": "총 사용자 수",
     "totalDuels": "총 듀얼 수",
     "totalDecks": "총 덱 수",
-    "activeToday": "오늘 활성",
+    "active30d": "활성 (30일)",
     "userList": "사용자 목록",
     "maintenance": "유지보수",
     "deleteExpiredLinks": "만료된 공유 링크 삭제",

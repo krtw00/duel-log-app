@@ -312,7 +312,7 @@
     "totalUsers": "Total Users",
     "totalDuels": "Total Duels",
     "totalDecks": "Total Decks",
-    "activeToday": "Active Today",
+    "active30d": "Active (30d)",
     "userList": "User List",
     "maintenance": "Maintenance",
     "deleteExpiredLinks": "Delete expired share links",
