@@ -142,7 +142,7 @@ async function findOrCreateOAuthUser(
 
   [user] = await sql<UserRow[]>`
     SELECT * FROM users
-    WHERE email = ${email}
+    WHERE lower(email) = ${email}
   `;
   if (user) {
     const [updated] = await sql<UserRow[]>`
@@ -173,7 +173,7 @@ export const authRoutes = new Hono()
     const { email, password } = loginSchema.parse(await c.req.json());
 
     const [user] = await sql<UserRow[]>`
-      SELECT * FROM users WHERE email = ${email}
+      SELECT * FROM users WHERE lower(email) = ${email}
     `;
 
     if (!user?.passwordHash || !(await passwordMatches(password, user.passwordHash))) {
@@ -196,7 +196,7 @@ export const authRoutes = new Hono()
     const { email, password, displayName } = registerSchema.parse(await c.req.json());
 
     const [existing] = await sql<Pick<UserRow, 'id'>[]>`
-      SELECT id FROM users WHERE email = ${email}
+      SELECT id FROM users WHERE lower(email) = ${email}
     `;
     if (existing) {
       return c.json(
@@ -272,7 +272,7 @@ export const authRoutes = new Hono()
     const { email } = forgotPasswordSchema.parse(await c.req.json());
 
     const [user] = await sql<UserRow[]>`
-      SELECT * FROM users WHERE email = ${email}
+      SELECT * FROM users WHERE lower(email) = ${email}
     `;
 
     if (user?.passwordHash && user.status === 'active') {
