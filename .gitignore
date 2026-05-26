@@ -49,6 +49,9 @@ firebase.hosting.generated.json
 .mcp.json
 .grepai/
 
+# Session handoffs (local only)
+docs/sessions/
+
 # Local database workspace
 db/.temp
 packages/api/debug-logs/
