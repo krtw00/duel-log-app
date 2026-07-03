@@ -7,6 +7,7 @@ import { authMiddleware } from './middleware/auth.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { errorMiddleware } from './middleware/error.js';
 import { maintenanceMiddleware } from './middleware/maintenance.js';
+import { rateLimitMiddleware } from './middleware/rateLimit.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { debugRoutes } from './routes/debug.js';
@@ -55,6 +56,9 @@ app.use('*', logger());
 app.use('*', cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use('*', errorMiddleware);
 app.use('*', maintenanceMiddleware);
+// 認証系エンドポイントの rate limit（bot 連打によるメール送信課金 / ブルートフォース対策）。
+// basePath('/api') 適用下のパス指定なので '/api' を含めない（含めると /api/api/auth/* になり一致しない）。
+app.use('/auth/*', rateLimitMiddleware);
 app.use('*', csrfMiddleware);
 
 // 認証不要ルート（sharedStatisticsRoutesが内部でauth制御）
