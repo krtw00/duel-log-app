@@ -1,12 +1,12 @@
 import {
   type CreateDuel,
+  createDuelSchema,
   DEFAULT_HANDTRAP_CARDS,
   type Deck,
   type Duel,
   type GameMode,
   RESULTS,
   type User,
-  createDuelSchema,
 } from '@duel-log/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
@@ -28,7 +28,7 @@ import {
   resolveCustomHandtrapCards,
   toCustomHandtrapId,
 } from '../../utils/handtraps.js';
-import { RANK_DEFINITIONS, getRankLabel } from '../../utils/ranks.js';
+import { getRankLabel, RANK_DEFINITIONS } from '../../utils/ranks.js';
 import { DeckCombobox } from './DeckCombobox.js';
 import { ScreenAnalysisPanel } from './ScreenAnalysisPanel.js';
 

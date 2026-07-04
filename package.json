@@ -29,31 +29,18 @@
     "clean": "pnpm -r clean"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.0",
-    "typescript": "^5.7.0",
-    "vitest": "^3.2.6"
+    "@biomejs/biome": "^2.5.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   },
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=22.0.0 <23.0.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild"],
-    "overrides": {
-      "esbuild": ">=0.25.0",
-      "@hono/node-server@<1.19.13": ">=1.19.13 <2",
-      "minimatch@9": ">=9.0.7 <10",
-      "rollup@4": ">=4.59.0 <5",
-      "postcss@8": ">=8.5.10 <9",
-      "picomatch@4": ">=4.0.4 <5",
-      "brace-expansion@2": ">=2.0.3 <3",
-      "@babel/core@7": ">=7.29.6 <8"
-    }
-  },
   "dependencies": {
     "hono": "^4.12.27",
-    "lucide-react": "^0.562.0",
-    "postgres": "^3.4.8",
-    "zod": "^3.25.76"
+    "lucide-react": "^1.23.0",
+    "postgres": "^3.4.9",
+    "zod": "^4.4.3"
   }
 }

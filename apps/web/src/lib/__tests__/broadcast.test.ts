@@ -17,7 +17,11 @@ describe('broadcast', () => {
     };
     vi.stubGlobal(
       'BroadcastChannel',
-      vi.fn(() => mockChannel),
+      // vitest v4: constructor mocks require regular function (not arrow) to work correctly
+      // biome-ignore lint/complexity/useArrowFunction: vitest constructor mock requires regular function
+      vi.fn(function () {
+        return mockChannel;
+      }),
     );
   });
 
