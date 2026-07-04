@@ -1,5 +1,5 @@
 import type { DeckWinRate, GameMode, OverviewStats, Streaks } from '@duel-log/shared';
-import { type Ref, forwardRef } from 'react';
+import { forwardRef, type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getRankLabel } from '../../utils/ranks.js';
 
