@@ -55,7 +55,10 @@ app.get('/health/db', async (c) => {
 });
 
 // グローバルミドルウェア
-app.use('*', logger());
+app.use(
+  '*',
+  logger((message) => console.log(message.replace(/(\s\/[^?\s]*)\?[^\s]*/u, '$1'))),
+);
 app.use('*', cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use('*', errorMiddleware);
 app.use('*', maintenanceMiddleware);
