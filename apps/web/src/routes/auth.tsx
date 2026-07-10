@@ -1,4 +1,4 @@
-import { Outlet, createRoute, redirect } from '@tanstack/react-router';
+import { createRoute, Outlet, redirect } from '@tanstack/react-router';
 import { AuthCallbackPage } from '../components/auth/AuthCallbackPage.js';
 import { ForgotPasswordPage } from '../components/auth/ForgotPasswordPage.js';
 import { LoginPage } from '../components/auth/LoginPage.js';

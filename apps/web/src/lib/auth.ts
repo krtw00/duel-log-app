@@ -10,6 +10,8 @@ type LoginResponse = {
   data: { user: AuthUser };
 };
 
+let refreshSessionPromise: Promise<boolean> | null = null;
+
 export function getCsrfToken(): string | null {
   const pairs = document.cookie.split(';');
   for (const pair of pairs) {
@@ -64,16 +66,24 @@ export async function signOut(): Promise<void> {
   }).catch(() => {});
 }
 
-export async function refreshSession(): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
+export function refreshSession(): Promise<boolean> {
+  if (!refreshSessionPromise) {
+    refreshSessionPromise = (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    })().finally(() => {
+      refreshSessionPromise = null;
     });
-    return response.ok;
-  } catch {
-    return false;
   }
+
+  return refreshSessionPromise;
 }
 
 export async function fetchCurrentUser(): Promise<AuthUser | null> {

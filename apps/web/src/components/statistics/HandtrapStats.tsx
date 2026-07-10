@@ -1,9 +1,9 @@
 import { DEFAULT_HANDTRAP_CARDS, type HandtrapStatsEntry } from '@duel-log/shared';
 import { useTranslation } from 'react-i18next';
 import {
-  type UserHandtrapCard,
   getHandtrapName,
   getHandtrapNameFromId,
+  type UserHandtrapCard,
 } from '../../utils/handtraps.js';
 
 type Props = {

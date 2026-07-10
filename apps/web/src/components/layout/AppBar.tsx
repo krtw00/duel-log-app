@@ -1,9 +1,9 @@
 import { Link, useLocation } from '@tanstack/react-router';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { LanguageSwitcher } from '../LanguageSwitcher.js';
 import { ThemeToggle } from '../ThemeToggle.js';
-import { DuelLogBrand } from '../brand/DuelLogBrand.js';
 import { UserMenu } from './UserMenu.js';
 
 export function AppBar() {

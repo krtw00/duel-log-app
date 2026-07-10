@@ -75,7 +75,9 @@ body {
   background: var(--color-bg);
   color: var(--color-on-bg);
   font-family: "IBM Plex Sans", "IBM Plex Sans JP", "IBM Plex Sans KR", sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* ==========================================
@@ -367,7 +369,8 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
+  background-image:
+    linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
 }
@@ -461,7 +464,9 @@ body {
   border: none;
   cursor: pointer;
   margin-top: -20px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .bottom-nav-fab:hover {
@@ -482,7 +487,10 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .stat-card::before {
@@ -747,7 +755,9 @@ body {
   color: var(--color-on-surface);
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .themed-input:focus {
@@ -1008,7 +1018,9 @@ body {
   background: transparent;
   border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .feedback-btn:hover {

@@ -5,7 +5,7 @@ import { sql } from './db/index.js';
 import { adminMiddleware } from './middleware/admin.js';
 import { authMiddleware } from './middleware/auth.js';
 import { csrfMiddleware } from './middleware/csrf.js';
-import { errorMiddleware } from './middleware/error.js';
+import { errorMiddleware, handleError } from './middleware/error.js';
 import { maintenanceMiddleware } from './middleware/maintenance.js';
 import { rateLimitMiddleware } from './middleware/rateLimit.js';
 import { adminRoutes } from './routes/admin.js';
@@ -33,6 +33,9 @@ const ALLOWED_ORIGINS = (
 
 const app = new Hono().basePath('/api');
 
+// マウント済みサブアプリの throw はミドルウェア try/catch に届かないため onError で捕捉する
+app.onError((err, c) => handleError(err, c));
+
 // ヘルスチェック（ミドルウェア前）
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
 app.get('/health/db', async (c) => {
@@ -52,7 +55,10 @@ app.get('/health/db', async (c) => {
 });
 
 // グローバルミドルウェア
-app.use('*', logger());
+app.use(
+  '*',
+  logger((message) => console.log(message.replace(/(\s\/[^?\s]*)\?[^\s]*/u, '$1'))),
+);
 app.use('*', cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use('*', errorMiddleware);
 app.use('*', maintenanceMiddleware);
