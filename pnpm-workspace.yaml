@@ -1,10 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
-onlyBuiltDependencies:
-  - "@biomejs/biome"
-  - esbuild
-  - tesseract.js
+allowBuilds:
+  "@biomejs/biome": true
+  esbuild: true
+  tesseract.js: true
 overrides:
   esbuild: ">=0.25.0"
   "@hono/node-server@<1.19.13": ">=1.19.13 <2"
