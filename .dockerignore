@@ -3,3 +3,8 @@ node_modules
 dist
 .turbo
 db/.temp
+.env
+.env.*
+.env/
+**/.env
+**/.env.*
