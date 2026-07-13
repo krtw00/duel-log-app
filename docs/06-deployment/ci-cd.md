@@ -7,7 +7,7 @@ ai_summary: "CI/CDパイプラインの設定"
 # CI/CD設定
 
 > Status: Active
-> 最終更新: 2026-03-19
+> 最終更新: 2026-07-14
 
 GitHub ActionsによるCI/CDパイプライン
 
@@ -36,8 +36,8 @@ flowchart TD
     lint --> build["Build<br/>(pnpm build)"]
     typecheck --> build
     test --> build
-    build -->|staging branch| staging["Deploy Staging<br/>(Firebase Hosting only; API は codenica-vps)"]
-    build -->|main branch only| deploy["Deploy Production<br/>(Cloud Run + Firebase)"]
+    build -->|staging push| staging["Buildx → GHCR<br/>Deploy Staging to codenica-vps"]
+    main["main push / manual"] --> production["Buildx → GHCR<br/>Deploy Production to codenica-vps"]
 ```
 
 ---
@@ -48,10 +48,9 @@ flowchart TD
 
 | ジョブ | 実行コマンド | 説明 |
 |-------|-------------|------|
-| lint | `pnpm lint` | ESLintチェック |
-| typecheck | `pnpm typecheck` | 型チェック |
-| test | `pnpm test:coverage` | テスト + カバレッジ |
-| build | `pnpm build` | ビルド（lint/typecheck/test成功後） |
+| check | `pnpm lint`, `pnpm typecheck` | Biomeチェック + 型チェック |
+| test | `pnpm test` | テスト |
+| build | `pnpm build` | ビルド（lint/typecheck成功後、testとは並列） |
 
 ### トリガー条件
 
@@ -60,17 +59,21 @@ flowchart TD
 | push | main, staging | プッシュ時に実行 |
 | pull_request | main, staging | PR作成/更新時に実行 |
 
-### Deploy jobs（`.github/workflows/ci.yml`）
+### Deploy jobs
 
-| ジョブ | 実行条件 | デプロイ先 |
-|-------|----------|-----------|
-| `deploy-staging` | `staging` push / manual | Firebase Hosting `duel-log-staging` (API は codenica-vps 経由) |
-| `deploy-production` | `main` push / manual | Firebase Hosting `duel-log` + Cloud Run `duel-log-api` |
+| Workflow / job | 実行条件 | デプロイ先 |
+|----------------|----------|-----------|
+| `.github/workflows/ci.yml` / `deploy-staging` | `staging` push / manual | codenica-vps staging (static frontend + API Compose) |
+| `.github/workflows/deploy.yml` / `deploy` | `main` push / manual | codenica-vps production (static frontend + API Compose) |
 
-| ブランチ | 役割 | URL |
-|---------|------|-----|
-| `staging` | staging | `https://duel-log-staging.web.app` |
-| `main` | production | `https://duel-log.codenica.dev` |
+両環境とも、GitHub Actions の Buildx で API image をビルドして `ghcr.io/krtw00/duel-log-api` へpushする。VPS上のComposeはBuildxが返したdigestを含むimage referenceへ更新し、そのdigestで起動したことを確認する。
+
+| ブランチ | 役割 | Public URL | Public health |
+|---------|------|------------|---------------|
+| `staging` | staging | `https://duel-log-staging.codenica.dev` | `https://duel-log-staging.codenica.dev/api/health` |
+| `main` | production | `https://duel-log.codenica.dev` | `https://duel-log.codenica.dev/api/health` |
+
+デプロイ後はVPS内で `/api/health` と `/api/health/db` を確認する。stagingではさらに login → `path=/` のCSRF cookie読取 → mutation → logout の実機smokeを実行する。
 
 ---
 
@@ -80,11 +83,10 @@ flowchart TD
 
 | Secret | 用途 |
 |--------|------|
-| `CODECOV_TOKEN` | カバレッジレポート |
-| `SUPABASE_ACCESS_TOKEN` | production migration |
-| `SUPABASE_PROJECT_REF` | production migration |
-| `DUEL_LOG_PRODUCTION_ENV_FILE` | production 用 app / API env |
-| `DUEL_LOG_STAGING_ENV_FILE` | staging 用 app / API env |
+| `VPS_SSH_KEY` | codenica-vpsへのfrontend/APIデプロイ |
+| `DUEL_LOG_STAGING_ENV_FILE` | staging frontend build env |
+| `STAGING_SMOKE_EMAIL` / `STAGING_SMOKE_PASSWORD` | staging認証smoke（未設定時はskip） |
+| `GITHUB_TOKEN` | GHCRへのimage pushと、デプロイ時の一時的なpull認証 |
 
 設定場所: `Settings → Secrets and variables → Actions`
 
@@ -92,14 +94,12 @@ flowchart TD
 
 | Variable | 用途 |
 |---------|------|
-| `GOOGLE_CLOUD_PROJECT` | GCP project id |
-| `GOOGLE_CLOUD_REGION` | Cloud Run region |
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | GitHub OIDC provider |
-| `GCP_SERVICE_ACCOUNT` | deploy service account |
-| `ARTIFACT_REGISTRY_REPOSITORY` | Docker image repo |
-| `FIREBASE_HOSTING_SITE` | production Hosting site |
-| `CLOUD_RUN_SERVICE` | production API service |
-| `STAGING_FIREBASE_HOSTING_SITE` | staging Hosting site |
+| `VPS_HOST` | codenica-vps host |
+| `VPS_USER` | codenica-vps deploy user |
+
+### API secretの境界
+
+APIのDB接続情報等はVPS既存の暗号化ファイル（production: `/opt/duel-log-api/secrets.enc.env`、staging: `/opt/duel-log-api-staging/secrets.enc.env`）をCompose起動時に利用する。CIはsecret値を取得・表示・ローカルコピーせず、Composeのimage reference更新、pull、起動だけを行う。GHCR認証も一時的なDocker設定ディレクトリを使い、処理終了時に削除する。
 
 ---
 
@@ -164,9 +164,7 @@ flowchart TD
 
 `Actions` タブから手動実行可能:
 
-| 入力 | オプション |
-|------|----------|
-| environment | GitHub UI から branch を選んで実行 |
+GitHub UIで対象workflowとbranchを選んで実行する。workflow固有の入力項目はない。
 
 ---
 
@@ -176,4 +174,4 @@ flowchart TD
 |------------|------|
 | [コントリビューションガイド](../07-development/contributing.md) | コントリビューションガイド |
 | [テストガイド](../05-guides/testing.md) | テストガイド |
-| [Staging環境](./staging.md) | Google staging 運用 |
+| [Staging環境](./staging.md) | codenica-vps staging 運用 |
