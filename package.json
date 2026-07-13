@@ -15,7 +15,6 @@
     "build": "pnpm -r build",
     "cloudrun:env": "node scripts/generate-cloudrun-api-env.mjs",
     "cloudrun:build-api": "pnpm --filter @duel-log/shared build && pnpm --filter @duel-log/api build",
-    "cloudrun:deploy-api": "bash scripts/deploy-cloudrun-api.sh",
     "firebase:env": "node scripts/generate-firebase-hosting-env.mjs",
     "firebase:env:staging": "node scripts/generate-firebase-hosting-env.mjs --input .env/staging --output .firebase/hosting.staging.env --api-base-url https://duel-log-api-staging.codenica.dev/api --primary-web-url https://duel-log-staging.web.app --legacy-web-hosts ''",
     "firebase:deploy:web": "bash scripts/deploy-firebase-hosting.sh",
