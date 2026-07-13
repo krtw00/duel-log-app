@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -96,10 +95,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check, test, build]
     if: github.ref == 'refs/heads/staging' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
     env:
-      GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT || 'oauthsetting-484201' }}
-      GOOGLE_CLOUD_REGION: ${{ vars.GOOGLE_CLOUD_REGION || 'asia-northeast1' }}
-      ARTIFACT_REGISTRY_REPO: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'apps' }}
+      IMAGE_REPOSITORY: ghcr.io/krtw00/duel-log-api
 
     steps:
       - uses: actions/checkout@v5
@@ -121,16 +121,24 @@ jobs:
           ${{ secrets.DUEL_LOG_STAGING_ENV_FILE }}
           EOF
 
-      - id: auth
-        uses: google-github-actions/auth@v3
-        with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
-          create_credentials_file: true
+      - uses: docker/setup-buildx-action@v4
 
-      - uses: google-github-actions/setup-gcloud@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
         with:
-          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push API image to GHCR
+        id: build_api
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.cloudrun-api
+          push: true
+          tags: ${{ env.IMAGE_REPOSITORY }}:staging-${{ github.sha }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
       - name: Build web (same-origin)
         run: |
@@ -153,42 +161,41 @@ jobs:
           rsync -az --delete -e "ssh -i ~/.ssh/deploy_key" \
             apps/web/dist/ "${{ vars.VPS_USER }}@${{ vars.VPS_HOST }}:/var/www/duel-log-staging/"
 
-      - name: Build & push API image to Artifact Registry
-        id: build_api
-        run: |
-          set -euo pipefail
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-          IMAGE_TAG="${GOOGLE_CLOUD_REGION}-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/${ARTIFACT_REGISTRY_REPO}/api:staging-${SHORT_SHA}"
-          gcloud builds submit --project "$GOOGLE_CLOUD_PROJECT" --config deploy/google/cloudbuild.api.yaml --substitutions=_IMAGE="$IMAGE_TAG"
-          DIGEST=$(gcloud artifacts docker images describe "$IMAGE_TAG" --format='value(image_summary.digest)')
-          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-
-      - name: Mint Artifact Registry access token
-        id: gcloud_token
-        run: echo "token=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
-
       - name: Deploy API container to codenica-vps (staging)
         uses: appleboy/ssh-action@v1.2.5
         env:
-          GCLOUD_TOKEN: ${{ steps.gcloud_token.outputs.token }}
-          IMAGE_DIGEST: ${{ steps.build_api.outputs.digest }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+          IMAGE_REFERENCE: ${{ env.IMAGE_REPOSITORY }}@${{ steps.build_api.outputs.digest }}
         with:
           host: ${{ vars.VPS_HOST }}
           username: ${{ vars.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: GCLOUD_TOKEN,IMAGE_DIGEST
+          envs: GHCR_TOKEN,GHCR_USERNAME,IMAGE_REFERENCE
           script: |
             set -euo pipefail
             cd /opt/duel-log-api-staging
-            echo "$GCLOUD_TOKEN" | docker login -u oauth2accesstoken --password-stdin https://asia-northeast1-docker.pkg.dev
-            sed -i.bak -E "s|apps/api@sha256:[a-f0-9]+|apps/api@${IMAGE_DIGEST}|" docker-compose.yml
+            DOCKER_CONFIG="$(mktemp -d)"
+            export DOCKER_CONFIG
+            trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+            printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USERNAME" --password-stdin >/dev/null
+            test "$(grep -cE '^[[:space:]]+image:' docker-compose.yml)" -eq 1
+            sed -i.bak -E "s|^([[:space:]]*image:[[:space:]]*).*$|\1${IMAGE_REFERENCE}|" docker-compose.yml
+            grep -qF "image: ${IMAGE_REFERENCE}" docker-compose.yml
             docker compose pull
             ./up.sh
+            test "$(docker inspect --format '{{.Config.Image}}' duel-log-api-staging)" = "$IMAGE_REFERENCE"
             for i in 1 2 3 4 5 6 7 8 9 10; do
-              if curl -fsS http://127.0.0.1:8001/api/health >/dev/null 2>&1; then echo "staging deploy OK (attempt $i)"; exit 0; fi
+              if curl -fsS http://127.0.0.1:8001/api/health >/dev/null 2>&1 && \
+                 curl -fsS http://127.0.0.1:8001/api/health/db >/dev/null 2>&1; then
+                echo "staging deploy OK (attempt $i)"
+                exit 0
+              fi
               sleep 3
             done
-            echo "health check failed after 30s"; docker logs duel-log-api-staging --tail 50; exit 1
+            echo "health check failed after 30s"
+            docker inspect --format 'status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' duel-log-api-staging
+            exit 1
 
       # 認証スモーク: login → CSRF cookie 読取(path=/ 検証) → データ登録 → logout を実機で叩く。
       # /health の GET 確認だけでは見抜けなかった CSRF/cookie 障害を検知する最終防衛線。
