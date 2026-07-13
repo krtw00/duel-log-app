@@ -42,7 +42,7 @@ flowchart TB
 |---------|------|
 | フロントエンド | React 19 / TypeScript / shadcn/ui / TanStack Router / TanStack Query / Zustand |
 | バックエンド | Hono / TypeScript / Drizzle ORM / Zod |
-| インフラ | Vercel Functions / Cloud Run / Cloud SQL |
+| インフラ | codenica-vps (Caddy / Docker Compose / PostgreSQL 17) / GHCR |
 | テスト | Vitest / Testing Library / Playwright |
 | モノレポ | pnpm workspaces |
 
@@ -57,14 +57,14 @@ duel-log-app/
 ├── apps/
 │   └── web/                    # React SPA (Vite)
 ├── packages/
-│   ├── api/                    # Hono API (Vercel Functions)
+│   ├── api/                    # Hono API
 │   └── shared/                 # Zod schemas + 共通型
 ├── db/                         # PostgreSQL migrations / seed data
 ├── docs/                       # ドキュメント
 ├── scripts/                    # ユーティリティスクリプト
 ├── pnpm-workspace.yaml
 ├── biome.json                  # Linter/Formatter
-└── vercel.json                 # デプロイ設定
+└── vercel.json                 # Vercel互換設定（現行VPSデプロイでは未使用）
 ```
 
 ---
@@ -136,11 +136,15 @@ pnpm db:reset           # DBリセット（スキーマ再作成 + シード）
 
 | 環境 | サービス |
 |------|---------|
-| フロントエンド + API | Vercel (単一ドメイン) |
-| データベース + 認証 | Cloud SQL + Application Auth |
+| production | codenica-vps (`https://duel-log.codenica.dev`) |
+| staging | codenica-vps (`https://duel-log-staging.codenica.dev`) |
+| API image | GitHub Actions Buildx → `ghcr.io/krtw00/duel-log-api` → Docker Compose (digest固定) |
+| データベース + 認証 | codenica-vps PostgreSQL 17 + Application Auth |
 | CI/CD | GitHub Actions |
 
-詳細: [デプロイ手順](./docs/06-deployment/vercel.md)
+Health: production は `https://duel-log.codenica.dev/api/health`、staging は `https://duel-log-staging.codenica.dev/api/health`。
+
+詳細: [CI/CD設定](./docs/06-deployment/ci-cd.md)、[Staging環境](./docs/06-deployment/staging.md)
 
 ---
 
