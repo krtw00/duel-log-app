@@ -15,7 +15,7 @@
   "dependencies": {
     "@duel-log/shared": "workspace:*",
     "@hono/zod-openapi": "1.4.0",
-    "hono": "^4.12.27",
+    "hono": "^4.12.34",
     "jose": "^6.2.3",
     "postgres": "^3.4.9",
     "zod": "^4.4.3"
